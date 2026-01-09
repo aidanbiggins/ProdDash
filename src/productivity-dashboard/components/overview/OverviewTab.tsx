@@ -92,13 +92,29 @@ export function OverviewTab({
     });
   };
 
+  // Build complexity scores map from all recruiter summaries
+  const complexityScoresMap = useMemo(() => {
+    const map = new Map<string, { totalScore: number; levelWeight: number; hmWeight: number }>();
+    overview.recruiterSummaries.forEach(r => {
+      r.weighted.complexityScores.forEach(cs => {
+        map.set(cs.reqId, {
+          totalScore: cs.totalScore,
+          levelWeight: cs.levelWeight,
+          hmWeight: cs.hmWeight
+        });
+      });
+    });
+    return map;
+  }, [overview.recruiterSummaries]);
+
   // Build drill-down records based on type
   const getDrillDownRecords = useMemo(() => {
     if (!drillDown) return [];
     switch (drillDown.type) {
       case 'hires':
-      case 'weightedHires':
         return buildHiresRecords(candidates, requisitions, users);
+      case 'weightedHires':
+        return buildHiresRecords(candidates, requisitions, users, complexityScoresMap);
       case 'offers':
         return buildOffersRecords(candidates, requisitions, users);
       case 'openReqs':
@@ -109,7 +125,7 @@ export function OverviewTab({
       default:
         return [];
     }
-  }, [drillDown, candidates, requisitions, users]);
+  }, [drillDown, candidates, requisitions, users, complexityScoresMap]);
 
   // Format trend data for charts
   const trendData = weeklyTrends.map(t => ({
