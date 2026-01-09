@@ -131,13 +131,14 @@ export function validateStageMappingCompleteness(mappings: StageMapping[]): {
   missingStages: CanonicalStage[];
   mappedStages: CanonicalStage[];
 } {
+  // These are the stages required for funnel conversion metrics
+  // REJECTED/WITHDREW are tracked via disposition field, not current_stage
   const requiredStages: CanonicalStage[] = [
     CanonicalStage.SCREEN,
     CanonicalStage.HM_SCREEN,
     CanonicalStage.ONSITE,
     CanonicalStage.OFFER,
-    CanonicalStage.HIRED,
-    CanonicalStage.REJECTED
+    CanonicalStage.HIRED
   ];
 
   const mappedCanonical = new Set(mappings.map(m => m.canonicalStage));
