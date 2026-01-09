@@ -132,6 +132,28 @@ export function RecruiterDetailTab({
       aggregated.funnelConversion[stage].rate = totalEntered > 0 ? totalConverted / totalEntered : 0;
     });
 
+    // Aggregate aging buckets from all recruiters
+    const bucketMap = new Map<string, { label: string; min: number; max: number | null; count: number; reqIds: string[] }>();
+    recruiterSummaries.forEach(r => {
+      r.aging.agingBuckets.forEach(bucket => {
+        const existing = bucketMap.get(bucket.label);
+        if (existing) {
+          existing.count += bucket.count;
+          existing.reqIds.push(...bucket.reqIds);
+        } else {
+          bucketMap.set(bucket.label, {
+            label: bucket.label,
+            min: bucket.min,
+            max: bucket.max,
+            count: bucket.count,
+            reqIds: [...bucket.reqIds]
+          });
+        }
+      });
+    });
+    // Convert map to array and sort by min value
+    aggregated.aging.agingBuckets = Array.from(bucketMap.values()).sort((a, b) => a.min - b.min);
+
 
     return aggregated;
   }, [recruiterSummaries, selectedRecruiterId]);
