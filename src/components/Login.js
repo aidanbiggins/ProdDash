@@ -21,8 +21,7 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        // Use production URL if set, otherwise current origin
-        emailRedirectTo: process.env.REACT_APP_SITE_URL || window.location.origin,
+        emailRedirectTo: window.location.origin,
       },
     });
 
