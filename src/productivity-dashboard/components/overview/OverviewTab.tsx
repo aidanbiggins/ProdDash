@@ -1,14 +1,15 @@
 // Overview Tab Component
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
 import { format } from 'date-fns';
-import { OverviewMetrics, RecruiterSummary, WeeklyTrend, DataHealth } from '../../types';
+import { OverviewMetrics, RecruiterSummary, WeeklyTrend, DataHealth, Candidate, Requisition, User } from '../../types';
 import { KPICard } from '../common/KPICard';
-import { MetricDrillDown, METRIC_FORMULAS } from '../common/MetricDrillDown';
+import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords } from '../common/DataDrillDownModal';
+import { METRIC_FORMULAS } from '../common/MetricDrillDown';
 import { exportRecruiterSummaryCSV } from '../../services';
 import { MetricFilters } from '../../types';
 
@@ -18,6 +19,10 @@ interface OverviewTabProps {
   dataHealth: DataHealth;
   filters: MetricFilters;
   onSelectRecruiter: (recruiterId: string) => void;
+  // Raw data for drill-down
+  candidates: Candidate[];
+  requisitions: Requisition[];
+  users: User[];
 }
 
 export function OverviewTab({
@@ -25,15 +30,17 @@ export function OverviewTab({
   weeklyTrends,
   dataHealth,
   filters,
-  onSelectRecruiter
+  onSelectRecruiter,
+  candidates,
+  requisitions,
+  users
 }: OverviewTabProps) {
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
-    metricName: string;
-    formula: string;
-    value: string | number;
-    recordCount: number;
-    additionalInfo?: Record<string, string | number>;
+    type: DrillDownType;
+    title: string;
+    formula?: string;
+    totalValue?: string | number;
   } | null>(null);
 
   // Sorting state for leaderboard
@@ -74,25 +81,35 @@ export function OverviewTab({
   const isLowConfidence = (metric: string) =>
     dataHealth.lowConfidenceMetrics.includes(metric);
 
-  const openDrillDown = (
-    metricName: string,
-    value: string | number,
-    recordCount: number,
-    additionalInfo?: Record<string, string | number>
-  ) => {
-    const formulaInfo = METRIC_FORMULAS[metricName.toLowerCase().replace(/\s+/g, '')] || {
-      formula: 'Custom calculation',
-      description: ''
-    };
+  const openDrillDown = (type: DrillDownType, title: string, totalValue?: string | number) => {
+    const formulaInfo = METRIC_FORMULAS[type] || { formula: 'Custom calculation' };
     setDrillDown({
       isOpen: true,
-      metricName,
+      type,
+      title,
       formula: formulaInfo.formula,
-      value,
-      recordCount,
-      additionalInfo
+      totalValue
     });
   };
+
+  // Build drill-down records based on type
+  const getDrillDownRecords = useMemo(() => {
+    if (!drillDown) return [];
+    switch (drillDown.type) {
+      case 'hires':
+      case 'weightedHires':
+        return buildHiresRecords(candidates, requisitions, users);
+      case 'offers':
+        return buildOffersRecords(candidates, requisitions, users);
+      case 'openReqs':
+        return buildReqsRecords(requisitions.filter(r => r.status === 'Open'), users);
+      case 'stalledReqs':
+        // Stalled reqs are those with no activity - just filter open reqs for now
+        return buildReqsRecords(requisitions.filter(r => r.status === 'Open'), users);
+      default:
+        return [];
+    }
+  }, [drillDown, candidates, requisitions, users]);
 
   // Format trend data for charts
   const trendData = weeklyTrends.map(t => ({
@@ -119,7 +136,7 @@ export function OverviewTab({
               value: overview.priorPeriod.hires,
               label: overview.priorPeriod.label
             } : undefined}
-            onClick={() => openDrillDown('Hires', overview.totalHires, overview.totalHires)}
+            onClick={() => openDrillDown('hires', 'Hires', overview.totalHires)}
           />
         </div>
         <div className="col-md-2">
@@ -131,12 +148,7 @@ export function OverviewTab({
               label: overview.priorPeriod.label
             } : undefined}
             lowConfidence={isLowConfidence('Weighted Metrics')}
-            onClick={() => openDrillDown(
-              'Weighted Hires',
-              overview.totalWeightedHires.toFixed(1),
-              overview.totalHires,
-              { formula: 'SUM(complexity_score for each hire)' }
-            )}
+            onClick={() => openDrillDown('weightedHires', 'Weighted Hires', overview.totalWeightedHires.toFixed(1))}
           />
         </div>
         <div className="col-md-2">
@@ -147,7 +159,7 @@ export function OverviewTab({
               value: overview.priorPeriod.offers,
               label: overview.priorPeriod.label
             } : undefined}
-            onClick={() => openDrillDown('Offers Extended', overview.totalOffers, overview.totalOffers)}
+            onClick={() => openDrillDown('offers', 'Offers Extended', overview.totalOffers)}
           />
         </div>
         <div className="col-md-2">
@@ -156,13 +168,6 @@ export function OverviewTab({
             value={overview.totalOfferAcceptanceRate !== null
               ? `${(overview.totalOfferAcceptanceRate * 100).toFixed(0)}%`
               : 'N/A'}
-            onClick={() => openDrillDown(
-              'Offer Acceptance Rate',
-              overview.totalOfferAcceptanceRate !== null
-                ? `${(overview.totalOfferAcceptanceRate * 100).toFixed(1)}%`
-                : 'N/A',
-              overview.totalOffers
-            )}
           />
         </div>
         <div className="col-md-2">
@@ -170,11 +175,6 @@ export function OverviewTab({
             title="Median TTF"
             value={overview.medianTTF !== null ? `${overview.medianTTF}d` : 'N/A'}
             subtitle="days"
-            onClick={() => openDrillDown(
-              'Time to Fill',
-              overview.medianTTF !== null ? `${overview.medianTTF} days` : 'N/A',
-              overview.totalHires
-            )}
           />
         </div>
         <div className="col-md-2">
@@ -338,14 +338,14 @@ export function OverviewTab({
 
       {/* Drill Down Modal */}
       {drillDown && (
-        <MetricDrillDown
+        <DataDrillDownModal
           isOpen={drillDown.isOpen}
           onClose={() => setDrillDown(null)}
-          metricName={drillDown.metricName}
+          title={drillDown.title}
+          type={drillDown.type}
+          records={getDrillDownRecords}
           formula={drillDown.formula}
-          value={drillDown.value}
-          recordCount={drillDown.recordCount}
-          additionalInfo={drillDown.additionalInfo}
+          totalValue={drillDown.totalValue}
         />
       )}
     </div>

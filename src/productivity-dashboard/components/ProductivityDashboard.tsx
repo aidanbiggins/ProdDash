@@ -200,6 +200,9 @@ export function ProductivityDashboard() {
                     dataHealth={state.dataStore.dataHealth}
                     filters={state.filters}
                     onSelectRecruiter={handleSelectRecruiter}
+                    candidates={state.dataStore.candidates}
+                    requisitions={state.dataStore.requisitions}
+                    users={state.dataStore.users}
                   />
                 )}
 
