@@ -12,9 +12,10 @@ import { HMFrictionTab } from './hm-friction/HMFrictionTab';
 import { QualityTab } from './quality/QualityTab';
 import { SourceEffectivenessTab } from './source-effectiveness/SourceEffectivenessTab';
 import { StageMappingModal } from './StageMappingModal';
+import { HiringManagersTab } from './hiring-managers';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages } from '../services';
 
-type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'quality' | 'source-mix';
+type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset } = useDashboard();
@@ -183,6 +184,12 @@ export function ProductivityDashboard() {
               >
                 Source Mix
               </button>
+              <button
+                className={`nav-link ${activeTab === 'hiring-managers' ? 'active' : ''}`}
+                onClick={() => setActiveTab('hiring-managers')}
+              >
+                Hiring Managers
+              </button>
             </div>
 
             {/* Tab Content */}
@@ -236,6 +243,17 @@ export function ProductivityDashboard() {
 
                 {activeTab === 'source-mix' && sourceEffectiveness && (
                   <SourceEffectivenessTab data={sourceEffectiveness} />
+                )}
+
+                {activeTab === 'hiring-managers' && (
+                  <HiringManagersTab
+                    requisitions={state.dataStore.requisitions}
+                    candidates={state.dataStore.candidates}
+                    events={state.dataStore.events}
+                    users={state.dataStore.users}
+                    stageMappingConfig={state.dataStore.config.stageMapping}
+                    lastImportAt={state.dataStore.lastImportAt}
+                  />
                 )}
               </>
             )}
