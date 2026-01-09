@@ -83,6 +83,12 @@ export function ICIMSImportGuide({ onClose }: ICIMSImportGuideProps) {
                   The system will automatically extract jobs, candidates, and users from this one file.
                 </p>
 
+                <div className="alert alert-info mb-4">
+                  <strong>How iCIMS Works:</strong> In iCIMS, candidate status is determined by their
+                  <strong> bin placement</strong> in the recruiting workflow. There's no separate "status" field —
+                  the bin (stage) they're in IS their status.
+                </div>
+
                 <div className="card mb-4 border-success">
                   <div className="card-header bg-success text-white bg-opacity-75">
                     <strong>How to Export</strong>
@@ -90,38 +96,41 @@ export function ICIMSImportGuide({ onClose }: ICIMSImportGuideProps) {
                   <div className="card-body">
                     <ol>
                       <li>Go to <strong>Search &gt; Recruiting Workflow Search</strong> in iCIMS.</li>
-                      <li>Add the following columns to your view (names match auto-detection):
+                      <li>Add the following columns to your export:
                         <div className="row mt-2">
-                          <div className="col-md-4">
+                          <div className="col-md-6">
                             <strong>Job Info:</strong>
                             <ul className="small text-muted">
                               <li>Job ID (Required)</li>
                               <li>Job Title</li>
-                              <li>Job Status</li>
+                              <li>Job Created Date / Posted Date</li>
+                              <li>Job Function / Department</li>
+                              <li>Recruiter Name</li>
+                              <li>Hiring Manager Name</li>
                             </ul>
                           </div>
-                          <div className="col-md-4">
-                            <strong>Candidate Info:</strong>
+                          <div className="col-md-6">
+                            <strong>Candidate/Workflow Info:</strong>
                             <ul className="small text-muted">
                               <li>Person ID (Required)</li>
-                              <li>Full Name</li>
-                              <li>Current Matrix Status (Stage)</li>
-                              <li>Application Date</li>
-                            </ul>
-                          </div>
-                          <div className="col-md-4">
-                            <strong>People Info:</strong>
-                            <ul className="small text-muted">
-                              <li>Recruiter Name (Primary)</li>
-                              <li>Hiring Manager Name</li>
+                              <li><strong>Currently in Standard Stage [X]</strong> — This is the bin/stage!</li>
+                              <li>Last Updated Date in Standard Stage [X]</li>
+                              <li>Application Date / Submittal Date</li>
+                              <li>Source (Workflow Tab)</li>
                             </ul>
                           </div>
                         </div>
                       </li>
-                      <li><strong>Click Export &gt; Excel (CSV)</strong>.</li>
+                      <li><strong>Click Search</strong>, then <strong>Export &gt; Excel (CSV)</strong>.</li>
                       <li>Drag and drop that single file into the upload box!</li>
                     </ol>
                   </div>
+                </div>
+
+                <div className="alert alert-warning mb-4">
+                  <strong>About "Currently in Standard Stage":</strong> iCIMS shows bin placement as boolean columns
+                  ("Currently in Standard Stage Hired", "Currently in Standard Stage Screen", etc.). The system will
+                  detect which stage each candidate is in by checking these columns.
                 </div>
 
                 <h6>Column Mapping Reference</h6>
@@ -129,35 +138,40 @@ export function ICIMSImportGuide({ onClose }: ICIMSImportGuideProps) {
                   <thead className="table-light">
                     <tr>
                       <th>Dashboard Field</th>
-                      <th>Recognized iCIMS Columns</th>
+                      <th>iCIMS Column Names</th>
                       <th>Notes</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td><code>req_id</code></td>
-                      <td>Job ID, Requisition ID</td>
-                      <td>Specific Job identifier</td>
+                      <td>Job ID, Job: System ID</td>
+                      <td>Unique job identifier</td>
                     </tr>
                     <tr>
                       <td><code>candidate_id</code></td>
-                      <td>Person ID, Candidate ID, System ID</td>
-                      <td>Specific Person identifier</td>
+                      <td>Person ID, Person: System ID</td>
+                      <td>Unique candidate identifier</td>
                     </tr>
                     <tr>
                       <td><code>current_stage</code></td>
-                      <td>Status, Recruiting Workflow Status, Stage</td>
-                      <td>e.g., "Offer Accepted", "Hiring Manager Review"</td>
+                      <td>Currently in Standard Stage [X]</td>
+                      <td>iCIMS uses bin placement — check which stage column is true</td>
+                    </tr>
+                    <tr>
+                      <td><code>current_stage_entered_at</code></td>
+                      <td>Last Updated Date in Standard Stage [X]</td>
+                      <td>When candidate entered their current bin</td>
                     </tr>
                     <tr>
                       <td><code>recruiter_id</code></td>
-                      <td>Recruiter, Recruiter Name</td>
-                      <td>Used to create Recruiter user</td>
+                      <td>Recruiter, Primary Recruiter</td>
+                      <td>Assigned recruiter name</td>
                     </tr>
                     <tr>
                       <td><code>hiring_manager_id</code></td>
-                      <td>Hiring Manager, Hiring Manager Name</td>
-                      <td>Used to create HM user</td>
+                      <td>Hiring Manager, Job: Hiring Manager</td>
+                      <td>Hiring manager name</td>
                     </tr>
                   </tbody>
                 </table>
