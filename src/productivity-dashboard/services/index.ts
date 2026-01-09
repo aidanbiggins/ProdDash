@@ -7,3 +7,4 @@ export * from './complexityScoring';
 export * from './dataQuality';
 export * from './qualityMetrics';
 export * from './exportService';
+export * from './dbService';

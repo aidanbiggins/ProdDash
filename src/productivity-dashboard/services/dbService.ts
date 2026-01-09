@@ -106,3 +106,26 @@ export const persistDashboardData = async (
     const { error: eErr } = await supabase.from('events').upsert(dbEvents);
     if (eErr) throw eErr;
 };
+
+/**
+ * Clear all data from the database tables
+ * Used before loading demo data to ensure clean state
+ */
+export const clearAllData = async () => {
+    if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
+
+    // Delete in order: events -> candidates -> requisitions -> users (respecting foreign keys)
+    // Using neq filter to delete all rows (Supabase requires a filter for delete)
+    const { error: eErr } = await supabase.from('events').delete().neq('event_id', '');
+    if (eErr) throw eErr;
+
+    const { error: cErr } = await supabase.from('candidates').delete().neq('candidate_id', '');
+    if (cErr) throw cErr;
+
+    const { error: rErr } = await supabase.from('requisitions').delete().neq('req_id', '');
+    if (rErr) throw rErr;
+
+    // Users table we might want to keep, but for demo purposes clear it too
+    const { error: uErr } = await supabase.from('users').delete().neq('user_id', '');
+    if (uErr) throw uErr;
+};

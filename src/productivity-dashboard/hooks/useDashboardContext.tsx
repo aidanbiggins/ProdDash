@@ -33,7 +33,7 @@ import {
   calculateQualityMetrics,
   calculateDataHealth
 } from '../services';
-import { fetchDashboardData, persistDashboardData } from '../services/dbService';
+import { fetchDashboardData, persistDashboardData, clearAllData } from '../services/dbService';
 
 // ===== ACTION TYPES =====
 
@@ -236,14 +236,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
 
       // Persist to Supabase
-      if (!isDemo) {
-        await persistDashboardData(
-          result.requisitions.data,
-          result.candidates.data,
-          result.events.data,
-          result.users.data
-        );
+      if (isDemo) {
+        // Clear old data before loading demo data to ensure fresh state
+        await clearAllData();
       }
+      await persistDashboardData(
+        result.requisitions.data,
+        result.candidates.data,
+        result.events.data,
+        result.users.data
+      );
 
       dispatch({
         type: 'IMPORT_DATA',
