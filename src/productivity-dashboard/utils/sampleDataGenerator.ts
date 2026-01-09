@@ -1,6 +1,7 @@
 // Sample Data Generator for Testing
+// Generates realistic recruiting funnel data with proper stage progressions
 
-import { subDays, addDays, format } from 'date-fns';
+import { subDays, addDays, format, differenceInDays } from 'date-fns';
 
 const FUNCTIONS = ['Engineering', 'Product', 'Sales', 'G&A', 'Marketing'];
 const JOB_FAMILIES = ['Backend', 'Frontend', 'Fullstack', 'Security', 'Mobile', 'Data', 'DevOps'];
@@ -8,8 +9,17 @@ const LEVELS = ['IC1', 'IC2', 'IC3', 'IC4', 'IC5', 'M1', 'M2', 'M3'];
 const LOCATION_TYPES = ['Remote', 'Hybrid', 'Onsite'];
 const REGIONS = ['AMER', 'EMEA', 'APAC'];
 const SOURCES = ['Referral', 'Inbound', 'Sourced', 'Agency', 'Internal'];
-const STATUSES = ['Open', 'Closed', 'OnHold'];
-const DISPOSITIONS = ['Active', 'Rejected', 'Withdrawn', 'Hired'];
+
+// Realistic funnel stages with conversion rates (percentage that advances)
+const FUNNEL_STAGES = [
+  { stage: 'Applied', nextStage: 'Recruiter Screen', conversionRate: 0.40 },       // 40% get screened
+  { stage: 'Recruiter Screen', nextStage: 'Hiring Manager Review', conversionRate: 0.70 },  // 70% pass screen
+  { stage: 'Hiring Manager Review', nextStage: 'Technical Screen', conversionRate: 0.55 },  // 55% pass HM review
+  { stage: 'Technical Screen', nextStage: 'Onsite Interview', conversionRate: 0.50 },       // 50% pass tech screen
+  { stage: 'Onsite Interview', nextStage: 'Offer Extended', conversionRate: 0.35 },         // 35% get offers
+  { stage: 'Offer Extended', nextStage: 'Offer Accepted', conversionRate: 0.85 },           // 85% accept offers
+  { stage: 'Offer Accepted', nextStage: 'Hired', conversionRate: 1.0 }                      // 100% of accepted become hires
+];
 
 const FIRST_NAMES = [
   'Emma', 'Liam', 'Olivia', 'Noah', 'Ava', 'James', 'Sophia', 'William',
@@ -25,18 +35,6 @@ const LAST_NAMES = [
   'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson',
   'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson',
   'Patel', 'Kim', 'Chen', 'Nguyen', 'Kumar', 'Singh', 'Wang', 'Yamamoto', 'Ali', 'Shah'
-];
-
-const STAGES = [
-  'Lead', 'Applied', 'Recruiter Screen', 'Hiring Manager Review',
-  'Technical Screen', 'Onsite Interview', 'Final Round',
-  'Offer Extended', 'Offer Accepted', 'Hired', 'Rejected', 'Withdrawn'
-];
-
-const EVENT_TYPES = [
-  'STAGE_CHANGE', 'INTERVIEW_SCHEDULED', 'INTERVIEW_COMPLETED',
-  'FEEDBACK_SUBMITTED', 'OFFER_REQUESTED', 'OFFER_APPROVED',
-  'OFFER_EXTENDED', 'OFFER_ACCEPTED', 'OUTREACH_SENT', 'SCREEN_COMPLETED'
 ];
 
 function randomItem<T>(arr: T[]): T {
@@ -61,6 +59,59 @@ function generateId(prefix: string, index: number): string {
   return `${prefix}_${String(index).padStart(4, '0')}`;
 }
 
+// Simulate candidate journey through funnel
+function simulateCandidateJourney(startDate: Date, now: Date): {
+  stages: { stage: string; enteredAt: Date }[];
+  finalStage: string;
+  disposition: string;
+  hiredAt?: Date;
+  offerExtendedAt?: Date;
+  offerAcceptedAt?: Date;
+} {
+  const stages: { stage: string; enteredAt: Date }[] = [];
+  let currentDate = startDate;
+  let finalStage = 'Applied';
+  let disposition = 'Active';
+
+  stages.push({ stage: 'Applied', enteredAt: currentDate });
+
+  for (const funnel of FUNNEL_STAGES) {
+    if (funnel.stage !== finalStage) continue;
+
+    // Check if candidate advances
+    if (Math.random() < funnel.conversionRate) {
+      // Advance to next stage after 2-5 days
+      currentDate = addDays(currentDate, Math.floor(Math.random() * 4) + 2);
+      if (currentDate > now) break; // Don't add future events
+
+      finalStage = funnel.nextStage;
+      stages.push({ stage: finalStage, enteredAt: currentDate });
+    } else {
+      // Candidate rejected or withdrew at this stage
+      disposition = Math.random() > 0.2 ? 'Rejected' : 'Withdrawn';
+      break;
+    }
+  }
+
+  if (finalStage === 'Hired') {
+    disposition = 'Hired';
+  }
+
+  // Find offer dates
+  const offerExtendedStage = stages.find(s => s.stage === 'Offer Extended');
+  const offerAcceptedStage = stages.find(s => s.stage === 'Offer Accepted');
+  const hiredStage = stages.find(s => s.stage === 'Hired');
+
+  return {
+    stages,
+    finalStage,
+    disposition,
+    hiredAt: hiredStage?.enteredAt,
+    offerExtendedAt: offerExtendedStage?.enteredAt,
+    offerAcceptedAt: offerAcceptedStage?.enteredAt
+  };
+}
+
 export function generateSampleData(config: {
   reqCount?: number;
   candidatesPerReq?: number;
@@ -68,31 +119,39 @@ export function generateSampleData(config: {
   hmCount?: number;
 } = {}) {
   const {
-    reqCount = 50,
-    candidatesPerReq = 15,
-    recruiterCount = 8,
-    hmCount = 12
+    reqCount = 40,
+    candidatesPerReq = 12,
+    recruiterCount = 6,
+    hmCount = 10
   } = config;
 
   const now = new Date();
-  const startDate = subDays(now, 180);
+  const startDate = subDays(now, 120); // 4 months of data
 
   // Generate Users
   const users: string[] = [];
   users.push('user_id,name,role,team,manager_user_id,email');
 
+  const recruiterNames: { id: string; name: string }[] = [];
+  const hmNames: { id: string; name: string }[] = [];
+
   // Generate recruiter names
   for (let i = 1; i <= recruiterCount; i++) {
     const name = generateName();
     const emailName = `${name.first.toLowerCase()}.${name.last.toLowerCase()}`;
-    users.push(`recruiter_${i},${name.full},Recruiter,TA Team,manager_1,${emailName}@company.com`);
+    const id = `recruiter_${i}`;
+    recruiterNames.push({ id, name: name.full });
+    users.push(`${id},${name.full},Recruiter,TA Team,manager_1,${emailName}@company.com`);
   }
 
   // Generate hiring manager names
   for (let i = 1; i <= hmCount; i++) {
     const name = generateName();
     const emailName = `${name.first.toLowerCase()}.${name.last.toLowerCase()}`;
-    users.push(`hm_${i},${name.full},HiringManager,${randomItem(FUNCTIONS)},exec_1,${emailName}@company.com`);
+    const func = randomItem(FUNCTIONS);
+    const id = `hm_${i}`;
+    hmNames.push({ id, name: name.full });
+    users.push(`${id},${name.full},HiringManager,${func},exec_1,${emailName}@company.com`);
   }
 
   // Add TA manager and exec
@@ -101,85 +160,135 @@ export function generateSampleData(config: {
   users.push(`manager_1,${managerName.full},Admin,TA Team,,${managerName.first.toLowerCase()}.${managerName.last.toLowerCase()}@company.com`);
   users.push(`exec_1,${execName.full},HiringManager,Engineering,,${execName.first.toLowerCase()}.${execName.last.toLowerCase()}@company.com`);
 
-  // Generate Requisitions
+  // Generate Requisitions with varied ages
   const requisitions: string[] = [];
   requisitions.push('req_id,req_title,function,job_family,level,location_type,location_region,location_city,comp_band_min,comp_band_max,opened_at,closed_at,status,hiring_manager_id,recruiter_id,business_unit,headcount_type,priority,candidate_slate_required,search_firm_used');
 
+  const reqData: { id: string; openedAt: Date; recruiterId: string; hmId: string }[] = [];
+
   for (let i = 1; i <= reqCount; i++) {
-    const openedAt = randomDate(startDate, subDays(now, 30));
-    const status = randomItem(STATUSES);
-    const closedAt = status === 'Closed' ? randomDate(addDays(openedAt, 30), now) : '';
+    // Spread req ages: some old (90+ days), some mid (30-90), some new (<30)
+    const ageCategory = Math.random();
+    let openedAt: Date;
+    if (ageCategory < 0.3) {
+      // Old reqs (90-120 days)
+      openedAt = randomDate(subDays(now, 120), subDays(now, 90));
+    } else if (ageCategory < 0.6) {
+      // Mid-age reqs (30-90 days)
+      openedAt = randomDate(subDays(now, 90), subDays(now, 30));
+    } else {
+      // New reqs (0-30 days)
+      openedAt = randomDate(subDays(now, 30), subDays(now, 5));
+    }
+
+    // Determine status based on age and hires
+    const age = differenceInDays(now, openedAt);
+    let status = 'Open';
+    let closedAt = '';
+
+    // Older reqs more likely to be closed
+    if (age > 60 && Math.random() > 0.4) {
+      status = 'Closed';
+      closedAt = formatDate(randomDate(addDays(openedAt, 30), now));
+    } else if (age > 30 && Math.random() > 0.85) {
+      status = 'OnHold';
+    }
+
     const func = randomItem(FUNCTIONS);
     const jf = randomItem(JOB_FAMILIES);
     const level = randomItem(LEVELS);
     const locType = randomItem(LOCATION_TYPES);
     const region = randomItem(REGIONS);
-    const recruiterId = `recruiter_${(i % recruiterCount) + 1}`;
-    const hmId = `hm_${(i % hmCount) + 1}`;
+    const recruiterId = recruiterNames[(i - 1) % recruiterCount].id;
+    const hmId = hmNames[(i - 1) % hmCount].id;
+
+    reqData.push({ id: `req_${i}`, openedAt, recruiterId, hmId });
 
     requisitions.push(
-      `req_${i},${level} ${jf} Engineer,${func},${jf},${level},${locType},${region},,100000,200000,${formatDate(openedAt)},${closedAt ? formatDate(closedAt as unknown as Date) : ''},${status},${hmId},${recruiterId},${func},New,P1,false,false`
+      `req_${i},${level} ${jf} Engineer,${func},${jf},${level},${locType},${region},,100000,200000,${formatDate(openedAt)},${closedAt},${status},${hmId},${recruiterId},${func},New,P1,false,false`
     );
   }
 
-  // Generate Candidates
+  // Generate Candidates with realistic funnel progression
   const candidates: string[] = [];
   candidates.push('candidate_id,req_id,source,applied_at,first_contacted_at,current_stage,current_stage_entered_at,disposition,hired_at,offer_extended_at,offer_accepted_at');
 
-  let candidateIndex = 1;
-  for (let reqIdx = 1; reqIdx <= reqCount; reqIdx++) {
-    const candCount = Math.floor(Math.random() * candidatesPerReq) + 5;
-    for (let c = 0; c < candCount; c++) {
-      const appliedAt = randomDate(startDate, subDays(now, 7));
-      const firstContactAt = addDays(appliedAt, Math.floor(Math.random() * 3) + 1);
-      const disposition = randomItem(DISPOSITIONS);
-      const currentStage = disposition === 'Hired' ? 'Hired' :
-                          disposition === 'Rejected' ? 'Rejected' :
-                          disposition === 'Withdrawn' ? 'Withdrawn' :
-                          randomItem(STAGES.slice(0, 7));
-      const stageEnteredAt = randomDate(firstContactAt, now);
-
-      let hiredAt = '';
-      let offerExtendedAt = '';
-      let offerAcceptedAt = '';
-
-      if (disposition === 'Hired') {
-        offerExtendedAt = formatDate(subDays(stageEnteredAt, 7));
-        offerAcceptedAt = formatDate(subDays(stageEnteredAt, 3));
-        hiredAt = formatDate(stageEnteredAt);
-      }
-
-      candidates.push(
-        `cand_${candidateIndex},req_${reqIdx},${randomItem(SOURCES)},${formatDate(appliedAt)},${formatDate(firstContactAt)},${currentStage},${formatDate(stageEnteredAt)},${disposition},${hiredAt},${offerExtendedAt},${offerAcceptedAt}`
-      );
-      candidateIndex++;
-    }
-  }
-
-  // Generate Events
   const events: string[] = [];
   events.push('event_id,candidate_id,req_id,event_type,from_stage,to_stage,actor_user_id,event_at,metadata_json');
 
+  let candidateIndex = 1;
   let eventIndex = 1;
-  for (let reqIdx = 1; reqIdx <= reqCount; reqIdx++) {
-    const recruiterId = `recruiter_${(reqIdx % recruiterCount) + 1}`;
-    const hmId = `hm_${(reqIdx % hmCount) + 1}`;
 
-    // Events per req
-    const eventCount = Math.floor(Math.random() * 30) + 10;
-    for (let e = 0; e < eventCount; e++) {
-      const eventType = randomItem(EVENT_TYPES);
-      const eventAt = randomDate(startDate, now);
-      const actor = eventType.includes('FEEDBACK') || eventType.includes('OFFER_APPROVED')
-        ? hmId : recruiterId;
+  for (const req of reqData) {
+    const candCount = Math.floor(Math.random() * (candidatesPerReq - 5)) + 8;
 
-      const fromStage = eventType === 'STAGE_CHANGE' ? randomItem(STAGES) : '';
-      const toStage = eventType === 'STAGE_CHANGE' ? randomItem(STAGES) : '';
+    for (let c = 0; c < candCount; c++) {
+      const candId = `cand_${candidateIndex}`;
+      const appliedAt = randomDate(req.openedAt, subDays(now, 3));
+      const firstContactAt = addDays(appliedAt, Math.floor(Math.random() * 3) + 1);
 
-      events.push(
-        `evt_${eventIndex},cand_${(reqIdx * 10) + (e % 10)},req_${reqIdx},${eventType},${fromStage},${toStage},${actor},${formatDate(eventAt)},`
+      // Simulate the candidate's journey through the funnel
+      const journey = simulateCandidateJourney(addDays(appliedAt, 1), now);
+
+      candidates.push(
+        `${candId},${req.id},${randomItem(SOURCES)},${formatDate(appliedAt)},${formatDate(firstContactAt)},${journey.finalStage},${formatDate(journey.stages[journey.stages.length - 1].enteredAt)},${journey.disposition},${journey.hiredAt ? formatDate(journey.hiredAt) : ''},${journey.offerExtendedAt ? formatDate(journey.offerExtendedAt) : ''},${journey.offerAcceptedAt ? formatDate(journey.offerAcceptedAt) : ''}`
       );
-      eventIndex++;
+
+      // Generate events for each stage transition
+      for (let s = 0; s < journey.stages.length; s++) {
+        const currentStage = journey.stages[s];
+        const prevStage = s > 0 ? journey.stages[s - 1] : null;
+
+        if (prevStage) {
+          // Stage change event
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},STAGE_CHANGE,${prevStage.stage},${currentStage.stage},${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+          );
+          eventIndex++;
+        }
+
+        // Additional events based on stage
+        if (currentStage.stage === 'Recruiter Screen') {
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},SCREEN_COMPLETED,,,${req.recruiterId},${formatDate(addDays(currentStage.enteredAt, 1))},`
+          );
+          eventIndex++;
+        }
+
+        if (currentStage.stage === 'Hiring Manager Review') {
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(currentStage.enteredAt, 2))},`
+          );
+          eventIndex++;
+        }
+
+        if (currentStage.stage === 'Onsite Interview') {
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},INTERVIEW_SCHEDULED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+          );
+          eventIndex++;
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},INTERVIEW_COMPLETED,,,${req.recruiterId},${formatDate(addDays(currentStage.enteredAt, 1))},`
+          );
+          eventIndex++;
+        }
+
+        if (currentStage.stage === 'Offer Extended') {
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},OFFER_EXTENDED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+          );
+          eventIndex++;
+        }
+
+        if (currentStage.stage === 'Offer Accepted') {
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},OFFER_ACCEPTED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+          );
+          eventIndex++;
+        }
+      }
+
+      candidateIndex++;
     }
   }
 
