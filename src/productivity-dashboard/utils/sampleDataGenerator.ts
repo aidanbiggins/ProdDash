@@ -11,14 +11,13 @@ const REGIONS = ['AMER', 'EMEA', 'APAC'];
 const SOURCES = ['Referral', 'Inbound', 'Sourced', 'Agency', 'Internal'];
 
 // Realistic funnel stages with conversion rates (percentage that advances)
+// Using canonical stage names that match the app's expected values
 const FUNNEL_STAGES = [
-  { stage: 'Applied', nextStage: 'Recruiter Screen', conversionRate: 0.40 },       // 40% get screened
-  { stage: 'Recruiter Screen', nextStage: 'Hiring Manager Review', conversionRate: 0.70 },  // 70% pass screen
-  { stage: 'Hiring Manager Review', nextStage: 'Technical Screen', conversionRate: 0.55 },  // 55% pass HM review
-  { stage: 'Technical Screen', nextStage: 'Onsite Interview', conversionRate: 0.50 },       // 50% pass tech screen
-  { stage: 'Onsite Interview', nextStage: 'Offer Extended', conversionRate: 0.35 },         // 35% get offers
-  { stage: 'Offer Extended', nextStage: 'Offer Accepted', conversionRate: 0.85 },           // 85% accept offers
-  { stage: 'Offer Accepted', nextStage: 'Hired', conversionRate: 1.0 }                      // 100% of accepted become hires
+  { stage: 'Applied', nextStage: 'Screen', conversionRate: 0.45 },           // 45% get screened
+  { stage: 'Screen', nextStage: 'HM Screen', conversionRate: 0.70 },         // 70% pass recruiter screen
+  { stage: 'HM Screen', nextStage: 'Onsite', conversionRate: 0.60 },         // 60% pass HM review
+  { stage: 'Onsite', nextStage: 'Offer', conversionRate: 0.40 },             // 40% get offers after onsite
+  { stage: 'Offer', nextStage: 'Hired', conversionRate: 0.85 }               // 85% accept offers
 ];
 
 const FIRST_NAMES = [
@@ -97,9 +96,8 @@ function simulateCandidateJourney(startDate: Date, now: Date): {
     disposition = 'Hired';
   }
 
-  // Find offer dates
-  const offerExtendedStage = stages.find(s => s.stage === 'Offer Extended');
-  const offerAcceptedStage = stages.find(s => s.stage === 'Offer Accepted');
+  // Find offer and hire dates
+  const offerStage = stages.find(s => s.stage === 'Offer');
   const hiredStage = stages.find(s => s.stage === 'Hired');
 
   return {
@@ -107,8 +105,8 @@ function simulateCandidateJourney(startDate: Date, now: Date): {
     finalStage,
     disposition,
     hiredAt: hiredStage?.enteredAt,
-    offerExtendedAt: offerExtendedStage?.enteredAt,
-    offerAcceptedAt: offerAcceptedStage?.enteredAt
+    offerExtendedAt: offerStage?.enteredAt,
+    offerAcceptedAt: hiredStage ? offerStage?.enteredAt : undefined
   };
 }
 
@@ -248,21 +246,21 @@ export function generateSampleData(config: {
         }
 
         // Additional events based on stage
-        if (currentStage.stage === 'Recruiter Screen') {
+        if (currentStage.stage === 'Screen') {
           events.push(
             `evt_${eventIndex},${candId},${req.id},SCREEN_COMPLETED,,,${req.recruiterId},${formatDate(addDays(currentStage.enteredAt, 1))},`
           );
           eventIndex++;
         }
 
-        if (currentStage.stage === 'Hiring Manager Review') {
+        if (currentStage.stage === 'HM Screen') {
           events.push(
             `evt_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(currentStage.enteredAt, 2))},`
           );
           eventIndex++;
         }
 
-        if (currentStage.stage === 'Onsite Interview') {
+        if (currentStage.stage === 'Onsite') {
           events.push(
             `evt_${eventIndex},${candId},${req.id},INTERVIEW_SCHEDULED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
@@ -273,14 +271,14 @@ export function generateSampleData(config: {
           eventIndex++;
         }
 
-        if (currentStage.stage === 'Offer Extended') {
+        if (currentStage.stage === 'Offer') {
           events.push(
             `evt_${eventIndex},${candId},${req.id},OFFER_EXTENDED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
           eventIndex++;
         }
 
-        if (currentStage.stage === 'Offer Accepted') {
+        if (currentStage.stage === 'Hired') {
           events.push(
             `evt_${eventIndex},${candId},${req.id},OFFER_ACCEPTED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
