@@ -235,17 +235,15 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         return { success: false, errors: result.criticalErrors };
       }
 
-      // Persist to Supabase
-      if (isDemo) {
-        // Clear old data before loading demo data to ensure fresh state
-        await clearAllData();
+      // Persist to Supabase (only for real imports, not demo data)
+      if (!isDemo) {
+        await persistDashboardData(
+          result.requisitions.data,
+          result.candidates.data,
+          result.events.data,
+          result.users.data
+        );
       }
-      await persistDashboardData(
-        result.requisitions.data,
-        result.candidates.data,
-        result.events.data,
-        result.users.data
-      );
 
       dispatch({
         type: 'IMPORT_DATA',
