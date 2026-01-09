@@ -3,6 +3,7 @@
 export * from './entities';
 export * from './metrics';
 export * from './config';
+export * from './hmTypes';
 
 // ===== DATA STORE STATE =====
 
