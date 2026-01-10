@@ -409,36 +409,38 @@ export function OverviewTab({
               {
                 key: 'recruiterName',
                 header: 'Recruiter',
-                width: '160px',
+                width: '140px',
                 render: (r) => (
                   <div>
-                    <div className="cell-primary">{r.recruiterName}</div>
+                    <div className="cell-primary text-truncate" style={{ maxWidth: '130px' }} title={r.recruiterName}>{r.recruiterName}</div>
                     {r.team && <small className="cell-muted cell-small">{r.team}</small>}
                   </div>
                 )
               },
-              { key: 'hires', header: 'Hires', align: 'right', sortable: true, render: (r) => r.outcomes.hires },
-              { key: 'weighted', header: 'Wtd', align: 'right', sortable: true, render: (r) => r.weighted.weightedHires.toFixed(1) },
-              { key: 'offers', header: 'Offers', align: 'right', sortable: true, render: (r) => r.outcomes.offersExtended },
-              { key: 'accept', header: 'Accept', align: 'right', sortable: true, render: (r) => r.outcomes.offerAcceptanceRate !== null ? `${(r.outcomes.offerAcceptanceRate * 100).toFixed(0)}%` : '—' },
-              { key: 'openReqs', header: 'Open', align: 'right', sortable: true, render: (r) => r.aging.openReqCount },
+              { key: 'hires', header: 'Hires', align: 'right', sortable: true, width: '55px', render: (r) => r.outcomes.hires },
+              { key: 'weighted', header: 'Wtd', align: 'right', sortable: true, width: '50px', render: (r) => r.weighted.weightedHires.toFixed(1) },
+              { key: 'offers', header: 'Offers', align: 'right', sortable: true, width: '55px', render: (r) => r.outcomes.offersExtended },
+              { key: 'accept', header: 'Acc%', align: 'right', sortable: true, width: '50px', render: (r) => r.outcomes.offerAcceptanceRate !== null ? `${(r.outcomes.offerAcceptanceRate * 100).toFixed(0)}%` : '—' },
+              { key: 'openReqs', header: 'Open', align: 'right', sortable: true, width: '50px', render: (r) => r.aging.openReqCount },
               {
                 key: 'stalled',
                 header: 'Stall',
                 align: 'right',
                 sortable: true,
+                width: '50px',
                 render: (r) => r.aging.stalledReqs.count > 0
                   ? <span className="badge-bespoke badge-warning-soft">{r.aging.stalledReqs.count}</span>
                   : <span className="cell-muted">{r.aging.stalledReqs.count}</span>
               },
-              { key: 'outreach', header: 'Outreach', align: 'right', sortable: true, cellClass: 'cell-muted', render: (r) => r.executionVolume.outreachSent },
-              { key: 'screens', header: 'Screens', align: 'right', sortable: true, cellClass: 'cell-muted', render: (r) => r.executionVolume.screensCompleted },
-              { key: 'submittals', header: 'Submits', align: 'right', sortable: true, cellClass: 'cell-muted', render: (r) => r.executionVolume.submittalsToHM },
+              { key: 'outreach', header: 'Out', align: 'right', sortable: true, width: '50px', cellClass: 'cell-muted', render: (r) => r.executionVolume.outreachSent },
+              { key: 'screens', header: 'Scr', align: 'right', sortable: true, width: '45px', cellClass: 'cell-muted', render: (r) => r.executionVolume.screensCompleted },
+              { key: 'submittals', header: 'Sub', align: 'right', sortable: true, width: '45px', cellClass: 'cell-muted', render: (r) => r.executionVolume.submittalsToHM },
               {
                 key: 'productivity',
                 header: 'Prod',
                 align: 'right',
                 sortable: true,
+                width: '60px',
                 render: (r) => <span className="badge-bespoke badge-accent-soft">{r.productivityIndex.toFixed(2)}</span>
               }
             ]}
@@ -451,7 +453,6 @@ export function OverviewTab({
             selectable={true}
             selectedKeys={selectedRecruiterIds}
             onSelectionChange={setSelectedRecruiterIds}
-            minWidth="1000px"
             emptyState={
               <div>
                 <div className="empty-state-icon">👥</div>

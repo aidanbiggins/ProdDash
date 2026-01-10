@@ -73,7 +73,7 @@ export function BespokeTable<T>({
     selectedKeys = new Set(),
     onSelectionChange,
     emptyState,
-    minWidth = '800px',
+    minWidth,
     className = ''
 }: BespokeTableProps<T>) {
     // Filter out hidden columns
@@ -149,11 +149,15 @@ export function BespokeTable<T>({
 
     const isAllSelected = data.length > 0 && selectedKeys.size === data.length;
 
+    // Build table style
+    const tableStyle: React.CSSProperties = { tableLayout: 'fixed' };
+    if (minWidth) tableStyle.minWidth = minWidth;
+
     return (
         <div className="table-responsive">
             <table
                 className={`table table-bespoke table-hover mb-0 ${className}`}
-                style={{ tableLayout: 'fixed', minWidth }}
+                style={tableStyle}
             >
                 <thead>
                     <tr>
