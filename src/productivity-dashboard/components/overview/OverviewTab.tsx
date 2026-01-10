@@ -3,9 +3,9 @@
 import React, { useState, useMemo } from 'react';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer
+  Tooltip, Legend, ResponsiveContainer, Area, ComposedChart
 } from 'recharts';
-import { format } from 'date-fns';
+import { format, startOfWeek, isSameWeek } from 'date-fns';
 import { OverviewMetrics, RecruiterSummary, WeeklyTrend, DataHealth, Candidate, Requisition, User } from '../../types';
 import { KPICard } from '../common/KPICard';
 import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords } from '../common/DataDrillDownModal';
@@ -185,14 +185,71 @@ export function OverviewTab({
     }
   }, [drillDown, candidates, requisitions, users, complexityScoresMap]);
 
-  // Format trend data for charts
-  const trendData = weeklyTrends.map(t => ({
+  // Format trend data for charts (team totals)
+  const trendData = useMemo(() => weeklyTrends.map(t => ({
     week: format(t.weekStart, 'MMM d'),
+    weekStart: t.weekStart,
     hires: t.hires,
     offers: t.offers,
     hmLatency: t.hmLatencyMedian ? Math.round(t.hmLatencyMedian) : 0,
     outreach: t.outreachSent
-  }));
+  })), [weeklyTrends]);
+
+  // Calculate filtered trend data when recruiters are selected
+  const chartData = useMemo(() => {
+    if (selectedRecruiterIds.size === 0) {
+      // No selection - just use team data
+      return trendData.map(d => ({
+        ...d,
+        selectedHires: null,
+        selectedOffers: null,
+        selectedOutreach: null
+      }));
+    }
+
+    // Get requisition IDs for selected recruiters
+    const selectedReqIds = new Set(
+      requisitions
+        .filter(r => selectedRecruiterIds.has(r.recruiter_id))
+        .map(r => r.req_id)
+    );
+
+    // Calculate per-week metrics for selected recruiters
+    return trendData.map(d => {
+      // Count hires for selected recruiters in this week
+      const weekHires = candidates.filter(c => {
+        if (!selectedReqIds.has(c.req_id)) return false;
+        if (c.current_stage !== 'Hired' && c.disposition !== 'Hired') return false;
+        const hireDate = c.hired_at ? new Date(c.hired_at) : null;
+        return hireDate && isSameWeek(hireDate, d.weekStart, { weekStartsOn: 1 });
+      }).length;
+
+      // Count offers for selected recruiters in this week
+      const weekOffers = candidates.filter(c => {
+        if (!selectedReqIds.has(c.req_id)) return false;
+        const offerDate = c.offer_extended_at ? new Date(c.offer_extended_at) : null;
+        return offerDate && isSameWeek(offerDate, d.weekStart, { weekStartsOn: 1 });
+      }).length;
+
+      // Outreach approximation: use ratio of selected reqs to total
+      const selectedOutreach = selectedReqIds.size > 0 && requisitions.length > 0
+        ? Math.round(d.outreach * (selectedReqIds.size / requisitions.filter(r => r.status === 'Open').length || 1))
+        : 0;
+
+      return {
+        ...d,
+        selectedHires: weekHires,
+        selectedOffers: weekOffers,
+        selectedOutreach: selectedOutreach,
+        // For stacked bar, need the "other" portion
+        teamHires: d.hires - weekHires,
+        teamOffers: d.offers - weekOffers,
+        teamOutreach: d.outreach - selectedOutreach
+      };
+    });
+  }, [trendData, selectedRecruiterIds, requisitions, candidates]);
+
+  const isFiltered = selectedRecruiterIds.size > 0;
 
   const handleExport = () => {
     exportRecruiterSummaryCSV(overview.recruiterSummaries, filters);
@@ -285,52 +342,88 @@ export function OverviewTab({
       {/* Trends Charts */}
       <div className="row g-4 mb-4">
         <div className="col-md-6">
-          <div className="card-bespoke h-100">
-            <div className="card-header">
-              <h6>Weekly Hires & Offers</h6>
+          <div className={`card-bespoke h-100 ${isFiltered ? 'border-primary border-opacity-25' : ''}`}>
+            <div className="card-header d-flex justify-content-between align-items-center">
+              <h6 className="mb-0">Weekly Hires & Offers</h6>
+              {isFiltered && <span className="badge-bespoke badge-primary-soft small">Filtered</span>}
             </div>
             <div className="card-body">
               <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={trendData}>
+                <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="week" fontSize={12} stroke="#64748b" />
                   <YAxis fontSize={12} stroke="#64748b" />
                   <Tooltip />
                   <Legend />
-                  <Line
+                  {/* Team totals as lighter background */}
+                  <Area
                     type="monotone"
                     dataKey="hires"
+                    fill="#059669"
+                    fillOpacity={isFiltered ? 0.15 : 0.3}
                     stroke="#059669"
-                    strokeWidth={2.5}
-                    name="Hires"
-                    dot={{ fill: '#059669', strokeWidth: 0, r: 4 }}
+                    strokeWidth={isFiltered ? 1 : 2.5}
+                    strokeOpacity={isFiltered ? 0.3 : 1}
+                    name={isFiltered ? 'Team Hires' : 'Hires'}
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="offers"
+                    fill="#6366f1"
+                    fillOpacity={isFiltered ? 0.15 : 0.3}
                     stroke="#6366f1"
-                    strokeWidth={2.5}
-                    name="Offers"
-                    dot={{ fill: '#6366f1', strokeWidth: 0, r: 4 }}
+                    strokeWidth={isFiltered ? 1 : 2.5}
+                    strokeOpacity={isFiltered ? 0.3 : 1}
+                    name={isFiltered ? 'Team Offers' : 'Offers'}
                   />
-                </LineChart>
+                  {/* Selected recruiters as solid lines (only when filtered) */}
+                  {isFiltered && (
+                    <>
+                      <Line
+                        type="monotone"
+                        dataKey="selectedHires"
+                        stroke="#059669"
+                        strokeWidth={3}
+                        name="Selected Hires"
+                        dot={{ fill: '#059669', strokeWidth: 0, r: 4 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="selectedOffers"
+                        stroke="#6366f1"
+                        strokeWidth={3}
+                        name="Selected Offers"
+                        dot={{ fill: '#6366f1', strokeWidth: 0, r: 4 }}
+                      />
+                    </>
+                  )}
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
         <div className="col-md-6">
-          <div className="card-bespoke h-100">
-            <div className="card-header">
-              <h6>Weekly Outreach</h6>
+          <div className={`card-bespoke h-100 ${isFiltered ? 'border-primary border-opacity-25' : ''}`}>
+            <div className="card-header d-flex justify-content-between align-items-center">
+              <h6 className="mb-0">Weekly Outreach</h6>
+              {isFiltered && <span className="badge-bespoke badge-primary-soft small">Filtered</span>}
             </div>
             <div className="card-body">
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={trendData}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="week" fontSize={12} stroke="#64748b" />
                   <YAxis fontSize={12} stroke="#64748b" />
                   <Tooltip />
-                  <Bar dataKey="outreach" fill="#0f766e" name="Outreach Sent" radius={[4, 4, 0, 0]} />
+                  <Legend />
+                  {isFiltered ? (
+                    <>
+                      <Bar dataKey="teamOutreach" fill="#0f766e" fillOpacity={0.25} stackId="a" name="Team (Other)" radius={[0, 0, 0, 0]} />
+                      <Bar dataKey="selectedOutreach" fill="#0f766e" stackId="a" name="Selected" radius={[4, 4, 0, 0]} />
+                    </>
+                  ) : (
+                    <Bar dataKey="outreach" fill="#0f766e" name="Outreach Sent" radius={[4, 4, 0, 0]} />
+                  )}
                 </BarChart>
               </ResponsiveContainer>
             </div>
