@@ -10,3 +10,4 @@ export * from './exportService';
 export * from './dbService';
 export * from './hmFactTables';
 export * from './hmMetricsEngine';
+export * from './velocityAnalysis';

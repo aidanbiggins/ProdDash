@@ -14,11 +14,12 @@ import { QualityTab } from './quality/QualityTab';
 import { SourceEffectivenessTab } from './source-effectiveness/SourceEffectivenessTab';
 import { StageMappingModal } from './StageMappingModal';
 import { HiringManagersTab } from './hiring-managers';
-import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages } from '../services';
+import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
+import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { useDataMasking } from '../contexts/DataMaskingContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 
-type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix';
+type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData } = useDashboard();
@@ -42,6 +43,13 @@ export function ProductivityDashboard() {
     const { requisitions, candidates, events, config } = state.dataStore;
     const normalizedEvents = normalizeEventStages(events, config.stageMapping);
     return calculateSourceEffectiveness(candidates, requisitions, normalizedEvents, state.filters);
+  }, [hasData, state.dataStore, state.filters]);
+
+  // Calculate velocity metrics for decay analysis
+  const velocityMetrics = useMemo(() => {
+    if (!hasData) return null;
+    const { requisitions, candidates, events, users } = state.dataStore;
+    return calculateVelocityMetrics(candidates, requisitions, events, users, state.filters);
   }, [hasData, state.dataStore, state.filters]);
 
   // Refresh metrics when filters change or data is imported
@@ -344,6 +352,12 @@ export function ProductivityDashboard() {
             >
               HMs
             </button>
+            <button
+              className={`nav-link ${activeTab === 'velocity' ? 'active' : ''}`}
+              onClick={() => setActiveTab('velocity')}
+            >
+              Velocity
+            </button>
           </div>
         )}
 
@@ -400,6 +414,12 @@ export function ProductivityDashboard() {
                 onClick={() => setActiveTab('hiring-managers')}
               >
                 Hiring Managers
+              </button>
+              <button
+                className={`nav-link ${activeTab === 'velocity' ? 'active' : ''}`}
+                onClick={() => setActiveTab('velocity')}
+              >
+                Velocity Insights
               </button>
               </div>
             )}
@@ -469,6 +489,10 @@ export function ProductivityDashboard() {
                     lastImportAt={state.dataStore.lastImportAt}
                     filters={state.filters}
                   />
+                )}
+
+                {activeTab === 'velocity' && velocityMetrics && (
+                  <VelocityInsightsTab metrics={velocityMetrics} />
                 )}
               </>
             )}

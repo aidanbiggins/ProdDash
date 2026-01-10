@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { format, subDays, differenceInDays } from 'date-fns';
 import { DateRange, DateRangePreset } from '../../types';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface DateRangePickerProps {
   dateRange: DateRange;
@@ -18,6 +19,7 @@ const presets: { label: string; value: DateRangePreset; days: number }[] = [
 ];
 
 export function DateRangePicker({ dateRange, onChange }: DateRangePickerProps) {
+  const isMobile = useIsMobile();
   const [activePreset, setActivePreset] = useState<DateRangePreset | null>(null);
 
   // Determine which preset is active based on current date range
@@ -62,6 +64,26 @@ export function DateRangePicker({ dateRange, onChange }: DateRangePickerProps) {
 
   const currentPreset = getActivePreset();
 
+  // Mobile: Super compact - just presets
+  if (isMobile) {
+    return (
+      <div className="date-preset-group" style={{ display: 'flex', flexWrap: 'nowrap', gap: '0.25rem' }}>
+        {presets.map(preset => (
+          <button
+            key={preset.value}
+            type="button"
+            className={`date-preset-btn ${currentPreset === preset.value ? 'active' : ''}`}
+            onClick={() => handlePresetClick(preset.days, preset.value)}
+            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  // Desktop: Full version
   return (
     <div className="d-flex align-items-center gap-3">
       <div className="date-preset-group">

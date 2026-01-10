@@ -13,6 +13,7 @@ import { METRIC_FORMULAS } from '../common/MetricDrillDown';
 import { exportRecruiterSummaryCSV } from '../../services';
 import { MetricFilters } from '../../types';
 import { BespokeTable, BespokeTableColumn } from '../common/BespokeTable';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface OverviewTabProps {
   overview: OverviewMetrics;
@@ -36,6 +37,9 @@ export function OverviewTab({
   requisitions,
   users
 }: OverviewTabProps) {
+  const isMobile = useIsMobile();
+  const chartHeight = isMobile ? 180 : 220;
+
   const [drillDown, setDrillDown] = useState<{
     isOpen: boolean;
     type: DrillDownType;
@@ -259,7 +263,7 @@ export function OverviewTab({
     <div>
       {/* KPI Cards - show filtered values with total context when selection is active */}
       <div className="row g-3 mb-4">
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Hires"
             value={filteredStats ? filteredStats.hires : overview.totalHires}
@@ -271,7 +275,7 @@ export function OverviewTab({
             onClick={() => openDrillDown('hires', 'Hires', overview.totalHires)}
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Weighted Hires"
             value={filteredStats ? parseFloat(filteredStats.weightedHires.toFixed(1)) : parseFloat(overview.totalWeightedHires.toFixed(1))}
@@ -284,7 +288,7 @@ export function OverviewTab({
             onClick={() => openDrillDown('weightedHires', 'Weighted Hires', overview.totalWeightedHires.toFixed(1))}
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Offers"
             value={filteredStats ? filteredStats.offers : overview.totalOffers}
@@ -296,7 +300,7 @@ export function OverviewTab({
             onClick={() => openDrillDown('offers', 'Offers Extended', overview.totalOffers)}
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Offer Accept Rate"
             value={overview.totalOfferAcceptanceRate !== null
@@ -304,14 +308,14 @@ export function OverviewTab({
               : 'N/A'}
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Median TTF"
             value={overview.medianTTF !== null ? `${overview.medianTTF}d` : 'N/A'}
             subtitle="days"
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Stalled Reqs"
             value={filteredStats ? filteredStats.stalled : overview.stalledReqCount}
@@ -323,14 +327,14 @@ export function OverviewTab({
 
       {/* Trends Charts */}
       <div className="row g-4 mb-4">
-        <div className="col-md-6">
+        <div className="col-12 col-md-6">
           <div className={`card-bespoke h-100 ${isFiltered ? 'border-primary border-opacity-25' : ''}`}>
             <div className="card-header d-flex justify-content-between align-items-center">
               <h6 className="mb-0">Weekly Hires & Offers</h6>
               {isFiltered && <span className="badge-bespoke badge-primary-soft small">Filtered</span>}
             </div>
             <div className="card-body">
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="week" fontSize={12} stroke="#64748b" />
@@ -384,14 +388,14 @@ export function OverviewTab({
             </div>
           </div>
         </div>
-        <div className="col-md-6">
+        <div className="col-12 col-md-6">
           <div className={`card-bespoke h-100 ${isFiltered ? 'border-primary border-opacity-25' : ''}`}>
             <div className="card-header d-flex justify-content-between align-items-center">
               <h6 className="mb-0">Weekly Outreach</h6>
               {isFiltered && <span className="badge-bespoke badge-primary-soft small">Filtered</span>}
             </div>
             <div className="card-body">
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="week" fontSize={12} stroke="#64748b" />

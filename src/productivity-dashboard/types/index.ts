@@ -4,6 +4,7 @@ export * from './entities';
 export * from './metrics';
 export * from './config';
 export * from './hmTypes';
+export * from './velocityTypes';
 
 // ===== DATA STORE STATE =====
 
