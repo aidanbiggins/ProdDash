@@ -200,73 +200,32 @@ export function OverviewTab({
 
   return (
     <div>
-      {/* Filtered Stats Banner - shows when recruiters are selected */}
+      {/* Compact selection indicator - shows when recruiters are selected */}
       {filteredStats && (
-        <div className="card-bespoke mb-4 border-primary border-opacity-50">
-          <div className="card-header d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
-            <div className="d-flex align-items-center">
-              <span style={{ marginRight: '0.5rem' }}>🔽</span>
-              <span className="text-primary fw-medium">
-                Showing stats for {filteredStats.count} selected recruiter{filteredStats.count > 1 ? 's' : ''}
-              </span>
-            </div>
-            <button
-              className="btn btn-sm btn-outline-primary"
-              onClick={clearSelection}
-            >
-              Show All
-            </button>
+        <div className="d-flex justify-content-between align-items-center mb-3 py-2 px-3 bg-primary bg-opacity-10 rounded">
+          <div className="d-flex align-items-center">
+            <span className="me-2">🔽</span>
+            <span className="text-primary fw-medium">
+              Filtered to {filteredStats.count} recruiter{filteredStats.count > 1 ? 's' : ''}
+            </span>
           </div>
-          <div className="card-body">
-            <div className="row g-3">
-              <div className="col-md-2">
-                <div className="text-center">
-                  <div className="stat-label">Hires</div>
-                  <div className="stat-value text-primary">{filteredStats.hires}</div>
-                </div>
-              </div>
-              <div className="col-md-2">
-                <div className="text-center">
-                  <div className="stat-label">Weighted</div>
-                  <div className="stat-value text-primary">{filteredStats.weightedHires.toFixed(1)}</div>
-                </div>
-              </div>
-              <div className="col-md-2">
-                <div className="text-center">
-                  <div className="stat-label">Offers</div>
-                  <div className="stat-value text-primary">{filteredStats.offers}</div>
-                </div>
-              </div>
-              <div className="col-md-2">
-                <div className="text-center">
-                  <div className="stat-label">Open Reqs</div>
-                  <div className="stat-value">{filteredStats.openReqs}</div>
-                </div>
-              </div>
-              <div className="col-md-2">
-                <div className="text-center">
-                  <div className="stat-label">Screens</div>
-                  <div className="stat-value">{filteredStats.screens}</div>
-                </div>
-              </div>
-              <div className="col-md-2">
-                <div className="text-center">
-                  <div className="stat-label">Stalled</div>
-                  <div className="stat-value text-warning">{filteredStats.stalled}</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <button
+            className="btn btn-sm btn-outline-primary"
+            onClick={clearSelection}
+          >
+            Show All
+          </button>
         </div>
       )}
 
-      {/* KPI Cards */}
+      {/* KPI Cards - show filtered values with total context when selection is active */}
       <div className="row g-3 mb-4">
         <div className="col-md-2">
           <KPICard
             title="Hires"
-            value={overview.totalHires}
-            priorPeriod={overview.priorPeriod ? {
+            value={filteredStats ? filteredStats.hires : overview.totalHires}
+            contextTotal={filteredStats ? overview.totalHires : undefined}
+            priorPeriod={!filteredStats && overview.priorPeriod ? {
               value: overview.priorPeriod.hires,
               label: overview.priorPeriod.label
             } : undefined}
@@ -276,8 +235,9 @@ export function OverviewTab({
         <div className="col-md-2">
           <KPICard
             title="Weighted Hires"
-            value={parseFloat(overview.totalWeightedHires.toFixed(1))}
-            priorPeriod={overview.priorPeriod ? {
+            value={filteredStats ? parseFloat(filteredStats.weightedHires.toFixed(1)) : parseFloat(overview.totalWeightedHires.toFixed(1))}
+            contextTotal={filteredStats ? parseFloat(overview.totalWeightedHires.toFixed(1)) : undefined}
+            priorPeriod={!filteredStats && overview.priorPeriod ? {
               value: parseFloat(overview.priorPeriod.weightedHires.toFixed(1)),
               label: overview.priorPeriod.label
             } : undefined}
@@ -288,8 +248,9 @@ export function OverviewTab({
         <div className="col-md-2">
           <KPICard
             title="Offers"
-            value={overview.totalOffers}
-            priorPeriod={overview.priorPeriod ? {
+            value={filteredStats ? filteredStats.offers : overview.totalOffers}
+            contextTotal={filteredStats ? overview.totalOffers : undefined}
+            priorPeriod={!filteredStats && overview.priorPeriod ? {
               value: overview.priorPeriod.offers,
               label: overview.priorPeriod.label
             } : undefined}
@@ -314,7 +275,8 @@ export function OverviewTab({
         <div className="col-md-2">
           <KPICard
             title="Stalled Reqs"
-            value={overview.stalledReqCount}
+            value={filteredStats ? filteredStats.stalled : overview.stalledReqCount}
+            contextTotal={filteredStats ? overview.stalledReqCount : undefined}
             subtitle="no activity 14+ days"
           />
         </div>

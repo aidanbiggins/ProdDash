@@ -14,6 +14,8 @@ interface KPICardProps {
     value: number;
     label?: string;  // e.g., "prior 90d"
   };
+  /** When set, shows value as "filtered / total" format for contextual comparison */
+  contextTotal?: string | number;
   onClick?: () => void;
   lowConfidence?: boolean;
   formula?: string;
@@ -26,6 +28,7 @@ export function KPICard({
   subtitle,
   trend,
   priorPeriod,
+  contextTotal,
   onClick,
   lowConfidence,
   formula,
@@ -36,9 +39,16 @@ export function KPICard({
     ? ((value - priorPeriod.value) / priorPeriod.value) * 100
     : null;
 
+  // Calculate percentage of total when contextTotal is provided
+  const percentOfTotal = contextTotal !== undefined && typeof value === 'number' && typeof contextTotal === 'number' && contextTotal > 0
+    ? Math.round((value / contextTotal) * 100)
+    : null;
+
+  const hasContext = contextTotal !== undefined;
+
   return (
     <div
-      className={`card-bespoke h-100 position-relative animate-fade-in ${onClick ? 'cursor-pointer' : ''} ${lowConfidence ? 'border-warning' : ''}`}
+      className={`card-bespoke h-100 position-relative animate-fade-in ${onClick ? 'cursor-pointer' : ''} ${lowConfidence ? 'border-warning' : ''} ${hasContext ? 'border-primary border-opacity-25' : ''}`}
       onClick={onClick}
     >
       <div className="card-body p-4 d-flex flex-column h-100">
@@ -51,22 +61,36 @@ export function KPICard({
           )}
         </div>
 
-        {/* Subtle accent bar */}
+        {/* Subtle accent bar - teal when filtered */}
         <div
           className="stat-accent-line mb-3"
           style={{
-            background: percentChange !== null
-              ? (percentChange >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
-              : 'var(--color-slate-200)'
+            background: hasContext
+              ? 'var(--color-primary)'
+              : percentChange !== null
+                ? (percentChange >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
+                : 'var(--color-slate-200)'
           }}
         ></div>
 
         <div className="d-flex flex-column h-100">
-          <h3 className="stat-value mb-2">{value}</h3>
+          {/* Value display - shows "filtered / total" when context is provided */}
+          {hasContext ? (
+            <div className="mb-2">
+              <span className="stat-value text-primary">{value}</span>
+              <span className="stat-value text-muted opacity-50" style={{ fontSize: '1.25rem' }}> / {contextTotal}</span>
+            </div>
+          ) : (
+            <h3 className="stat-value mb-2">{value}</h3>
+          )}
 
           <div className="d-flex align-items-center gap-2 mt-auto" style={{ fontSize: '0.75rem', minHeight: '1.2rem' }}>
-            {/* Trend & Comparison Grouped */}
-            {percentChange !== null ? (
+            {/* Show percentage of total when filtered */}
+            {percentOfTotal !== null ? (
+              <span className="text-primary fw-medium">
+                {percentOfTotal}% of total
+              </span>
+            ) : percentChange !== null ? (
               <div className="d-flex align-items-center flex-nowrap overflow-hidden">
                 <span className={`fw-bold me-2 flex-shrink-0 ${percentChange >= 0 ? 'text-success' : 'text-danger'}`}>
                   <i className={`bi bi-arrow-${percentChange >= 0 ? 'up' : 'down'}-short me-0`}></i>
