@@ -15,6 +15,7 @@ const STALL_COLORS: Record<StallReasonCode, { bg: string; text: string }> = {
     [StallReasonCode.PIPELINE_THIN]: { bg: '#6f42c1', text: 'white' },
     [StallReasonCode.NO_ACTIVITY]: { bg: '#6c757d', text: 'white' },
     [StallReasonCode.OFFER_STALL]: { bg: '#0d6efd', text: 'white' },
+    [StallReasonCode.LATE_STAGE_EMPTY]: { bg: '#6610f2', text: 'white' },
     [StallReasonCode.PROCESS_STALL_UNKNOWN]: { bg: '#adb5bd', text: 'dark' },
     [StallReasonCode.NONE]: { bg: '#198754', text: 'white' }
 };
@@ -25,6 +26,7 @@ const STALL_LABELS: Record<StallReasonCode, string> = {
     [StallReasonCode.PIPELINE_THIN]: 'Low Pipeline',
     [StallReasonCode.NO_ACTIVITY]: 'No Activity',
     [StallReasonCode.OFFER_STALL]: 'Offer Pending',
+    [StallReasonCode.LATE_STAGE_EMPTY]: 'Late Stage Gap',
     [StallReasonCode.PROCESS_STALL_UNKNOWN]: 'Unknown Stall',
     [StallReasonCode.NONE]: 'On Track'
 };

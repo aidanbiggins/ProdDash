@@ -177,6 +177,7 @@ interface DashboardContextType {
   selectRecruiter: (recruiterId: string | null) => void;
   refreshMetrics: () => void;
   reset: () => void;
+  clearPersistedData: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
@@ -283,8 +284,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: false });
 
       return { success: true, errors: [] };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error during import';
+    } catch (error: any) {
+      console.error('Import failed:', error);
+      let message = 'Unknown error during import';
+
+      if (error?.code === '42501') {
+        message = 'Database Permission Error (RLS). Please run the SQL fix provided to allow imports while using the dev bypass.';
+      } else if (error?.status === 401 || error?.message?.includes('Unauthorized')) {
+        message = 'Unauthorized: Your session may have expired or the database requires a real login instead of the dev bypass.';
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
       dispatch({ type: 'SET_ERROR', payload: message });
       return { success: false, errors: [message] };
     }
@@ -431,6 +442,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'RESET' });
   }, []);
 
+  const clearPersistedData = useCallback(async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      await clearAllData();
+      dispatch({ type: 'RESET' });
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { success: true };
+    } catch (error: any) {
+      console.error('Clear data failed:', error);
+      const message = error instanceof Error ? error.message : 'Unknown error clearing data';
+      dispatch({ type: 'SET_ERROR', payload: message });
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { success: false, error: message };
+    }
+  }, []);
+
   const value: DashboardContextType = {
     state,
     importCSVs,
@@ -438,7 +465,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     updateFilters,
     selectRecruiter,
     refreshMetrics,
-    reset
+    reset,
+    clearPersistedData
   };
 
   return (

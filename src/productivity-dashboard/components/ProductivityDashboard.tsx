@@ -6,6 +6,7 @@ import { useDashboard } from '../hooks/useDashboardContext';
 import { CSVUpload } from './CSVUpload';
 import { FilterBar } from './common/FilterBar';
 import { DataHealthPanel } from './common/DataHealthPanel';
+import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
 import { OverviewTab } from './overview/OverviewTab';
 import { RecruiterDetailTab } from './recruiter-detail/RecruiterDetailTab';
 import { HMFrictionTab } from './hm-friction/HMFrictionTab';
@@ -18,9 +19,11 @@ import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages } 
 type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix';
 
 export function ProductivityDashboard() {
-  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset } = useDashboard();
+  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData } = useDashboard();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showStageMapping, setShowStageMapping] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   const hasData = state.dataStore.requisitions.length > 0;
   const isDemo = state.dataStore.importSource === 'demo';
@@ -68,6 +71,19 @@ export function ProductivityDashboard() {
     );
   };
 
+  const handleClearDataConfirm = async () => {
+    setIsClearing(true);
+    try {
+      const result = await clearPersistedData();
+      if (result.success) {
+        setShowClearConfirm(false);
+        // Success handled by state reset
+      }
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   // If no data, show upload interface
   if (!hasData) {
     return (
@@ -89,17 +105,23 @@ export function ProductivityDashboard() {
               <strong>Demo Mode</strong> — You're viewing sample data. Import your own CSV files to see real metrics.
             </div>
             <button
-              className="btn btn-bespoke-secondary btn-sm"
+              className="btn btn-bespoke-secondary btn-sm me-2"
               onClick={reset}
             >
-              Import Real Data
+              Back to Import
+            </button>
+            <button
+              className="btn btn-outline-danger btn-sm"
+              onClick={() => setShowClearConfirm(true)}
+            >
+              Clear Database
             </button>
           </div>
         )}
 
         {/* Header */}
-        <div className="d-flex justify-content-between align-items-end mb-5">
-          <div>
+        <div className="dashboard-header mb-5">
+          <div className="dashboard-header-title">
             <h6 className="text-uppercase text-muted mb-2" style={{ letterSpacing: '0.1em', fontSize: '0.75rem', fontWeight: 600 }}>Productivity Hub</h6>
             <h1 className="mb-0 display-6 fw-bold text-dark">Recruiting Insights</h1>
             <div className="d-flex gap-3 mt-2 text-muted small">
@@ -107,7 +129,7 @@ export function ProductivityDashboard() {
               <span><i className="bi bi-people"></i> {state.dataStore.candidates.length} Candidates</span>
             </div>
           </div>
-          <div className="d-flex gap-2">
+          <div className="dashboard-header-actions">
             <button
               className="btn btn-bespoke-secondary"
               onClick={() => setShowStageMapping(true)}
@@ -119,6 +141,13 @@ export function ProductivityDashboard() {
               onClick={handleExportRawData}
             >
               Export Data
+            </button>
+            <button
+              className="btn btn-outline-danger"
+              onClick={() => setShowClearConfirm(true)}
+              title="Clear all database data"
+            >
+              <i className="bi bi-trash"></i>
             </button>
             <button
               className="btn btn-bespoke-primary"
@@ -253,6 +282,7 @@ export function ProductivityDashboard() {
                     users={state.dataStore.users}
                     stageMappingConfig={state.dataStore.config.stageMapping}
                     lastImportAt={state.dataStore.lastImportAt}
+                    filters={state.filters}
                   />
                 )}
               </>
@@ -268,27 +298,27 @@ export function ProductivityDashboard() {
 
             {/* Quick Stats */}
             <div className="card-bespoke mt-4">
-              <div className="card-header">
-                <h6>Quick Stats</h6>
+              <div className="card-header border-0 bg-transparent pt-3 px-3 pb-0">
+                <h6 className="mb-0 fw-bold">Quick Stats</h6>
               </div>
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-center py-2" style={{ borderBottom: '1px solid var(--color-slate-100)' }}>
-                  <span className="small" style={{ color: 'var(--color-slate-500)' }}>Recruiters</span>
-                  <strong style={{ color: 'var(--color-slate-800)' }}>{state.overview?.recruiterSummaries.length || 0}</strong>
+              <div className="card-body p-3">
+                <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                  <span className="small text-muted">Recruiters</span>
+                  <strong className="text-dark">{state.overview?.recruiterSummaries.length || 0}</strong>
                 </div>
-                <div className="d-flex justify-content-between align-items-center py-2" style={{ borderBottom: '1px solid var(--color-slate-100)' }}>
-                  <span className="small" style={{ color: 'var(--color-slate-500)' }}>Hiring Managers</span>
-                  <strong style={{ color: 'var(--color-slate-800)' }}>{state.hmFriction.length}</strong>
+                <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                  <span className="small text-muted">Hiring Managers</span>
+                  <strong className="text-dark">{state.hmFriction.length}</strong>
                 </div>
-                <div className="d-flex justify-content-between align-items-center py-2" style={{ borderBottom: '1px solid var(--color-slate-100)' }}>
-                  <span className="small" style={{ color: 'var(--color-slate-500)' }}>Open Reqs</span>
-                  <strong style={{ color: 'var(--color-slate-800)' }}>
+                <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
+                  <span className="small text-muted">Open Reqs</span>
+                  <strong className="text-dark">
                     {state.dataStore.requisitions.filter(r => r.status === 'Open').length}
                   </strong>
                 </div>
                 <div className="d-flex justify-content-between align-items-center py-2">
-                  <span className="small" style={{ color: 'var(--color-slate-500)' }}>Active Candidates</span>
-                  <strong style={{ color: 'var(--color-slate-800)' }}>
+                  <span className="small text-muted">Active Candidates</span>
+                  <strong className="text-dark">
                     {state.dataStore.candidates.filter(c => c.disposition === 'Active').length}
                   </strong>
                 </div>
@@ -297,16 +327,16 @@ export function ProductivityDashboard() {
 
             {/* Last Import Info */}
             {state.dataStore.lastImportAt && (
-              <div className="mt-4 p-3 rounded" style={{ background: 'var(--color-slate-50)' }}>
-                <small className="text-muted">
-                  Last imported: {state.dataStore.lastImportAt.toLocaleString()}
+              <div className="mt-4 p-3 rounded" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-slate-200)' }}>
+                <small className="text-muted d-flex align-items-center gap-2">
+                  <i className="bi bi-clock-history"></i>
+                  Last synced: {state.dataStore.lastImportAt.toLocaleString()}
                 </small>
               </div>
             )}
           </div>
         </div>
 
-        {/* Stage Mapping Modal */}
         <StageMappingModal
           isOpen={showStageMapping}
           onClose={() => setShowStageMapping(false)}
@@ -318,6 +348,14 @@ export function ProductivityDashboard() {
             setShowStageMapping(false);
             refreshMetrics();
           }}
+        />
+
+        {/* Clear Data Confirmation Modal */}
+        <ClearDataConfirmationModal
+          isOpen={showClearConfirm}
+          onCancel={() => setShowClearConfirm(false)}
+          onConfirm={handleClearDataConfirm}
+          isClearing={isClearing}
         />
       </div>
     </div>

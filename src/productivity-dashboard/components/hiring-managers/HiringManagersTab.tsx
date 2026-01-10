@@ -1,22 +1,23 @@
 // Hiring Managers Tab Component
 // Main container for all HM-focused features with sub-navigation
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Requisition, Candidate, Event, User } from '../../types/entities';
+import { MetricFilters } from '../../types';
 import {
     HMFactTables,
     HMReqRollup,
     HMRollup,
-    HMPendingAction,
-    HMFilterState
+    HMPendingAction
 } from '../../types/hmTypes';
 import { StageMappingConfig } from '../../types/config';
 import { buildHMFactTables } from '../../services/hmFactTables';
-import { buildHMReqRollups, buildHMRollups, calculatePendingActions } from '../../services/hmMetricsEngine';
+import { buildHMReqRollups, buildHMRollupsWithBenchmarks, calculatePendingActions } from '../../services/hmMetricsEngine';
 import { DEFAULT_HM_RULES } from '../../config/hmRules';
 import { HMOverview } from './HMOverview';
 import { HMScorecard } from './HMScorecard';
 import { HMActionQueue } from './HMActionQueue';
+import { HMForecastsTab } from './HMForecastsTab';
 
 interface HiringManagersTabProps {
     requisitions: Requisition[];
@@ -25,9 +26,10 @@ interface HiringManagersTabProps {
     users: User[];
     stageMappingConfig: StageMappingConfig;
     lastImportAt: Date | null;
+    filters?: MetricFilters;
 }
 
-type HMSubTab = 'overview' | 'scorecard' | 'actions';
+type HMSubTab = 'overview' | 'scorecard' | 'actions' | 'forecasts';
 
 export function HiringManagersTab({
     requisitions,
@@ -35,134 +37,215 @@ export function HiringManagersTab({
     events,
     users,
     stageMappingConfig,
-    lastImportAt
+    lastImportAt,
+    filters
 }: HiringManagersTabProps) {
     const [activeSubTab, setActiveSubTab] = useState<HMSubTab>('overview');
-    const [selectedHmUserId, setSelectedHmUserId] = useState<string | null>(null);
+    // Multi-select: track selected HM IDs as a Set (Local specific comparison)
+    const [selectedHmUserIds, setSelectedHmUserIds] = useState<Set<string>>(new Set());
 
     // Build fact tables and metrics
     const asOfDate = lastImportAt ?? new Date();
 
+    // 1. FILTER REQUISITIONS based on global filters
+    const filteredGlobalReqs = useMemo(() => {
+        if (!filters) return requisitions;
+
+        const { dateRange, functions, jobFamilies, levels, regions, recruiterIds, hiringManagerIds } = filters;
+
+        return requisitions.filter(req => {
+            // Date Range: Req must be active during the window
+            const openedAt = new Date(req.opened_at);
+            const closedAt = req.closed_at ? new Date(req.closed_at) : null;
+
+            const isOpenInRange =
+                openedAt <= dateRange.endDate &&
+                (!closedAt || closedAt >= dateRange.startDate);
+
+            if (!isOpenInRange) return false;
+
+            // Dimensional Filters
+            if (functions && functions.length > 0 && !functions.includes(String(req.function))) return false;
+            // Note: job_family string mapping
+            if (jobFamilies && jobFamilies.length > 0 && !jobFamilies.includes(req.job_family)) return false;
+            if (levels && levels.length > 0 && !levels.includes(req.level)) return false;
+            if (regions && regions.length > 0 && !regions.includes(req.location_region)) return false;
+            if (recruiterIds && recruiterIds.length > 0 && !recruiterIds.includes(req.recruiter_id)) return false;
+            if (hiringManagerIds && hiringManagerIds.length > 0 && !hiringManagerIds.includes(req.hiring_manager_id)) return false;
+
+            return true;
+        });
+    }, [requisitions, filters]);
+
+    // Build Fact Tables using FILTERED reqs
     const factTables: HMFactTables = useMemo(() => {
         return buildHMFactTables(
-            requisitions,
+            filteredGlobalReqs,
             candidates,
             events,
             users,
             stageMappingConfig,
             asOfDate
         );
-    }, [requisitions, candidates, events, users, stageMappingConfig, asOfDate]);
+    }, [filteredGlobalReqs, candidates, events, users, stageMappingConfig, asOfDate]);
 
     const reqRollups: HMReqRollup[] = useMemo(() => {
         return buildHMReqRollups(factTables, users, DEFAULT_HM_RULES);
     }, [factTables, users]);
 
     const hmRollups: HMRollup[] = useMemo(() => {
-        return buildHMRollups(factTables, users, reqRollups, DEFAULT_HM_RULES);
+        return buildHMRollupsWithBenchmarks(factTables, users, reqRollups, DEFAULT_HM_RULES);
     }, [factTables, users, reqRollups]);
 
     const pendingActions: HMPendingAction[] = useMemo(() => {
         return calculatePendingActions(factTables, users, DEFAULT_HM_RULES);
     }, [factTables, users]);
 
-    // Filter actions by selected HM
+    // Filter rollups by LOCAL selection if any
+    const filteredReqRollups = useMemo(() => {
+        let result = reqRollups;
+        if (selectedHmUserIds.size > 0) {
+            result = result.filter(r => selectedHmUserIds.has(r.hmUserId));
+        }
+        return result;
+    }, [reqRollups, selectedHmUserIds]);
+
+    // Filter actions by LOCAL selection
     const filteredActions = useMemo(() => {
-        if (!selectedHmUserId) return pendingActions;
-        return pendingActions.filter(a => a.hmUserId === selectedHmUserId);
-    }, [pendingActions, selectedHmUserId]);
+        let result = pendingActions;
+        if (selectedHmUserIds.size > 0) {
+            result = result.filter(a => selectedHmUserIds.has(a.hmUserId));
+        }
+        return result;
+    }, [pendingActions, selectedHmUserIds]);
 
     // Calculate days since import
     const daysSinceImport = lastImportAt
         ? Math.floor((new Date().getTime() - lastImportAt.getTime()) / (1000 * 60 * 60 * 24))
         : null;
 
-    return (
-        <div className="p-3">
-            {/* As-of Banner */}
-            <div className={`alert ${daysSinceImport && daysSinceImport > 3 ? 'alert-warning' : 'alert-info'} d-flex justify-content-between align-items-center mb-3`}>
-                <div>
-                    <strong>Data as of:</strong>{' '}
-                    {lastImportAt ? lastImportAt.toLocaleDateString() + ' ' + lastImportAt.toLocaleTimeString() : 'Unknown'}
-                    {daysSinceImport !== null && daysSinceImport > 3 && (
-                        <span className="ms-2 text-warning">
-                            ⚠️ Data is {daysSinceImport} days old
-                        </span>
-                    )}
-                </div>
-                <small className="text-muted">
-                    {requisitions.length} reqs • {candidates.length} candidates • {users.length} users
-                </small>
-            </div>
+    // Toggle HM selection
+    const toggleHmSelection = (hmUserId: string) => {
+        setSelectedHmUserIds(prev => {
+            const next = new Set(prev);
+            if (next.has(hmUserId)) {
+                next.delete(hmUserId);
+            } else {
+                next.add(hmUserId);
+            }
+            return next;
+        });
+    };
 
-            {/* Sub-Navigation */}
-            <ul className="nav nav-tabs mb-3">
-                <li className="nav-item">
+    // Clear all selections
+    const clearSelection = () => {
+        setSelectedHmUserIds(new Set());
+    };
+
+    // Get selected HM names for display
+    const selectedHmNames = useMemo(() => {
+        return hmRollups
+            .filter(h => selectedHmUserIds.has(h.hmUserId))
+            .map(h => h.hmName);
+    }, [hmRollups, selectedHmUserIds]);
+
+    return (
+        <div className="animate-fade-in">
+            {/* Header & Sub-Navigation */}
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                <div className="nav-pills-bespoke">
                     <button
                         className={`nav-link ${activeSubTab === 'overview' ? 'active' : ''}`}
                         onClick={() => setActiveSubTab('overview')}
                     >
                         Overview
-                        <span className="badge bg-secondary ms-2">{hmRollups.length} HMs</span>
+                        <span className="badge ms-2 bg-slate-200 text-slate-600 rounded-pill" style={{ fontSize: '0.7em' }}>{hmRollups.length}</span>
                     </button>
-                </li>
-                <li className="nav-item">
                     <button
                         className={`nav-link ${activeSubTab === 'scorecard' ? 'active' : ''}`}
                         onClick={() => setActiveSubTab('scorecard')}
                     >
                         Req Scorecard
-                        <span className="badge bg-secondary ms-2">{reqRollups.length}</span>
+                        <span className="badge ms-2 bg-slate-200 text-slate-600 rounded-pill" style={{ fontSize: '0.7em' }}>
+                            {selectedHmUserIds.size > 0 ? filteredReqRollups.length : reqRollups.length}
+                        </span>
                     </button>
-                </li>
-                <li className="nav-item">
                     <button
                         className={`nav-link ${activeSubTab === 'actions' ? 'active' : ''}`}
                         onClick={() => setActiveSubTab('actions')}
                     >
                         Pending Actions
-                        {pendingActions.length > 0 && (
-                            <span className="badge bg-warning ms-2">{pendingActions.length}</span>
+                        {filteredActions.length > 0 && (
+                            <span className="badge ms-2 bg-warning text-dark rounded-pill" style={{ fontSize: '0.7em' }}>{filteredActions.length}</span>
                         )}
                     </button>
-                </li>
-            </ul>
-
-            {/* Selected HM Indicator */}
-            {selectedHmUserId && (
-                <div className="alert alert-primary d-flex justify-content-between align-items-center mb-3">
-                    <span>
-                        Viewing data for: <strong>{hmRollups.find(h => h.hmUserId === selectedHmUserId)?.hmName ?? 'Unknown'}</strong>
-                    </span>
                     <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => setSelectedHmUserId(null)}
+                        className={`nav-link ${activeSubTab === 'forecasts' ? 'active' : ''}`}
+                        onClick={() => setActiveSubTab('forecasts')}
                     >
-                        View All HMs
+                        Forecasts
                     </button>
                 </div>
-            )}
+
+                <div className="d-flex align-items-center gap-3">
+                    {/* Selected HMs Indicator (Multi-select) */}
+                    {selectedHmUserIds.size > 0 && (
+                        <div className="d-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-sm">
+                            <span className="small text-muted me-2">Comparing:</span>
+                            <span className="fw-bold text-dark me-2">
+                                {selectedHmUserIds.size === 1
+                                    ? selectedHmNames[0]
+                                    : `${selectedHmUserIds.size} HMs`}
+                            </span>
+                            <button
+                                className="btn btn-link p-0 text-muted"
+                                onClick={clearSelection}
+                                title="Clear selection"
+                            >
+                                <i className="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* As-of Date */}
+                    <div className={`px-3 py-1 rounded-pill border ${daysSinceImport !== null && daysSinceImport > 3 ? 'bg-warning-subtle border-warning' : 'bg-success-subtle border-success'} text-end d-flex flex-column justify-content-center`} style={{ height: '38px' }}>
+                        <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, lineHeight: 1, marginBottom: '2px', opacity: 0.8 }}>Data Refresh</div>
+                        <div className="fw-bold small d-flex align-items-center justify-content-end gap-1" style={{ lineHeight: 1 }}>
+                            {lastImportAt ? lastImportAt.toLocaleDateString() : 'Unknown'}
+                            {daysSinceImport !== null && daysSinceImport <= 3 && <i className="bi bi-check-circle-fill ms-1" style={{ fontSize: '0.8em' }}></i>}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Tab Content */}
             {activeSubTab === 'overview' && (
                 <HMOverview
                     hmRollups={hmRollups}
-                    onSelectHM={setSelectedHmUserId}
-                    selectedHmUserId={selectedHmUserId}
+                    onToggleHM={toggleHmSelection}
+                    selectedHmUserIds={selectedHmUserIds}
+                    onClearSelection={clearSelection}
                 />
             )}
 
             {activeSubTab === 'scorecard' && (
                 <HMScorecard
-                    reqRollups={reqRollups}
-                    selectedHmUserId={selectedHmUserId}
+                    reqRollups={filteredReqRollups}
+                    selectedHmUserIds={selectedHmUserIds}
+                    onSelectReq={(reqId) => console.log('Selected req:', reqId)}
                 />
             )}
 
             {activeSubTab === 'actions' && (
                 <HMActionQueue
                     actions={filteredActions}
-                    selectedHmUserId={selectedHmUserId}
+                    selectedHmUserIds={selectedHmUserIds}
+                />
+            )}
+
+            {activeSubTab === 'forecasts' && (
+                <HMForecastsTab
+                    reqRollups={filteredReqRollups}
                 />
             )}
         </div>

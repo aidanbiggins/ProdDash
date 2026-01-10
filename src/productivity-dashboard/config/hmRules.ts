@@ -72,6 +72,11 @@ export const STALL_REASON_EXPLANATIONS: Record<string, {
         suggestedAction: 'Follow up with the candidate or update offer status.',
         priority: 5
     },
+    LATE_STAGE_EMPTY: {
+        explanation: 'The req has been open for 10+ days but has no candidates in final decision stages.',
+        suggestedAction: 'Review the candidate funnel with your recruiter to identify where the drop-off is occurring.',
+        priority: 6
+    },
     PROCESS_STALL_UNKNOWN: {
         explanation: 'The req appears stalled but the specific reason is unclear.',
         suggestedAction: 'Review the pipeline and identify blockers.',

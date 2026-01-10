@@ -105,7 +105,7 @@ export function buildHMReqRollups(
             candidatesByBucket: bucketCounts,
             riskFlags,
             primaryStallReason,
-            forecast: null // Will be calculated separately
+            forecast: calculateFillDateForecast(req, candidatesByBucket, factTables, rules)
         };
     });
 }
@@ -223,6 +223,18 @@ function calculateStallReason(
             explanation: STALL_REASON_EXPLANATIONS.OFFER_STALL.explanation,
             evidence: `${offerStalled.length} offer(s) pending response for ${Math.max(...offerStalled.map(c => c.stageAgeDays))} days`,
             priority: STALL_REASON_EXPLANATIONS.OFFER_STALL.priority
+        };
+    }
+
+    // 6. Late stage empty
+    const lateStageCount = (candidatesByBucket[HMDecisionBucket.HM_FINAL_DECISION]?.length || 0) +
+        (candidatesByBucket[HMDecisionBucket.OFFER_DECISION]?.length || 0);
+    if (req.reqAgeDays > rules.lateStageEmptyDays && lateStageCount === 0) {
+        return {
+            code: StallReasonCode.LATE_STAGE_EMPTY,
+            explanation: STALL_REASON_EXPLANATIONS.LATE_STAGE_EMPTY.explanation,
+            evidence: `Req open ${req.reqAgeDays} days but no candidates in final stages`,
+            priority: STALL_REASON_EXPLANATIONS.LATE_STAGE_EMPTY.priority
         };
     }
 
@@ -534,6 +546,79 @@ function calculateFinalDecisionLatency(
     return computeLatencyStats(latencies, openItems);
 }
 
+// ===== FORECASTING =====
+
+/**
+ * Calculate expected fill date for a req
+ */
+function calculateFillDateForecast(
+    req: ReqFact,
+    candidatesByBucket: Record<HMDecisionBucket, CandidateFact[]>,
+    factTables: HMFactTables,
+    rules: HMRulesConfig
+): FillDateForecast | null {
+    const { candidateFacts, eventFacts, asOfDate } = factTables;
+
+    // Get currently active bucket (furthest progressed)
+    const activeBuckets = Object.values(HMDecisionBucket)
+        .filter(b => b !== HMDecisionBucket.DONE && (candidatesByBucket[b]?.length || 0) > 0);
+
+    if (activeBuckets.length === 0) return null;
+
+    const currentBucket = getFurthestProgressedBucket(req.req_id, candidateFacts);
+    const activeCandidateCount = Object.values(candidatesByBucket).flat().length;
+
+    // Use historical velocity (in days) per bucket
+    // For now, using rough industry/internal medians if we don't have enough history
+    const historicalMedians: Record<HMDecisionBucket, number> = {
+        [HMDecisionBucket.HM_REVIEW]: 3,
+        [HMDecisionBucket.HM_INTERVIEW_DECISION]: 2,
+        [HMDecisionBucket.HM_FEEDBACK]: 4,
+        [HMDecisionBucket.HM_FINAL_DECISION]: 5,
+        [HMDecisionBucket.OFFER_DECISION]: 7,
+        [HMDecisionBucket.DONE]: 0,
+        [HMDecisionBucket.OTHER]: 5
+    };
+
+    // Calculate remaining days based on current bucket
+    const orderedBuckets = getOrderedBuckets();
+    const currentIndex = orderedBuckets.indexOf(currentBucket);
+
+    let remainingDays = 0;
+    if (currentIndex !== -1) {
+        for (let i = currentIndex; i < orderedBuckets.length; i++) {
+            const bucket = orderedBuckets[i];
+            if (bucket !== HMDecisionBucket.DONE) {
+                remainingDays += historicalMedians[bucket];
+            }
+        }
+    }
+
+    // Adjust based on pipeline density: if many candidates, it's more likely to fill faster
+    const pipelineAdjustment = activeCandidateCount > 5 ? 0.8 : (activeCandidateCount < 2 ? 1.5 : 1.0);
+    const likelyDays = Math.round(remainingDays * pipelineAdjustment);
+
+    const addDays = (date: Date, days: number) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    };
+
+    return {
+        reqId: req.req_id,
+        reqTitle: req.req_title,
+        hmUserId: req.hiring_manager_id ?? '',
+        currentBucket,
+        activeCandidates: activeCandidateCount,
+        earliestDate: addDays(asOfDate, Math.max(1, Math.round(likelyDays * 0.7))),
+        likelyDate: addDays(asOfDate, likelyDays),
+        lateDate: addDays(asOfDate, Math.round(likelyDays * 1.5)),
+        sampleSize: 0, // Placeholder
+        cohortDescription: 'Global Medians',
+        isFallback: true
+    };
+}
+
 function computeLatencyStats(latencies: number[], openItems: number): LatencyStats {
     if (latencies.length === 0) {
         return {
@@ -616,10 +701,96 @@ export function buildHMRollups(
             reviewDueCount: pendingActions.filter(a => a.actionType === HMActionType.REVIEW_DUE).length,
             decisionDueCount: pendingActions.filter(a => a.actionType === HMActionType.DECISION_DUE).length,
             latencyMetrics: calculateHMLatencyMetrics(hmUserId, factTables, users, rules),
+            peerComparison: null, // Calculated in next pass
             functionMix,
             levelMix
         };
     });
+}
+
+/**
+ * Calculate global benchmarks from all HMs
+ */
+export function calculateGlobalBenchmarks(hmRollups: HMRollup[]): Record<string, LatencyStats> {
+    const feedbackMedians = hmRollups.map(r => r.latencyMetrics.feedbackLatency.median).filter((m): m is number => m !== null);
+    const reviewMedians = hmRollups.map(r => r.latencyMetrics.reviewLatency.median).filter((m): m is number => m !== null);
+    const decisionMedians = hmRollups.map(r => r.latencyMetrics.finalDecisionLatency.median).filter((m): m is number => m !== null);
+
+    return {
+        feedback: computeLatencyStats(feedbackMedians, 0),
+        review: computeLatencyStats(reviewMedians, 0),
+        decision: computeLatencyStats(decisionMedians, 0)
+    };
+}
+
+/**
+ * Enhanced HM rollups with peer comparisons
+ */
+export function buildHMRollupsWithBenchmarks(
+    factTables: HMFactTables,
+    users: User[],
+    hmReqRollups: HMReqRollup[],
+    rules: HMRulesConfig = DEFAULT_HM_RULES
+): HMRollup[] {
+    const rollups = buildHMRollups(factTables, users, hmReqRollups, rules);
+    const globalBenchmarks = calculateGlobalBenchmarks(rollups);
+
+    return rollups.map(rollup => ({
+        ...rollup,
+        peerComparison: calculatePeerComparison(rollup, globalBenchmarks)
+    }));
+}
+
+/**
+ * Compare an HM to global benchmarks
+ */
+function calculatePeerComparison(
+    rollup: HMRollup,
+    benchmarks: Record<string, LatencyStats>
+): PeerComparison {
+    const metrics: PeerComparisonMetric[] = [];
+
+    // 1. Feedback Latency
+    const fb = rollup.latencyMetrics.feedbackLatency;
+    const fbBench = benchmarks.feedback;
+    metrics.push({
+        metricName: 'Feedback Speed',
+        hmValue: fb.median,
+        cohortMedian: fbBench.median,
+        cohortP75: fbBench.p75,
+        percentileRank: calculatePercentileRank(fb.median, fbBench),
+        isHigherBetter: false,
+        insufficientData: fb.sampleSize < 3
+    });
+
+    // 2. Review Latency
+    const rv = rollup.latencyMetrics.reviewLatency;
+    const rvBench = benchmarks.review;
+    metrics.push({
+        metricName: 'Review Speed',
+        hmValue: rv.median,
+        cohortMedian: rvBench.median,
+        cohortP75: rvBench.p75,
+        percentileRank: calculatePercentileRank(rv.median, rvBench),
+        isHigherBetter: false,
+        insufficientData: rv.sampleSize < 3
+    });
+
+    return {
+        hmUserId: rollup.hmUserId,
+        hmName: rollup.hmName,
+        cohortDescription: 'All Hiring Managers',
+        cohortSize: benchmarks.feedback.sampleSize,
+        metrics
+    };
+}
+
+function calculatePercentileRank(value: number | null, stats: LatencyStats): number | null {
+    if (value === null || stats.median === null) return null;
+    // Simple heuristic for now: 100 if below median, 50 if at median, 0 if at max
+    if (value <= stats.median) return 75; // "Above average" (faster)
+    if (stats.p90 !== null && value > stats.p90) return 10; // Slow
+    return 40; // Average
 }
 
 // ===== UTILITY FUNCTIONS =====

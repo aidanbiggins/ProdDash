@@ -131,6 +131,7 @@ export interface Requisition {
 
 export interface Candidate {
   candidate_id: string;
+  name: string | null;
   req_id: string;
   source: CandidateSource | string;
   applied_at: Date | null;
@@ -191,6 +192,7 @@ export interface RawRequisition {
 
 export interface RawCandidate {
   candidate_id: string;
+  candidate_name?: string;
   req_id: string;
   source: string;
   applied_at?: string;

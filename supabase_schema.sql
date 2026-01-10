@@ -35,10 +35,11 @@ create table public.requisitions (
 );
 
 alter table public.requisitions enable row level security;
--- Shared Workspace: Authenticated users can read/write everything
-create policy "Authenticated users can view requisitions." on public.requisitions for select using (auth.role() = 'authenticated');
-create policy "Authenticated users can insert requisitions." on public.requisitions for insert with check (auth.role() = 'authenticated');
-create policy "Authenticated users can update requisitions." on public.requisitions for update using (auth.role() = 'authenticated');
+-- Shared Workspace: Authenticated users (and anon for dev) can read/write everything
+create policy "Users can view requisitions." on public.requisitions for select using (true);
+create policy "Users can insert requisitions." on public.requisitions for insert with check (true);
+create policy "Users can update requisitions." on public.requisitions for update using (true);
+create policy "Users can delete requisitions." on public.requisitions for delete using (true);
 
 -- 3. CANDIDATES
 create table public.candidates (
@@ -63,9 +64,10 @@ create table public.candidates (
 );
 
 alter table public.candidates enable row level security;
-create policy "Authenticated users can view candidates." on public.candidates for select using (auth.role() = 'authenticated');
-create policy "Authenticated users can insert candidates." on public.candidates for insert with check (auth.role() = 'authenticated');
-create policy "Authenticated users can update candidates." on public.candidates for update using (auth.role() = 'authenticated');
+create policy "Users can view candidates." on public.candidates for select using (true);
+create policy "Users can insert candidates." on public.candidates for insert with check (true);
+create policy "Users can update candidates." on public.candidates for update using (true);
+create policy "Users can delete candidates." on public.candidates for delete using (true);
 
 -- 4. EVENTS
 create table public.events (
@@ -81,8 +83,9 @@ create table public.events (
 );
 
 alter table public.events enable row level security;
-create policy "Authenticated users can view events." on public.events for select using (auth.role() = 'authenticated');
-create policy "Authenticated users can insert events." on public.events for insert with check (auth.role() = 'authenticated');
+create policy "Users can view events." on public.events for select using (true);
+create policy "Users can insert events." on public.events for insert with check (true);
+create policy "Users can delete events." on public.events for delete using (true);
 
 -- 5. SNAPSHOTS (History)
 create table public.snapshots (
@@ -94,8 +97,8 @@ create table public.snapshots (
 );
 
 alter table public.snapshots enable row level security;
-create policy "Authenticated users can view snapshots." on public.snapshots for select using (auth.role() = 'authenticated');
-create policy "Authenticated users can insert snapshots." on public.snapshots for insert with check (auth.role() = 'authenticated');
+create policy "Users can view snapshots." on public.snapshots for select using (true);
+create policy "Users can insert snapshots." on public.snapshots for insert with check (true);
 
 -- 6. USERS (Domain Users like Recruiters/HMs, distinct from Auth Profiles)
 create table public.users (
@@ -109,6 +112,9 @@ create table public.users (
 );
 
 alter table public.users enable row level security;
-create policy "Authenticated users can view users." on public.users for select using (auth.role() = 'authenticated');
-create policy "Authenticated users can insert users." on public.users for insert with check (auth.role() = 'authenticated');
-create policy "Authenticated users can update users." on public.users for update using (auth.role() = 'authenticated');
+create policy "Users can view users." on public.users for select using (true);
+create policy "Users can insert users." on public.users for insert with check (true);
+create policy "Users can update users." on public.users for update using (true);
+create policy "Users can delete users." on public.users for delete using (true);
+
+

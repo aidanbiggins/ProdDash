@@ -47,6 +47,9 @@ export function OverviewTab({
   const [sortColumn, setSortColumn] = useState<string>('productivity');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
+  // Multi-select state for recruiters
+  const [selectedRecruiterIds, setSelectedRecruiterIds] = useState<Set<string>>(new Set());
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -55,6 +58,64 @@ export function OverviewTab({
       setSortDirection('desc');
     }
   };
+
+  // Toggle recruiter selection
+  const toggleRecruiterSelection = (recruiterId: string) => {
+    setSelectedRecruiterIds(prev => {
+      const next = new Set(prev);
+      if (next.has(recruiterId)) {
+        next.delete(recruiterId);
+      } else {
+        next.add(recruiterId);
+      }
+      return next;
+    });
+  };
+
+  // Select all / clear all
+  const handleSelectAll = () => {
+    if (selectedRecruiterIds.size === sortedRecruiters.length) {
+      setSelectedRecruiterIds(new Set());
+    } else {
+      setSelectedRecruiterIds(new Set(sortedRecruiters.map(r => r.recruiterId)));
+    }
+  };
+
+  // Navigate to selected recruiter(s)
+  const handleViewSelected = () => {
+    if (selectedRecruiterIds.size === 1) {
+      onSelectRecruiter(Array.from(selectedRecruiterIds)[0]);
+    }
+  };
+
+  // Clear selection
+  const clearSelection = () => setSelectedRecruiterIds(new Set());
+
+  // Calculate filtered stats when recruiters are selected
+  const filteredStats = useMemo(() => {
+    if (selectedRecruiterIds.size === 0) return null;
+
+    const filteredRecruiters = overview.recruiterSummaries.filter(r =>
+      selectedRecruiterIds.has(r.recruiterId)
+    );
+
+    const hires = filteredRecruiters.reduce((sum, r) => sum + r.outcomes.hires, 0);
+    const offers = filteredRecruiters.reduce((sum, r) => sum + r.outcomes.offersExtended, 0);
+    const weighted = filteredRecruiters.reduce((sum, r) => sum + r.weighted.weightedHires, 0);
+    const openReqs = filteredRecruiters.reduce((sum, r) => sum + r.aging.openReqCount, 0);
+    const screens = filteredRecruiters.reduce((sum, r) => sum + r.executionVolume.screensCompleted, 0);
+    const stalled = filteredRecruiters.reduce((sum, r) => sum + r.aging.stalledReqs.count, 0);
+
+    return {
+      count: filteredRecruiters.length,
+      hires,
+      offers,
+      weightedHires: weighted,
+      openReqs,
+      screens,
+      stalled
+    };
+  }, [selectedRecruiterIds, overview.recruiterSummaries]);
 
   const getSortValue = (r: RecruiterSummary, column: string): number => {
     switch (column) {
@@ -142,6 +203,66 @@ export function OverviewTab({
 
   return (
     <div>
+      {/* Filtered Stats Banner - shows when recruiters are selected */}
+      {filteredStats && (
+        <div className="card-bespoke mb-4 border-primary border-opacity-50">
+          <div className="card-header d-flex justify-content-between align-items-center bg-primary bg-opacity-10">
+            <div className="d-flex align-items-center">
+              <span style={{ marginRight: '0.5rem' }}>🔽</span>
+              <span className="text-primary fw-medium">
+                Showing stats for {filteredStats.count} selected recruiter{filteredStats.count > 1 ? 's' : ''}
+              </span>
+            </div>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              onClick={clearSelection}
+            >
+              Show All
+            </button>
+          </div>
+          <div className="card-body">
+            <div className="row g-3">
+              <div className="col-md-2">
+                <div className="text-center">
+                  <div className="stat-label">Hires</div>
+                  <div className="stat-value text-primary">{filteredStats.hires}</div>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div className="text-center">
+                  <div className="stat-label">Weighted</div>
+                  <div className="stat-value text-primary">{filteredStats.weightedHires.toFixed(1)}</div>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div className="text-center">
+                  <div className="stat-label">Offers</div>
+                  <div className="stat-value text-primary">{filteredStats.offers}</div>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div className="text-center">
+                  <div className="stat-label">Open Reqs</div>
+                  <div className="stat-value">{filteredStats.openReqs}</div>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div className="text-center">
+                  <div className="stat-label">Screens</div>
+                  <div className="stat-value">{filteredStats.screens}</div>
+                </div>
+              </div>
+              <div className="col-md-2">
+                <div className="text-center">
+                  <div className="stat-label">Stalled</div>
+                  <div className="stat-value text-warning">{filteredStats.stalled}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="row g-3 mb-4">
         <div className="col-md-2">
@@ -261,16 +382,44 @@ export function OverviewTab({
       {/* Recruiter Leaderboard */}
       <div className="card-bespoke">
         <div className="card-header d-flex justify-content-between align-items-center">
-          <h6>Recruiter Leaderboard</h6>
-          <button className="btn btn-bespoke-secondary btn-sm" onClick={handleExport}>
-            Export CSV
-          </button>
+          <div className="d-flex align-items-center gap-3">
+            <h6 className="mb-0">Recruiter Leaderboard</h6>
+            {selectedRecruiterIds.size > 0 && (
+              <span className="badge bg-primary">{selectedRecruiterIds.size} selected</span>
+            )}
+          </div>
+          <div className="d-flex gap-2">
+            {selectedRecruiterIds.size > 0 && (
+              <>
+                {selectedRecruiterIds.size === 1 && (
+                  <button className="btn btn-primary btn-sm" onClick={handleViewSelected}>
+                    View Details
+                  </button>
+                )}
+                <button className="btn btn-outline-secondary btn-sm" onClick={clearSelection}>
+                  Clear Selection
+                </button>
+              </>
+            )}
+            <button className="btn btn-bespoke-secondary btn-sm" onClick={handleExport}>
+              Export CSV
+            </button>
+          </div>
         </div>
         <div className="card-body p-0">
           <div className="table-responsive">
             <table className="table table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
               <thead>
                 <tr style={{ background: 'var(--color-slate-50, #f8fafc)' }}>
+                  <th style={{ width: '40px', borderBottom: '2px solid var(--color-slate-200)', padding: '0.625rem 0.5rem' }}>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={selectedRecruiterIds.size === sortedRecruiters.length && sortedRecruiters.length > 0}
+                      onChange={handleSelectAll}
+                      title="Select all"
+                    />
+                  </th>
                   <th style={{ width: '140px', borderBottom: '2px solid var(--color-slate-200)', padding: '0.625rem 0.5rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--color-slate-600)' }}>Recruiter</th>
                   {[
                     { key: 'hires', label: 'Hires' },
@@ -312,40 +461,51 @@ export function OverviewTab({
                 </tr>
               </thead>
               <tbody>
-                {sortedRecruiters.map(r => (
-                  <tr
-                    key={r.recruiterId}
-                    className="cursor-pointer"
-                    onClick={() => onSelectRecruiter(r.recruiterId)}
-                  >
-                    <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                      <strong style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>{r.recruiterName}</strong>
-                      {r.team && <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{r.team}</small>}
-                    </td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.outcomes.hires}</td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.weighted.weightedHires.toFixed(1)}</td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.outcomes.offersExtended}</td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
-                      {r.outcomes.offerAcceptanceRate !== null
-                        ? `${(r.outcomes.offerAcceptanceRate * 100).toFixed(0)}%`
-                        : '-'}
-                    </td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.aging.openReqCount}</td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                      <span className={r.aging.stalledReqs.count > 0 ? 'badge-bespoke badge-warning-soft' : ''} style={r.aging.stalledReqs.count > 0 ? { fontSize: '0.75rem' } : { color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
-                        {r.aging.stalledReqs.count}
-                      </span>
-                    </td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.outreachSent}</td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.screensCompleted}</td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.submittalsToHM}</td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                      <span className="badge-bespoke" style={{ background: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)', color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
-                        {r.productivityIndex.toFixed(2)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {sortedRecruiters.map(r => {
+                  const isSelected = selectedRecruiterIds.has(r.recruiterId);
+                  return (
+                    <tr
+                      key={r.recruiterId}
+                      className={`cursor-pointer ${isSelected ? 'table-primary' : ''}`}
+                      onClick={() => toggleRecruiterSelection(r.recruiterId)}
+                    >
+                      <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }} onClick={e => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          checked={isSelected}
+                          onChange={() => toggleRecruiterSelection(r.recruiterId)}
+                        />
+                      </td>
+                      <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                        <strong style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>{r.recruiterName}</strong>
+                        {r.team && <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{r.team}</small>}
+                      </td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.outcomes.hires}</td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.weighted.weightedHires.toFixed(1)}</td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.outcomes.offersExtended}</td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
+                        {r.outcomes.offerAcceptanceRate !== null
+                          ? `${(r.outcomes.offerAcceptanceRate * 100).toFixed(0)}%`
+                          : '-'}
+                      </td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.aging.openReqCount}</td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                        <span className={r.aging.stalledReqs.count > 0 ? 'badge-bespoke badge-warning-soft' : ''} style={r.aging.stalledReqs.count > 0 ? { fontSize: '0.75rem' } : { color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
+                          {r.aging.stalledReqs.count}
+                        </span>
+                      </td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.outreachSent}</td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.screensCompleted}</td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.submittalsToHM}</td>
+                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                        <span className="badge-bespoke" style={{ background: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)', color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                          {r.productivityIndex.toFixed(2)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

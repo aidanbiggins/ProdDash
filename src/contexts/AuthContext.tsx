@@ -24,6 +24,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // 🔐 Check for dev bypass first
+        const devBypass = localStorage.getItem('dev-auth-bypass');
+        if (devBypass) {
+            try {
+                const fakeSession = JSON.parse(devBypass);
+                setSession(fakeSession as Session);
+                setUser(fakeSession.user as User);
+                setLoading(false);
+                return;
+            } catch (e) {
+                localStorage.removeItem('dev-auth-bypass');
+            }
+        }
+
         if (!supabase) {
             console.warn('Supabase not configured. Auth disabled.');
             setLoading(false);
@@ -48,7 +62,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const signOut = async () => {
+        // Clear dev bypass if present
+        localStorage.removeItem('dev-auth-bypass');
         if (supabase) await supabase.auth.signOut();
+        // Force reload to clear state
+        window.location.href = '/login';
     };
 
     return (

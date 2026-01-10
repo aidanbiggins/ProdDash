@@ -3,6 +3,8 @@
 import React, { useState, useCallback } from 'react';
 import { generateSampleData } from '../utils/sampleDataGenerator';
 import { ICIMSImportGuide } from './ICIMSImportGuide';
+import { useDashboard } from '../hooks/useDashboardContext';
+import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
 
 interface CSVUploadProps {
   onUpload: (
@@ -23,6 +25,7 @@ interface FileState {
 }
 
 export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
+  const { clearPersistedData } = useDashboard();
   const [files, setFiles] = useState<FileState>({
     requisitions: null,
     candidates: null,
@@ -32,6 +35,8 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const [errors, setErrors] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   const handleFileChange = (type: keyof FileState) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -116,6 +121,20 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
       setUploading(false);
     }
   }, [onUpload]);
+
+  const handleClearDataConfirm = async () => {
+    setIsClearing(true);
+    try {
+      const result = await clearPersistedData();
+      if (!result.success) {
+        setErrors([result.error || 'Failed to clear database']);
+      } else {
+        setShowClearConfirm(false);
+      }
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   return (
     <div className="container py-5">
@@ -255,7 +274,23 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                     'Load Demo Data'
                   )}
                 </button>
+                <button
+                  type="button"
+                  className="btn btn-outline-danger ms-2"
+                  onClick={() => setShowClearConfirm(true)}
+                  disabled={uploading || isLoading}
+                >
+                  Clear Database
+                </button>
               </div>
+
+              {/* Clear Data Confirmation Modal */}
+              <ClearDataConfirmationModal
+                isOpen={showClearConfirm}
+                onCancel={() => setShowClearConfirm(false)}
+                onConfirm={handleClearDataConfirm}
+                isClearing={isClearing}
+              />
 
             </div>
           </div>

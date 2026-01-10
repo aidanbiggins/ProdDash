@@ -56,6 +56,20 @@ export const fetchDashboardData = async () => {
     return { requisitions, candidates, events: eventList, users: userList };
 };
 
+// Helper for chunked upserts
+async function chunkedUpsert(table: string, data: any[], chunkSize: number = 500) {
+    if (data.length === 0) return;
+
+    for (let i = 0; i < data.length; i += chunkSize) {
+        const chunk = data.slice(i, i + chunkSize);
+        const { error } = await supabase!.from(table).upsert(chunk);
+        if (error) {
+            console.error(`Error upserting to ${table} (chunk ${i / chunkSize}):`, error);
+            throw error;
+        }
+    }
+}
+
 export const persistDashboardData = async (
     requisitions: Requisition[],
     candidates: Candidate[],
@@ -64,48 +78,98 @@ export const persistDashboardData = async (
 ) => {
     if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
 
-    // Transform for DB
+    // Transform for DB - ONLY include columns that exist in the DB schema
     const dbReqs = requisitions.map(r => ({
-        ...r,
+        req_id: r.req_id,
+        req_title: r.req_title,
+        recruiter_id: r.recruiter_id,
+        hiring_manager_id: r.hiring_manager_id,
+        status: r.status,
+        level: r.level,
+        function: r.function,
+        job_family: r.job_family,
+        business_unit: r.business_unit,
+        location_region: r.location_region,
+        location_type: r.location_type,
         opened_at: toDbDate(r.opened_at),
         closed_at: toDbDate(r.closed_at),
-        raw_data: null // Optional
+        raw_data: null
     }));
 
     const dbCands = candidates.map(c => ({
-        ...c,
+        candidate_id: c.candidate_id,
+        name: c.name,
+        req_id: c.req_id,
+        current_stage: c.current_stage,
         applied_at: toDbDate(c.applied_at),
         first_contacted_at: toDbDate(c.first_contacted_at),
-        current_stage_entered_at: toDbDate(c.current_stage_entered_at),
         hired_at: toDbDate(c.hired_at),
         offer_extended_at: toDbDate(c.offer_extended_at),
-        offer_accepted_at: toDbDate(c.offer_accepted_at)
+        offer_accepted_at: toDbDate(c.offer_accepted_at),
+        disposition: c.disposition,
+        raw_data: null
+        // Note: columns like current_stage_entered_at are in entities.ts but not in DB schema.sql
     }));
 
     const dbEvents = events.map(e => ({
-        ...e,
-        event_at: toDbDate(e.event_at)
+        candidate_id: e.candidate_id,
+        req_id: e.req_id,
+        event_type: e.event_type,
+        from_stage: e.from_stage,
+        to_stage: e.to_stage,
+        actor_user_id: e.actor_user_id,
+        event_at: toDbDate(e.event_at),
+        metadata: e.metadata_json ? JSON.parse(e.metadata_json) : null
     }));
 
-    // Chunk inserts to avoid payload limits (Supabase has limits)
-    // Simple implementation: insert all (optimize if needed)
+    // Chunk inserts to avoid payload limits (Supabase/PostgREST typically limit to ~1000 records or payload size)
+    console.log(`Starting chunked upsert: ${users.length} users, ${dbReqs.length} reqs, ${dbCands.length} candidates, ${dbEvents.length} events`);
 
-    // Upsert Users
-    const { error: uErr } = await supabase.from('users').upsert(users);
-    if (uErr) throw uErr;
+    await chunkedUpsert('users', users);
+    await chunkedUpsert('requisitions', dbReqs);
+    await chunkedUpsert('candidates', dbCands);
+    await chunkedUpsert('events', dbEvents);
 
-    // Upsert Reqs
-    const { error: rErr } = await supabase.from('requisitions').upsert(dbReqs);
-    if (rErr) throw rErr;
-
-    // Upsert Candidates
-    const { error: cErr } = await supabase.from('candidates').upsert(dbCands);
-    if (cErr) throw cErr;
-
-    // Upsert Events
-    const { error: eErr } = await supabase.from('events').upsert(dbEvents);
-    if (eErr) throw eErr;
+    console.log('Successfully persisted all data to Supabase');
 };
+
+/**
+ * Clear all data from the database tables
+ * Used before loading demo data to ensure clean state
+ */
+/**
+ * Helper to delete all rows from a table in batches to avoid timeouts
+ */
+async function batchDelete(table: string, idColumn: string, batchSize: number = 500) {
+    if (!supabase) return;
+
+    let hasMore = true;
+    while (hasMore) {
+        // IDs are UUID or text, so we just select the ID to minimize payload
+        const { data, error } = await supabase
+            .from(table)
+            .select(idColumn)
+            .limit(batchSize);
+
+        if (error) throw error;
+        if (!data || data.length === 0) {
+            hasMore = false;
+            break;
+        }
+
+        const ids = data.map((row: any) => row[idColumn]);
+
+        const { error: deleteError } = await supabase
+            .from(table)
+            .delete()
+            .in(idColumn, ids);
+
+        if (deleteError) throw deleteError;
+
+        // If we fetched less than limit, we are done
+        if (data.length < batchSize) hasMore = false;
+    }
+}
 
 /**
  * Clear all data from the database tables
@@ -114,18 +178,13 @@ export const persistDashboardData = async (
 export const clearAllData = async () => {
     if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
 
+    console.log("Starting batched clear of all data...");
+
     // Delete in order: events -> candidates -> requisitions -> users (respecting foreign keys)
-    // Using neq filter to delete all rows (Supabase requires a filter for delete)
-    const { error: eErr } = await supabase.from('events').delete().neq('event_id', '');
-    if (eErr) throw eErr;
+    await batchDelete('events', 'event_id');
+    await batchDelete('candidates', 'candidate_id');
+    await batchDelete('requisitions', 'req_id');
+    await batchDelete('users', 'user_id');
 
-    const { error: cErr } = await supabase.from('candidates').delete().neq('candidate_id', '');
-    if (cErr) throw cErr;
-
-    const { error: rErr } = await supabase.from('requisitions').delete().neq('req_id', '');
-    if (rErr) throw rErr;
-
-    // Users table we might want to keep, but for demo purposes clear it too
-    const { error: uErr } = await supabase.from('users').delete().neq('user_id', '');
-    if (uErr) throw uErr;
+    console.log("Successfully cleared all data.");
 };

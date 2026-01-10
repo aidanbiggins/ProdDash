@@ -1,32 +1,37 @@
 // HM Overview Component
-// Shows aggregated HM metrics with leaderboard and summary cards
+// Shows aggregated HM metrics with leaderboard and summary cards with multi-select support
 
 import React, { useMemo, useState } from 'react';
-import { HMRollup, HMDecisionBucket } from '../../types/hmTypes';
-import { BUCKET_METADATA } from '../../config/hmStageTaxonomy';
+import { HMRollup } from '../../types/hmTypes';
 
 interface HMOverviewProps {
     hmRollups: HMRollup[];
-    onSelectHM: (hmUserId: string | null) => void;
-    selectedHmUserId: string | null;
+    onToggleHM: (hmUserId: string) => void;
+    selectedHmUserIds: Set<string>;
+    onClearSelection: () => void;
 }
 
-type SortField = 'hmName' | 'totalOpenReqs' | 'pendingActionsCount' | 'totalActiveCandidates';
+type SortField = 'hmName' | 'totalOpenReqs' | 'pendingActionsCount' | 'totalActiveCandidates' | 'feedbackDueCount' | 'reviewDueCount' | 'reqsWithRiskFlags';
 
-export function HMOverview({ hmRollups, onSelectHM, selectedHmUserId }: HMOverviewProps) {
+export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSelection }: HMOverviewProps) {
     const [sortField, setSortField] = useState<SortField>('pendingActionsCount');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-    // Calculate summary stats
+    // Calculate summary stats - filtered by selection if any
     const summary = useMemo(() => {
+        const filteredHMs = selectedHmUserIds.size > 0
+            ? hmRollups.filter(hm => selectedHmUserIds.has(hm.hmUserId))
+            : hmRollups;
+
         return {
-            totalHMs: hmRollups.length,
-            totalOpenReqs: hmRollups.reduce((sum, hm) => sum + hm.totalOpenReqs, 0),
-            totalPendingActions: hmRollups.reduce((sum, hm) => sum + hm.pendingActionsCount, 0),
-            totalActiveCandidates: hmRollups.reduce((sum, hm) => sum + hm.totalActiveCandidates, 0),
-            hmsWithRiskFlags: hmRollups.filter(hm => hm.reqsWithRiskFlags > 0).length
+            totalHMs: filteredHMs.length,
+            totalOpenReqs: filteredHMs.reduce((sum, hm) => sum + hm.totalOpenReqs, 0),
+            totalPendingActions: filteredHMs.reduce((sum, hm) => sum + hm.pendingActionsCount, 0),
+            totalActiveCandidates: filteredHMs.reduce((sum, hm) => sum + hm.totalActiveCandidates, 0),
+            hmsWithRiskFlags: filteredHMs.filter(hm => hm.reqsWithRiskFlags > 0).length,
+            isFiltered: selectedHmUserIds.size > 0
         };
-    }, [hmRollups]);
+    }, [hmRollups, selectedHmUserIds]);
 
     // Sort HMs
     const sortedHMs = useMemo(() => {
@@ -51,6 +56,18 @@ export function HMOverview({ hmRollups, onSelectHM, selectedHmUserId }: HMOvervi
                     aVal = a.totalActiveCandidates;
                     bVal = b.totalActiveCandidates;
                     break;
+                case 'feedbackDueCount':
+                    aVal = a.feedbackDueCount;
+                    bVal = b.feedbackDueCount;
+                    break;
+                case 'reviewDueCount':
+                    aVal = a.reviewDueCount;
+                    bVal = b.reviewDueCount;
+                    break;
+                case 'reqsWithRiskFlags':
+                    aVal = a.reqsWithRiskFlags;
+                    bVal = b.reqsWithRiskFlags;
+                    break;
             }
 
             if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -71,130 +88,344 @@ export function HMOverview({ hmRollups, onSelectHM, selectedHmUserId }: HMOvervi
         }
     };
 
-    const SortHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-        <th
-            onClick={() => handleSort(field)}
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-        >
-            {children}
-            {sortField === field && (
-                <span className="ms-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-            )}
-        </th>
-    );
+    // Select/deselect all
+    const handleSelectAll = () => {
+        if (selectedHmUserIds.size === hmRollups.length) {
+            onClearSelection();
+        } else {
+            hmRollups.forEach(hm => {
+                if (!selectedHmUserIds.has(hm.hmUserId)) {
+                    onToggleHM(hm.hmUserId);
+                }
+            });
+        }
+    };
+
+    // Header style matching Recruiter Leaderboard
+    const thStyle = {
+        borderBottom: '2px solid var(--color-slate-200)',
+        padding: '0.625rem 0.5rem',
+        fontSize: '0.7rem',
+        fontWeight: 600,
+        textTransform: 'uppercase' as const,
+        letterSpacing: '0.03em',
+        color: 'var(--color-slate-600)',
+        whiteSpace: 'nowrap' as const
+    };
+
+    // Sortable header style
+    const sortableThStyle = (field: SortField) => ({
+        ...thStyle,
+        cursor: 'pointer',
+        userSelect: 'none' as const,
+        color: sortField === field ? 'var(--color-accent)' : 'var(--color-slate-600)'
+    });
+
+    // Cell style
+    const tdStyle = {
+        padding: '0.5rem',
+        borderBottom: '1px solid var(--color-slate-100)',
+        color: 'var(--color-slate-700)',
+        fontSize: '0.85rem'
+    };
 
     return (
-        <div>
+        <div className="animate-fade-in">
+            {/* Filter Indicator */}
+            {summary.isFiltered && (
+                <div className="d-flex justify-content-between align-items-center mb-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded p-2 px-3">
+                    <div className="d-flex align-items-center">
+                        <span style={{ color: 'var(--color-primary)', marginRight: '0.5rem' }}>🔽</span>
+                        <span className="text-primary fw-medium">
+                            Showing stats for {selectedHmUserIds.size} selected HM{selectedHmUserIds.size > 1 ? 's' : ''}
+                        </span>
+                    </div>
+                    <button
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={onClearSelection}
+                    >
+                        Show All
+                    </button>
+                </div>
+            )}
+
             {/* Summary Cards */}
-            <div className="row g-3 mb-4">
+            <div className="row g-4 mb-4">
                 <div className="col-md-3">
-                    <div className="card text-center">
-                        <div className="card-body">
-                            <h3 className="text-primary mb-0">{summary.totalHMs}</h3>
-                            <small className="text-muted">Hiring Managers</small>
-                        </div>
+                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
+                        <div className="stat-label mb-2">Hiring Managers {summary.isFiltered && <span className="badge bg-primary ms-1" style={{ fontSize: '0.6rem' }}>Filtered</span>}</div>
+                        <div className="stat-value">{summary.totalHMs}</div>
+                        <div className="text-muted small mt-1">{summary.isFiltered ? 'Selected' : 'Active users'}</div>
                     </div>
                 </div>
                 <div className="col-md-3">
-                    <div className="card text-center">
-                        <div className="card-body">
-                            <h3 className="text-info mb-0">{summary.totalOpenReqs}</h3>
-                            <small className="text-muted">Open Requisitions</small>
-                        </div>
+                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
+                        <div className="stat-label mb-2">Open Requisitions</div>
+                        <div className="stat-value text-primary">{summary.totalOpenReqs}</div>
+                        <div className="text-muted small mt-1">Active positions</div>
                     </div>
                 </div>
                 <div className="col-md-3">
-                    <div className="card text-center">
-                        <div className="card-body">
-                            <h3 className="text-warning mb-0">{summary.totalPendingActions}</h3>
-                            <small className="text-muted">Pending Actions</small>
-                        </div>
+                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
+                        <div className="stat-label mb-2">Pending Actions</div>
+                        <div className="stat-value text-warning">{summary.totalPendingActions}</div>
+                        <div className="text-muted small mt-1">Requiring attention</div>
                     </div>
                 </div>
                 <div className="col-md-3">
-                    <div className="card text-center">
-                        <div className="card-body">
-                            <h3 className="text-success mb-0">{summary.totalActiveCandidates}</h3>
-                            <small className="text-muted">Active Candidates</small>
+                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
+                        <div className="stat-label mb-2">Active Candidates</div>
+                        <div className="stat-value text-success">{summary.totalActiveCandidates}</div>
+                        <div className="text-muted small mt-1">In pipeline</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Speed & Benchmarks */}
+            <div className="card-bespoke mb-4">
+                <div className="card-header border-bottom-0 pb-0">
+                    <h6 className="mb-0">Speed & Benchmarks</h6>
+                </div>
+                <div className="card-body">
+                    <div className="row g-4">
+                        <div className="col-md-4">
+                            <div className="d-flex align-items-center gap-3">
+                                <div className="p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                                    💬
+                                </div>
+                                <div className="flex-grow-1">
+                                    <div className="text-muted small">Median Feedback Speed</div>
+                                    <div className="d-flex align-items-baseline gap-2">
+                                        <h4 className="mb-0">
+                                            {selectedHmUserIds.size === 1
+                                                ? (hmRollups.find(r => selectedHmUserIds.has(r.hmUserId))?.latencyMetrics.feedbackLatency.median ?? '—')
+                                                : summary.totalHMs > 0 ? 'See Leaderboard' : '—'}
+                                            <small className="fs-6 fw-normal text-muted ms-1">days</small>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="d-flex align-items-center gap-3">
+                                <div className="p-3 rounded-circle bg-info bg-opacity-10 text-info">
+                                    🔍
+                                </div>
+                                <div className="flex-grow-1">
+                                    <div className="text-muted small">Median Review Speed</div>
+                                    <div className="d-flex align-items-baseline gap-2">
+                                        <h4 className="mb-0">
+                                            {selectedHmUserIds.size === 1
+                                                ? (hmRollups.find(r => selectedHmUserIds.has(r.hmUserId))?.latencyMetrics.reviewLatency.median ?? '—')
+                                                : summary.totalHMs > 0 ? 'See Leaderboard' : '—'}
+                                            <small className="fs-6 fw-normal text-muted ms-1">days</small>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-md-4">
+                            <div className="d-flex align-items-center gap-3 text-muted">
+                                <div className="p-3 rounded-circle bg-slate-100 text-slate-400">
+                                    🎯
+                                </div>
+                                <div className="flex-grow-1">
+                                    <div className="text-muted small">Team Median (Global)</div>
+                                    <div className="d-flex align-items-baseline gap-2">
+                                        <h4 className="mb-0">
+                                            {/* We can improve this math later */}
+                                            {Math.round(hmRollups.reduce((acc, r) => acc + (r.latencyMetrics.feedbackLatency.median || 0), 0) / (hmRollups.filter(r => r.latencyMetrics.feedbackLatency.median !== null).length || 1))}
+                                            <small className="fs-6 fw-normal text-muted ms-1">days</small>
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* HM Leaderboard */}
-            <div className="card">
+            <div className="card-bespoke">
                 <div className="card-header d-flex justify-content-between align-items-center">
                     <h6 className="mb-0">Hiring Manager Leaderboard</h6>
-                    {selectedHmUserId && (
-                        <button
-                            className="btn btn-sm btn-outline-secondary"
-                            onClick={() => onSelectHM(null)}
-                        >
-                            Clear Selection
-                        </button>
-                    )}
+                    <div className="d-flex align-items-center gap-2">
+                        {selectedHmUserIds.size > 0 && (
+                            <span className="badge bg-primary">{selectedHmUserIds.size} selected</span>
+                        )}
+                        {selectedHmUserIds.size > 0 && (
+                            <button
+                                className="btn btn-sm btn-outline-secondary"
+                                onClick={onClearSelection}
+                            >
+                                Clear Selection
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table table-hover table-sm mb-0">
-                            <thead className="table-light">
-                                <tr>
-                                    <SortHeader field="hmName">Hiring Manager</SortHeader>
-                                    <th>Team</th>
-                                    <SortHeader field="totalOpenReqs">Open Reqs</SortHeader>
-                                    <SortHeader field="totalActiveCandidates">Active Candidates</SortHeader>
-                                    <SortHeader field="pendingActionsCount">Pending Actions</SortHeader>
-                                    <th>Feedback Due</th>
-                                    <th>Review Due</th>
-                                    <th>Reqs at Risk</th>
+                        <table className="table table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
+                            <thead>
+                                <tr style={{ background: 'var(--color-slate-50, #f8fafc)' }}>
+                                    <th style={{ width: '40px', ...thStyle }}>
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            checked={selectedHmUserIds.size === hmRollups.length && hmRollups.length > 0}
+                                            onChange={handleSelectAll}
+                                            title="Select all"
+                                        />
+                                    </th>
+                                    <th
+                                        style={{ width: '160px', ...sortableThStyle('hmName') }}
+                                        onClick={() => handleSort('hmName')}
+                                    >
+                                        Hiring Manager
+                                        {sortField === 'hmName' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                    </th>
+                                    <th style={thStyle}>Team</th>
+                                    <th
+                                        className="text-end"
+                                        style={sortableThStyle('totalOpenReqs')}
+                                        onClick={() => handleSort('totalOpenReqs')}
+                                    >
+                                        Open
+                                        {sortField === 'totalOpenReqs' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                    </th>
+                                    <th
+                                        className="text-end"
+                                        style={sortableThStyle('totalActiveCandidates')}
+                                        onClick={() => handleSort('totalActiveCandidates')}
+                                    >
+                                        Pipeline
+                                        {sortField === 'totalActiveCandidates' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                    </th>
+                                    <th
+                                        className="text-end"
+                                        style={sortableThStyle('pendingActionsCount')}
+                                        onClick={() => handleSort('pendingActionsCount')}
+                                    >
+                                        Actions
+                                        {sortField === 'pendingActionsCount' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                    </th>
+                                    <th
+                                        className="text-end"
+                                        style={sortableThStyle('feedbackDueCount')}
+                                        onClick={() => handleSort('feedbackDueCount')}
+                                    >
+                                        Feedback
+                                        {sortField === 'feedbackDueCount' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                    </th>
+                                    <th
+                                        className="text-end"
+                                        style={sortableThStyle('reviewDueCount')}
+                                        onClick={() => handleSort('reviewDueCount')}
+                                    >
+                                        Review
+                                        {sortField === 'reviewDueCount' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                    </th>
+                                    <th
+                                        className="text-end"
+                                        style={sortableThStyle('reqsWithRiskFlags')}
+                                        onClick={() => handleSort('reqsWithRiskFlags')}
+                                    >
+                                        Risk
+                                        {sortField === 'reqsWithRiskFlags' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                    </th>
+                                    <th className="text-end" style={thStyle}>FB Speed</th>
+                                    <th className="text-end" style={thStyle}>RV Speed</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {sortedHMs.map(hm => (
-                                    <tr
-                                        key={hm.hmUserId}
-                                        onClick={() => onSelectHM(hm.hmUserId)}
-                                        style={{ cursor: 'pointer' }}
-                                        className={selectedHmUserId === hm.hmUserId ? 'table-primary' : ''}
-                                    >
-                                        <td className="fw-medium">{hm.hmName}</td>
-                                        <td>{hm.team || '—'}</td>
-                                        <td>{hm.totalOpenReqs}</td>
-                                        <td>{hm.totalActiveCandidates}</td>
-                                        <td>
-                                            {hm.pendingActionsCount > 0 ? (
-                                                <span className="badge bg-warning">{hm.pendingActionsCount}</span>
-                                            ) : (
-                                                <span className="text-muted">0</span>
-                                            )}
-                                        </td>
-                                        <td>
-                                            {hm.feedbackDueCount > 0 ? (
-                                                <span className="badge bg-danger">{hm.feedbackDueCount}</span>
-                                            ) : (
-                                                <span className="text-muted">0</span>
-                                            )}
-                                        </td>
-                                        <td>
-                                            {hm.reviewDueCount > 0 ? (
-                                                <span className="badge bg-warning">{hm.reviewDueCount}</span>
-                                            ) : (
-                                                <span className="text-muted">0</span>
-                                            )}
-                                        </td>
-                                        <td>
-                                            {hm.reqsWithRiskFlags > 0 ? (
-                                                <span className="badge bg-danger">{hm.reqsWithRiskFlags}</span>
-                                            ) : (
-                                                <span className="text-success">✓</span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {sortedHMs.map(hm => {
+                                    const isSelected = selectedHmUserIds.has(hm.hmUserId);
+                                    return (
+                                        <tr
+                                            key={hm.hmUserId}
+                                            onClick={() => onToggleHM(hm.hmUserId)}
+                                            className={`cursor-pointer ${isSelected ? 'table-primary' : ''}`}
+                                        >
+                                            <td style={tdStyle} onClick={e => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="form-check-input"
+                                                    checked={isSelected}
+                                                    onChange={() => onToggleHM(hm.hmUserId)}
+                                                />
+                                            </td>
+                                            <td style={tdStyle}>
+                                                <strong style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>{hm.hmName}</strong>
+                                                {hm.team && <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{hm.team}</small>}
+                                            </td>
+                                            <td style={tdStyle} className="text-muted">{hm.team || '—'}</td>
+                                            <td className="text-end" style={tdStyle}>{hm.totalOpenReqs}</td>
+                                            <td className="text-end" style={tdStyle}>{hm.totalActiveCandidates}</td>
+                                            <td className="text-end" style={tdStyle}>
+                                                {hm.pendingActionsCount > 0 ? (
+                                                    <span className="badge-bespoke badge-warning-soft" style={{ fontSize: '0.75rem' }}>
+                                                        {hm.pendingActionsCount}
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>0</span>
+                                                )}
+                                            </td>
+                                            <td className="text-end" style={tdStyle}>
+                                                {hm.feedbackDueCount > 0 ? (
+                                                    <span className="badge-bespoke badge-danger-soft" style={{ fontSize: '0.75rem' }}>
+                                                        {hm.feedbackDueCount}
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>0</span>
+                                                )}
+                                            </td>
+                                            <td className="text-end" style={tdStyle}>
+                                                {hm.reviewDueCount > 0 ? (
+                                                    <span className="badge-bespoke badge-warning-soft" style={{ fontSize: '0.75rem' }}>
+                                                        {hm.reviewDueCount}
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>0</span>
+                                                )}
+                                            </td>
+                                            <td className="text-end" style={tdStyle}>
+                                                {hm.reqsWithRiskFlags > 0 ? (
+                                                    <span className="badge-bespoke badge-danger-soft" style={{ fontSize: '0.75rem' }}>
+                                                        {hm.reqsWithRiskFlags}
+                                                    </span>
+                                                ) : (
+                                                    <span className="badge-bespoke" style={{ background: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)', color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                                                        ✓
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="text-end" style={tdStyle}>
+                                                {hm.latencyMetrics.feedbackLatency.median !== null ? (
+                                                    <span style={{
+                                                        color: (hm.latencyMetrics.feedbackLatency.median > (hm.peerComparison?.metrics.find(m => m.metricName === 'Feedback Speed')?.cohortP75 ?? 999)) ? 'var(--color-danger)' : 'var(--color-slate-700)',
+                                                        fontWeight: 500
+                                                    }}>
+                                                        {hm.latencyMetrics.feedbackLatency.median}d
+                                                    </span>
+                                                ) : <span className="text-slate-300">—</span>}
+                                            </td>
+                                            <td className="text-end" style={tdStyle}>
+                                                {hm.latencyMetrics.reviewLatency.median !== null ? (
+                                                    <span style={{
+                                                        color: (hm.latencyMetrics.reviewLatency.median > (hm.peerComparison?.metrics.find(m => m.metricName === 'Review Speed')?.cohortP75 ?? 999)) ? 'var(--color-danger)' : 'var(--color-slate-700)',
+                                                        fontWeight: 500
+                                                    }}>
+                                                        {hm.latencyMetrics.reviewLatency.median}d
+                                                    </span>
+                                                ) : <span className="text-slate-300">—</span>}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                                 {sortedHMs.length === 0 && (
                                     <tr>
-                                        <td colSpan={8} className="text-center text-muted py-4">
-                                            No hiring managers found
+                                        <td colSpan={9} className="text-center text-muted py-5">
+                                            No hiring managers found matching criteria
                                         </td>
                                     </tr>
                                 )}

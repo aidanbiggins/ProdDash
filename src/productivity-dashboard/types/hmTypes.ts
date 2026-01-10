@@ -31,6 +31,7 @@ export enum StallReasonCode {
     PIPELINE_THIN = 'PIPELINE_THIN',
     NO_ACTIVITY = 'NO_ACTIVITY',
     OFFER_STALL = 'OFFER_STALL',
+    LATE_STAGE_EMPTY = 'LATE_STAGE_EMPTY',
     PROCESS_STALL_UNKNOWN = 'PROCESS_STALL_UNKNOWN',
     NONE = 'NONE'
 }
@@ -194,6 +195,7 @@ export interface HMRollup {
 
     // Latency
     latencyMetrics: HMLatencyMetrics;
+    peerComparison: PeerComparison | null;
 
     // Function/level mix for cohort matching
     functionMix: Record<string, number>;  // function -> req count
