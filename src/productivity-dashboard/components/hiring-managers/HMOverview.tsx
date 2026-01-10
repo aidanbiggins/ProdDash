@@ -197,9 +197,25 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                     <div className="text-muted small">Median Feedback Speed</div>
                                     <div className="d-flex align-items-baseline gap-2">
                                         <h4 className="mb-0">
-                                            {selectedHmUserIds.size === 1
-                                                ? (hmRollups.find(r => selectedHmUserIds.has(r.hmUserId))?.latencyMetrics.feedbackLatency.median ?? '—')
-                                                : summary.totalHMs > 0 ? 'See Leaderboard' : '—'}
+                                            {(() => {
+                                                const targetHMs = selectedHmUserIds.size > 0
+                                                    ? hmRollups.filter(r => selectedHmUserIds.has(r.hmUserId))
+                                                    : hmRollups;
+
+                                                const validSpeeds = targetHMs
+                                                    .map(r => r.latencyMetrics.feedbackLatency.median)
+                                                    .filter((n): n is number => n !== null && n > 0)
+                                                    .sort((a, b) => a - b);
+
+                                                if (validSpeeds.length === 0) return '—';
+
+                                                const mid = Math.floor(validSpeeds.length / 2);
+                                                const median = validSpeeds.length % 2 !== 0
+                                                    ? validSpeeds[mid]
+                                                    : (validSpeeds[mid - 1] + validSpeeds[mid]) / 2;
+
+                                                return Math.round(median * 10) / 10;
+                                            })()}
                                             <small className="fs-6 fw-normal text-muted ms-1">days</small>
                                         </h4>
                                     </div>
@@ -215,9 +231,25 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                     <div className="text-muted small">Median Review Speed</div>
                                     <div className="d-flex align-items-baseline gap-2">
                                         <h4 className="mb-0">
-                                            {selectedHmUserIds.size === 1
-                                                ? (hmRollups.find(r => selectedHmUserIds.has(r.hmUserId))?.latencyMetrics.reviewLatency.median ?? '—')
-                                                : summary.totalHMs > 0 ? 'See Leaderboard' : '—'}
+                                            {(() => {
+                                                const targetHMs = selectedHmUserIds.size > 0
+                                                    ? hmRollups.filter(r => selectedHmUserIds.has(r.hmUserId))
+                                                    : hmRollups;
+
+                                                const validSpeeds = targetHMs
+                                                    .map(r => r.latencyMetrics.reviewLatency.median)
+                                                    .filter((n): n is number => n !== null && n > 0)
+                                                    .sort((a, b) => a - b);
+
+                                                if (validSpeeds.length === 0) return '—';
+
+                                                const mid = Math.floor(validSpeeds.length / 2);
+                                                const median = validSpeeds.length % 2 !== 0
+                                                    ? validSpeeds[mid]
+                                                    : (validSpeeds[mid - 1] + validSpeeds[mid]) / 2;
+
+                                                return Math.round(median * 10) / 10;
+                                            })()}
                                             <small className="fs-6 fw-normal text-muted ms-1">days</small>
                                         </h4>
                                     </div>

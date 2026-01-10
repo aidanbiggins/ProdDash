@@ -237,6 +237,13 @@ export function generateSampleData(config: {
         const currentStage = journey.stages[s];
         const prevStage = s > 0 ? journey.stages[s - 1] : null;
 
+        // Intentional Stall: 15% chance to stall in HM Screen or Offer for > 15 days
+        // This ensures "Risk Flags" and "Stall Reasons" appear in the demo
+        let stallDays = 0;
+        if ((currentStage.stage === 'HM Screen' || currentStage.stage === 'Offer') && Math.random() < 0.15) {
+          stallDays = Math.floor(Math.random() * 10) + 15; // 15-25 days stall
+        }
+
         if (prevStage) {
           // Stage change event
           events.push(
@@ -254,10 +261,14 @@ export function generateSampleData(config: {
         }
 
         if (currentStage.stage === 'HM Screen') {
-          events.push(
-            `evt_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(currentStage.enteredAt, 2))},`
-          );
-          eventIndex++;
+          // If stalled, we don't submit feedback immediately, triggering "Review Stalled" logic
+          // Otherwise, we submit feedback to populate "Review Speed"
+          if (stallDays === 0) {
+            events.push(
+              `evt_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(currentStage.enteredAt, 2))},`
+            );
+            eventIndex++;
+          }
         }
 
         if (currentStage.stage === 'Onsite') {
@@ -265,8 +276,18 @@ export function generateSampleData(config: {
             `evt_${eventIndex},${candId},${req.id},INTERVIEW_SCHEDULED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
           eventIndex++;
+
+          const interviewDate = addDays(currentStage.enteredAt, 1);
           events.push(
-            `evt_${eventIndex},${candId},${req.id},INTERVIEW_COMPLETED,,,${req.recruiterId},${formatDate(addDays(currentStage.enteredAt, 1))},`
+            `evt_${eventIndex},${candId},${req.id},INTERVIEW_COMPLETED,,,${req.recruiterId},${formatDate(interviewDate)},`
+          );
+          eventIndex++;
+
+          // ADDED: Feedback Submitted Event
+          // 1-5 days after interview to populate "Feedback Speed" metric
+          const feedbackDelay = Math.floor(Math.random() * 5) + 1;
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(interviewDate, feedbackDelay))},`
           );
           eventIndex++;
         }
