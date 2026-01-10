@@ -5,6 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { HMReqRollup, HMDecisionBucket, StallReasonCode } from '../../types/hmTypes';
 import { StallReasonBadge, RiskFlagBadges } from './StallReasonBadge';
 import { BUCKET_METADATA } from '../../config/hmStageTaxonomy';
+import { BespokeTable, BespokeTableColumn } from '../common/BespokeTable';
 
 interface HMScorecardProps {
     reqRollups: HMReqRollup[];
@@ -77,13 +78,9 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
         return sorted;
     }, [filteredRollups, sortField, sortDirection]);
 
-    const handleSort = (field: SortField) => {
-        if (sortField === field) {
-            setSortDirection(d => d === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortDirection('desc');
-        }
+    const handleSort = (key: string, direction: 'asc' | 'desc') => {
+        setSortField(key as SortField);
+        setSortDirection(direction);
     };
 
     // Get bucket columns to show
@@ -97,6 +94,126 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
     // Determine if we should show the HM column
     const showHmColumn = !selectedHmUserIds || selectedHmUserIds.size === 0 || selectedHmUserIds.size > 1;
 
+    // Build columns dynamically
+    const columns: BespokeTableColumn<HMReqRollup>[] = useMemo(() => {
+        const cols: BespokeTableColumn<HMReqRollup>[] = [
+            {
+                key: 'reqTitle',
+                header: 'Requisition',
+                width: '160px',
+                sortable: true,
+                render: (r) => (
+                    <div>
+                        <div className="cell-primary text-truncate" style={{ maxWidth: '150px' }} title={r.reqTitle}>{r.reqTitle}</div>
+                        <small className="cell-muted cell-small">{r.reqId}</small>
+                    </div>
+                )
+            },
+            {
+                key: 'hmName',
+                header: 'HM',
+                width: '100px',
+                sortable: true,
+                hidden: !showHmColumn,
+                render: (r) => <span className="text-truncate d-block" style={{ maxWidth: '90px' }} title={r.hmName}>{r.hmName}</span>
+            },
+            {
+                key: 'function',
+                header: 'Func',
+                width: '70px',
+                render: (r) => <span className="badge-bespoke badge-neutral-soft">{r.function}</span>
+            },
+            {
+                key: 'level',
+                header: 'Lvl',
+                width: '50px',
+                render: (r) => <span className="badge-bespoke badge-neutral-soft">{r.level}</span>
+            },
+            {
+                key: 'reqAgeDays',
+                header: 'Age',
+                width: '50px',
+                align: 'right',
+                sortable: true,
+                render: (r) => r.reqAgeDays > 60
+                    ? <span className="badge-bespoke badge-danger-soft">{r.reqAgeDays}d</span>
+                    : <span className="cell-muted">{r.reqAgeDays}d</span>
+            },
+            {
+                key: 'daysSinceLastMovement',
+                header: 'Stall',
+                width: '50px',
+                align: 'right',
+                sortable: true,
+                render: (r) => r.daysSinceLastMovement !== null
+                    ? (r.daysSinceLastMovement > 7
+                        ? <span className="badge-bespoke badge-warning-soft">{r.daysSinceLastMovement}d</span>
+                        : <span className="cell-muted">{r.daysSinceLastMovement}d</span>)
+                    : <span className="cell-muted">—</span>
+            },
+            {
+                key: 'pipelineDepth',
+                header: 'Pipe',
+                width: '45px',
+                align: 'right',
+                sortable: true,
+                render: (r) => r.pipelineDepth < 3
+                    ? <span className="badge-bespoke badge-danger-soft">{r.pipelineDepth}</span>
+                    : <span className="fw-semibold">{r.pipelineDepth}</span>
+            }
+        ];
+
+        // Add bucket columns
+        const buckets: HMDecisionBucket[] = [
+            HMDecisionBucket.HM_REVIEW,
+            HMDecisionBucket.HM_INTERVIEW_DECISION,
+            HMDecisionBucket.HM_FINAL_DECISION,
+            HMDecisionBucket.OFFER_DECISION
+        ];
+        buckets.forEach(bucket => {
+            cols.push({
+                key: `bucket_${bucket}`,
+                header: BUCKET_METADATA[bucket].shortLabel,
+                width: '45px',
+                align: 'center',
+                headerClass: 'border-start',
+                cellClass: 'border-start',
+                render: (r) => r.candidatesByBucket[bucket] > 0
+                    ? <span className="badge-bespoke" style={{ backgroundColor: `${BUCKET_METADATA[bucket].color}20`, color: BUCKET_METADATA[bucket].color }}>{r.candidatesByBucket[bucket]}</span>
+                    : <span className="cell-muted">•</span>
+            });
+        });
+
+        // Add remaining columns
+        cols.push(
+            {
+                key: 'forecast',
+                header: 'Fill',
+                width: '80px',
+                headerClass: 'border-start',
+                cellClass: 'border-start',
+                render: (r) => r.forecast?.likelyDate
+                    ? <span className="fw-semibold">{new Date(r.forecast.likelyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    : <span className="cell-muted">—</span>
+            },
+            {
+                key: 'riskFlags',
+                header: 'Risk',
+                width: '100px',
+                headerClass: 'border-start',
+                cellClass: 'border-start',
+                render: (r) => <RiskFlagBadges flags={r.riskFlags} />
+            },
+            {
+                key: 'stallReason',
+                header: 'Reason',
+                render: (r) => <StallReasonBadge stallReason={r.primaryStallReason} showEvidence={r.primaryStallReason.code !== StallReasonCode.NONE} />
+            }
+        );
+
+        return cols;
+    }, [showHmColumn]);
+
     return (
         <div className="card-bespoke animate-fade-in">
             <div className="card-header d-flex justify-content-between align-items-center">
@@ -109,184 +226,26 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
                         placeholder="Search reqs..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        style={{ width: '200px' }}
+                        style={{ width: '160px' }}
                     />
                 </div>
             </div>
             <div className="card-body p-0">
-                <div className="table-responsive">
-                    <table className="table table-bespoke table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '1250px' }}>
-                        <thead>
-                            <tr>
-                                <th
-                                    style={{ width: '200px' }}
-                                    className={`cursor-pointer user-select-none ${sortField === 'reqTitle' ? 'text-primary' : ''}`}
-                                    onClick={() => handleSort('reqTitle')}
-                                >
-                                    Requisition
-                                    {sortField === 'reqTitle' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
-                                </th>
-                                {showHmColumn && (
-                                    <th
-                                        style={{ width: '120px' }}
-                                        className={`cursor-pointer user-select-none ${sortField === 'hmName' ? 'text-primary' : ''}`}
-                                        onClick={() => handleSort('hmName')}
-                                    >
-                                        HM
-                                        {sortField === 'hmName' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
-                                    </th>
-                                )}
-                                <th>Function</th>
-                                <th>Level</th>
-                                <th
-                                    className={`text-end cursor-pointer user-select-none ${sortField === 'reqAgeDays' ? 'text-primary' : ''}`}
-                                    onClick={() => handleSort('reqAgeDays')}
-                                >
-                                    Age
-                                    {sortField === 'reqAgeDays' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
-                                </th>
-                                <th
-                                    className={`text-end cursor-pointer user-select-none ${sortField === 'daysSinceLastMovement' ? 'text-primary' : ''}`}
-                                    onClick={() => handleSort('daysSinceLastMovement')}
-                                >
-                                    Stall
-                                    {sortField === 'daysSinceLastMovement' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
-                                </th>
-                                <th
-                                    className={`text-end cursor-pointer user-select-none ${sortField === 'pipelineDepth' ? 'text-primary' : ''}`}
-                                    onClick={() => handleSort('pipelineDepth')}
-                                >
-                                    Pipeline
-                                    {sortField === 'pipelineDepth' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
-                                </th>
-                                {bucketColumns.map(bucket => (
-                                    <th
-                                        key={bucket}
-                                        className="text-center"
-                                        title={BUCKET_METADATA[bucket].description}
-                                        style={{ minWidth: '60px', borderLeft: '1px solid var(--color-slate-200)' }}
-                                    >
-                                        <div className="d-flex flex-column align-items-center">
-                                            <span style={{ fontSize: '0.5em', color: BUCKET_METADATA[bucket].color }}>●</span>
-                                            <span>{BUCKET_METADATA[bucket].shortLabel}</span>
-                                        </div>
-                                    </th>
-                                ))}
-                                <th style={{ width: '120px', borderLeft: '1px solid var(--color-slate-200)' }}>Forecasted Fill</th>
-                                <th style={{ borderLeft: '1px solid var(--color-slate-200)' }}>Risk</th>
-                                <th>Stall Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedRollups.map(rollup => (
-                                <tr
-                                    key={rollup.reqId}
-                                    onClick={() => onSelectReq?.(rollup.reqId)}
-                                    className="cursor-pointer"
-                                >
-                                    <td style={{ maxWidth: '200px' }}>
-                                        <strong className="text-truncate d-block fw-medium" title={rollup.reqTitle}>
-                                            {rollup.reqTitle}
-                                        </strong>
-                                        <small className="text-muted">{rollup.reqId}</small>
-                                    </td>
-                                    {showHmColumn && (
-                                        <td>
-                                            <span>{rollup.hmName}</span>
-                                        </td>
-                                    )}
-                                    <td>
-                                        <span className="badge-bespoke badge-neutral-soft">
-                                            {rollup.function}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span className="badge-bespoke badge-neutral-soft">
-                                            {rollup.level}
-                                        </span>
-                                    </td>
-                                    <td className="text-end">
-                                        {rollup.reqAgeDays > 60 ? (
-                                            <span className="badge-bespoke badge-danger-soft">{rollup.reqAgeDays}d</span>
-                                        ) : (
-                                            <span className="text-muted">{rollup.reqAgeDays}d</span>
-                                        )}
-                                    </td>
-                                    <td className="text-end">
-                                        {rollup.daysSinceLastMovement !== null ? (
-                                            rollup.daysSinceLastMovement > 7 ? (
-                                                <span className="badge-bespoke badge-warning-soft">{rollup.daysSinceLastMovement}d</span>
-                                            ) : (
-                                                <span className="text-muted">{rollup.daysSinceLastMovement}d</span>
-                                            )
-                                        ) : (
-                                            <span className="text-muted">—</span>
-                                        )}
-                                    </td>
-                                    <td className="text-end">
-                                        {rollup.pipelineDepth < 3 ? (
-                                            <span className="badge-bespoke badge-danger-soft">{rollup.pipelineDepth}</span>
-                                        ) : (
-                                            <span className="fw-semibold">{rollup.pipelineDepth}</span>
-                                        )}
-                                    </td>
-                                    {bucketColumns.map(bucket => (
-                                        <td
-                                            key={bucket}
-                                            className="text-center"
-                                            style={{ borderLeft: '1px solid var(--color-slate-100)' }}
-                                        >
-                                            {rollup.candidatesByBucket[bucket] > 0 ? (
-                                                <span
-                                                    className="badge-bespoke"
-                                                    style={{
-                                                        backgroundColor: `${BUCKET_METADATA[bucket].color}20`,
-                                                        color: BUCKET_METADATA[bucket].color
-                                                    }}
-                                                >
-                                                    {rollup.candidatesByBucket[bucket]}
-                                                </span>
-                                            ) : (
-                                                <span className="text-muted">•</span>
-                                            )}
-                                        </td>
-                                    ))}
-                                    <td style={{ borderLeft: '1px solid var(--color-slate-100)' }}>
-                                        {rollup.forecast?.likelyDate ? (
-                                            <div className="d-flex flex-column">
-                                                <span className="fw-semibold">
-                                                    {new Date(rollup.forecast.likelyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                </span>
-                                                <small className="text-muted" style={{ fontSize: '0.65rem' }}>
-                                                    {new Date(rollup.forecast.earliestDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(rollup.forecast.lateDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                </small>
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted">—</span>
-                                        )}
-                                    </td>
-                                    <td style={{ borderLeft: '1px solid var(--color-slate-200)' }}>
-                                        <RiskFlagBadges flags={rollup.riskFlags} />
-                                    </td>
-                                    <td>
-                                        <StallReasonBadge
-                                            stallReason={rollup.primaryStallReason}
-                                            showEvidence={rollup.primaryStallReason.code !== StallReasonCode.NONE}
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
-                            {sortedRollups.length === 0 && (
-                                <tr>
-                                    <td colSpan={showHmColumn ? 12 : 11} className="text-center text-muted py-5">
-                                        <div className="mb-2" style={{ fontSize: '2rem' }}>🔍</div>
-                                        No open requisitions found matching criteria
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                <BespokeTable<HMReqRollup>
+                    columns={columns}
+                    data={sortedRollups}
+                    keyExtractor={(r) => r.reqId}
+                    sortColumn={sortField}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                    onRowClick={(r) => onSelectReq?.(r.reqId)}
+                    emptyState={
+                        <div>
+                            <div className="empty-state-icon">🔍</div>
+                            <div>No open requisitions found matching criteria</div>
+                        </div>
+                    }
+                />
             </div>
         </div>
     );
