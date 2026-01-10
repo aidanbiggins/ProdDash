@@ -256,9 +256,14 @@ export function HMFrictionTab({
                       if (item.hmId) setSelectedHM(item.hmId);
                     }}
                     cursor="pointer"
-                    fill="#059669"
-                    radius={[0, 4, 4, 0]}
-                  />
+                  >
+                    {fastestChartData.map((entry, index) => (
+                      <Cell
+                        key={`fast-${index}`}
+                        fill={entry.weight > 1.2 ? '#dc3545' : entry.weight > 1.0 ? '#ffc107' : '#28a745'}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
