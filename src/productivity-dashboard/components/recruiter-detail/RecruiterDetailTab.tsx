@@ -159,20 +159,28 @@ export function RecruiterDetailTab({
   }, [recruiterSummaries, selectedRecruiterId]);
 
   // Calculate Team Averages for Benchmarking
+  // Use aggregate (total converted / total entered) not average of rates
   const teamBenchmarks = useMemo(() => {
     if (recruiterSummaries.length === 0) return null;
 
-    // Calculate average rates across all recruiters
-    const avgScreenToHm = recruiterSummaries.reduce((sum, r) => sum + (r.funnelConversion.screenToHmScreen.rate || 0), 0) / recruiterSummaries.length;
-    const avgHmToOnsite = recruiterSummaries.reduce((sum, r) => sum + (r.funnelConversion.hmScreenToOnsite.rate || 0), 0) / recruiterSummaries.length;
-    const avgOnsiteToOffer = recruiterSummaries.reduce((sum, r) => sum + (r.funnelConversion.onsiteToOffer.rate || 0), 0) / recruiterSummaries.length;
-    const avgOfferToHired = recruiterSummaries.reduce((sum, r) => sum + (r.funnelConversion.offerToHired.rate || 0), 0) / recruiterSummaries.length;
+    const stages = ['screenToHmScreen', 'hmScreenToOnsite', 'onsiteToOffer', 'offerToHired'] as const;
+    const aggregates: Record<string, number> = {};
+
+    stages.forEach(stage => {
+      let totalEntered = 0;
+      let totalConverted = 0;
+      recruiterSummaries.forEach(r => {
+        totalEntered += r.funnelConversion[stage].entered;
+        totalConverted += r.funnelConversion[stage].converted;
+      });
+      aggregates[stage] = totalEntered > 0 ? (totalConverted / totalEntered) * 100 : 0;
+    });
 
     return {
-      screenToHm: avgScreenToHm * 100,
-      hmToOnsite: avgHmToOnsite * 100,
-      onsiteToOffer: avgOnsiteToOffer * 100,
-      offerToHired: avgOfferToHired * 100
+      screenToHm: aggregates.screenToHmScreen,
+      hmToOnsite: aggregates.hmScreenToOnsite,
+      onsiteToOffer: aggregates.onsiteToOffer,
+      offerToHired: aggregates.offerToHired
     };
   }, [recruiterSummaries]);
 
@@ -440,7 +448,7 @@ export function RecruiterDetailTab({
       <div className="row g-3 mb-4">
         {/* Weekly Activity Trend (NEW) */}
         <div className="col-12">
-          <div className="card h-100">
+          <div className="card-bespoke h-100">
             <div className="card-header d-flex justify-content-between align-items-center">
               <h6 className="mb-0">Weekly Activity Volume</h6>
               <small className="text-muted">Last 12 Weeks</small>
@@ -468,7 +476,7 @@ export function RecruiterDetailTab({
       <div className="row g-3 mb-4">
         {/* Funnel Conversion */}
         <div className="col-md-6">
-          <div className="card h-100">
+          <div className="card-bespoke h-100">
             <div className="card-header">
               <h6 className="mb-0">Funnel Conversion</h6>
             </div>
@@ -494,7 +502,7 @@ export function RecruiterDetailTab({
 
         {/* Req Aging */}
         <div className="col-md-6">
-          <div className="card h-100">
+          <div className="card-bespoke h-100">
             <div className="card-header">
               <h6 className="mb-0">Req Aging Distribution</h6>
             </div>
@@ -521,7 +529,7 @@ export function RecruiterDetailTab({
       </div>
 
       {/* Time Attribution */}
-      <div className="card mb-4">
+      <div className="card-bespoke mb-4">
         <div className="card-header">
           <h6 className="mb-0">Where Time is Going</h6>
         </div>
