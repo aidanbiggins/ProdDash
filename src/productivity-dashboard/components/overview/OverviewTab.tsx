@@ -392,11 +392,11 @@ export function OverviewTab({
             {selectedRecruiterIds.size > 0 && (
               <>
                 {selectedRecruiterIds.size === 1 && (
-                  <button className="btn btn-primary btn-sm" onClick={handleViewSelected}>
+                  <button className="btn btn-bespoke-primary btn-sm" onClick={handleViewSelected}>
                     View Details
                   </button>
                 )}
-                <button className="btn btn-outline-secondary btn-sm" onClick={clearSelection}>
+                <button className="btn btn-bespoke-secondary btn-sm" onClick={clearSelection}>
                   Clear Selection
                 </button>
               </>
@@ -408,10 +408,10 @@ export function OverviewTab({
         </div>
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
+            <table className="table table-bespoke table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
               <thead>
-                <tr style={{ background: 'var(--color-slate-50, #f8fafc)' }}>
-                  <th style={{ width: '40px', borderBottom: '2px solid var(--color-slate-200)', padding: '0.625rem 0.5rem' }}>
+                <tr>
+                  <th style={{ width: '40px' }}>
                     <input
                       type="checkbox"
                       className="form-check-input"
@@ -420,7 +420,7 @@ export function OverviewTab({
                       title="Select all"
                     />
                   </th>
-                  <th style={{ width: '140px', borderBottom: '2px solid var(--color-slate-200)', padding: '0.625rem 0.5rem', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', color: 'var(--color-slate-600)' }}>Recruiter</th>
+                  <th style={{ width: '140px' }}>Recruiter</th>
                   {[
                     { key: 'hires', label: 'Hires' },
                     { key: 'weighted', label: 'Wtd' },
@@ -435,24 +435,12 @@ export function OverviewTab({
                   ].map(col => (
                     <th
                       key={col.key}
-                      className="text-end"
-                      style={{
-                        borderBottom: '2px solid var(--color-slate-200)',
-                        padding: '0.625rem 0.5rem',
-                        fontSize: '0.7rem',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.03em',
-                        color: sortColumn === col.key ? 'var(--color-accent)' : 'var(--color-slate-600)',
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        whiteSpace: 'nowrap'
-                      }}
+                      className={`text-end cursor-pointer user-select-none ${sortColumn === col.key ? 'text-primary' : ''}`}
                       onClick={() => handleSort(col.key)}
                     >
                       {col.label}
                       {sortColumn === col.key && (
-                        <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>
+                        <span className="ms-1" style={{ fontSize: '0.6rem' }}>
                           {sortDirection === 'desc' ? '▼' : '▲'}
                         </span>
                       )}
@@ -466,10 +454,10 @@ export function OverviewTab({
                   return (
                     <tr
                       key={r.recruiterId}
-                      className={`cursor-pointer ${isSelected ? 'table-primary' : ''}`}
+                      className={`cursor-pointer ${isSelected ? 'bg-soft-primary' : ''}`}
                       onClick={() => toggleRecruiterSelection(r.recruiterId)}
                     >
-                      <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }} onClick={e => e.stopPropagation()}>
+                      <td onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           className="form-check-input"
@@ -477,29 +465,33 @@ export function OverviewTab({
                           onChange={() => toggleRecruiterSelection(r.recruiterId)}
                         />
                       </td>
-                      <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                        <strong style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>{r.recruiterName}</strong>
-                        {r.team && <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{r.team}</small>}
+                      <td className="fw-medium">
+                        {r.recruiterName}
+                        {r.team && <small className="text-muted d-block">{r.team}</small>}
                       </td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.outcomes.hires}</td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.weighted.weightedHires.toFixed(1)}</td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.outcomes.offersExtended}</td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
+                      <td className="text-end">{r.outcomes.hires}</td>
+                      <td className="text-end">{r.weighted.weightedHires.toFixed(1)}</td>
+                      <td className="text-end">{r.outcomes.offersExtended}</td>
+                      <td className="text-end">
                         {r.outcomes.offerAcceptanceRate !== null
                           ? `${(r.outcomes.offerAcceptanceRate * 100).toFixed(0)}%`
                           : '-'}
                       </td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.aging.openReqCount}</td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                        <span className={r.aging.stalledReqs.count > 0 ? 'badge-bespoke badge-warning-soft' : ''} style={r.aging.stalledReqs.count > 0 ? { fontSize: '0.75rem' } : { color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
-                          {r.aging.stalledReqs.count}
-                        </span>
+                      <td className="text-end">{r.aging.openReqCount}</td>
+                      <td className="text-end">
+                        {r.aging.stalledReqs.count > 0 ? (
+                          <span className="badge-bespoke badge-warning-soft">
+                            {r.aging.stalledReqs.count}
+                          </span>
+                        ) : (
+                          <span className="text-muted">{r.aging.stalledReqs.count}</span>
+                        )}
                       </td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.outreachSent}</td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.screensCompleted}</td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>{r.executionVolume.submittalsToHM}</td>
-                      <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                        <span className="badge-bespoke" style={{ background: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)', color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                      <td className="text-end text-muted">{r.executionVolume.outreachSent}</td>
+                      <td className="text-end text-muted">{r.executionVolume.screensCompleted}</td>
+                      <td className="text-end text-muted">{r.executionVolume.submittalsToHM}</td>
+                      <td className="text-end">
+                        <span className="badge-bespoke badge-accent-soft">
                           {r.productivityIndex.toFixed(2)}
                         </span>
                       </td>

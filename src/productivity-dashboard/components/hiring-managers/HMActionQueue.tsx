@@ -104,34 +104,6 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
     // Determine if we should show the HM column
     const showHmColumn = !selectedHmUserIds || selectedHmUserIds.size === 0 || selectedHmUserIds.size > 1;
 
-    // Header style matching Recruiter Leaderboard
-    const thStyle = {
-        borderBottom: '2px solid var(--color-slate-200)',
-        padding: '0.625rem 0.5rem',
-        fontSize: '0.7rem',
-        fontWeight: 600,
-        textTransform: 'uppercase' as const,
-        letterSpacing: '0.03em',
-        color: 'var(--color-slate-600)',
-        whiteSpace: 'nowrap' as const
-    };
-
-    // Sortable header style
-    const sortableThStyle = (field: SortField) => ({
-        ...thStyle,
-        cursor: 'pointer',
-        userSelect: 'none' as const,
-        color: sortField === field ? 'var(--color-accent)' : 'var(--color-slate-600)'
-    });
-
-    // Cell style
-    const tdStyle = {
-        padding: '0.5rem',
-        borderBottom: '1px solid var(--color-slate-100)',
-        color: 'var(--color-slate-700)',
-        fontSize: '0.85rem'
-    };
-
     return (
         <div className="animate-fade-in">
             {/* Summary Cards */}
@@ -185,55 +157,58 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
             <div className="card-bespoke">
                 <div className="card-header d-flex justify-content-between align-items-center">
                     <h6 className="mb-0">Pending Actions Queue</h6>
-                    <span className="badge bg-slate-200 text-slate-600">{sortedActions.length} actions</span>
+                    <span className="badge-bespoke badge-neutral-soft">{sortedActions.length} actions</span>
                 </div>
                 <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
+                        <table className="table table-bespoke table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
                             <thead>
-                                <tr style={{ background: 'var(--color-slate-50, #f8fafc)' }}>
+                                <tr>
                                     <th
-                                        style={{ width: '120px', ...sortableThStyle('actionType') }}
+                                        style={{ width: '120px' }}
+                                        className={`cursor-pointer user-select-none ${sortField === 'actionType' ? 'text-primary' : ''}`}
                                         onClick={() => handleSort('actionType')}
                                     >
                                         Type
-                                        {sortField === 'actionType' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                        {sortField === 'actionType' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
                                     {showHmColumn && (
                                         <th
-                                            style={{ width: '140px', ...sortableThStyle('hmName') }}
+                                            style={{ width: '140px' }}
+                                            className={`cursor-pointer user-select-none ${sortField === 'hmName' ? 'text-primary' : ''}`}
                                             onClick={() => handleSort('hmName')}
                                         >
                                             Hiring Manager
-                                            {sortField === 'hmName' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                            {sortField === 'hmName' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                         </th>
                                     )}
                                     <th
-                                        style={{ width: '180px', ...sortableThStyle('reqTitle') }}
+                                        style={{ width: '180px' }}
+                                        className={`cursor-pointer user-select-none ${sortField === 'reqTitle' ? 'text-primary' : ''}`}
                                         onClick={() => handleSort('reqTitle')}
                                     >
                                         Requisition
-                                        {sortField === 'reqTitle' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                        {sortField === 'reqTitle' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
-                                    <th style={{ width: '140px', ...thStyle }}>Candidate</th>
-                                    <th style={{ width: '100px', ...thStyle }}>Trigger</th>
+                                    <th style={{ width: '140px' }}>Candidate</th>
+                                    <th style={{ width: '100px' }}>Trigger</th>
                                     <th
-                                        className="text-end"
-                                        style={{ width: '80px', ...sortableThStyle('daysWaiting') }}
+                                        className={`text-end cursor-pointer user-select-none ${sortField === 'daysWaiting' ? 'text-primary' : ''}`}
+                                        style={{ width: '80px' }}
                                         onClick={() => handleSort('daysWaiting')}
                                     >
                                         Wait
-                                        {sortField === 'daysWaiting' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                        {sortField === 'daysWaiting' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
                                     <th
-                                        className="text-end"
-                                        style={{ width: '100px', ...sortableThStyle('daysOverdue') }}
+                                        className={`text-end cursor-pointer user-select-none ${sortField === 'daysOverdue' ? 'text-primary' : ''}`}
+                                        style={{ width: '100px' }}
                                         onClick={() => handleSort('daysOverdue')}
                                     >
                                         Status
-                                        {sortField === 'daysOverdue' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
+                                        {sortField === 'daysOverdue' && <span className="ms-1" style={{ fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
-                                    <th style={thStyle}>Suggested Action</th>
+                                    <th>Suggested Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -244,61 +219,50 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                                             key={`${action.reqId}-${action.candidateId}-${action.actionType}-${idx}`}
                                             className="cursor-pointer"
                                         >
-                                            <td style={tdStyle}>
-                                                <span
-                                                    className="badge-bespoke"
-                                                    style={{
-                                                        background: meta.color === 'danger' ? 'var(--color-red-50)' :
-                                                            meta.color === 'warning' ? 'var(--color-amber-50)' :
-                                                                'var(--color-blue-50)',
-                                                        color: meta.color === 'danger' ? 'var(--color-red-600)' :
-                                                            meta.color === 'warning' ? 'var(--color-amber-600)' :
-                                                                'var(--color-blue-600)',
-                                                        fontSize: '0.7rem'
-                                                    }}
-                                                >
+                                            <td>
+                                                <span className={`badge-bespoke ${meta.color === 'danger' ? 'badge-danger-soft' : meta.color === 'warning' ? 'badge-warning-soft' : 'badge-primary-soft'}`}>
                                                     {meta.label}
                                                 </span>
                                             </td>
                                             {showHmColumn && (
-                                                <td style={tdStyle}>
-                                                    <strong style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>{action.hmName}</strong>
+                                                <td className="fw-medium">
+                                                    {action.hmName}
                                                 </td>
                                             )}
-                                            <td style={{ ...tdStyle, maxWidth: '180px' }}>
-                                                <strong style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }} className="text-truncate d-block" title={action.reqTitle}>
+                                            <td style={{ maxWidth: '180px' }}>
+                                                <strong className="text-truncate d-block fw-medium" title={action.reqTitle}>
                                                     {action.reqTitle}
                                                 </strong>
-                                                <small className="text-muted" style={{ fontSize: '0.7rem' }}>{action.reqId}</small>
+                                                <small className="text-muted">{action.reqId}</small>
                                             </td>
-                                            <td style={tdStyle}>
-                                                <span style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>{action.candidateName}</span>
+                                            <td>
+                                                {action.candidateName}
                                             </td>
-                                            <td style={tdStyle}>
-                                                <span style={{ color: 'var(--color-slate-500)', fontSize: '0.85rem' }}>{action.triggerDate.toLocaleDateString()}</span>
+                                            <td className="text-muted">
+                                                {action.triggerDate.toLocaleDateString()}
                                             </td>
-                                            <td className="text-end" style={tdStyle}>
-                                                <span style={{ color: 'var(--color-slate-700)', fontWeight: 600 }}>{action.daysWaiting}d</span>
+                                            <td className="text-end fw-semibold">
+                                                {action.daysWaiting}d
                                             </td>
-                                            <td className="text-end" style={tdStyle}>
+                                            <td className="text-end">
                                                 {action.daysOverdue > 0 ? (
                                                     action.daysOverdue > 5 ? (
-                                                        <span className="badge-bespoke badge-danger-soft" style={{ fontSize: '0.75rem' }}>
+                                                        <span className="badge-bespoke badge-danger-soft">
                                                             {action.daysOverdue}d overdue
                                                         </span>
                                                     ) : (
-                                                        <span className="badge-bespoke badge-warning-soft" style={{ fontSize: '0.75rem' }}>
+                                                        <span className="badge-bespoke badge-warning-soft">
                                                             {action.daysOverdue}d overdue
                                                         </span>
                                                     )
                                                 ) : (
-                                                    <span className="badge-bespoke" style={{ background: 'linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)', color: 'white', fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}>
+                                                    <span className="badge-bespoke badge-success-soft">
                                                         On Track
                                                     </span>
                                                 )}
                                             </td>
-                                            <td style={tdStyle}>
-                                                <small style={{ color: 'var(--color-slate-600)', fontSize: '0.8rem' }}>
+                                            <td>
+                                                <small className="text-muted">
                                                     → {action.suggestedAction}
                                                 </small>
                                             </td>
