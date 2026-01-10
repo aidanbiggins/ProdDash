@@ -594,9 +594,9 @@ export function RecruiterDetailTab({
         </div>
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-hover mb-0">
+            <table className="table table-bespoke table-hover mb-0">
               <thead>
-                <tr style={{ background: 'var(--color-slate-50, #f8fafc)' }}>
+                <tr>
                   <SortableHeader column="req" label="Req" />
                   <SortableHeader column="req" label="Title" />
                   <SortableHeader column="req" label="Level" />
@@ -610,30 +610,30 @@ export function RecruiterDetailTab({
               <tbody>
                 {sortedReqDetails.map(rd => (
                   <tr key={rd.req.req_id}>
-                    <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                      <code className="small" style={{ color: 'var(--color-slate-500)' }}>{rd.req.req_id}</code>
+                    <td style={{ padding: '0.875rem 1rem' }}>
+                      <code className="small text-muted">{rd.req.req_id}</code>
                     </td>
-                    <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', fontWeight: 500, color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>
+                    <td className="fw-medium">
                       {rd.req.req_title}
                     </td>
-                    <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-600)', fontSize: '0.85rem' }}>
+                    <td className="text-muted">
                       {rd.req.level}
                     </td>
-                    <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
+                    <td className="text-secondary text-truncate-2" style={{ maxWidth: '150px' }}>
                       {rd.hmName}
                     </td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
-                      <span className={rd.ageInDays > 90 ? 'text-danger fw-bold' : rd.ageInDays > 60 ? 'text-warning fw-bold' : 'text-slate-700'} style={{ fontSize: '0.85rem' }}>
+                    <td className="text-end">
+                      <span className={rd.ageInDays > 90 ? 'text-danger fw-bold' : rd.ageInDays > 60 ? 'text-warning fw-bold' : 'text-slate-700'}>
                         {rd.ageInDays}d
                       </span>
                     </td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
+                    <td className="text-end text-muted">
                       {rd.candidateCount}
                     </td>
-                    <td className="text-end" style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>
+                    <td className="text-end text-muted">
                       {rd.complexityScore.toFixed(2)}
                     </td>
-                    <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                    <td>
                       <span className={`badge-bespoke ${rd.req.status === 'Open' ? 'badge-success-soft' :
                         rd.req.status === 'Closed' ? 'badge-neutral-soft' :
                           rd.req.status === 'OnHold' ? 'badge-warning-soft' : 'badge-danger-soft'

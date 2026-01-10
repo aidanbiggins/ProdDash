@@ -217,29 +217,29 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                     <h6>Funnel Pass-Through Rates by Source</h6>
                     <small className="text-muted">See where candidates from each source drop off</small>
                 </div>
-                <div className="card-body">
+                <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table mb-0">
+                        <table className="table table-bespoke table-hover mb-0">
                             <thead>
-                                <tr style={{ background: 'var(--color-slate-50)' }}>
-                                    <th style={{ padding: '0.75rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-slate-600)' }}>Source</th>
-                                    <th className="text-center" style={{ padding: '0.75rem 0.5rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-slate-600)' }}>Screen</th>
-                                    <th className="text-center" style={{ padding: '0.75rem 0.5rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-slate-600)' }}>HM Screen</th>
-                                    <th className="text-center" style={{ padding: '0.75rem 0.5rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-slate-600)' }}>Onsite</th>
-                                    <th className="text-center" style={{ padding: '0.75rem 0.5rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-slate-600)' }}>Offer</th>
-                                    <th className="text-center" style={{ padding: '0.75rem 0.5rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-slate-600)' }}>Hired</th>
+                                <tr>
+                                    <th>Source</th>
+                                    <th className="text-center">Screen</th>
+                                    <th className="text-center">HM Screen</th>
+                                    <th className="text-center">Onsite</th>
+                                    <th className="text-center">Offer</th>
+                                    <th className="text-center">Hired</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.bySource.filter(s => s.funnel && s.funnel.length > 0).map(source => (
                                     <tr key={source.source}>
-                                        <td style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                                        <td className="fw-medium">
                                             <div className="d-flex align-items-center gap-2">
                                                 <span
                                                     className="rounded-circle d-inline-block"
-                                                    style={{ width: 10, height: 10, background: getSourceColor(source.source) }}
+                                                    style={{ width: 8, height: 8, background: getSourceColor(source.source) }}
                                                 />
-                                                <strong style={{ color: 'var(--color-slate-800)' }}>{source.source}</strong>
+                                                {source.source}
                                             </div>
                                         </td>
                                         {source.funnel.map((stage, idx) => {
@@ -258,8 +258,6 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                                     key={idx}
                                                     className="text-center"
                                                     style={{
-                                                        padding: '0.5rem',
-                                                        borderBottom: '1px solid var(--color-slate-100)',
                                                         background: bgColor
                                                     }}
                                                 >
@@ -298,38 +296,38 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                 </div>
                 <div className="card-body p-0">
                     <div className="table-responsive">
-                        <table className="table mb-0">
+                        <table className="table table-bespoke table-hover mb-0">
                             <thead>
-                                <tr style={{ background: 'var(--color-slate-50)' }}>
-                                    <th style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Source</th>
-                                    <th className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Candidates</th>
-                                    <th className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Hires</th>
-                                    <th className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Hire Rate</th>
-                                    <th className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Offers</th>
-                                    <th className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Accept Rate</th>
-                                    <th className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Median TTH</th>
-                                    <th className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '2px solid var(--color-slate-200)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Screen Pass</th>
+                                <tr>
+                                    <th>Source</th>
+                                    <th className="text-end">Candidates</th>
+                                    <th className="text-end">Hires</th>
+                                    <th className="text-end">Hire Rate</th>
+                                    <th className="text-end">Offers</th>
+                                    <th className="text-end">Accept Rate</th>
+                                    <th className="text-end">Median TTH</th>
+                                    <th className="text-end">Screen Pass</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.bySource.map(s => (
                                     <tr key={s.source}>
-                                        <td style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                                        <td className="fw-medium">
                                             <div className="d-flex align-items-center gap-2">
                                                 <span
                                                     className="rounded-circle d-inline-block"
-                                                    style={{ width: 10, height: 10, background: getSourceColor(s.source) }}
+                                                    style={{ width: 8, height: 8, background: getSourceColor(s.source) }}
                                                 />
-                                                <strong style={{ color: 'var(--color-slate-800)' }}>{s.source}</strong>
+                                                {s.source}
                                             </div>
                                         </td>
-                                        <td className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)' }}>
+                                        <td className="text-end">
                                             {s.totalCandidates}
                                         </td>
-                                        <td className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)' }}>
+                                        <td className="text-end">
                                             {s.hires}
                                         </td>
-                                        <td className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                                        <td className="text-end">
                                             {s.hireRate !== null ? (
                                                 <span className={`badge-bespoke ${s.hireRate >= 0.15 ? 'badge-success-soft' : s.hireRate >= 0.05 ? 'badge-neutral-soft' : 'badge-warning-soft'}`}>
                                                     {Math.round(s.hireRate * 100)}%
@@ -338,10 +336,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                                 <span className="text-muted">—</span>
                                             )}
                                         </td>
-                                        <td className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)' }}>
+                                        <td className="text-end">
                                             {s.offers}
                                         </td>
-                                        <td className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                                        <td className="text-end">
                                             {s.offerAcceptRate !== null ? (
                                                 <span className={`badge-bespoke ${s.offerAcceptRate >= 0.8 ? 'badge-success-soft' : s.offerAcceptRate >= 0.6 ? 'badge-neutral-soft' : 'badge-warning-soft'}`}>
                                                     {Math.round(s.offerAcceptRate * 100)}%
@@ -350,10 +348,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                                 <span className="text-muted">—</span>
                                             )}
                                         </td>
-                                        <td className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)' }}>
+                                        <td className="text-end text-muted">
                                             {s.medianTimeToHire !== null ? `${s.medianTimeToHire}d` : '—'}
                                         </td>
-                                        <td className="text-end" style={{ padding: '0.875rem 1rem', borderBottom: '1px solid var(--color-slate-100)', color: 'var(--color-slate-700)' }}>
+                                        <td className="text-end text-muted">
                                             {s.screenPassRate !== null ? `${Math.round(s.screenPassRate * 100)}%` : '—'}
                                         </td>
                                     </tr>

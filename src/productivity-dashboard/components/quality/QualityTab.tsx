@@ -159,24 +159,24 @@ export function QualityTab({ quality }: QualityTabProps) {
       <div className="row g-4 mb-4">
         <div className="col-md-6">
           <div className="card-bespoke h-100">
-            <div className="card-header" style={{ background: 'linear-gradient(135deg, #059669 0%, #34d399 100%)', border: 'none' }}>
-              <h6 style={{ color: 'white' }}>Top 5 Recruiters (Offer Acceptance)</h6>
+            <div className="card-header border-bottom">
+              <h6 className="mb-0">Top 5 Recruiters <span className="text-muted fw-normal">(Offer Acceptance)</span></h6>
             </div>
             <div className="card-body p-0">
-              <table className="table mb-0">
+              <table className="table table-bespoke table-hover mb-0">
                 <thead>
-                  <tr style={{ background: 'var(--color-slate-50)' }}>
-                    <th style={{ borderBottom: '2px solid var(--color-slate-200)', padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Recruiter</th>
-                    <th className="text-end" style={{ borderBottom: '2px solid var(--color-slate-200)', padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Offers</th>
-                    <th className="text-end" style={{ borderBottom: '2px solid var(--color-slate-200)', padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Accept Rate</th>
+                  <tr>
+                    <th>Recruiter</th>
+                    <th className="text-end">Offers</th>
+                    <th className="text-end">Accept Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topRecruiters.map(r => (
                     <tr key={r.recruiterId}>
-                      <td style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>{r.recruiterName}</td>
-                      <td className="text-end" style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>{r.offerCount}</td>
-                      <td className="text-end" style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                      <td className="fw-medium">{r.recruiterName}</td>
+                      <td className="text-end">{r.offerCount}</td>
+                      <td className="text-end">
                         <span className="badge-bespoke badge-success-soft">
                           {r.acceptanceRate !== null
                             ? `${(r.acceptanceRate * 100).toFixed(0)}%`
@@ -192,24 +192,24 @@ export function QualityTab({ quality }: QualityTabProps) {
         </div>
         <div className="col-md-6">
           <div className="card-bespoke h-100">
-            <div className="card-header" style={{ background: 'linear-gradient(135deg, #dc2626 0%, #f87171 100%)', border: 'none' }}>
-              <h6 style={{ color: 'white' }}>Bottom 5 Recruiters (Offer Acceptance)</h6>
+            <div className="card-header border-bottom">
+              <h6 className="mb-0">Bottom 5 Recruiters <span className="text-muted fw-normal">(Offer Acceptance)</span></h6>
             </div>
             <div className="card-body p-0">
-              <table className="table mb-0">
+              <table className="table table-bespoke table-hover mb-0">
                 <thead>
-                  <tr style={{ background: 'var(--color-slate-50)' }}>
-                    <th style={{ borderBottom: '2px solid var(--color-slate-200)', padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Recruiter</th>
-                    <th className="text-end" style={{ borderBottom: '2px solid var(--color-slate-200)', padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Offers</th>
-                    <th className="text-end" style={{ borderBottom: '2px solid var(--color-slate-200)', padding: '0.75rem 1rem', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-slate-600)' }}>Accept Rate</th>
+                  <tr>
+                    <th>Recruiter</th>
+                    <th className="text-end">Offers</th>
+                    <th className="text-end">Accept Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bottomRecruiters.map(r => (
                     <tr key={r.recruiterId}>
-                      <td style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>{r.recruiterName}</td>
-                      <td className="text-end" style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>{r.offerCount}</td>
-                      <td className="text-end" style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-slate-100)' }}>
+                      <td className="fw-medium">{r.recruiterName}</td>
+                      <td className="text-end">{r.offerCount}</td>
+                      <td className="text-end">
                         <span className={`badge-bespoke ${r.acceptanceRate !== null && r.acceptanceRate >= 0.6 ? 'badge-warning-soft' : 'badge-danger-soft'
                           }`}>
                           {r.acceptanceRate !== null
