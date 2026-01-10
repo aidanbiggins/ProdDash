@@ -12,6 +12,7 @@ import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecord
 import { METRIC_FORMULAS } from '../common/MetricDrillDown';
 import { exportRecruiterSummaryCSV } from '../../services';
 import { MetricFilters } from '../../types';
+import { BespokeTable, BespokeTableColumn } from '../common/BespokeTable';
 
 interface OverviewTabProps {
   overview: OverviewMetrics;
@@ -50,13 +51,9 @@ export function OverviewTab({
   // Multi-select state for recruiters
   const [selectedRecruiterIds, setSelectedRecruiterIds] = useState<Set<string>>(new Set());
 
-  const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('desc');
-    }
+  const handleSort = (key: string, direction: 'asc' | 'desc') => {
+    setSortColumn(key);
+    setSortDirection(direction);
   };
 
   // Toggle recruiter selection
@@ -385,7 +382,7 @@ export function OverviewTab({
           <div className="d-flex align-items-center gap-3">
             <h6 className="mb-0">Recruiter Leaderboard</h6>
             {selectedRecruiterIds.size > 0 && (
-              <span className="badge bg-primary">{selectedRecruiterIds.size} selected</span>
+              <span className="badge-bespoke badge-primary-soft">{selectedRecruiterIds.size} selected</span>
             )}
           </div>
           <div className="d-flex gap-2">
@@ -407,100 +404,61 @@ export function OverviewTab({
           </div>
         </div>
         <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-bespoke table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
-              <thead>
-                <tr>
-                  <th style={{ width: '40px' }}>
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      checked={selectedRecruiterIds.size === sortedRecruiters.length && sortedRecruiters.length > 0}
-                      onChange={handleSelectAll}
-                      title="Select all"
-                    />
-                  </th>
-                  <th style={{ width: '140px' }}>Recruiter</th>
-                  {[
-                    { key: 'hires', label: 'Hires' },
-                    { key: 'weighted', label: 'Wtd' },
-                    { key: 'offers', label: 'Offers' },
-                    { key: 'accept', label: 'Accept' },
-                    { key: 'openReqs', label: 'Open' },
-                    { key: 'stalled', label: 'Stall' },
-                    { key: 'outreach', label: 'Outreach' },
-                    { key: 'screens', label: 'Screens' },
-                    { key: 'submittals', label: 'Submits' },
-                    { key: 'productivity', label: 'Prod' }
-                  ].map(col => (
-                    <th
-                      key={col.key}
-                      className={`text-end cursor-pointer user-select-none ${sortColumn === col.key ? 'text-primary' : ''}`}
-                      onClick={() => handleSort(col.key)}
-                    >
-                      {col.label}
-                      {sortColumn === col.key && (
-                        <span className="ms-1" style={{ fontSize: '0.6rem' }}>
-                          {sortDirection === 'desc' ? '▼' : '▲'}
-                        </span>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sortedRecruiters.map(r => {
-                  const isSelected = selectedRecruiterIds.has(r.recruiterId);
-                  return (
-                    <tr
-                      key={r.recruiterId}
-                      className={`cursor-pointer ${isSelected ? 'bg-soft-primary' : ''}`}
-                      onClick={() => toggleRecruiterSelection(r.recruiterId)}
-                    >
-                      <td onClick={e => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          className="form-check-input"
-                          checked={isSelected}
-                          onChange={() => toggleRecruiterSelection(r.recruiterId)}
-                        />
-                      </td>
-                      <td className="fw-medium">
-                        {r.recruiterName}
-                        {r.team && <small className="text-muted d-block">{r.team}</small>}
-                      </td>
-                      <td className="text-end">{r.outcomes.hires}</td>
-                      <td className="text-end">{r.weighted.weightedHires.toFixed(1)}</td>
-                      <td className="text-end">{r.outcomes.offersExtended}</td>
-                      <td className="text-end">
-                        {r.outcomes.offerAcceptanceRate !== null
-                          ? `${(r.outcomes.offerAcceptanceRate * 100).toFixed(0)}%`
-                          : '-'}
-                      </td>
-                      <td className="text-end">{r.aging.openReqCount}</td>
-                      <td className="text-end">
-                        {r.aging.stalledReqs.count > 0 ? (
-                          <span className="badge-bespoke badge-warning-soft">
-                            {r.aging.stalledReqs.count}
-                          </span>
-                        ) : (
-                          <span className="text-muted">{r.aging.stalledReqs.count}</span>
-                        )}
-                      </td>
-                      <td className="text-end text-muted">{r.executionVolume.outreachSent}</td>
-                      <td className="text-end text-muted">{r.executionVolume.screensCompleted}</td>
-                      <td className="text-end text-muted">{r.executionVolume.submittalsToHM}</td>
-                      <td className="text-end">
-                        <span className="badge-bespoke badge-accent-soft">
-                          {r.productivityIndex.toFixed(2)}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <BespokeTable<RecruiterSummary>
+            columns={[
+              {
+                key: 'recruiterName',
+                header: 'Recruiter',
+                width: '160px',
+                render: (r) => (
+                  <div>
+                    <div className="cell-primary">{r.recruiterName}</div>
+                    {r.team && <small className="cell-muted cell-small">{r.team}</small>}
+                  </div>
+                )
+              },
+              { key: 'hires', header: 'Hires', align: 'right', sortable: true, render: (r) => r.outcomes.hires },
+              { key: 'weighted', header: 'Wtd', align: 'right', sortable: true, render: (r) => r.weighted.weightedHires.toFixed(1) },
+              { key: 'offers', header: 'Offers', align: 'right', sortable: true, render: (r) => r.outcomes.offersExtended },
+              { key: 'accept', header: 'Accept', align: 'right', sortable: true, render: (r) => r.outcomes.offerAcceptanceRate !== null ? `${(r.outcomes.offerAcceptanceRate * 100).toFixed(0)}%` : '—' },
+              { key: 'openReqs', header: 'Open', align: 'right', sortable: true, render: (r) => r.aging.openReqCount },
+              {
+                key: 'stalled',
+                header: 'Stall',
+                align: 'right',
+                sortable: true,
+                render: (r) => r.aging.stalledReqs.count > 0
+                  ? <span className="badge-bespoke badge-warning-soft">{r.aging.stalledReqs.count}</span>
+                  : <span className="cell-muted">{r.aging.stalledReqs.count}</span>
+              },
+              { key: 'outreach', header: 'Outreach', align: 'right', sortable: true, cellClass: 'cell-muted', render: (r) => r.executionVolume.outreachSent },
+              { key: 'screens', header: 'Screens', align: 'right', sortable: true, cellClass: 'cell-muted', render: (r) => r.executionVolume.screensCompleted },
+              { key: 'submittals', header: 'Submits', align: 'right', sortable: true, cellClass: 'cell-muted', render: (r) => r.executionVolume.submittalsToHM },
+              {
+                key: 'productivity',
+                header: 'Prod',
+                align: 'right',
+                sortable: true,
+                render: (r) => <span className="badge-bespoke badge-accent-soft">{r.productivityIndex.toFixed(2)}</span>
+              }
+            ]}
+            data={sortedRecruiters}
+            keyExtractor={(r) => r.recruiterId}
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+            onRowClick={(r) => toggleRecruiterSelection(r.recruiterId)}
+            selectable={true}
+            selectedKeys={selectedRecruiterIds}
+            onSelectionChange={setSelectedRecruiterIds}
+            minWidth="1000px"
+            emptyState={
+              <div>
+                <div className="empty-state-icon">👥</div>
+                <div>No recruiters found</div>
+              </div>
+            }
+          />
         </div>
       </div>
 

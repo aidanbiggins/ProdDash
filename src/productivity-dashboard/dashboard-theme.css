@@ -270,29 +270,34 @@ h6 {
 }
 
 /* ========================================
-   TABLE STYLES
+   TABLE STYLES - Single Source of Truth
    ======================================== */
 .table-bespoke {
     margin-bottom: 0;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
 }
 
 .table-bespoke thead th {
     background: var(--color-slate-50, #f8fafc);
     border-bottom: 2px solid var(--color-slate-200);
     color: var(--color-slate-600);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    padding: 0.875rem 1rem;
+    padding: 0.75rem 0.875rem;
     white-space: nowrap;
+    vertical-align: middle;
 }
 
 .table-bespoke tbody td {
-    padding: 0.875rem 1rem;
+    padding: 0.75rem 0.875rem;
     border-bottom: 1px solid var(--color-slate-100);
     vertical-align: middle;
     color: var(--color-slate-700);
+    font-size: 0.85rem;
+    line-height: 1.4;
 }
 
 .table-bespoke tbody tr {
@@ -305,6 +310,74 @@ h6 {
 
 .table-bespoke tbody tr:last-child td {
     border-bottom: none;
+}
+
+/* Sortable Headers */
+.table-bespoke th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition-fast);
+}
+
+.table-bespoke th.sortable:hover {
+    color: var(--color-accent);
+}
+
+.table-bespoke th.sorted {
+    color: var(--color-accent);
+}
+
+.table-bespoke .sort-indicator {
+    font-size: 0.6rem;
+    margin-left: 0.25rem;
+    opacity: 0.8;
+}
+
+/* Selection States */
+.table-bespoke tbody tr.selected {
+    background: rgba(15, 118, 110, 0.08);
+}
+
+.table-bespoke tbody tr.selected:hover {
+    background: rgba(15, 118, 110, 0.12);
+}
+
+/* Cell Utilities */
+.table-bespoke .cell-numeric {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.table-bespoke .cell-truncate {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-bespoke .cell-primary {
+    font-weight: 500;
+    color: var(--color-slate-800);
+}
+
+.table-bespoke .cell-muted {
+    color: var(--color-slate-500);
+}
+
+.table-bespoke .cell-small {
+    font-size: 0.75rem;
+}
+
+/* Empty State */
+.table-bespoke .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-slate-500);
+}
+
+.table-bespoke .empty-state-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
 }
 
 /* Override Bootstrap table styles */
