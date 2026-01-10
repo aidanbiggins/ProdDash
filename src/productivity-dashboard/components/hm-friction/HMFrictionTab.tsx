@@ -46,9 +46,13 @@ export function HMFrictionTab({
     return 0;
   });
 
-  // Chart data - top 10 slowest HMs (Always sort by latency for the chart)
+  // Chart data - top 10 slowest HMs (sorted by latency desc, then name asc)
   const slowestChartData = [...friction]
-    .sort((a, b) => (b.decisionLatencyMedian || 0) - (a.decisionLatencyMedian || 0))
+    .sort((a, b) => {
+      const latencyDiff = (b.decisionLatencyMedian || 0) - (a.decisionLatencyMedian || 0);
+      if (latencyDiff !== 0) return latencyDiff;
+      return a.hmName.localeCompare(b.hmName); // Secondary sort by name
+    })
     .filter(f => f.decisionLatencyMedian !== null)
     .slice(0, 10)
     .map(f => ({
@@ -59,9 +63,13 @@ export function HMFrictionTab({
       weight: f.hmWeight
     }));
 
-  // Chart data - top 10 fastest HMs (lowest latency)
+  // Chart data - top 10 fastest HMs (sorted by latency asc, then name asc)
   const fastestChartData = [...friction]
-    .sort((a, b) => (a.decisionLatencyMedian || Infinity) - (b.decisionLatencyMedian || Infinity))
+    .sort((a, b) => {
+      const latencyDiff = (a.decisionLatencyMedian || Infinity) - (b.decisionLatencyMedian || Infinity);
+      if (latencyDiff !== 0) return latencyDiff;
+      return a.hmName.localeCompare(b.hmName); // Secondary sort by name
+    })
     .filter(f => f.decisionLatencyMedian !== null && f.decisionLatencyMedian > 0)
     .slice(0, 10)
     .map(f => ({
