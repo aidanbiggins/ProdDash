@@ -559,13 +559,59 @@ export function calculateWeeklyTrends(
       isWithinInterval(e.event_at, weekInterval)
     ).length;
 
+    // Screens completed this week
+    const screens = events.filter(e =>
+      filteredReqIds.has(e.req_id) &&
+      e.event_type === EventType.SCREEN_COMPLETED &&
+      isWithinInterval(e.event_at, weekInterval)
+    ).length;
+
+    // Submissions to HM (stage changes to HM Screen or similar)
+    const submissions = events.filter(e =>
+      filteredReqIds.has(e.req_id) &&
+      e.event_type === EventType.STAGE_CHANGE &&
+      isWithinInterval(e.event_at, weekInterval) &&
+      e.to_stage && ['HM Screen', 'HM Review', 'Hiring Manager Review', 'Submitted to HM'].some(
+        stage => e.to_stage?.toLowerCase().includes(stage.toLowerCase())
+      )
+    ).length;
+
+    // Total pipeline movement (all stage changes)
+    const stageChanges = events.filter(e =>
+      filteredReqIds.has(e.req_id) &&
+      e.event_type === EventType.STAGE_CHANGE &&
+      isWithinInterval(e.event_at, weekInterval)
+    ).length;
+
+    // New applicants this week (by applied_at date)
+    const applicants = candidates.filter(c =>
+      filteredReqIds.has(c.req_id) &&
+      c.applied_at &&
+      isWithinInterval(c.applied_at, weekInterval)
+    ).length;
+
+    // Onsites - candidates entering onsite/interview loop stage
+    const onsites = events.filter(e =>
+      filteredReqIds.has(e.req_id) &&
+      e.event_type === EventType.STAGE_CHANGE &&
+      isWithinInterval(e.event_at, weekInterval) &&
+      e.to_stage && ['Onsite', 'On-site', 'Interview', 'Interview Loop', 'First Round', '1st Round', 'Virtual Onsite'].some(
+        stage => e.to_stage?.toLowerCase().includes(stage.toLowerCase())
+      )
+    ).length;
+
     return {
       weekStart,
       weekEnd,
       hires,
       offers,
       hmLatencyMedian: median(latencies),
-      outreachSent: outreach
+      outreachSent: outreach,
+      screens,
+      submissions,
+      stageChanges,
+      applicants,
+      onsites
     };
   });
 }

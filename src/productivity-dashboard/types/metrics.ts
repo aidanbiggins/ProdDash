@@ -254,6 +254,11 @@ export interface WeeklyTrend {
   offers: number;
   hmLatencyMedian: number | null;
   outreachSent: number;
+  screens: number;           // Phone/recruiter screens completed
+  submissions: number;       // Candidates submitted to HM (moved to HM Screen stage)
+  stageChanges: number;      // Total pipeline movement (all stage transitions)
+  applicants: number;        // New applications received
+  onsites: number;           // Candidates entering onsite/interview loop stage
 }
 
 // ===== SOURCE EFFECTIVENESS =====

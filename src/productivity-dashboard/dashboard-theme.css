@@ -489,6 +489,8 @@ h6 {
    ======================================== */
 .filter-panel {
     transition: all var(--transition-slow);
+    position: relative;
+    z-index: 1000;
 }
 
 .filter-panel.collapsed .filter-panel-content {
@@ -504,6 +506,8 @@ h6 {
     max-height: 500px;
     opacity: 1;
     transition: all var(--transition-slow);
+    position: relative;
+    z-index: 1000;
 }
 
 .filter-toggle-btn {
@@ -574,6 +578,22 @@ h6 {
 
 .filter-chip .remove-btn:hover {
     background: rgba(0, 0, 0, 0.2);
+}
+
+/* Multi-select dropdown */
+.multi-select {
+    position: relative;
+    z-index: 2000;
+}
+
+.multi-select-trigger {
+    position: relative;
+    width: 100%;
+}
+
+.multi-select-dropdown {
+    position: absolute;
+    z-index: 99999 !important;
 }
 
 /* Date preset buttons */
@@ -647,6 +667,28 @@ h6 {
    ======================================== */
 .recharts-tooltip-wrapper {
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+    z-index: 9999 !important;
+    pointer-events: none;
+}
+
+/* Use fixed positioning to escape all container clipping */
+.recharts-tooltip-wrapper:not(:empty) {
+    position: fixed !important;
+}
+
+/* Allow tooltips to overflow chart containers */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-responsive-container {
+    overflow: visible !important;
+}
+
+.card-bespoke:has(.recharts-wrapper) {
+    overflow: visible !important;
+}
+
+.card-bespoke:has(.recharts-wrapper) .card-body {
+    overflow: visible !important;
 }
 
 .recharts-default-tooltip {
@@ -1146,5 +1188,382 @@ h6 {
     .kpi-grid-mobile .col-md-2 {
         flex: 0 0 50%;
         max-width: 50%;
+    }
+}
+
+/* ========================================
+   PRINT STYLES - Preserve visual design
+   ======================================== */
+@media print {
+    /* Page setup */
+    @page {
+        margin: 1cm;
+        size: A4 portrait;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-size: 10pt;
+    }
+
+    /* Hide only truly interactive elements */
+    .demo-banner,
+    .overflow-menu,
+    .recharts-tooltip-wrapper {
+        display: none !important;
+    }
+
+    /* Hide filter controls but keep the panel for context */
+    .filter-panel .filter-toggle-btn,
+    .filter-panel .date-preset-group,
+    .filter-panel .form-control,
+    .filter-panel .form-check,
+    .filter-panel .btn,
+    .filter-panel .multi-select,
+    .filter-panel label.form-label {
+        display: none !important;
+    }
+
+    /* Show filter chips - they provide important context */
+    .filter-panel {
+        display: block !important;
+        border: none !important;
+        padding: 0 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .filter-panel .filter-panel-content {
+        display: block !important;
+        max-height: none !important;
+        overflow: visible !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .filter-panel .row.g-3 {
+        display: none !important;
+    }
+
+    /* Style filter chips for print */
+    .filter-chip {
+        display: inline-flex !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        background: #e0f2f1 !important;
+        color: #0f766e !important;
+        border: 1px solid #0f766e !important;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 8pt !important;
+        margin-right: 0.25rem !important;
+        margin-bottom: 0.25rem !important;
+        border-radius: 12px !important;
+    }
+
+    .filter-chip .remove-btn {
+        display: none !important;
+    }
+
+    /* Add "Filtered by:" label before chips */
+    .filter-panel .d-flex.flex-wrap.gap-2:not(:empty)::before {
+        content: "Filtered by: ";
+        font-size: 8pt;
+        color: #64748b;
+        font-weight: 500;
+        margin-right: 0.5rem;
+        align-self: center;
+    }
+
+    /* Hide sidebar */
+    .col-lg-3.sidebar-column {
+        display: none !important;
+    }
+
+    /* Main content area - full width */
+    .col-lg-9 {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
+    }
+
+    /* Keep nav tabs visible - show all for context */
+    .nav-pills-bespoke {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.25rem;
+        margin-bottom: 0.75rem;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 0.5rem;
+    }
+
+    .nav-pills-bespoke .nav-link {
+        padding: 0.2rem 0.5rem !important;
+        font-size: 8pt !important;
+        border-radius: 4px !important;
+        border: 1px solid #e2e8f0 !important;
+        background: white !important;
+        color: #64748b !important;
+    }
+
+    .nav-pills-bespoke .nav-link.active {
+        background: var(--color-primary, #0f766e) !important;
+        color: white !important;
+        border-color: var(--color-primary, #0f766e) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Card styling - keep the visual design */
+    .card-bespoke {
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        background: white !important;
+        page-break-inside: avoid;
+        margin-bottom: 0.75rem;
+        box-shadow: none !important;
+    }
+
+    .card-header {
+        background: #f8fafc !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* KPI Cards - preserve styling */
+    .stat-value {
+        font-size: 20pt !important;
+        font-weight: 700 !important;
+        color: var(--color-slate-900, #0f172a) !important;
+    }
+
+    .stat-label {
+        font-size: 7pt !important;
+        color: var(--color-slate-500, #64748b) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-accent-line {
+        height: 2px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Preserve accent colors */
+    .text-primary {
+        color: var(--color-primary, #0f766e) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .text-success {
+        color: #16a34a !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .text-danger {
+        color: #dc2626 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .text-warning {
+        color: #d97706 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Badges - keep colors */
+    .badge-bespoke {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .badge-accent-soft {
+        background: rgba(15, 118, 110, 0.1) !important;
+        color: #0f766e !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .badge-success-soft {
+        background: rgba(22, 163, 74, 0.1) !important;
+        color: #16a34a !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .badge-warning-soft {
+        background: rgba(217, 119, 6, 0.1) !important;
+        color: #d97706 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .badge-danger-soft {
+        background: rgba(220, 38, 38, 0.1) !important;
+        color: #dc2626 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Tables - keep styling */
+    .table-bespoke {
+        font-size: 8pt;
+    }
+
+    .table-bespoke thead th {
+        background: #f8fafc !important;
+        border-bottom: 2px solid #e2e8f0 !important;
+        color: var(--color-slate-600, #475569) !important;
+        font-size: 7pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .table-bespoke tbody td {
+        border-bottom: 1px solid #f1f5f9 !important;
+        padding: 0.5rem !important;
+    }
+
+    .table-bespoke tbody tr.selected {
+        background: rgba(15, 118, 110, 0.05) !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Charts - ensure colors print and sizing is correct */
+    .recharts-wrapper,
+    .recharts-surface,
+    .recharts-bar-rectangle,
+    .recharts-area,
+    .recharts-line {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .recharts-wrapper {
+        page-break-inside: avoid;
+        max-width: 100% !important;
+        overflow: visible !important;
+    }
+
+    .recharts-responsive-container {
+        min-height: 200px !important;
+        max-height: 250px !important;
+    }
+
+    /* Keep chart legends visible */
+    .recharts-legend-wrapper {
+        display: block !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Ensure all chart cards print fully */
+    .col-md-6 .card-bespoke {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Make sure row with charts doesn't break awkwardly */
+    .row.g-4 {
+        page-break-inside: avoid;
+    }
+
+    /* Layout */
+    .container-fluid {
+        max-width: 100% !important;
+        padding: 0 0.5cm !important;
+    }
+
+    .row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* Grid columns */
+    .col-md-2 {
+        width: 16.666% !important;
+        flex: 0 0 16.666% !important;
+    }
+
+    .col-md-3 {
+        width: 25% !important;
+        flex: 0 0 25% !important;
+    }
+
+    .col-md-4 {
+        width: 33.333% !important;
+        flex: 0 0 33.333% !important;
+    }
+
+    .col-md-6 {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+    }
+
+    /* Page breaks */
+    .card-bespoke,
+    .table-responsive {
+        page-break-inside: avoid;
+    }
+
+    h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+
+    /* Ensure responsive containers don't scroll */
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    /* Remove hover effects */
+    tr:hover,
+    .card-bespoke:hover {
+        background: inherit !important;
+    }
+
+    /* Progress bars - keep colors */
+    .progress-bar {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Stacked bar charts (HM Friction) */
+    .stacked-bar,
+    .stacked-bar > div {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Header styling */
+    h1 {
+        font-size: 18pt !important;
+    }
+
+    h2 {
+        font-size: 14pt !important;
+    }
+
+    h3, h4, h5, h6 {
+        font-size: 11pt !important;
+    }
+
+    /* Reduce spacing for print */
+    .mb-4 {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .g-3, .g-4 {
+        --bs-gutter-x: 0.5rem !important;
+        --bs-gutter-y: 0.5rem !important;
     }
 }

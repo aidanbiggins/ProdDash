@@ -48,6 +48,124 @@ export function OverviewTab({
     totalValue?: string | number;
   } | null>(null);
 
+  // Funnel chart metric selection
+  type FunnelMetricKey = 'applicants' | 'screens' | 'hmReview' | 'onsites' | 'offers' | 'hires';
+
+  const funnelMetrics: { key: FunnelMetricKey; label: string; dataKey: string; color: string }[] = [
+    { key: 'applicants', label: 'Applicants', dataKey: 'applicants', color: '#64748b' },
+    { key: 'screens', label: 'Screens', dataKey: 'screens', color: '#0f766e' },
+    { key: 'hmReview', label: 'HM Review', dataKey: 'submissions', color: '#7c3aed' },
+    { key: 'onsites', label: 'Onsites', dataKey: 'onsites', color: '#d97706' },
+    { key: 'offers', label: 'Offers', dataKey: 'offers', color: '#6366f1' },
+    { key: 'hires', label: 'Hires', dataKey: 'hires', color: '#059669' }
+  ];
+
+  // Default to showing Offers and Hires
+  const [selectedFunnelMetrics, setSelectedFunnelMetrics] = useState<Set<FunnelMetricKey>>(
+    new Set(['offers', 'hires'])
+  );
+
+  const toggleFunnelMetric = (key: FunnelMetricKey) => {
+    setSelectedFunnelMetrics(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const resetFunnelMetrics = () => {
+    setSelectedFunnelMetrics(new Set(['offers', 'hires']));
+  };
+
+  // Custom tooltip with funnel conversion ratios
+  const FunnelTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+
+    // Get the data point values
+    const data = payload[0]?.payload || {};
+
+    // Get active metrics in funnel order
+    const activeMetrics = funnelMetrics.filter(m => selectedFunnelMetrics.has(m.key));
+
+    // Calculate conversion ratios between adjacent stages
+    const ratios: { from: string; to: string; ratio: number | null }[] = [];
+    for (let i = 0; i < activeMetrics.length - 1; i++) {
+      const fromMetric = activeMetrics[i];
+      const toMetric = activeMetrics[i + 1];
+      const fromValue = data[fromMetric.dataKey] || 0;
+      const toValue = data[toMetric.dataKey] || 0;
+      const ratio = fromValue > 0 ? (toValue / fromValue) * 100 : null;
+      ratios.push({
+        from: fromMetric.label,
+        to: toMetric.label,
+        ratio
+      });
+    }
+
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #e2e8f0',
+        borderRadius: '8px',
+        padding: '12px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        minWidth: '180px',
+        zIndex: 9999,
+        position: 'relative'
+      }}>
+        <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1e293b' }}>{label}</div>
+
+        {/* Values */}
+        {activeMetrics.map(metric => {
+          const value = data[metric.dataKey] || 0;
+          return (
+            <div key={metric.key} style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '2px 0',
+              fontSize: '0.85rem'
+            }}>
+              <span style={{ color: metric.color, fontWeight: 500 }}>{metric.label}</span>
+              <span style={{ fontWeight: 600 }}>{value}</span>
+            </div>
+          );
+        })}
+
+        {/* Conversion ratios */}
+        {ratios.length > 0 && (
+          <>
+            <div style={{
+              borderTop: '1px solid #e2e8f0',
+              marginTop: '8px',
+              paddingTop: '8px',
+              fontSize: '0.75rem',
+              color: '#64748b'
+            }}>
+              <div style={{ fontWeight: 500, marginBottom: '4px' }}>Conversion Rates</div>
+              {ratios.map((r, idx) => (
+                <div key={idx} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '1px 0'
+                }}>
+                  <span>{r.from} → {r.to}</span>
+                  <span style={{ fontWeight: 600, color: r.ratio !== null && r.ratio >= 50 ? '#059669' : '#64748b' }}>
+                    {r.ratio !== null ? `${r.ratio.toFixed(0)}%` : '—'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
+
   // Sorting state for leaderboard
   const [sortColumn, setSortColumn] = useState<string>('productivity');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -92,7 +210,52 @@ export function OverviewTab({
   // Clear selection
   const clearSelection = () => setSelectedRecruiterIds(new Set());
 
-  // Calculate filtered stats when recruiters are selected
+  // Check if any top-level filters are active (from filter bar)
+  const hasTopFilters = useMemo(() => {
+    return (
+      (filters.recruiterIds?.length || 0) > 0 ||
+      (filters.functions?.length || 0) > 0 ||
+      (filters.jobFamilies?.length || 0) > 0 ||
+      (filters.levels?.length || 0) > 0 ||
+      (filters.regions?.length || 0) > 0 ||
+      (filters.hiringManagerIds?.length || 0) > 0 ||
+      (filters.sources?.length || 0) > 0 ||
+      (filters.locationTypes?.length || 0) > 0
+    );
+  }, [filters]);
+
+  // Calculate unfiltered totals from raw data (for showing context when top filters active)
+  const unfilteredTotals = useMemo(() => {
+    if (!hasTopFilters) return null;
+
+    // Count all hires
+    const hires = candidates.filter(c =>
+      c.current_stage === 'Hired' || c.disposition === 'Hired'
+    ).length;
+
+    // Count all offers
+    const offers = candidates.filter(c => c.offer_extended_at).length;
+
+    // Calculate weighted hires from all requisitions with hires
+    const hiredCandidates = candidates.filter(c =>
+      c.current_stage === 'Hired' || c.disposition === 'Hired'
+    );
+    // Simple weighted calculation - sum of complexity scores for hired candidates
+    // For now use a simple 1:1 ratio, could be enhanced with complexity scoring
+    const weightedHires = hires; // Simplified for now
+
+    // Count open reqs for baseline comparison (stalled calc requires event data)
+    const openReqs = requisitions.filter(r => r.status === 'Open').length;
+
+    return {
+      hires,
+      offers,
+      weightedHires,
+      openReqs
+    };
+  }, [hasTopFilters, candidates, requisitions]);
+
+  // Calculate filtered stats when recruiters are selected from leaderboard
   const filteredStats = useMemo(() => {
     if (selectedRecruiterIds.size === 0) return null;
 
@@ -196,18 +359,26 @@ export function OverviewTab({
     hires: t.hires,
     offers: t.offers,
     hmLatency: t.hmLatencyMedian ? Math.round(t.hmLatencyMedian) : 0,
-    outreach: t.outreachSent
+    outreach: t.outreachSent,
+    screens: t.screens,
+    submissions: t.submissions,
+    stageChanges: t.stageChanges,
+    applicants: t.applicants,
+    onsites: t.onsites
   })), [weeklyTrends]);
 
   // Calculate filtered trend data when recruiters are selected
   const chartData = useMemo(() => {
     if (selectedRecruiterIds.size === 0) {
-      // No selection - just use team data
+      // No selection - just use team data with null selected values
       return trendData.map(d => ({
         ...d,
         selectedHires: null,
         selectedOffers: null,
-        selectedOutreach: null
+        selectedApplicants: null,
+        selectedScreens: null,
+        selectedSubmissions: null,
+        selectedOnsites: null
       }));
     }
 
@@ -219,6 +390,9 @@ export function OverviewTab({
     );
 
     // Calculate per-week metrics for selected recruiters
+    const openReqCount = requisitions.filter(r => r.status === 'Open').length || 1;
+    const selectionRatio = selectedReqIds.size / openReqCount;
+
     return trendData.map(d => {
       // Count hires for selected recruiters in this week
       const weekHires = candidates.filter(c => {
@@ -235,25 +409,59 @@ export function OverviewTab({
         return offerDate && isSameWeek(offerDate, d.weekStart, { weekStartsOn: 1 });
       }).length;
 
-      // Outreach approximation: use ratio of selected reqs to total
-      const selectedOutreach = selectedReqIds.size > 0 && requisitions.length > 0
-        ? Math.round(d.outreach * (selectedReqIds.size / requisitions.filter(r => r.status === 'Open').length || 1))
-        : 0;
+      // Count applicants for selected recruiters in this week
+      const weekApplicants = candidates.filter(c => {
+        if (!selectedReqIds.has(c.req_id)) return false;
+        const appliedDate = c.applied_at ? new Date(c.applied_at) : null;
+        return appliedDate && isSameWeek(appliedDate, d.weekStart, { weekStartsOn: 1 });
+      }).length;
+
+      // Activity metrics: approximate using req ratio for events
+      const selectedScreens = Math.round(d.screens * selectionRatio);
+      const selectedSubmissions = Math.round(d.submissions * selectionRatio);
+      const selectedOnsites = Math.round(d.onsites * selectionRatio);
 
       return {
         ...d,
         selectedHires: weekHires,
         selectedOffers: weekOffers,
-        selectedOutreach: selectedOutreach,
-        // For stacked bar, need the "other" portion
+        selectedApplicants: weekApplicants,
+        selectedScreens,
+        selectedSubmissions,
+        selectedOnsites,
+        // For layered view, calculate "team" (non-selected) values
         teamHires: d.hires - weekHires,
         teamOffers: d.offers - weekOffers,
-        teamOutreach: d.outreach - selectedOutreach
+        teamApplicants: d.applicants - weekApplicants,
+        teamScreens: d.screens - selectedScreens,
+        teamSubmissions: d.submissions - selectedSubmissions,
+        teamOnsites: d.onsites - selectedOnsites
       };
     });
   }, [trendData, selectedRecruiterIds, requisitions, candidates]);
 
-  const isFiltered = selectedRecruiterIds.size > 0;
+  const isFiltered = selectedRecruiterIds.size > 0 || hasTopFilters;
+
+  // Determine which recruiters to show as "selected" based on filter context
+  const effectiveSelectedKeys = useMemo(() => {
+    // If user has manually selected recruiters from the leaderboard, use that
+    if (selectedRecruiterIds.size > 0) {
+      return selectedRecruiterIds;
+    }
+
+    // If specific recruiters are selected via top filter bar, show those as checked
+    if (filters.recruiterIds?.length) {
+      return new Set(filters.recruiterIds);
+    }
+
+    // If other top filters are active (function, level, etc.) but not recruiterIds,
+    // show all visible recruiters as checked to indicate they match the filter
+    if (hasTopFilters) {
+      return new Set(sortedRecruiters.map(r => r.recruiterId));
+    }
+
+    return selectedRecruiterIds;
+  }, [hasTopFilters, selectedRecruiterIds, sortedRecruiters, filters.recruiterIds]);
 
   const handleExport = () => {
     exportRecruiterSummaryCSV(overview.recruiterSummaries, filters);
@@ -261,14 +469,17 @@ export function OverviewTab({
 
   return (
     <div>
-      {/* KPI Cards - show filtered values with total context when selection is active */}
+      {/* KPI Cards - show filtered values with total context when selection or top filters are active */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-2">
           <KPICard
             title="Hires"
             value={filteredStats ? filteredStats.hires : overview.totalHires}
-            contextTotal={filteredStats ? overview.totalHires : undefined}
-            priorPeriod={!filteredStats && overview.priorPeriod ? {
+            contextTotal={
+              filteredStats ? overview.totalHires :
+              (hasTopFilters && unfilteredTotals) ? unfilteredTotals.hires : undefined
+            }
+            priorPeriod={!filteredStats && !hasTopFilters && overview.priorPeriod ? {
               value: overview.priorPeriod.hires,
               label: overview.priorPeriod.label
             } : undefined}
@@ -279,8 +490,11 @@ export function OverviewTab({
           <KPICard
             title="Weighted Hires"
             value={filteredStats ? parseFloat(filteredStats.weightedHires.toFixed(1)) : parseFloat(overview.totalWeightedHires.toFixed(1))}
-            contextTotal={filteredStats ? parseFloat(overview.totalWeightedHires.toFixed(1)) : undefined}
-            priorPeriod={!filteredStats && overview.priorPeriod ? {
+            contextTotal={
+              filteredStats ? parseFloat(overview.totalWeightedHires.toFixed(1)) :
+              (hasTopFilters && unfilteredTotals) ? unfilteredTotals.weightedHires : undefined
+            }
+            priorPeriod={!filteredStats && !hasTopFilters && overview.priorPeriod ? {
               value: parseFloat(overview.priorPeriod.weightedHires.toFixed(1)),
               label: overview.priorPeriod.label
             } : undefined}
@@ -292,8 +506,11 @@ export function OverviewTab({
           <KPICard
             title="Offers"
             value={filteredStats ? filteredStats.offers : overview.totalOffers}
-            contextTotal={filteredStats ? overview.totalOffers : undefined}
-            priorPeriod={!filteredStats && overview.priorPeriod ? {
+            contextTotal={
+              filteredStats ? overview.totalOffers :
+              (hasTopFilters && unfilteredTotals) ? unfilteredTotals.offers : undefined
+            }
+            priorPeriod={!filteredStats && !hasTopFilters && overview.priorPeriod ? {
               value: overview.priorPeriod.offers,
               label: overview.priorPeriod.label
             } : undefined}
@@ -325,95 +542,94 @@ export function OverviewTab({
         </div>
       </div>
 
-      {/* Trends Charts */}
-      <div className="row g-4 mb-4">
-        <div className="col-12 col-md-6">
-          <div className={`card-bespoke h-100 ${isFiltered ? 'border-primary border-opacity-25' : ''}`}>
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">Weekly Hires & Offers</h6>
+      {/* Weekly Funnel Activity Chart */}
+      <div className="card-bespoke mb-4">
+        <div className="card-header">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <h6 className="mb-0">Weekly Funnel Activity</h6>
               {isFiltered && <span className="badge-bespoke badge-primary-soft small">Filtered</span>}
             </div>
-            <div className="card-body">
-              <ResponsiveContainer width="100%" height={chartHeight}>
-                <ComposedChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="week" fontSize={12} stroke="#64748b" />
-                  <YAxis fontSize={12} stroke="#64748b" />
-                  <Tooltip />
-                  <Legend />
-                  {/* Team totals as lighter background */}
-                  <Area
-                    type="monotone"
-                    dataKey="hires"
-                    fill="#059669"
-                    fillOpacity={isFiltered ? 0.15 : 0.3}
-                    stroke="#059669"
-                    strokeWidth={isFiltered ? 1 : 2.5}
-                    strokeOpacity={isFiltered ? 0.3 : 1}
-                    name={isFiltered ? 'Team Hires' : 'Hires'}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="offers"
-                    fill="#6366f1"
-                    fillOpacity={isFiltered ? 0.15 : 0.3}
-                    stroke="#6366f1"
-                    strokeWidth={isFiltered ? 1 : 2.5}
-                    strokeOpacity={isFiltered ? 0.3 : 1}
-                    name={isFiltered ? 'Team Offers' : 'Offers'}
-                  />
-                  {/* Selected recruiters as solid lines (only when filtered) */}
-                  {isFiltered && (
-                    <>
-                      <Line
-                        type="monotone"
-                        dataKey="selectedHires"
-                        stroke="#059669"
-                        strokeWidth={3}
-                        name="Selected Hires"
-                        dot={{ fill: '#059669', strokeWidth: 0, r: 4 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="selectedOffers"
-                        stroke="#6366f1"
-                        strokeWidth={3}
-                        name="Selected Offers"
-                        dot={{ fill: '#6366f1', strokeWidth: 0, r: 4 }}
-                      />
-                    </>
-                  )}
-                </ComposedChart>
-              </ResponsiveContainer>
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+              {/* Metric toggle chips */}
+              {funnelMetrics.map(metric => {
+                const isActive = selectedFunnelMetrics.has(metric.key);
+                return (
+                  <button
+                    key={metric.key}
+                    type="button"
+                    onClick={() => toggleFunnelMetric(metric.key)}
+                    className="btn btn-sm"
+                    style={{
+                      fontSize: '0.75rem',
+                      padding: '0.25rem 0.6rem',
+                      borderRadius: '12px',
+                      border: `1.5px solid ${metric.color}`,
+                      backgroundColor: isActive ? metric.color : 'transparent',
+                      color: isActive ? 'white' : metric.color,
+                      fontWeight: 500,
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {metric.label}
+                  </button>
+                );
+              })}
+              {/* Reset button */}
+              {selectedFunnelMetrics.size !== 2 || !selectedFunnelMetrics.has('offers') || !selectedFunnelMetrics.has('hires') ? (
+                <button
+                  type="button"
+                  onClick={resetFunnelMetrics}
+                  className="btn btn-sm btn-bespoke-ghost"
+                  style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}
+                >
+                  Reset
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
-        <div className="col-12 col-md-6">
-          <div className={`card-bespoke h-100 ${isFiltered ? 'border-primary border-opacity-25' : ''}`}>
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">Weekly Outreach</h6>
-              {isFiltered && <span className="badge-bespoke badge-primary-soft small">Filtered</span>}
-            </div>
-            <div className="card-body">
-              <ResponsiveContainer width="100%" height={chartHeight}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="week" fontSize={12} stroke="#64748b" />
-                  <YAxis fontSize={12} stroke="#64748b" />
-                  <Tooltip />
-                  <Legend />
-                  {isFiltered ? (
-                    <>
-                      <Bar dataKey="teamOutreach" fill="#0f766e" fillOpacity={0.25} stackId="a" name="Team (Other)" radius={[0, 0, 0, 0]} />
-                      <Bar dataKey="selectedOutreach" fill="#0f766e" stackId="a" name="Selected" radius={[4, 4, 0, 0]} />
-                    </>
-                  ) : (
-                    <Bar dataKey="outreach" fill="#0f766e" name="Outreach Sent" radius={[4, 4, 0, 0]} />
-                  )}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+        <div className="card-body">
+          <ResponsiveContainer width="100%" height={chartHeight + 30}>
+            <ComposedChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="week" fontSize={12} stroke="#64748b" />
+              <YAxis fontSize={12} stroke="#64748b" />
+              <Tooltip content={<FunnelTooltip />} />
+              <Legend />
+              {/* Render selected metrics */}
+              {funnelMetrics.filter(m => selectedFunnelMetrics.has(m.key)).map(metric => {
+                const selectedKey = `selected${metric.dataKey.charAt(0).toUpperCase() + metric.dataKey.slice(1)}`;
+
+                return (
+                  <React.Fragment key={metric.key}>
+                    {/* Team data as faded area */}
+                    <Area
+                      type="monotone"
+                      dataKey={metric.dataKey}
+                      fill={metric.color}
+                      fillOpacity={isFiltered ? 0.1 : 0.2}
+                      stroke={metric.color}
+                      strokeWidth={isFiltered ? 1 : 2.5}
+                      strokeOpacity={isFiltered ? 0.3 : 1}
+                      name={isFiltered ? `Team ${metric.label}` : metric.label}
+                    />
+                    {/* Selected data as solid line (only when filtered) */}
+                    {isFiltered && (
+                      <Line
+                        type="monotone"
+                        dataKey={selectedKey}
+                        stroke={metric.color}
+                        strokeWidth={3}
+                        name={`Selected ${metric.label}`}
+                        dot={{ fill: metric.color, strokeWidth: 0, r: 3 }}
+                      />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -422,6 +638,9 @@ export function OverviewTab({
         <div className="card-header d-flex justify-content-between align-items-center">
           <div className="d-flex align-items-center gap-3">
             <h6 className="mb-0">Recruiter Leaderboard</h6>
+            {hasTopFilters && selectedRecruiterIds.size === 0 && (
+              <span className="badge-bespoke badge-primary-soft">{sortedRecruiters.length} filtered</span>
+            )}
             {selectedRecruiterIds.size > 0 && (
               <span className="badge-bespoke badge-primary-soft">{selectedRecruiterIds.size} selected</span>
             )}
@@ -492,7 +711,7 @@ export function OverviewTab({
             onSort={handleSort}
             onRowClick={(r) => toggleRecruiterSelection(r.recruiterId)}
             selectable={true}
-            selectedKeys={selectedRecruiterIds}
+            selectedKeys={effectiveSelectedKeys}
             onSelectionChange={setSelectedRecruiterIds}
             emptyState={
               <div>

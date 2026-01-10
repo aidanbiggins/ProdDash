@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { MetricFilters, User, Requisition } from '../../types';
 import { DateRangePicker } from './DateRangePicker';
+import { MultiSelect } from './MultiSelect';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface FilterBarProps {
@@ -107,12 +108,19 @@ export function FilterBar({
     return count;
   }, [filters]);
 
-  const handleSelectChange = (
+  const handleMultiSelectChange = (
     field: keyof MetricFilters,
-    e: React.ChangeEvent<HTMLSelectElement>
+    values: string[]
   ) => {
-    const value = e.target.value;
-    onChange({ [field]: value ? [value] : undefined });
+    onChange({ [field]: values.length > 0 ? values : undefined });
+  };
+
+  const clearFilterValue = (field: keyof MetricFilters, valueToRemove: string) => {
+    const currentValues = filters[field] as string[] | undefined;
+    if (currentValues) {
+      const newValues = currentValues.filter(v => v !== valueToRemove);
+      onChange({ [field]: newValues.length > 0 ? newValues : undefined });
+    }
   };
 
   const clearFilter = (field: keyof MetricFilters) => {
@@ -143,41 +151,57 @@ export function FilterBar({
         {isExpanded && (
           <div className="mt-3">
             <div className="row g-2 mb-2">
-              <div className="col-6">
-                <select className="form-select form-select-sm" value={filters.recruiterIds?.[0] || ''} onChange={(e) => handleSelectChange('recruiterIds', e)}>
-                  <option value="">Recruiter</option>
-                  {recruiters.map(r => {
-                    const isAvailable = availableOptions.recruiterIds.has(r.user_id);
-                    return <option key={r.user_id} value={r.user_id} disabled={!isAvailable}>{r.name}</option>;
-                  })}
-                </select>
+              <div className="col-6" style={{ position: 'relative' }}>
+                <MultiSelect
+                  options={recruiters.map(r => ({
+                    value: r.user_id,
+                    label: r.name,
+                    disabled: !availableOptions.recruiterIds.has(r.user_id)
+                  }))}
+                  selected={filters.recruiterIds || []}
+                  onChange={(values) => handleMultiSelectChange('recruiterIds', values)}
+                  placeholder="Recruiter"
+                  allLabel="All Recruiters"
+                />
               </div>
-              <div className="col-6">
-                <select className="form-select form-select-sm" value={filters.functions?.[0] || ''} onChange={(e) => handleSelectChange('functions', e)}>
-                  <option value="">Function</option>
-                  {allFunctions.map(f => {
-                    const isAvailable = availableOptions.functions.has(f);
-                    return <option key={f} value={f} disabled={!isAvailable}>{f}</option>;
-                  })}
-                </select>
+              <div className="col-6" style={{ position: 'relative' }}>
+                <MultiSelect
+                  options={allFunctions.map(f => ({
+                    value: f,
+                    label: f,
+                    disabled: !availableOptions.functions.has(f)
+                  }))}
+                  selected={filters.functions || []}
+                  onChange={(values) => handleMultiSelectChange('functions', values)}
+                  placeholder="Function"
+                  allLabel="All Functions"
+                />
               </div>
-              <div className="col-6">
-                <select className="form-select form-select-sm" value={filters.levels?.[0] || ''} onChange={(e) => handleSelectChange('levels', e)}>
-                  <option value="">Level</option>
-                  {allLevels.map(l => {
-                    const isAvailable = availableOptions.levels.has(l);
-                    return <option key={l} value={l} disabled={!isAvailable}>{l}</option>;
-                  })}
-                </select>
+              <div className="col-6" style={{ position: 'relative' }}>
+                <MultiSelect
+                  options={allLevels.map(l => ({
+                    value: l,
+                    label: l,
+                    disabled: !availableOptions.levels.has(l)
+                  }))}
+                  selected={filters.levels || []}
+                  onChange={(values) => handleMultiSelectChange('levels', values)}
+                  placeholder="Level"
+                  allLabel="All Levels"
+                />
               </div>
-              <div className="col-6">
-                <select className="form-select form-select-sm" value={filters.hiringManagerIds?.[0] || ''} onChange={(e) => handleSelectChange('hiringManagerIds', e)}>
-                  <option value="">HM</option>
-                  {hiringManagers.map(hm => {
-                    const isAvailable = availableOptions.hiringManagerIds.has(hm.user_id);
-                    return <option key={hm.user_id} value={hm.user_id} disabled={!isAvailable}>{hm.name}</option>;
-                  })}
-                </select>
+              <div className="col-6" style={{ position: 'relative' }}>
+                <MultiSelect
+                  options={hiringManagers.map(hm => ({
+                    value: hm.user_id,
+                    label: hm.name,
+                    disabled: !availableOptions.hiringManagerIds.has(hm.user_id)
+                  }))}
+                  selected={filters.hiringManagerIds || []}
+                  onChange={(values) => handleMultiSelectChange('hiringManagerIds', values)}
+                  placeholder="HM"
+                  allLabel="All HMs"
+                />
               </div>
             </div>
             <div className="d-flex justify-content-between align-items-center">
@@ -260,153 +284,99 @@ export function FilterBar({
       <div className="filter-panel-content mt-4">
         <div className="row g-3">
           {/* Recruiter */}
-          <div className="col-6 col-md-2">
+          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
             <label className="form-label">Recruiter</label>
-            <select
-              className="form-select form-select-sm"
-              value={filters.recruiterIds?.[0] || ''}
-              onChange={(e) => handleSelectChange('recruiterIds', e)}
-            >
-              <option value="">All Recruiters</option>
-              {recruiters.map(r => {
-                const isAvailable = availableOptions.recruiterIds.has(r.user_id);
-                return (
-                  <option
-                    key={r.user_id}
-                    value={r.user_id}
-                    disabled={!isAvailable}
-                    style={{ color: isAvailable ? 'inherit' : '#aaa' }}
-                  >
-                    {r.name}{!isAvailable ? ' (no data)' : ''}
-                  </option>
-                );
-              })}
-            </select>
+            <MultiSelect
+              options={recruiters.map(r => ({
+                value: r.user_id,
+                label: r.name,
+                disabled: !availableOptions.recruiterIds.has(r.user_id)
+              }))}
+              selected={filters.recruiterIds || []}
+              onChange={(values) => handleMultiSelectChange('recruiterIds', values)}
+              placeholder="Recruiter"
+              allLabel="All Recruiters"
+            />
           </div>
 
           {/* Function */}
-          <div className="col-6 col-md-2">
+          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
             <label className="form-label">Function</label>
-            <select
-              className="form-select form-select-sm"
-              value={filters.functions?.[0] || ''}
-              onChange={(e) => handleSelectChange('functions', e)}
-            >
-              <option value="">All Functions</option>
-              {allFunctions.map(f => {
-                const isAvailable = availableOptions.functions.has(f);
-                return (
-                  <option
-                    key={f}
-                    value={f}
-                    disabled={!isAvailable}
-                    style={{ color: isAvailable ? 'inherit' : '#aaa' }}
-                  >
-                    {f}{!isAvailable ? ' (no data)' : ''}
-                  </option>
-                );
-              })}
-            </select>
+            <MultiSelect
+              options={allFunctions.map(f => ({
+                value: f,
+                label: f,
+                disabled: !availableOptions.functions.has(f)
+              }))}
+              selected={filters.functions || []}
+              onChange={(values) => handleMultiSelectChange('functions', values)}
+              placeholder="Function"
+              allLabel="All Functions"
+            />
           </div>
 
           {/* Job Family */}
-          <div className="col-6 col-md-2">
+          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
             <label className="form-label">Job Family</label>
-            <select
-              className="form-select form-select-sm"
-              value={filters.jobFamilies?.[0] || ''}
-              onChange={(e) => handleSelectChange('jobFamilies', e)}
-            >
-              <option value="">All Job Families</option>
-              {allJobFamilies.map(jf => {
-                const isAvailable = availableOptions.jobFamilies.has(jf);
-                return (
-                  <option
-                    key={jf}
-                    value={jf}
-                    disabled={!isAvailable}
-                    style={{ color: isAvailable ? 'inherit' : '#aaa' }}
-                  >
-                    {jf}{!isAvailable ? ' (no data)' : ''}
-                  </option>
-                );
-              })}
-            </select>
+            <MultiSelect
+              options={allJobFamilies.map(jf => ({
+                value: jf,
+                label: jf,
+                disabled: !availableOptions.jobFamilies.has(jf)
+              }))}
+              selected={filters.jobFamilies || []}
+              onChange={(values) => handleMultiSelectChange('jobFamilies', values)}
+              placeholder="Job Family"
+              allLabel="All Job Families"
+            />
           </div>
 
           {/* Level */}
-          <div className="col-6 col-md-2">
+          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
             <label className="form-label">Level</label>
-            <select
-              className="form-select form-select-sm"
-              value={filters.levels?.[0] || ''}
-              onChange={(e) => handleSelectChange('levels', e)}
-            >
-              <option value="">All Levels</option>
-              {allLevels.map(l => {
-                const isAvailable = availableOptions.levels.has(l);
-                return (
-                  <option
-                    key={l}
-                    value={l}
-                    disabled={!isAvailable}
-                    style={{ color: isAvailable ? 'inherit' : '#aaa' }}
-                  >
-                    {l}{!isAvailable ? ' (no data)' : ''}
-                  </option>
-                );
-              })}
-            </select>
+            <MultiSelect
+              options={allLevels.map(l => ({
+                value: l,
+                label: l,
+                disabled: !availableOptions.levels.has(l)
+              }))}
+              selected={filters.levels || []}
+              onChange={(values) => handleMultiSelectChange('levels', values)}
+              placeholder="Level"
+              allLabel="All Levels"
+            />
           </div>
 
           {/* Region */}
-          <div className="col-6 col-md-2">
+          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
             <label className="form-label">Region</label>
-            <select
-              className="form-select form-select-sm"
-              value={filters.regions?.[0] || ''}
-              onChange={(e) => handleSelectChange('regions', e)}
-            >
-              <option value="">All Regions</option>
-              {allRegions.map(r => {
-                const isAvailable = availableOptions.regions.has(r);
-                return (
-                  <option
-                    key={r}
-                    value={r}
-                    disabled={!isAvailable}
-                    style={{ color: isAvailable ? 'inherit' : '#aaa' }}
-                  >
-                    {r}{!isAvailable ? ' (no data)' : ''}
-                  </option>
-                );
-              })}
-            </select>
+            <MultiSelect
+              options={allRegions.map(r => ({
+                value: r,
+                label: r,
+                disabled: !availableOptions.regions.has(r)
+              }))}
+              selected={filters.regions || []}
+              onChange={(values) => handleMultiSelectChange('regions', values)}
+              placeholder="Region"
+              allLabel="All Regions"
+            />
           </div>
 
           {/* Hiring Manager */}
-          <div className="col-6 col-md-2">
+          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
             <label className="form-label">Hiring Manager</label>
-            <select
-              className="form-select form-select-sm"
-              value={filters.hiringManagerIds?.[0] || ''}
-              onChange={(e) => handleSelectChange('hiringManagerIds', e)}
-            >
-              <option value="">All HMs</option>
-              {hiringManagers.map(hm => {
-                const isAvailable = availableOptions.hiringManagerIds.has(hm.user_id);
-                return (
-                  <option
-                    key={hm.user_id}
-                    value={hm.user_id}
-                    disabled={!isAvailable}
-                    style={{ color: isAvailable ? 'inherit' : '#aaa' }}
-                  >
-                    {hm.name}{!isAvailable ? ' (no data)' : ''}
-                  </option>
-                );
-              })}
-            </select>
+            <MultiSelect
+              options={hiringManagers.map(hm => ({
+                value: hm.user_id,
+                label: hm.name,
+                disabled: !availableOptions.hiringManagerIds.has(hm.user_id)
+              }))}
+              selected={filters.hiringManagerIds || []}
+              onChange={(values) => handleMultiSelectChange('hiringManagerIds', values)}
+              placeholder="Hiring Manager"
+              allLabel="All HMs"
+            />
           </div>
         </div>
 
@@ -418,32 +388,32 @@ export function FilterBar({
               return (
                 <span key={id} className="filter-chip active">
                   {recruiter?.name || id}
-                  <span className="remove-btn" onClick={() => clearFilter('recruiterIds')}>×</span>
+                  <span className="remove-btn" onClick={() => clearFilterValue('recruiterIds', id)}>×</span>
                 </span>
               );
             })}
             {filters.functions?.map(f => (
               <span key={f} className="filter-chip active">
                 {f}
-                <span className="remove-btn" onClick={() => clearFilter('functions')}>×</span>
+                <span className="remove-btn" onClick={() => clearFilterValue('functions', f)}>×</span>
               </span>
             ))}
             {filters.jobFamilies?.map(jf => (
               <span key={jf} className="filter-chip active">
                 {jf}
-                <span className="remove-btn" onClick={() => clearFilter('jobFamilies')}>×</span>
+                <span className="remove-btn" onClick={() => clearFilterValue('jobFamilies', jf)}>×</span>
               </span>
             ))}
             {filters.levels?.map(l => (
               <span key={l} className="filter-chip active">
                 {l}
-                <span className="remove-btn" onClick={() => clearFilter('levels')}>×</span>
+                <span className="remove-btn" onClick={() => clearFilterValue('levels', l)}>×</span>
               </span>
             ))}
             {filters.regions?.map(r => (
               <span key={r} className="filter-chip active">
                 {r}
-                <span className="remove-btn" onClick={() => clearFilter('regions')}>×</span>
+                <span className="remove-btn" onClick={() => clearFilterValue('regions', r)}>×</span>
               </span>
             ))}
             {filters.hiringManagerIds?.map(id => {
@@ -451,7 +421,7 @@ export function FilterBar({
               return (
                 <span key={id} className="filter-chip active">
                   {hm?.name || id}
-                  <span className="remove-btn" onClick={() => clearFilter('hiringManagerIds')}>×</span>
+                  <span className="remove-btn" onClick={() => clearFilterValue('hiringManagerIds', id)}>×</span>
                 </span>
               );
             })}

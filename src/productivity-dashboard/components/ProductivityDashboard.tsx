@@ -498,9 +498,9 @@ export function ProductivityDashboard() {
             )}
           </div>
 
-          {/* Sidebar - hidden on mobile for cleaner experience */}
+          {/* Sidebar - hidden on mobile for cleaner experience, hidden in print */}
           {!isMobile && (
-            <div className="col-lg-3">
+            <div className="col-lg-3 sidebar-column">
               <DataHealthPanel
                 health={state.dataStore.dataHealth}
                 onConfigureStages={() => setShowStageMapping(true)}
