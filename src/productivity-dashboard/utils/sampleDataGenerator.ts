@@ -307,6 +307,39 @@ export function generateSampleData(config: {
         }
       }
 
+      // Handle Exit Events (Rejection / Withdrawal / Offer Decline)
+      // This is crucial for "Late Stage Fallout" metrics in Quality Guardrails
+      if (journey.disposition !== 'Active' && journey.disposition !== 'Hired') {
+        const finalStage = journey.finalStage;
+        const lastEventDate = addDays(journey.stages[journey.stages.length - 1].enteredAt, Math.floor(Math.random() * 5) + 2);
+
+        if (journey.disposition === 'Rejected') {
+          // Genereate STAGE_CHANGE -> Rejected
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},STAGE_CHANGE,${finalStage},Rejected,${req.recruiterId},${formatDate(lastEventDate)},`
+          );
+          eventIndex++;
+
+          // Special case: Offer -> Rejected (should be Offer Decline usually, but if rejected by comp)
+          if (finalStage === 'Offer') {
+            // Assuming "Rejected" at Offer stage might mean Offer Declined or Rescinded
+            // For demo purposes, let's mix it up to ensure Offer -> Decline populates
+            if (Math.random() > 0.5) {
+              events.push(
+                `evt_${eventIndex},${candId},${req.id},OFFER_DECLINED,,,${req.recruiterId},${formatDate(lastEventDate)},`
+              );
+              eventIndex++;
+            }
+          }
+        } else if (journey.disposition === 'Withdrawn') {
+          // Generate CANDIDATE_WITHDREW
+          events.push(
+            `evt_${eventIndex},${candId},${req.id},CANDIDATE_WITHDREW,,,${req.recruiterId},${formatDate(lastEventDate)},`
+          );
+          eventIndex++;
+        }
+      }
+
       candidateIndex++;
     }
   }
