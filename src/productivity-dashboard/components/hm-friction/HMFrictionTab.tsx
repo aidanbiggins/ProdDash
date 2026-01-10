@@ -46,40 +46,50 @@ export function HMFrictionTab({
     return 0;
   });
 
-  // Chart data - top 10 slowest HMs (sorted by latency desc, then name asc)
-  const slowestChartData = [...friction]
-    .sort((a, b) => {
-      const latencyDiff = (b.decisionLatencyMedian || 0) - (a.decisionLatencyMedian || 0);
-      if (latencyDiff !== 0) return latencyDiff;
-      return a.hmName.localeCompare(b.hmName); // Secondary sort by name
-    })
-    .filter(f => f.decisionLatencyMedian !== null)
-    .slice(0, 10)
-    .map(f => ({
-      name: f.hmName.length > 12 ? f.hmName.substring(0, 12) + '...' : f.hmName,
-      fullName: f.hmName,
-      latency: Math.round(f.decisionLatencyMedian || 0),
-      hmId: f.hmId,
-      weight: f.hmWeight
-    }));
+  // Calculate composition data for stacked bar chart
+  // Time Tax = (Feedback + Decision Latency) / Estimated Total Cycle Time
+  // Assume average hiring cycle is ~30 days (720 hours) as baseline
+  const BASELINE_CYCLE_HOURS = 720; // ~30 days
 
-  // Chart data - top 10 fastest HMs (sorted by latency asc, then name asc)
-  const fastestChartData = [...friction]
+  const compositionChartData = [...friction]
+    .filter(f => f.decisionLatencyMedian !== null || f.feedbackLatencyMedian !== null)
     .sort((a, b) => {
-      const latencyDiff = (a.decisionLatencyMedian || Infinity) - (b.decisionLatencyMedian || Infinity);
-      if (latencyDiff !== 0) return latencyDiff;
-      return a.hmName.localeCompare(b.hmName); // Secondary sort by name
+      // Sort by total latency descending (worst offenders first)
+      const aTotal = (a.decisionLatencyMedian || 0) + (a.feedbackLatencyMedian || 0);
+      const bTotal = (b.decisionLatencyMedian || 0) + (b.feedbackLatencyMedian || 0);
+      if (bTotal !== aTotal) return bTotal - aTotal;
+      return a.hmName.localeCompare(b.hmName);
     })
-    .filter(f => f.decisionLatencyMedian !== null && f.decisionLatencyMedian > 0)
-    .slice(0, 10)
-    .map(f => ({
-      name: f.hmName.length > 12 ? f.hmName.substring(0, 12) + '...' : f.hmName,
-      fullName: f.hmName,
-      latency: Math.round(f.decisionLatencyMedian || 0),
-      hmId: f.hmId,
-      weight: f.hmWeight
-    }))
-    .reverse(); // Reverse so fastest is at bottom for visual impact
+    .slice(0, 12) // Show top 12 for better visibility
+    .map(f => {
+      const feedback = f.feedbackLatencyMedian || 0;
+      const decision = f.decisionLatencyMedian || 0;
+      const totalLatency = feedback + decision;
+      // Active time is estimated as the remainder of a typical cycle
+      const activeTime = Math.max(0, BASELINE_CYCLE_HOURS - totalLatency);
+      const timeTax = totalLatency > 0 ? Math.round((totalLatency / BASELINE_CYCLE_HOURS) * 100) : 0;
+
+      return {
+        name: f.hmName.length > 14 ? f.hmName.substring(0, 14) + '...' : f.hmName,
+        fullName: f.hmName,
+        hmId: f.hmId,
+        feedback: Math.round(feedback),
+        decision: Math.round(decision),
+        activeTime: Math.round(activeTime),
+        totalLatency: Math.round(totalLatency),
+        timeTax,
+        weight: f.hmWeight
+      };
+    });
+
+  // Calculate overall Time Tax
+  const avgTimeTax = compositionChartData.length > 0
+    ? Math.round(compositionChartData.reduce((sum, d) => sum + d.timeTax, 0) / compositionChartData.length)
+    : 0;
+
+  const totalLatencyDays = compositionChartData.length > 0
+    ? Math.round(compositionChartData.reduce((sum, d) => sum + d.totalLatency, 0) / 24) // Convert hours to days
+    : 0;
 
   const handleExport = () => {
     exportHMFrictionCSV(friction);
@@ -125,7 +135,7 @@ export function HMFrictionTab({
 
   return (
     <div>
-      {/* Overview Stats */}
+      {/* Overview Stats - Time Tax focused */}
       <div className="row g-3 mb-4">
         <div className="col-md-3">
           <div className="card-bespoke">
@@ -136,19 +146,11 @@ export function HMFrictionTab({
           </div>
         </div>
         <div className="col-md-3">
-          <div className="card-bespoke">
+          <div className="card-bespoke border-danger border-opacity-25">
             <div className="card-body text-center">
-              <div className="stat-label mb-2">Avg Decision Latency</div>
-              <div className="stat-value">
-                {friction.filter(f => f.decisionLatencyMedian !== null).length > 0
-                  ? `${Math.round(
-                    friction
-                      .filter(f => f.decisionLatencyMedian !== null)
-                      .reduce((sum, f) => sum + (f.decisionLatencyMedian || 0), 0) /
-                    friction.filter(f => f.decisionLatencyMedian !== null).length
-                  )} hrs`
-                  : 'N/A'}
-              </div>
+              <div className="stat-label mb-2">⏱️ Avg Time Tax</div>
+              <div className="stat-value text-danger">{avgTimeTax}%</div>
+              <div className="text-muted small">of cycle spent waiting</div>
             </div>
           </div>
         </div>
@@ -174,99 +176,112 @@ export function HMFrictionTab({
         </div>
       </div>
 
-      {/* Side-by-side Charts: Slowest vs Fastest */}
-      <div className="row g-4 mb-4">
-        {/* Top 10 Slowest */}
-        <div className="col-md-6">
-          <div className="card-bespoke h-100">
-            <div className="card-header d-flex align-items-center">
-              <span className="me-2" style={{ fontSize: '1.25rem' }}>🐢</span>
-              <h6 className="mb-0">Top 10 Slowest <span className="text-muted fw-normal">(median latency)</span></h6>
-            </div>
-            <div className="card-body">
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={slowestChartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" unit=" hrs" fontSize={11} stroke="#64748b" />
-                  <YAxis type="category" dataKey="name" width={100} fontSize={11} stroke="#64748b" />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (!active || !payload || !payload[0]) return null;
-                      const tooltipData = payload[0].payload;
-                      return (
-                        <div className="bg-white border rounded p-2 shadow-sm">
-                          <div className="fw-bold">{tooltipData.fullName}</div>
-                          <div>Decision Latency: <strong>{tooltipData.latency} hours</strong></div>
-                          <div className="text-muted small">HM Weight: {tooltipData.weight.toFixed(2)}x</div>
-                        </div>
-                      );
-                    }}
-                  />
-                  <Bar
-                    dataKey="latency"
-                    onClick={(clickedData: unknown) => {
-                      const item = clickedData as { hmId?: string };
-                      if (item.hmId) setSelectedHM(item.hmId);
-                    }}
-                    cursor="pointer"
-                  >
-                    {slowestChartData.map((entry, index) => (
-                      <Cell
-                        key={`slow-${index}`}
-                        fill={entry.weight > 1.2 ? '#dc3545' : entry.weight > 1.0 ? '#ffc107' : '#28a745'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+      {/* Hiring Cycle Breakdown - Stacked Composition Chart */}
+      <div className="card-bespoke mb-4">
+        <div className="card-header d-flex justify-content-between align-items-center">
+          <div className="d-flex align-items-center">
+            <span className="me-2" style={{ fontSize: '1.25rem' }}>📊</span>
+            <h6 className="mb-0">Hiring Cycle Breakdown <span className="text-muted fw-normal">(time composition by HM)</span></h6>
+          </div>
+          <div className="d-flex align-items-center gap-3">
+            <div className="d-flex align-items-center gap-2 small">
+              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#059669' }}></span>
+              <span className="text-muted">Active</span>
+              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#f59e0b' }}></span>
+              <span className="text-muted">Feedback</span>
+              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#dc2626' }}></span>
+              <span className="text-muted">Decision</span>
             </div>
           </div>
         </div>
-
-        {/* Top 10 Fastest - Celebrating good actors */}
-        <div className="col-md-6">
-          <div className="card-bespoke h-100 border-success border-opacity-25">
-            <div className="card-header d-flex align-items-center bg-success bg-opacity-10">
-              <span className="me-2" style={{ fontSize: '1.25rem' }}>🏆</span>
-              <h6 className="mb-0 text-success">Top 10 Fastest <span className="text-muted fw-normal">(best partners)</span></h6>
-            </div>
-            <div className="card-body">
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={fastestChartData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" unit=" hrs" fontSize={11} stroke="#64748b" />
-                  <YAxis type="category" dataKey="name" width={100} fontSize={11} stroke="#64748b" />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (!active || !payload || !payload[0]) return null;
-                      const tooltipData = payload[0].payload;
-                      return (
-                        <div className="bg-white border rounded p-2 shadow-sm">
-                          <div className="fw-bold text-success">{tooltipData.fullName} ⭐</div>
-                          <div>Decision Latency: <strong>{tooltipData.latency} hours</strong></div>
-                          <div className="text-muted small">HM Weight: {tooltipData.weight.toFixed(2)}x</div>
-                        </div>
-                      );
-                    }}
-                  />
-                  <Bar
-                    dataKey="latency"
-                    onClick={(clickedData: unknown) => {
-                      const item = clickedData as { hmId?: string };
-                      if (item.hmId) setSelectedHM(item.hmId);
-                    }}
-                    cursor="pointer"
-                  >
-                    {fastestChartData.map((entry, index) => (
-                      <Cell
-                        key={`fast-${index}`}
-                        fill={entry.weight > 1.2 ? '#dc3545' : entry.weight > 1.0 ? '#ffc107' : '#28a745'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+        <div className="card-body">
+          <ResponsiveContainer width="100%" height={380}>
+            <BarChart data={compositionChartData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis
+                type="number"
+                unit=" hrs"
+                fontSize={11}
+                stroke="#64748b"
+                domain={[0, 'dataMax']}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={110}
+                fontSize={11}
+                stroke="#64748b"
+              />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload[0]) return null;
+                  const d = payload[0].payload;
+                  return (
+                    <div className="bg-white border rounded p-3 shadow-sm" style={{ minWidth: '200px' }}>
+                      <div className="fw-bold mb-2">{d.fullName}</div>
+                      <div className="d-flex justify-content-between">
+                        <span className="text-success">✓ Active Time:</span>
+                        <strong>{d.activeTime} hrs</strong>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span className="text-warning">⏳ Feedback Wait:</span>
+                        <strong>{d.feedback} hrs</strong>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span className="text-danger">⏱️ Decision Wait:</span>
+                        <strong>{d.decision} hrs</strong>
+                      </div>
+                      <hr className="my-2" />
+                      <div className="d-flex justify-content-between">
+                        <span className="fw-bold">Time Tax:</span>
+                        <strong className={d.timeTax > 30 ? 'text-danger' : d.timeTax > 15 ? 'text-warning' : 'text-success'}>
+                          {d.timeTax}%
+                        </strong>
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+              {/* Stacked bars: Active (green) + Feedback (yellow) + Decision (red) */}
+              <Bar
+                dataKey="activeTime"
+                stackId="a"
+                fill="#059669"
+                name="Active Time"
+                onClick={(clickedData: unknown) => {
+                  const item = clickedData as { hmId?: string };
+                  if (item.hmId) setSelectedHM(item.hmId);
+                }}
+                cursor="pointer"
+              />
+              <Bar
+                dataKey="feedback"
+                stackId="a"
+                fill="#f59e0b"
+                name="Feedback Latency"
+                onClick={(clickedData: unknown) => {
+                  const item = clickedData as { hmId?: string };
+                  if (item.hmId) setSelectedHM(item.hmId);
+                }}
+                cursor="pointer"
+              />
+              <Bar
+                dataKey="decision"
+                stackId="a"
+                fill="#dc2626"
+                name="Decision Latency"
+                radius={[0, 4, 4, 0]}
+                onClick={(clickedData: unknown) => {
+                  const item = clickedData as { hmId?: string };
+                  if (item.hmId) setSelectedHM(item.hmId);
+                }}
+                cursor="pointer"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="text-center text-muted small mt-2">
+            <i className="bi bi-info-circle me-1"></i>
+            The more <span className="text-danger fw-medium">red</span> and <span className="text-warning fw-medium">yellow</span> segments, the higher the "Time Tax" - click any bar to see HM details
           </div>
         </div>
       </div>
