@@ -77,17 +77,40 @@ export function HiringManagersTab({
         });
     }, [requisitions, filters]);
 
-    // Build Fact Tables using FILTERED reqs
+    // 2. FILTER CANDIDATES to those on filtered reqs
+    const filteredCandidates = useMemo(() => {
+        const filteredReqIds = new Set(filteredGlobalReqs.map(r => r.req_id));
+        return candidates.filter(c => filteredReqIds.has(c.req_id));
+    }, [candidates, filteredGlobalReqs]);
+
+    // 3. FILTER EVENTS to date range and filtered reqs
+    const filteredEvents = useMemo(() => {
+        if (!filters?.dateRange) return events;
+
+        const { startDate, endDate } = filters.dateRange;
+        const filteredReqIds = new Set(filteredGlobalReqs.map(r => r.req_id));
+
+        return events.filter(e => {
+            // Event must be for a filtered req
+            if (!filteredReqIds.has(e.req_id)) return false;
+
+            // Event must be within date range
+            const eventDate = new Date(e.event_at);
+            return eventDate >= startDate && eventDate <= endDate;
+        });
+    }, [events, filters?.dateRange, filteredGlobalReqs]);
+
+    // Build Fact Tables using FILTERED reqs, candidates, and events
     const factTables: HMFactTables = useMemo(() => {
         return buildHMFactTables(
             filteredGlobalReqs,
-            candidates,
-            events,
+            filteredCandidates,
+            filteredEvents,
             users,
             stageMappingConfig,
             asOfDate
         );
-    }, [filteredGlobalReqs, candidates, events, users, stageMappingConfig, asOfDate]);
+    }, [filteredGlobalReqs, filteredCandidates, filteredEvents, users, stageMappingConfig, asOfDate]);
 
     const reqRollups: HMReqRollup[] = useMemo(() => {
         return buildHMReqRollups(factTables, users, DEFAULT_HM_RULES);

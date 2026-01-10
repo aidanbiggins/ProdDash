@@ -2,12 +2,15 @@
 
 import React from 'react';
 import { DashboardProvider } from './hooks/useDashboardContext';
+import { DataMaskingProvider } from './contexts/DataMaskingContext';
 import { ProductivityDashboard } from './components/ProductivityDashboard';
 
 export function RecruiterProductivityDashboard() {
   return (
     <DashboardProvider>
-      <ProductivityDashboard />
+      <DataMaskingProvider>
+        <ProductivityDashboard />
+      </DataMaskingProvider>
     </DashboardProvider>
   );
 }

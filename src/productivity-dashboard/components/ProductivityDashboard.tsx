@@ -15,11 +15,13 @@ import { SourceEffectivenessTab } from './source-effectiveness/SourceEffectivene
 import { StageMappingModal } from './StageMappingModal';
 import { HiringManagersTab } from './hiring-managers';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages } from '../services';
+import { useDataMasking } from '../contexts/DataMaskingContext';
 
 type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData } = useDashboard();
+  const { isMasked, toggleMasking } = useDataMasking();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showStageMapping, setShowStageMapping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -130,6 +132,13 @@ export function ProductivityDashboard() {
             </div>
           </div>
           <div className="dashboard-header-actions">
+            <button
+              className={`btn ${isMasked ? 'btn-bespoke-primary' : 'btn-bespoke-secondary'}`}
+              onClick={toggleMasking}
+              title={isMasked ? 'Click to show real names' : 'Click to mask PII'}
+            >
+              {isMasked ? '🔒 PII Masked' : '🔓 Show PII'}
+            </button>
             <button
               className="btn btn-bespoke-secondary"
               onClick={() => setShowStageMapping(true)}
