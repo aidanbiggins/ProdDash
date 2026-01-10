@@ -8,6 +8,7 @@ import {
   EventType,
   ComplexityScore,
   HiringManagerFriction,
+  HMTimeComposition,
   MetricFilters
 } from '../types';
 import { DashboardConfig } from '../types/config';
@@ -23,6 +24,40 @@ function median(values: number[]): number | null {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+// ===== TIME COMPOSITION =====
+
+// Baseline hiring cycle time in hours (~30 days)
+const BASELINE_CYCLE_HOURS = 720;
+
+/**
+ * Calculates time composition metrics for an HM
+ * Shows how much of the hiring cycle is spent waiting vs actively progressing
+ */
+export function calculateTimeComposition(
+  feedbackLatencyMedian: number | null,
+  decisionLatencyMedian: number | null
+): HMTimeComposition {
+  const feedbackLatencyHours = feedbackLatencyMedian ?? 0;
+  const decisionLatencyHours = decisionLatencyMedian ?? 0;
+  const totalLatencyHours = feedbackLatencyHours + decisionLatencyHours;
+
+  // Active time is the remainder of a typical hiring cycle
+  const activeTimeHours = Math.max(0, BASELINE_CYCLE_HOURS - totalLatencyHours);
+
+  // Time Tax: percentage of cycle spent waiting
+  const timeTaxPercent = totalLatencyHours > 0
+    ? Math.round((totalLatencyHours / BASELINE_CYCLE_HOURS) * 100)
+    : 0;
+
+  return {
+    activeTimeHours: Math.round(activeTimeHours),
+    feedbackLatencyHours: Math.round(feedbackLatencyHours),
+    decisionLatencyHours: Math.round(decisionLatencyHours),
+    totalLatencyHours: Math.round(totalLatencyHours),
+    timeTaxPercent
+  };
 }
 
 // ===== COMPLEXITY SCORING =====
@@ -189,16 +224,19 @@ export function calculateHMFrictionMetrics(
     );
 
     const user = users.find(u => u.user_id === hmId);
+    const feedbackLatencyMed = median(feedbackLatencies);
+    const decisionLatencyMed = median(decisionLatencies);
 
     results.push({
       hmId,
       hmName: user?.name || hmId,
       reqsInRange: hmReqs.length,
-      feedbackLatencyMedian: median(feedbackLatencies),
-      decisionLatencyMedian: median(decisionLatencies),
+      feedbackLatencyMedian: feedbackLatencyMed,
+      decisionLatencyMedian: decisionLatencyMed,
       offerAcceptanceRate: offers.length > 0 ? accepts.length / offers.length : null,
       hmWeight: 1.0,  // Will be calculated after we have all HM medians
-      loopCount: loopCandidates.size
+      loopCount: loopCandidates.size,
+      composition: calculateTimeComposition(feedbackLatencyMed, decisionLatencyMed)
     });
   }
 

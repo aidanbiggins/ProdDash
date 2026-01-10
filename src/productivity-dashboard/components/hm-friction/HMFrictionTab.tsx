@@ -1,11 +1,16 @@
 // Hiring Manager Friction Tab Component
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  ScatterChart, Scatter, ZAxis, ReferenceLine
 } from 'recharts';
 import { HiringManagerFriction, Requisition, Event, User } from '../../types';
 import { exportHMFrictionCSV } from '../../services';
+
+// Helper to truncate long names
+const truncateName = (name: string, maxLen: number) =>
+  name.length > maxLen ? name.substring(0, maxLen) + '...' : name;
 
 interface HMFrictionTabProps {
   friction: HiringManagerFriction[];
@@ -46,50 +51,97 @@ export function HMFrictionTab({
     return 0;
   });
 
-  // Calculate composition data for stacked bar chart
-  // Time Tax = (Feedback + Decision Latency) / Estimated Total Cycle Time
-  // Assume average hiring cycle is ~30 days (720 hours) as baseline
-  const BASELINE_CYCLE_HOURS = 720; // ~30 days
-
-  const compositionChartData = [...friction]
-    .filter(f => f.decisionLatencyMedian !== null || f.feedbackLatencyMedian !== null)
-    .sort((a, b) => {
-      // Sort by total latency descending (worst offenders first)
-      const aTotal = (a.decisionLatencyMedian || 0) + (a.feedbackLatencyMedian || 0);
-      const bTotal = (b.decisionLatencyMedian || 0) + (b.feedbackLatencyMedian || 0);
-      if (bTotal !== aTotal) return bTotal - aTotal;
-      return a.hmName.localeCompare(b.hmName);
-    })
-    .slice(0, 12) // Show top 12 for better visibility
-    .map(f => {
-      const feedback = f.feedbackLatencyMedian || 0;
-      const decision = f.decisionLatencyMedian || 0;
-      const totalLatency = feedback + decision;
-      // Active time is estimated as the remainder of a typical cycle
-      const activeTime = Math.max(0, BASELINE_CYCLE_HOURS - totalLatency);
-      const timeTax = totalLatency > 0 ? Math.round((totalLatency / BASELINE_CYCLE_HOURS) * 100) : 0;
-
-      return {
-        name: f.hmName.length > 14 ? f.hmName.substring(0, 14) + '...' : f.hmName,
+  // Use pre-calculated composition data from service layer
+  const compositionChartData = useMemo(() =>
+    [...friction]
+      .filter(f => f.composition.totalLatencyHours > 0)
+      .sort((a, b) => b.composition.totalLatencyHours - a.composition.totalLatencyHours || a.hmName.localeCompare(b.hmName))
+      .slice(0, 12)
+      .map(f => ({
+        name: truncateName(f.hmName, 14),
         fullName: f.hmName,
         hmId: f.hmId,
-        feedback: Math.round(feedback),
-        decision: Math.round(decision),
-        activeTime: Math.round(activeTime),
-        totalLatency: Math.round(totalLatency),
-        timeTax,
+        feedback: f.composition.feedbackLatencyHours,
+        decision: f.composition.decisionLatencyHours,
+        activeTime: f.composition.activeTimeHours,
+        totalLatency: f.composition.totalLatencyHours,
+        timeTax: f.composition.timeTaxPercent,
         weight: f.hmWeight
-      };
-    });
+      })),
+    [friction]
+  );
 
-  // Calculate overall Time Tax
-  const avgTimeTax = compositionChartData.length > 0
-    ? Math.round(compositionChartData.reduce((sum, d) => sum + d.timeTax, 0) / compositionChartData.length)
-    : 0;
+  // KPI calculations
+  const avgTimeTax = useMemo(() =>
+    compositionChartData.length > 0
+      ? Math.round(compositionChartData.reduce((sum, d) => sum + d.timeTax, 0) / compositionChartData.length)
+      : 0,
+    [compositionChartData]
+  );
 
-  const totalLatencyDays = compositionChartData.length > 0
-    ? Math.round(compositionChartData.reduce((sum, d) => sum + d.totalLatency, 0) / 24) // Convert hours to days
-    : 0;
+  const totalLatencyImpactDays = useMemo(() =>
+    friction.length > 0
+      ? Math.round(friction.reduce((sum, f) => sum + f.composition.totalLatencyHours, 0) / 24)
+      : 0,
+    [friction]
+  );
+
+  // Shared click handler for chart bars
+  const handleBarClick = useCallback((data: unknown) => {
+    const item = data as { hmId?: string };
+    if (item?.hmId) setSelectedHM(item.hmId);
+  }, []);
+
+  // Candidate Decay Curve data: acceptance rate vs latency
+  const decayCurveData = useMemo(() => {
+    return friction
+      .filter(f => f.offerAcceptanceRate !== null && f.composition.totalLatencyHours > 0)
+      .map(f => ({
+        hmName: f.hmName,
+        hmId: f.hmId,
+        latencyDays: Math.round(f.composition.totalLatencyHours / 24),
+        acceptanceRate: Math.round((f.offerAcceptanceRate ?? 0) * 100),
+        loopCount: f.loopCount
+      }))
+      .sort((a, b) => a.latencyDays - b.latencyDays);
+  }, [friction]);
+
+  // Calculate average acceptance rate for reference line
+  const avgAcceptanceRate = useMemo(() => {
+    const withOffers = friction.filter(f => f.offerAcceptanceRate !== null);
+    if (withOffers.length === 0) return 0;
+    return Math.round(withOffers.reduce((sum, f) => sum + (f.offerAcceptanceRate ?? 0) * 100, 0) / withOffers.length);
+  }, [friction]);
+
+  // Stage-by-Stage Heatmap data
+  const heatmapData = useMemo(() =>
+    friction
+      .filter(f => f.feedbackLatencyMedian !== null || f.decisionLatencyMedian !== null)
+      .sort((a, b) => b.composition.totalLatencyHours - a.composition.totalLatencyHours)
+      .slice(0, 10)
+      .map(f => ({
+        hmName: truncateName(f.hmName, 12),
+        fullName: f.hmName,
+        hmId: f.hmId,
+        feedback: f.feedbackLatencyMedian ? Math.round(f.feedbackLatencyMedian) : null,
+        decision: f.decisionLatencyMedian ? Math.round(f.decisionLatencyMedian) : null,
+        total: f.composition.totalLatencyHours
+      })),
+    [friction]
+  );
+
+  // Get color for heatmap cell based on hours
+  const getHeatmapColor = (hours: number | null, type: 'feedback' | 'decision') => {
+    if (hours === null) return '#f1f5f9'; // gray for no data
+    const thresholds = type === 'feedback'
+      ? { good: 24, warn: 48, bad: 72 }
+      : { good: 48, warn: 72, bad: 120 };
+
+    if (hours <= thresholds.good) return '#dcfce7'; // green
+    if (hours <= thresholds.warn) return '#fef3c7'; // yellow
+    if (hours <= thresholds.bad) return '#fed7aa'; // orange
+    return '#fecaca'; // red
+  };
 
   const handleExport = () => {
     exportHMFrictionCSV(friction);
@@ -157,10 +209,11 @@ export function HMFrictionTab({
         <div className="col-md-3">
           <div className="card-bespoke">
             <div className="card-body text-center">
-              <div className="stat-label mb-2 text-warning">Slow HMs (&gt;1.2x weight)</div>
+              <div className="stat-label mb-2">Latency Impact</div>
               <div className="stat-value" style={{ color: 'var(--color-warning)' }}>
-                {friction.filter(f => f.hmWeight > 1.2).length}
+                {totalLatencyImpactDays}d
               </div>
+              <div className="text-muted small">total time lost waiting</div>
             </div>
           </div>
         </div>
@@ -243,45 +296,183 @@ export function HMFrictionTab({
                 }}
               />
               {/* Stacked bars: Active (green) + Feedback (yellow) + Decision (red) */}
-              <Bar
-                dataKey="activeTime"
-                stackId="a"
-                fill="#059669"
-                name="Active Time"
-                onClick={(clickedData: unknown) => {
-                  const item = clickedData as { hmId?: string };
-                  if (item.hmId) setSelectedHM(item.hmId);
-                }}
-                cursor="pointer"
-              />
-              <Bar
-                dataKey="feedback"
-                stackId="a"
-                fill="#f59e0b"
-                name="Feedback Latency"
-                onClick={(clickedData: unknown) => {
-                  const item = clickedData as { hmId?: string };
-                  if (item.hmId) setSelectedHM(item.hmId);
-                }}
-                cursor="pointer"
-              />
-              <Bar
-                dataKey="decision"
-                stackId="a"
-                fill="#dc2626"
-                name="Decision Latency"
-                radius={[0, 4, 4, 0]}
-                onClick={(clickedData: unknown) => {
-                  const item = clickedData as { hmId?: string };
-                  if (item.hmId) setSelectedHM(item.hmId);
-                }}
-                cursor="pointer"
-              />
+              <Bar dataKey="activeTime" stackId="a" fill="#059669" name="Active Time" onClick={handleBarClick} cursor="pointer" />
+              <Bar dataKey="feedback" stackId="a" fill="#f59e0b" name="Feedback Latency" onClick={handleBarClick} cursor="pointer" />
+              <Bar dataKey="decision" stackId="a" fill="#dc2626" name="Decision Latency" radius={[0, 4, 4, 0]} onClick={handleBarClick} cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
           <div className="text-center text-muted small mt-2">
             <i className="bi bi-info-circle me-1"></i>
             The more <span className="text-danger fw-medium">red</span> and <span className="text-warning fw-medium">yellow</span> segments, the higher the "Time Tax" - click any bar to see HM details
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Visualizations Row */}
+      <div className="row g-4 mb-4">
+        {/* Candidate Decay Curve */}
+        <div className="col-md-6">
+          <div className="card-bespoke h-100">
+            <div className="card-header">
+              <div className="d-flex align-items-center">
+                <span className="me-2" style={{ fontSize: '1.25rem' }}>📉</span>
+                <h6 className="mb-0">Candidate Decay Curve</h6>
+              </div>
+              <small className="text-muted">Offer acceptance rate vs HM latency</small>
+            </div>
+            <div className="card-body">
+              {decayCurveData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      type="number"
+                      dataKey="latencyDays"
+                      name="Latency"
+                      unit=" days"
+                      fontSize={11}
+                      stroke="#64748b"
+                      label={{ value: 'Total Latency (days)', position: 'bottom', fontSize: 11, fill: '#64748b' }}
+                    />
+                    <YAxis
+                      type="number"
+                      dataKey="acceptanceRate"
+                      name="Acceptance"
+                      unit="%"
+                      fontSize={11}
+                      stroke="#64748b"
+                      domain={[0, 100]}
+                      label={{ value: 'Offer Accept %', angle: -90, position: 'insideLeft', fontSize: 11, fill: '#64748b' }}
+                    />
+                    <ZAxis type="number" dataKey="loopCount" range={[50, 400]} name="Interview Loops" />
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload || !payload[0]) return null;
+                        const d = payload[0].payload;
+                        return (
+                          <div className="bg-white border rounded p-2 shadow-sm">
+                            <div className="fw-bold">{d.hmName}</div>
+                            <div className="small">Latency: {d.latencyDays} days</div>
+                            <div className="small">Accept Rate: {d.acceptanceRate}%</div>
+                            <div className="small text-muted">({d.loopCount} loops)</div>
+                          </div>
+                        );
+                      }}
+                    />
+                    <ReferenceLine
+                      y={avgAcceptanceRate}
+                      stroke="#6366f1"
+                      strokeDasharray="5 5"
+                      label={{ value: `Avg: ${avgAcceptanceRate}%`, position: 'right', fontSize: 10, fill: '#6366f1' }}
+                    />
+                    <Scatter
+                      name="HMs"
+                      data={decayCurveData}
+                      fill="#059669"
+                      onClick={(data) => {
+                        if (data?.hmId) setSelectedHM(data.hmId);
+                      }}
+                      cursor="pointer"
+                    />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="text-center text-muted py-5">
+                  <div className="mb-2">📊</div>
+                  <div>No offer data available</div>
+                </div>
+              )}
+              <div className="text-center text-muted small mt-2">
+                <i className="bi bi-info-circle me-1"></i>
+                Larger dots = more interview loops. Points below the average line indicate declining acceptance with latency.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Stage-by-Stage Heatmap */}
+        <div className="col-md-6">
+          <div className="card-bespoke h-100">
+            <div className="card-header">
+              <div className="d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center">
+                  <span className="me-2" style={{ fontSize: '1.25rem' }}>🗺️</span>
+                  <h6 className="mb-0">Stage Latency Heatmap</h6>
+                </div>
+                <div className="d-flex align-items-center gap-2 small">
+                  <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#dcfce7' }}></span>
+                  <span className="text-muted">Fast</span>
+                  <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#fef3c7' }}></span>
+                  <span className="text-muted">Slow</span>
+                  <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#fecaca' }}></span>
+                  <span className="text-muted">Very Slow</span>
+                </div>
+              </div>
+              <small className="text-muted">Top 10 HMs by total latency</small>
+            </div>
+            <div className="card-body p-0">
+              {heatmapData.length > 0 ? (
+                <div className="table-responsive">
+                  <table className="table table-sm mb-0" style={{ fontSize: '0.8rem' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc' }}>
+                        <th style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>HM</th>
+                        <th className="text-center" style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>Feedback (hrs)</th>
+                        <th className="text-center" style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>Decision (hrs)</th>
+                        <th className="text-center" style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>Total (hrs)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {heatmapData.map(row => (
+                        <tr
+                          key={row.hmId}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setSelectedHM(row.hmId)}
+                          className={selectedHM === row.hmId ? 'bg-soft-primary' : ''}
+                        >
+                          <td style={{ padding: '0.5rem' }} title={row.fullName}>
+                            <span className="fw-medium">{row.hmName}</span>
+                          </td>
+                          <td
+                            className="text-center fw-medium"
+                            style={{
+                              padding: '0.5rem',
+                              background: getHeatmapColor(row.feedback, 'feedback')
+                            }}
+                          >
+                            {row.feedback ?? '-'}
+                          </td>
+                          <td
+                            className="text-center fw-medium"
+                            style={{
+                              padding: '0.5rem',
+                              background: getHeatmapColor(row.decision, 'decision')
+                            }}
+                          >
+                            {row.decision ?? '-'}
+                          </td>
+                          <td
+                            className="text-center fw-bold"
+                            style={{ padding: '0.5rem' }}
+                          >
+                            {Math.round(row.total)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center text-muted py-5">
+                  <div className="mb-2">🗺️</div>
+                  <div>No latency data available</div>
+                </div>
+              )}
+              <div className="text-center text-muted small p-2">
+                <i className="bi bi-info-circle me-1"></i>
+                Color indicates speed: green ≤24h feedback / ≤48h decision, red &gt;72h / &gt;120h
+              </div>
+            </div>
           </div>
         </div>
       </div>

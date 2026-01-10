@@ -134,6 +134,14 @@ export interface TimeAttribution {
 
 // ===== HIRING MANAGER FRICTION =====
 
+export interface HMTimeComposition {
+  activeTimeHours: number;      // Productive interviewing time
+  feedbackLatencyHours: number; // Time waiting for interview feedback
+  decisionLatencyHours: number; // Time waiting for hire/no-hire decision
+  totalLatencyHours: number;    // feedbackLatency + decisionLatency
+  timeTaxPercent: number;       // % of cycle spent waiting (0-100)
+}
+
 export interface HiringManagerFriction {
   hmId: string;
   hmName: string;
@@ -143,6 +151,8 @@ export interface HiringManagerFriction {
   offerAcceptanceRate: number | null;
   hmWeight: number;
   loopCount: number;  // for confidence indicator
+  // Time composition metrics
+  composition: HMTimeComposition;
 }
 
 // ===== RECRUITER SUMMARY =====

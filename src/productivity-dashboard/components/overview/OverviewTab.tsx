@@ -257,24 +257,6 @@ export function OverviewTab({
 
   return (
     <div>
-      {/* Compact selection indicator - shows when recruiters are selected */}
-      {filteredStats && (
-        <div className="d-flex justify-content-between align-items-center mb-3 py-2 px-3 bg-primary bg-opacity-10 rounded">
-          <div className="d-flex align-items-center">
-            <span className="me-2">🔽</span>
-            <span className="text-primary fw-medium">
-              Filtered to {filteredStats.count} recruiter{filteredStats.count > 1 ? 's' : ''}
-            </span>
-          </div>
-          <button
-            className="btn btn-sm btn-outline-primary"
-            onClick={clearSelection}
-          >
-            Show All
-          </button>
-        </div>
-      )}
-
       {/* KPI Cards - show filtered values with total context when selection is active */}
       <div className="row g-3 mb-4">
         <div className="col-md-2">
