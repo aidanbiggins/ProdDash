@@ -47,17 +47,31 @@ export function HMFrictionTab({
   });
 
   // Chart data - top 10 slowest HMs (Always sort by latency for the chart)
-  const chartData = [...friction]
+  const slowestChartData = [...friction]
     .sort((a, b) => (b.decisionLatencyMedian || 0) - (a.decisionLatencyMedian || 0))
     .filter(f => f.decisionLatencyMedian !== null)
     .slice(0, 10)
     .map(f => ({
-      name: f.hmName.length > 15 ? f.hmName.substring(0, 15) + '...' : f.hmName,
+      name: f.hmName.length > 12 ? f.hmName.substring(0, 12) + '...' : f.hmName,
       fullName: f.hmName,
       latency: Math.round(f.decisionLatencyMedian || 0),
       hmId: f.hmId,
       weight: f.hmWeight
     }));
+
+  // Chart data - top 10 fastest HMs (lowest latency)
+  const fastestChartData = [...friction]
+    .sort((a, b) => (a.decisionLatencyMedian || Infinity) - (b.decisionLatencyMedian || Infinity))
+    .filter(f => f.decisionLatencyMedian !== null && f.decisionLatencyMedian > 0)
+    .slice(0, 10)
+    .map(f => ({
+      name: f.hmName.length > 12 ? f.hmName.substring(0, 12) + '...' : f.hmName,
+      fullName: f.hmName,
+      latency: Math.round(f.decisionLatencyMedian || 0),
+      hmId: f.hmId,
+      weight: f.hmWeight
+    }))
+    .reverse(); // Reverse so fastest is at bottom for visual impact
 
   const handleExport = () => {
     exportHMFrictionCSV(friction);
@@ -152,47 +166,95 @@ export function HMFrictionTab({
         </div>
       </div>
 
-      {/* Top Slowest HMs Chart */}
-      <div className="card-bespoke mb-4">
-        <div className="card-header">
-          <h6 className="mb-0">Top 10 Slowest Decision Makers <span className="text-muted fw-normal">(by median latency)</span></h6>
-        </div>
-        <div className="card-body">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" unit=" hrs" fontSize={12} />
-              <YAxis type="category" dataKey="name" width={120} fontSize={12} />
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (!active || !payload || !payload[0]) return null;
-                  const tooltipData = payload[0].payload;
-                  return (
-                    <div className="bg-white border rounded p-2 shadow-sm">
-                      <div className="fw-bold">{tooltipData.fullName}</div>
-                      <div>Decision Latency: {tooltipData.latency} hours</div>
-                      <div>HM Weight: {tooltipData.weight.toFixed(2)}x</div>
-                    </div>
-                  );
-                }}
-              />
-              <Bar
-                dataKey="latency"
-                onClick={(clickedData: unknown) => {
-                  const item = clickedData as { hmId?: string };
-                  if (item.hmId) setSelectedHM(item.hmId);
-                }}
-                cursor="pointer"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.weight > 1.2 ? '#dc3545' : entry.weight > 1.0 ? '#ffc107' : '#28a745'}
+      {/* Side-by-side Charts: Slowest vs Fastest */}
+      <div className="row g-4 mb-4">
+        {/* Top 10 Slowest */}
+        <div className="col-md-6">
+          <div className="card-bespoke h-100">
+            <div className="card-header d-flex align-items-center">
+              <span className="me-2" style={{ fontSize: '1.25rem' }}>🐢</span>
+              <h6 className="mb-0">Top 10 Slowest <span className="text-muted fw-normal">(median latency)</span></h6>
+            </div>
+            <div className="card-body">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={slowestChartData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" unit=" hrs" fontSize={11} stroke="#64748b" />
+                  <YAxis type="category" dataKey="name" width={100} fontSize={11} stroke="#64748b" />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload || !payload[0]) return null;
+                      const tooltipData = payload[0].payload;
+                      return (
+                        <div className="bg-white border rounded p-2 shadow-sm">
+                          <div className="fw-bold">{tooltipData.fullName}</div>
+                          <div>Decision Latency: <strong>{tooltipData.latency} hours</strong></div>
+                          <div className="text-muted small">HM Weight: {tooltipData.weight.toFixed(2)}x</div>
+                        </div>
+                      );
+                    }}
                   />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                  <Bar
+                    dataKey="latency"
+                    onClick={(clickedData: unknown) => {
+                      const item = clickedData as { hmId?: string };
+                      if (item.hmId) setSelectedHM(item.hmId);
+                    }}
+                    cursor="pointer"
+                  >
+                    {slowestChartData.map((entry, index) => (
+                      <Cell
+                        key={`slow-${index}`}
+                        fill={entry.weight > 1.2 ? '#dc3545' : entry.weight > 1.0 ? '#ffc107' : '#28a745'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Top 10 Fastest - Celebrating good actors */}
+        <div className="col-md-6">
+          <div className="card-bespoke h-100 border-success border-opacity-25">
+            <div className="card-header d-flex align-items-center bg-success bg-opacity-10">
+              <span className="me-2" style={{ fontSize: '1.25rem' }}>🏆</span>
+              <h6 className="mb-0 text-success">Top 10 Fastest <span className="text-muted fw-normal">(best partners)</span></h6>
+            </div>
+            <div className="card-body">
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={fastestChartData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis type="number" unit=" hrs" fontSize={11} stroke="#64748b" />
+                  <YAxis type="category" dataKey="name" width={100} fontSize={11} stroke="#64748b" />
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload || !payload[0]) return null;
+                      const tooltipData = payload[0].payload;
+                      return (
+                        <div className="bg-white border rounded p-2 shadow-sm">
+                          <div className="fw-bold text-success">{tooltipData.fullName} ⭐</div>
+                          <div>Decision Latency: <strong>{tooltipData.latency} hours</strong></div>
+                          <div className="text-muted small">HM Weight: {tooltipData.weight.toFixed(2)}x</div>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Bar
+                    dataKey="latency"
+                    onClick={(clickedData: unknown) => {
+                      const item = clickedData as { hmId?: string };
+                      if (item.hmId) setSelectedHM(item.hmId);
+                    }}
+                    cursor="pointer"
+                    fill="#059669"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
 
