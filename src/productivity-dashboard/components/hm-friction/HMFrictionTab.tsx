@@ -5,8 +5,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ScatterChart, Scatter, ZAxis, ReferenceLine
 } from 'recharts';
-import { HiringManagerFriction, Requisition, Event, User } from '../../types';
+import { HiringManagerFriction, Requisition, Event, User, MetricFilters } from '../../types';
 import { exportHMFrictionCSV } from '../../services';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 // Helper to truncate long names
 const truncateName = (name: string, maxLen: number) =>
@@ -17,17 +18,51 @@ interface HMFrictionTabProps {
   requisitions: Requisition[];
   events: Event[];
   users: User[];
+  filters?: MetricFilters;
 }
 
 export function HMFrictionTab({
   friction,
   requisitions,
   events,
-  users
+  users,
+  filters
 }: HMFrictionTabProps) {
+  const isMobile = useIsMobile();
+  const mainChartHeight = isMobile ? 280 : 380;
+  const smallChartHeight = isMobile ? 220 : 280;
+
   const [selectedHM, setSelectedHM] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<keyof HiringManagerFriction>('decisionLatencyMedian');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Filter requisitions based on master filters
+  const filteredRequisitions = useMemo(() => {
+    return requisitions.filter(r => {
+      if (filters?.recruiterIds?.length && !filters.recruiterIds.includes(r.recruiter_id || '')) return false;
+      if (filters?.functions?.length && !filters.functions.includes(r.function)) return false;
+      if (filters?.jobFamilies?.length && !filters.jobFamilies.includes(r.job_family || '')) return false;
+      if (filters?.levels?.length && !filters.levels.includes(r.level || '')) return false;
+      if (filters?.regions?.length && !filters.regions.includes(r.location_region)) return false;
+      if (filters?.hiringManagerIds?.length && !filters.hiringManagerIds.includes(r.hiring_manager_id || '')) return false;
+      return true;
+    });
+  }, [requisitions, filters]);
+
+  // Get HM IDs that have matching requisitions
+  const hmIdsWithData = useMemo(() => {
+    return new Set(filteredRequisitions.map(r => r.hiring_manager_id).filter(Boolean));
+  }, [filteredRequisitions]);
+
+  // Filter friction data to only HMs with matching requisitions
+  const filteredFriction = useMemo(() => {
+    // If HM filter is set, only show those HMs
+    if (filters?.hiringManagerIds?.length) {
+      return friction.filter(f => filters.hiringManagerIds!.includes(f.hmId));
+    }
+    // Otherwise, show HMs that have requisitions matching other filters
+    return friction.filter(f => hmIdsWithData.has(f.hmId));
+  }, [friction, filters, hmIdsWithData]);
 
   const handleSort = (column: keyof HiringManagerFriction) => {
     if (sortColumn === column) {
@@ -38,7 +73,7 @@ export function HMFrictionTab({
     }
   };
 
-  const sortedFriction = [...friction].sort((a, b) => {
+  const sortedFriction = [...filteredFriction].sort((a, b) => {
     const aVal = a[sortColumn];
     const bVal = b[sortColumn];
 
@@ -53,7 +88,7 @@ export function HMFrictionTab({
 
   // Use pre-calculated composition data from service layer
   const compositionChartData = useMemo(() =>
-    [...friction]
+    [...filteredFriction]
       .filter(f => f.composition.totalLatencyHours > 0)
       .sort((a, b) => b.composition.totalLatencyHours - a.composition.totalLatencyHours || a.hmName.localeCompare(b.hmName))
       .slice(0, 12)
@@ -68,7 +103,7 @@ export function HMFrictionTab({
         timeTax: f.composition.timeTaxPercent,
         weight: f.hmWeight
       })),
-    [friction]
+    [filteredFriction]
   );
 
   // KPI calculations
@@ -80,10 +115,10 @@ export function HMFrictionTab({
   );
 
   const totalLatencyImpactDays = useMemo(() =>
-    friction.length > 0
-      ? Math.round(friction.reduce((sum, f) => sum + f.composition.totalLatencyHours, 0) / 24)
+    filteredFriction.length > 0
+      ? Math.round(filteredFriction.reduce((sum, f) => sum + f.composition.totalLatencyHours, 0) / 24)
       : 0,
-    [friction]
+    [filteredFriction]
   );
 
   // Shared click handler for chart bars
@@ -94,7 +129,7 @@ export function HMFrictionTab({
 
   // Candidate Decay Curve data: acceptance rate vs latency
   const decayCurveData = useMemo(() => {
-    return friction
+    return filteredFriction
       .filter(f => f.offerAcceptanceRate !== null && f.composition.totalLatencyHours > 0)
       .map(f => ({
         hmName: f.hmName,
@@ -104,18 +139,18 @@ export function HMFrictionTab({
         loopCount: f.loopCount
       }))
       .sort((a, b) => a.latencyDays - b.latencyDays);
-  }, [friction]);
+  }, [filteredFriction]);
 
   // Calculate average acceptance rate for reference line
   const avgAcceptanceRate = useMemo(() => {
-    const withOffers = friction.filter(f => f.offerAcceptanceRate !== null);
+    const withOffers = filteredFriction.filter(f => f.offerAcceptanceRate !== null);
     if (withOffers.length === 0) return 0;
     return Math.round(withOffers.reduce((sum, f) => sum + (f.offerAcceptanceRate ?? 0) * 100, 0) / withOffers.length);
-  }, [friction]);
+  }, [filteredFriction]);
 
   // Stage-by-Stage Heatmap data
   const heatmapData = useMemo(() =>
-    friction
+    filteredFriction
       .filter(f => f.feedbackLatencyMedian !== null || f.decisionLatencyMedian !== null)
       .sort((a, b) => b.composition.totalLatencyHours - a.composition.totalLatencyHours)
       .slice(0, 10)
@@ -127,7 +162,7 @@ export function HMFrictionTab({
         decision: f.decisionLatencyMedian ? Math.round(f.decisionLatencyMedian) : null,
         total: f.composition.totalLatencyHours
       })),
-    [friction]
+    [filteredFriction]
   );
 
   // Get color for heatmap cell based on hours
@@ -144,12 +179,12 @@ export function HMFrictionTab({
   };
 
   const handleExport = () => {
-    exportHMFrictionCSV(friction);
+    exportHMFrictionCSV(filteredFriction);
   };
 
-  // Get reqs for selected HM
+  // Get reqs for selected HM (filtered by master filters)
   const selectedHMReqs = selectedHM
-    ? requisitions.filter(r => r.hiring_manager_id === selectedHM)
+    ? filteredRequisitions.filter(r => r.hiring_manager_id === selectedHM)
     : [];
 
   // Helper to render sort icon
@@ -189,24 +224,24 @@ export function HMFrictionTab({
     <div>
       {/* Overview Stats - Time Tax focused */}
       <div className="row g-3 mb-4">
-        <div className="col-md-3">
+        <div className="col-6 col-md-3">
           <div className="card-bespoke">
             <div className="card-body text-center">
               <div className="stat-label mb-2">Total Hiring Managers</div>
-              <div className="stat-value">{friction.length}</div>
+              <div className="stat-value">{filteredFriction.length}</div>
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-6 col-md-3">
           <div className="card-bespoke border-danger border-opacity-25">
             <div className="card-body text-center">
-              <div className="stat-label mb-2">⏱️ Avg Time Tax</div>
+              <div className="stat-label mb-2">Avg Time Tax</div>
               <div className="stat-value text-danger">{avgTimeTax}%</div>
               <div className="text-muted small">of cycle spent waiting</div>
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-6 col-md-3">
           <div className="card-bespoke">
             <div className="card-body text-center">
               <div className="stat-label mb-2">Latency Impact</div>
@@ -217,12 +252,12 @@ export function HMFrictionTab({
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-6 col-md-3">
           <div className="card-bespoke">
             <div className="card-body text-center">
-              <div className="stat-label mb-2 text-success">Fast HMs (&lt;0.9x weight)</div>
+              <div className="stat-label mb-2 text-success">Fast HMs</div>
               <div className="stat-value" style={{ color: 'var(--color-success)' }}>
-                {friction.filter(f => f.hmWeight < 0.9).length}
+                {filteredFriction.filter(f => f.hmWeight < 0.9).length}
               </div>
             </div>
           </div>
@@ -248,7 +283,7 @@ export function HMFrictionTab({
           </div>
         </div>
         <div className="card-body">
-          <ResponsiveContainer width="100%" height={380}>
+          <ResponsiveContainer width="100%" height={mainChartHeight}>
             <BarChart data={compositionChartData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
@@ -311,7 +346,7 @@ export function HMFrictionTab({
       {/* Advanced Visualizations Row */}
       <div className="row g-4 mb-4">
         {/* Candidate Decay Curve */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6">
           <div className="card-bespoke h-100">
             <div className="card-header">
               <div className="d-flex align-items-center">
@@ -322,7 +357,7 @@ export function HMFrictionTab({
             </div>
             <div className="card-body">
               {decayCurveData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={280}>
+                <ResponsiveContainer width="100%" height={smallChartHeight}>
                   <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis
@@ -391,7 +426,7 @@ export function HMFrictionTab({
         </div>
 
         {/* Stage-by-Stage Heatmap */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6">
           <div className="card-bespoke h-100">
             <div className="card-header">
               <div className="d-flex align-items-center justify-content-between">
@@ -562,7 +597,7 @@ export function HMFrictionTab({
         <div className="card-bespoke mt-4">
           <div className="card-header d-flex justify-content-between align-items-center">
             <h6 className="mb-0">
-              Requisitions for <span className="text-primary">{friction.find(f => f.hmId === selectedHM)?.hmName}</span>
+              Requisitions for <span className="text-primary">{filteredFriction.find(f => f.hmId === selectedHM)?.hmName}</span>
             </h6>
             <button
               className="btn btn-sm btn-bespoke-secondary"

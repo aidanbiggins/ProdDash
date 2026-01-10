@@ -36,9 +36,13 @@ function getSourceColor(source: string): string {
 }
 
 export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
+    // Determine minimum threshold based on total data volume
+    // Lower threshold when filtered data is small to show meaningful results
+    const minCandidatesForChart = data.totalCandidates < 50 ? 1 : 3;
+
     // Prepare chart data
     const hireRateData = data.bySource
-        .filter(s => s.totalCandidates >= 3)
+        .filter(s => s.totalCandidates >= minCandidatesForChart)
         .map(s => ({
             source: s.source,
             hireRate: s.hireRate !== null ? Math.round(s.hireRate * 100) : 0,
@@ -47,7 +51,7 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
         }));
 
     const distributionData = data.sourceDistribution
-        .filter(s => s.percentage >= 1)
+        .filter(s => s.percentage >= 0.5) // Lower threshold to show more sources when filtered
         .map(s => ({
             name: s.source,
             value: Math.round(s.percentage * 10) / 10,

@@ -971,17 +971,19 @@ export function calculateSourceEffectiveness(
     return b.hireRate - a.hireRate;
   });
 
+  // Source distribution - calculate first so we can use totalCandidates
+  const totalCandidates = relevantCandidates.length;
+
   // Find best and worst performing sources (with at least some volume)
-  const sourcesWithVolume = bySource.filter(s => s.totalCandidates >= 5 && s.hireRate !== null);
+  // Use dynamic threshold - lower when filtered data is small
+  const minVolumeThreshold = totalCandidates < 50 ? 1 : 5;
+  const sourcesWithVolume = bySource.filter(s => s.totalCandidates >= minVolumeThreshold && s.hireRate !== null);
   const bestSource = sourcesWithVolume.length > 0
     ? { name: sourcesWithVolume[0].source, hireRate: sourcesWithVolume[0].hireRate! }
     : null;
   const worstSource = sourcesWithVolume.length > 1
     ? { name: sourcesWithVolume[sourcesWithVolume.length - 1].source, hireRate: sourcesWithVolume[sourcesWithVolume.length - 1].hireRate! }
     : null;
-
-  // Source distribution
-  const totalCandidates = relevantCandidates.length;
   const sourceDistribution = bySource.map(s => ({
     source: s.source,
     percentage: totalCandidates > 0 ? (s.totalCandidates / totalCandidates) * 100 : 0

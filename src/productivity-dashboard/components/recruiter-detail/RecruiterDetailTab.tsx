@@ -3,10 +3,11 @@ import {
   ComposedChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, ReferenceLine
 } from 'recharts';
 import { startOfWeek, endOfWeek, eachWeekOfInterval, isSameWeek, subWeeks, format, differenceInDays } from 'date-fns';
-import { RecruiterSummary, Requisition, Candidate, Event as DashboardEvent, User, ReqDetail, PriorPeriodMetrics, EventType, CanonicalStage } from '../../types';
+import { RecruiterSummary, Requisition, Candidate, Event as DashboardEvent, User, ReqDetail, PriorPeriodMetrics, EventType, CanonicalStage, MetricFilters } from '../../types';
 import { KPICard } from '../common/KPICard';
 import { DashboardConfig } from '../../types/config';
 import { exportReqListCSV, normalizeStage } from '../../services';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 export interface RecruiterDetailTabProps {
   recruiterSummaries: RecruiterSummary[];
@@ -19,6 +20,7 @@ export interface RecruiterDetailTabProps {
   config: DashboardConfig;
   priorPeriod?: PriorPeriodMetrics;
   recruiterPriorPeriods?: Record<string, PriorPeriodMetrics>;
+  filters?: MetricFilters;
 }
 
 // Helper to calculate weekly activity
@@ -56,32 +58,78 @@ export function RecruiterDetailTab({
   users,
   config,
   priorPeriod,
-  recruiterPriorPeriods
+  recruiterPriorPeriods,
+  filters
 }: RecruiterDetailTabProps) {
-  // Get selected recruiter or aggregate all
-  const detail = useMemo<RecruiterSummary | null>(() => {
-    if (selectedRecruiterId) {
-      return recruiterSummaries.find(r => r.recruiterId === selectedRecruiterId) || null;
+  const isMobile = useIsMobile();
+  const chartHeight = isMobile ? 200 : 260;
+  const chartHeightSmall = isMobile ? 160 : 200;
+
+  // Filter requisitions based on master filters
+  const filteredRequisitions = useMemo(() => {
+    return requisitions.filter(r => {
+      if (filters?.recruiterIds?.length && !filters.recruiterIds.includes(r.recruiter_id || '')) return false;
+      if (filters?.functions?.length && !filters.functions.includes(r.function)) return false;
+      if (filters?.jobFamilies?.length && !filters.jobFamilies.includes(r.job_family || '')) return false;
+      if (filters?.levels?.length && !filters.levels.includes(r.level || '')) return false;
+      if (filters?.regions?.length && !filters.regions.includes(r.location_region)) return false;
+      if (filters?.hiringManagerIds?.length && !filters.hiringManagerIds.includes(r.hiring_manager_id || '')) return false;
+      return true;
+    });
+  }, [requisitions, filters]);
+
+  // Get recruiter IDs that have matching requisitions
+  const recruiterIdsWithData = useMemo(() => {
+    return new Set(filteredRequisitions.map(r => r.recruiter_id).filter(Boolean));
+  }, [filteredRequisitions]);
+
+  // Filter recruiter summaries to only those with matching data
+  const filteredRecruiterSummaries = useMemo(() => {
+    // If recruiterIds filter is set, only show those recruiters
+    if (filters?.recruiterIds?.length) {
+      return recruiterSummaries.filter(r => filters.recruiterIds!.includes(r.recruiterId));
     }
-    // Aggregate all recruiters
-    if (recruiterSummaries.length === 0) return null;
+    // Otherwise, show recruiters that have requisitions matching other filters
+    return recruiterSummaries.filter(r => recruiterIdsWithData.has(r.recruiterId));
+  }, [recruiterSummaries, filters, recruiterIdsWithData]);
+
+  // Determine effective selected recruiter
+  // If master filter has a single recruiter selected, use that
+  const effectiveSelectedRecruiterId = useMemo(() => {
+    if (filters?.recruiterIds?.length === 1) {
+      return filters.recruiterIds[0];
+    }
+    // If the currently selected recruiter isn't in the filtered list, clear selection
+    if (selectedRecruiterId && !filteredRecruiterSummaries.some(r => r.recruiterId === selectedRecruiterId)) {
+      return null;
+    }
+    return selectedRecruiterId;
+  }, [filters, selectedRecruiterId, filteredRecruiterSummaries]);
+
+  // Get selected recruiter or aggregate all (using filtered data)
+  const detail = useMemo<RecruiterSummary | null>(() => {
+    if (effectiveSelectedRecruiterId) {
+      return filteredRecruiterSummaries.find(r => r.recruiterId === effectiveSelectedRecruiterId) || null;
+    }
+    // Aggregate all filtered recruiters
+    if (filteredRecruiterSummaries.length === 0) return null;
 
     const aggregated: RecruiterSummary = {
       recruiterId: 'all',
       recruiterName: 'All Recruiters',
       team: null,
       outcomes: {
-        hires: recruiterSummaries.reduce((sum, r) => sum + r.outcomes.hires, 0),
-        offersExtended: recruiterSummaries.reduce((sum, r) => sum + r.outcomes.offersExtended, 0),
-        offersAccepted: recruiterSummaries.reduce((sum, r) => sum + r.outcomes.offersAccepted, 0),
+        hires: filteredRecruiterSummaries.reduce((sum, r) => sum + r.outcomes.hires, 0),
+        offersExtended: filteredRecruiterSummaries.reduce((sum, r) => sum + r.outcomes.offersExtended, 0),
+        offersAccepted: filteredRecruiterSummaries.reduce((sum, r) => sum + r.outcomes.offersAccepted, 0),
         offerAcceptanceRate: null,
         timeToFillMedian: null
       },
       executionVolume: {
-        outreachSent: recruiterSummaries.reduce((sum, r) => sum + r.executionVolume.outreachSent, 0),
-        screensCompleted: recruiterSummaries.reduce((sum, r) => sum + r.executionVolume.screensCompleted, 0),
-        submittalsToHM: recruiterSummaries.reduce((sum, r) => sum + r.executionVolume.submittalsToHM, 0),
-        interviewLoopsScheduled: recruiterSummaries.reduce((sum, r) => sum + r.executionVolume.interviewLoopsScheduled, 0),
+        outreachSent: filteredRecruiterSummaries.reduce((sum, r) => sum + r.executionVolume.outreachSent, 0),
+        screensCompleted: filteredRecruiterSummaries.reduce((sum, r) => sum + r.executionVolume.screensCompleted, 0),
+        submittalsToHM: filteredRecruiterSummaries.reduce((sum, r) => sum + r.executionVolume.submittalsToHM, 0),
+        interviewLoopsScheduled: filteredRecruiterSummaries.reduce((sum, r) => sum + r.executionVolume.interviewLoopsScheduled, 0),
         followUpVelocityMedian: null
       },
       funnelConversion: recruiterSummaries[0]?.funnelConversion || {
@@ -91,13 +139,13 @@ export function RecruiterDetailTab({
         offerToHired: { entered: 0, converted: 0, rate: null, fromStage: 'OFFER' as any, toStage: 'HIRED' as any }
       },
       aging: {
-        openReqCount: recruiterSummaries.reduce((sum, r) => sum + r.aging.openReqCount, 0),
+        openReqCount: filteredRecruiterSummaries.reduce((sum, r) => sum + r.aging.openReqCount, 0),
         agingBuckets: [],
-        stalledReqs: { count: recruiterSummaries.reduce((sum, r) => sum + r.aging.stalledReqs.count, 0), threshold: 30, reqIds: [] }
+        stalledReqs: { count: filteredRecruiterSummaries.reduce((sum, r) => sum + r.aging.stalledReqs.count, 0), threshold: 30, reqIds: [] }
       },
       weighted: {
-        weightedHires: recruiterSummaries.reduce((sum, r) => sum + r.weighted.weightedHires, 0),
-        weightedOffers: recruiterSummaries.reduce((sum, r) => sum + r.weighted.weightedOffers, 0),
+        weightedHires: filteredRecruiterSummaries.reduce((sum, r) => sum + r.weighted.weightedHires, 0),
+        weightedOffers: filteredRecruiterSummaries.reduce((sum, r) => sum + r.weighted.weightedOffers, 0),
         offerMultiplier: 1,
         complexityScores: []
       },
@@ -106,10 +154,10 @@ export function RecruiterDetailTab({
         hmControlledTime: { feedbackLatency: null, decisionLatency: null },
         opsControlledTime: { offerApprovalLatency: null, available: false }
       },
-      productivityIndex: recruiterSummaries.length > 0
-        ? recruiterSummaries.reduce((sum, r) => sum + r.productivityIndex, 0) / recruiterSummaries.length
+      productivityIndex: filteredRecruiterSummaries.length > 0
+        ? filteredRecruiterSummaries.reduce((sum, r) => sum + r.productivityIndex, 0) / filteredRecruiterSummaries.length
         : 0,
-      activeReqLoad: recruiterSummaries.reduce((sum, r) => sum + r.activeReqLoad, 0)
+      activeReqLoad: filteredRecruiterSummaries.reduce((sum, r) => sum + r.activeReqLoad, 0)
     };
 
     // Calculate aggregate offer acceptance rate
@@ -123,7 +171,7 @@ export function RecruiterDetailTab({
     stages.forEach(stage => {
       let totalEntered = 0;
       let totalConverted = 0;
-      recruiterSummaries.forEach(r => {
+      filteredRecruiterSummaries.forEach(r => {
         totalEntered += r.funnelConversion[stage].entered;
         totalConverted += r.funnelConversion[stage].converted;
       });
@@ -134,7 +182,7 @@ export function RecruiterDetailTab({
 
     // Aggregate aging buckets from all recruiters
     const bucketMap = new Map<string, { label: string; min: number; max: number | null; count: number; reqIds: string[] }>();
-    recruiterSummaries.forEach(r => {
+    filteredRecruiterSummaries.forEach(r => {
       r.aging.agingBuckets.forEach(bucket => {
         const existing = bucketMap.get(bucket.label);
         if (existing) {
@@ -156,12 +204,12 @@ export function RecruiterDetailTab({
 
 
     return aggregated;
-  }, [recruiterSummaries, selectedRecruiterId]);
+  }, [filteredRecruiterSummaries, effectiveSelectedRecruiterId]);
 
   // Calculate Team Averages for Benchmarking
   // Use aggregate (total converted / total entered) not average of rates
   const teamBenchmarks = useMemo(() => {
-    if (recruiterSummaries.length === 0) return null;
+    if (filteredRecruiterSummaries.length === 0) return null;
 
     const stages = ['screenToHmScreen', 'hmScreenToOnsite', 'onsiteToOffer', 'offerToHired'] as const;
     const aggregates: Record<string, number> = {};
@@ -169,7 +217,7 @@ export function RecruiterDetailTab({
     stages.forEach(stage => {
       let totalEntered = 0;
       let totalConverted = 0;
-      recruiterSummaries.forEach(r => {
+      filteredRecruiterSummaries.forEach(r => {
         totalEntered += r.funnelConversion[stage].entered;
         totalConverted += r.funnelConversion[stage].converted;
       });
@@ -182,21 +230,21 @@ export function RecruiterDetailTab({
       onsiteToOffer: aggregates.onsiteToOffer,
       offerToHired: aggregates.offerToHired
     };
-  }, [recruiterSummaries]);
+  }, [filteredRecruiterSummaries]);
 
   // Activity Trends Data
   const activityData = useMemo(() => {
-    return calculateWeeklyActivity(events, selectedRecruiterId === 'all' ? null : selectedRecruiterId, config);
-  }, [events, selectedRecruiterId, config]);
+    return calculateWeeklyActivity(events, effectiveSelectedRecruiterId === 'all' ? null : effectiveSelectedRecruiterId, config);
+  }, [events, effectiveSelectedRecruiterId, config]);
 
   if (!detail) {
     return <div className="text-center py-5 text-muted">No recruiter data available</div>;
   }
 
-  // Get recruiter's reqs (all if aggregated)
-  const recruiterReqs = selectedRecruiterId
-    ? requisitions.filter(r => r.recruiter_id === selectedRecruiterId)
-    : requisitions;
+  // Get recruiter's reqs (filtered by master filters, then by selected recruiter)
+  const recruiterReqs = effectiveSelectedRecruiterId
+    ? filteredRequisitions.filter(r => r.recruiter_id === effectiveSelectedRecruiterId)
+    : filteredRequisitions;
 
   // Build req details
   const now = new Date();
@@ -234,13 +282,18 @@ export function RecruiterDetailTab({
   });
 
   // Funnel conversion data for chart
+  // When no recruiter selected, rate === benchmark (comparing all to all is meaningless)
+  const useDetailAsBenchmark = !effectiveSelectedRecruiterId;
+
   const funnelData = [
     {
       name: 'Screen → HM',
       rate: detail.funnelConversion.screenToHmScreen.rate !== null
         ? detail.funnelConversion.screenToHmScreen.rate * 100
         : 0,
-      benchmark: teamBenchmarks?.screenToHm || 0,
+      benchmark: useDetailAsBenchmark
+        ? (detail.funnelConversion.screenToHmScreen.rate !== null ? detail.funnelConversion.screenToHmScreen.rate * 100 : 0)
+        : (teamBenchmarks?.screenToHm || 0),
       entered: detail.funnelConversion.screenToHmScreen.entered,
       converted: detail.funnelConversion.screenToHmScreen.converted
     },
@@ -249,7 +302,9 @@ export function RecruiterDetailTab({
       rate: detail.funnelConversion.hmScreenToOnsite.rate !== null
         ? detail.funnelConversion.hmScreenToOnsite.rate * 100
         : 0,
-      benchmark: teamBenchmarks?.hmToOnsite || 0,
+      benchmark: useDetailAsBenchmark
+        ? (detail.funnelConversion.hmScreenToOnsite.rate !== null ? detail.funnelConversion.hmScreenToOnsite.rate * 100 : 0)
+        : (teamBenchmarks?.hmToOnsite || 0),
       entered: detail.funnelConversion.hmScreenToOnsite.entered,
       converted: detail.funnelConversion.hmScreenToOnsite.converted
     },
@@ -258,7 +313,9 @@ export function RecruiterDetailTab({
       rate: detail.funnelConversion.onsiteToOffer.rate !== null
         ? detail.funnelConversion.onsiteToOffer.rate * 100
         : 0,
-      benchmark: teamBenchmarks?.onsiteToOffer || 0,
+      benchmark: useDetailAsBenchmark
+        ? (detail.funnelConversion.onsiteToOffer.rate !== null ? detail.funnelConversion.onsiteToOffer.rate * 100 : 0)
+        : (teamBenchmarks?.onsiteToOffer || 0),
       entered: detail.funnelConversion.onsiteToOffer.entered,
       converted: detail.funnelConversion.onsiteToOffer.converted
     },
@@ -267,7 +324,9 @@ export function RecruiterDetailTab({
       rate: detail.funnelConversion.offerToHired.rate !== null
         ? detail.funnelConversion.offerToHired.rate * 100
         : 0,
-      benchmark: teamBenchmarks?.offerToHired || 0,
+      benchmark: useDetailAsBenchmark
+        ? (detail.funnelConversion.offerToHired.rate !== null ? detail.funnelConversion.offerToHired.rate * 100 : 0)
+        : (teamBenchmarks?.offerToHired || 0),
       entered: detail.funnelConversion.offerToHired.entered,
       converted: detail.funnelConversion.offerToHired.converted
     }
@@ -358,11 +417,12 @@ export function RecruiterDetailTab({
           <select
             className="form-select"
             style={{ width: 'auto', minWidth: '180px', fontWeight: 500, fontSize: '0.9rem' }}
-            value={selectedRecruiterId || 'all'}
+            value={effectiveSelectedRecruiterId || 'all'}
             onChange={(e) => onSelectRecruiter(e.target.value === 'all' ? null : e.target.value)}
+            disabled={filters?.recruiterIds?.length === 1}
           >
             <option value="all">All Recruiters</option>
-            {recruiterSummaries
+            {filteredRecruiterSummaries
               .sort((a, b) => a.recruiterName.localeCompare(b.recruiterName))
               .map(r => (
                 <option key={r.recruiterId} value={r.recruiterId}>
@@ -380,14 +440,14 @@ export function RecruiterDetailTab({
 
       {/* KPI Cards */}
       <div className="row g-3 mb-4">
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Hires"
             value={detail.outcomes.hires}
-            priorPeriod={selectedRecruiterId && recruiterPriorPeriods
-              ? (recruiterPriorPeriods[selectedRecruiterId] ? {
-                value: recruiterPriorPeriods[selectedRecruiterId].hires,
-                label: recruiterPriorPeriods[selectedRecruiterId].label
+            priorPeriod={effectiveSelectedRecruiterId && recruiterPriorPeriods
+              ? (recruiterPriorPeriods[effectiveSelectedRecruiterId!] ? {
+                value: recruiterPriorPeriods[effectiveSelectedRecruiterId!].hires,
+                label: recruiterPriorPeriods[effectiveSelectedRecruiterId!].label
               } : undefined)
               : (priorPeriod ? {
                 value: priorPeriod.hires,
@@ -396,14 +456,14 @@ export function RecruiterDetailTab({
             }
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Weighted Hires"
             value={parseFloat(detail.weighted.weightedHires.toFixed(1))}
-            priorPeriod={selectedRecruiterId && recruiterPriorPeriods
-              ? (recruiterPriorPeriods[selectedRecruiterId] ? {
-                value: parseFloat(recruiterPriorPeriods[selectedRecruiterId].weightedHires.toFixed(1)),
-                label: recruiterPriorPeriods[selectedRecruiterId].label
+            priorPeriod={effectiveSelectedRecruiterId && recruiterPriorPeriods
+              ? (recruiterPriorPeriods[effectiveSelectedRecruiterId!] ? {
+                value: parseFloat(recruiterPriorPeriods[effectiveSelectedRecruiterId!].weightedHires.toFixed(1)),
+                label: recruiterPriorPeriods[effectiveSelectedRecruiterId!].label
               } : undefined)
               : (priorPeriod ? {
                 value: parseFloat(priorPeriod.weightedHires.toFixed(1)),
@@ -412,14 +472,14 @@ export function RecruiterDetailTab({
             }
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Offers"
             value={detail.outcomes.offersExtended}
-            priorPeriod={selectedRecruiterId && recruiterPriorPeriods
-              ? (recruiterPriorPeriods[selectedRecruiterId] ? {
-                value: recruiterPriorPeriods[selectedRecruiterId].offers,
-                label: recruiterPriorPeriods[selectedRecruiterId].label
+            priorPeriod={effectiveSelectedRecruiterId && recruiterPriorPeriods
+              ? (recruiterPriorPeriods[effectiveSelectedRecruiterId!] ? {
+                value: recruiterPriorPeriods[effectiveSelectedRecruiterId!].offers,
+                label: recruiterPriorPeriods[effectiveSelectedRecruiterId!].label
               } : undefined)
               : (priorPeriod ? {
                 value: priorPeriod.offers,
@@ -428,7 +488,7 @@ export function RecruiterDetailTab({
             }
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard
             title="Accept Rate"
             value={detail.outcomes.offerAcceptanceRate !== null
@@ -436,10 +496,10 @@ export function RecruiterDetailTab({
               : 'N/A'}
           />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard title="Open Reqs" value={detail.aging.openReqCount} />
         </div>
-        <div className="col-md-2">
+        <div className="col-6 col-md-2">
           <KPICard title="Stalled" value={detail.aging.stalledReqs.count} />
         </div>
       </div>
@@ -454,7 +514,7 @@ export function RecruiterDetailTab({
               <small className="text-muted">Last 12 Weeks</small>
             </div>
             <div className="card-body">
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <ComposedChart data={activityData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="name" fontSize={12} stroke="#64748b" tickMargin={10} />
@@ -475,13 +535,13 @@ export function RecruiterDetailTab({
 
       <div className="row g-3 mb-4">
         {/* Funnel Conversion */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6">
           <div className="card-bespoke h-100">
             <div className="card-header">
               <h6 className="mb-0">Funnel Conversion</h6>
             </div>
             <div className="card-body">
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100%" height={chartHeight}>
                 <BarChart data={funnelData} layout="vertical" barGap={2}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                   <XAxis type="number" domain={[0, 100]} unit="%" fontSize={12} stroke="#64748b" />
@@ -501,13 +561,13 @@ export function RecruiterDetailTab({
         </div>
 
         {/* Req Aging */}
-        <div className="col-md-6">
+        <div className="col-12 col-md-6">
           <div className="card-bespoke h-100">
             <div className="card-header">
               <h6 className="mb-0">Req Aging Distribution</h6>
             </div>
             <div className="card-body">
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={chartHeightSmall}>
                 <BarChart data={agingData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" fontSize={12} />
@@ -534,8 +594,8 @@ export function RecruiterDetailTab({
           <h6 className="mb-0">Where Time is Going</h6>
         </div>
         <div className="card-body">
-          <div className="row">
-            <div className="col-md-4">
+          <div className="row g-3">
+            <div className="col-12 col-md-4">
               <h6 className="text-muted mb-3">Recruiter-Controlled</h6>
               <div className="d-flex justify-content-between mb-2">
                 <span>Lead to First Action</span>
@@ -554,7 +614,7 @@ export function RecruiterDetailTab({
                 </strong>
               </div>
             </div>
-            <div className="col-md-4">
+            <div className="col-12 col-md-4">
               <h6 className="text-muted mb-3">HM-Controlled</h6>
               <div className="d-flex justify-content-between mb-2">
                 <span>Feedback Latency</span>
@@ -573,7 +633,7 @@ export function RecruiterDetailTab({
                 </strong>
               </div>
             </div>
-            <div className="col-md-4">
+            <div className="col-12 col-md-4">
               <h6 className="text-muted mb-3">Ops-Controlled</h6>
               {detail.timeAttribution.opsControlledTime.available ? (
                 <div className="d-flex justify-content-between">
