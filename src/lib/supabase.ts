@@ -1,7 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClientOptions } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+// Custom lock that doesn't use browser Lock API (avoids AbortError)
+const noOpLock = async <R>(
+    name: string,
+    acquireTimeout: number,
+    fn: () => Promise<R>
+): Promise<R> => {
+    return fn();
+};
 
 // Fail gracefully if config is missing (so app doesn't crash on load)
 export const supabase = (supabaseUrl && supabaseAnonKey)
@@ -10,8 +19,9 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
             autoRefreshToken: true,
             persistSession: true,
             detectSessionInUrl: true,
-            flowType: 'implicit', // Use implicit flow for magic links (simpler, avoids PKCE issues)
-            storageKey: 'prod-dash-auth', // Unique key to avoid conflicts
+            flowType: 'implicit',
+            storageKey: 'prod-dash-auth',
+            lock: noOpLock,
         }
-    })
+    } as SupabaseClientOptions<'public'>)
     : null;
