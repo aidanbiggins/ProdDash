@@ -167,6 +167,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         const initAuth = async () => {
+            if (!supabase) return; // TypeScript guard
             try {
                 // Get initial session
                 const { data: { session } } = await supabase.auth.getSession();
