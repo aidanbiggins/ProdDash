@@ -47,7 +47,8 @@ export function ProductivityDashboard() {
 
   const hasData = state.dataStore.requisitions.length > 0;
   const isDemo = state.dataStore.importSource === 'demo';
-  const needsStageMapping = hasData && !state.dataStore.config.stageMapping.isComplete;
+  // Only show stage mapping modal on fresh imports, not on data loaded from DB
+  const needsStageMapping = hasData && !state.dataStore.config.stageMapping.isComplete && state.dataStore.importSource !== null;
 
   // Sync filters and tab with URL for shareable links
   useUrlState({
@@ -79,12 +80,8 @@ export function ProductivityDashboard() {
     }
   }, [hasData, state.filters.dateRange, refreshMetrics]);
 
-  // Show stage mapping modal if needed
-  useEffect(() => {
-    if (needsStageMapping) {
-      setShowStageMapping(true);
-    }
-  }, [needsStageMapping]);
+  // Stage mapping modal can be opened manually from the header menu
+  // Auto-popup disabled as config isn't persisted and would show on every page load
 
   // Handle recruiter selection
   const handleSelectRecruiter = (recruiterId: string) => {
