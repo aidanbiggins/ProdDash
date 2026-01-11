@@ -180,8 +180,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (!supabase) return; // TypeScript guard
             console.log('[Auth] initAuth starting');
             try {
-                // Get initial session
-                const { data: { session } } = await supabase.auth.getSession();
+                // Get initial session with retry for AbortError
+                let session = null;
+                let retries = 3;
+                while (retries > 0) {
+                    try {
+                        const { data } = await supabase.auth.getSession();
+                        session = data.session;
+                        break;
+                    } catch (e: any) {
+                        if (e?.name === 'AbortError' && retries > 1) {
+                            console.log('[Auth] AbortError, retrying...', retries - 1, 'left');
+                            retries--;
+                            await new Promise(r => setTimeout(r, 500));
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
                 console.log('[Auth] Got session:', session?.user?.email ?? 'no session');
 
                 if (!isMounted) return;
