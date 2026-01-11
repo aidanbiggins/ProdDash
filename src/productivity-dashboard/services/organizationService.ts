@@ -127,40 +127,51 @@ export async function deleteOrganization(orgId: string): Promise<void> {
  * Get all memberships for a user (with org details)
  */
 export async function getUserMemberships(userId: string): Promise<OrganizationMembership[]> {
-  if (!supabase) return [];
+  console.log('[OrgService] getUserMemberships called for:', userId);
+  if (!supabase) {
+    console.log('[OrgService] No supabase client');
+    return [];
+  }
 
-  const { data, error } = await supabase
-    .from('organization_members')
-    .select(`
-      id,
-      organization_id,
-      user_id,
-      role,
-      created_at,
-      organization:organizations (
+  try {
+    console.log('[OrgService] Querying organization_members...');
+    const { data, error } = await supabase
+      .from('organization_members')
+      .select(`
         id,
-        name,
-        slug,
+        organization_id,
+        user_id,
+        role,
         created_at,
-        created_by,
-        deleted_at
-      )
-    `)
-    .eq('user_id', userId);
+        organization:organizations (
+          id,
+          name,
+          slug,
+          created_at,
+          created_by,
+          deleted_at
+        )
+      `)
+      .eq('user_id', userId);
 
-  if (error) throw error;
+    console.log('[OrgService] Query complete. Error:', error, 'Data:', data?.length ?? 0, 'rows');
+    if (error) throw error;
 
-  // Filter out memberships for deleted orgs and transform
-  return (data || [])
-    .filter((m: any) => m.organization && !m.organization.deleted_at)
-    .map((m: any) => ({
-      id: m.id,
-      organization_id: m.organization_id,
-      organization: m.organization,
-      user_id: m.user_id,
-      role: m.role,
-      created_at: m.created_at
-    }));
+    // Filter out memberships for deleted orgs and transform
+    return (data || [])
+      .filter((m: any) => m.organization && !m.organization.deleted_at)
+      .map((m: any) => ({
+        id: m.id,
+        organization_id: m.organization_id,
+        organization: m.organization,
+        user_id: m.user_id,
+        role: m.role,
+        created_at: m.created_at
+      }));
+  } catch (err) {
+    console.error('[OrgService] getUserMemberships error:', err);
+    return [];
+  }
 }
 
 /**
@@ -380,16 +391,27 @@ export async function deleteInvite(inviteId: string): Promise<void> {
  * Check if a user is a super admin
  */
 export async function checkIsSuperAdmin(userId: string): Promise<boolean> {
-  if (!supabase) return false;
+  console.log('[OrgService] checkIsSuperAdmin called for:', userId);
+  if (!supabase) {
+    console.log('[OrgService] No supabase client');
+    return false;
+  }
 
-  const { data, error } = await supabase
-    .from('super_admins')
-    .select('user_id')
-    .eq('user_id', userId)
-    .single();
+  try {
+    console.log('[OrgService] Querying super_admins...');
+    const { data, error } = await supabase
+      .from('super_admins')
+      .select('user_id')
+      .eq('user_id', userId)
+      .single();
 
-  if (error) return false;
-  return !!data;
+    console.log('[OrgService] super_admins query complete. Error:', error, 'Data:', data);
+    if (error) return false;
+    return !!data;
+  } catch (err) {
+    console.error('[OrgService] checkIsSuperAdmin error:', err);
+    return false;
+  }
 }
 
 /**
