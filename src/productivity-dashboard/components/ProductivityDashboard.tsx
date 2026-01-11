@@ -18,12 +18,19 @@ import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { useDataMasking } from '../contexts/DataMaskingContext';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useUrlState } from '../hooks/useUrlState';
+import { useAuth } from '../../contexts/AuthContext';
+import { OrgSwitcher, CreateOrgModal } from './OrgSwitcher';
+import { OrgSettings } from './OrgSettings';
+import { SuperAdminPanel } from './SuperAdminPanel';
+import { createOrganization } from '../services/organizationService';
 
 type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity';
 
 export function ProductivityDashboard() {
-  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData } = useDashboard();
+  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, canImportData } = useDashboard();
   const { isMasked, toggleMasking } = useDataMasking();
+  const { currentOrg, user, refreshMemberships, supabaseUser } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showStageMapping, setShowStageMapping] = useState(false);
@@ -32,10 +39,23 @@ export function ProductivityDashboard() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [demoDismissed, setDemoDismissed] = useState(false);
+  const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
+  const [showOrgSettings, setShowOrgSettings] = useState(false);
+  const [showSuperAdminPanel, setShowSuperAdminPanel] = useState(false);
+
+  const isSuperAdmin = user?.isSuperAdmin || false;
 
   const hasData = state.dataStore.requisitions.length > 0;
   const isDemo = state.dataStore.importSource === 'demo';
   const needsStageMapping = hasData && !state.dataStore.config.stageMapping.isComplete;
+
+  // Sync filters and tab with URL for shareable links
+  useUrlState({
+    filters: state.filters,
+    activeTab,
+    onFiltersChange: updateFilters,
+    onTabChange: (tab) => setActiveTab(tab as TabType)
+  });
 
   // Calculate source effectiveness metrics
   const sourceEffectiveness = useMemo(() => {
@@ -84,6 +104,12 @@ export function ProductivityDashboard() {
       state.dataStore.events,
       state.dataStore.users
     );
+  };
+
+  const handleCreateOrg = async (name: string) => {
+    if (!supabaseUser?.id) throw new Error('Not authenticated');
+    await createOrganization({ name }, supabaseUser.id);
+    await refreshMemberships();
   };
 
   const handleClearDataConfirm = async () => {
@@ -225,7 +251,12 @@ export function ProductivityDashboard() {
           // Desktop Header
           <div className="dashboard-header mb-5">
             <div className="dashboard-header-title">
-              <h6 className="text-uppercase text-muted mb-2" style={{ letterSpacing: '0.1em', fontSize: '0.75rem', fontWeight: 600 }}>Productivity Hub</h6>
+              <div className="d-flex align-items-center gap-3 mb-2">
+                <OrgSwitcher
+                  onCreateOrg={() => setShowCreateOrgModal(true)}
+                  onOrgSettings={() => setShowOrgSettings(true)}
+                />
+              </div>
               <h1 className="mb-0 display-6 fw-bold text-dark">Recruiting Insights</h1>
               <div className="d-flex gap-3 mt-2 text-muted small">
                 <span>{state.dataStore.requisitions.length} Requisitions</span>
@@ -298,6 +329,20 @@ export function ProductivityDashboard() {
                       >
                         Clear Database
                       </button>
+                      {isSuperAdmin && (
+                        <>
+                          <hr className="my-2" />
+                          <button
+                            className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent text-danger"
+                            onClick={() => { setShowSuperAdminPanel(true); setShowHeaderMenu(false); }}
+                            style={{ cursor: 'pointer' }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-100)'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            Super Admin Panel
+                          </button>
+                        </>
+                      )}
                     </div>
                   </>
                 )}
@@ -567,6 +612,25 @@ export function ProductivityDashboard() {
           onCancel={() => setShowClearConfirm(false)}
           onConfirm={handleClearDataConfirm}
           isClearing={isClearing}
+        />
+
+        {/* Create Organization Modal */}
+        <CreateOrgModal
+          isOpen={showCreateOrgModal}
+          onClose={() => setShowCreateOrgModal(false)}
+          onCreate={handleCreateOrg}
+        />
+
+        {/* Organization Settings Modal */}
+        <OrgSettings
+          isOpen={showOrgSettings}
+          onClose={() => setShowOrgSettings(false)}
+        />
+
+        {/* Super Admin Panel */}
+        <SuperAdminPanel
+          isOpen={showSuperAdminPanel}
+          onClose={() => setShowSuperAdminPanel(false)}
         />
       </div>
     </div>

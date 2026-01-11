@@ -1,36 +1,156 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import {
+    Organization,
+    OrganizationMembership,
+    AuthUser,
+    UserRole,
+    OrgAuthContextType
+} from '../productivity-dashboard/types/auth';
+import {
+    getUserMemberships,
+    checkIsSuperAdmin
+} from '../productivity-dashboard/services/organizationService';
 
+const CURRENT_ORG_KEY = 'current_org_id';
+
+// Combined context type
 interface AuthContextType {
-    user: User | null;
+    // Legacy - raw Supabase user
+    supabaseUser: User | null;
     session: Session | null;
     loading: boolean;
     signOut: () => Promise<void>;
+    // Org-aware - enriched user with memberships
+    user: AuthUser | null;
+    currentOrg: Organization | null;
+    userRole: UserRole | null;
+    switchOrganization: (orgId: string) => void;
+    refreshMemberships: () => Promise<void>;
+    canImportData: boolean;
+    canManageMembers: boolean;
+    canDeleteOrg: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
-    user: null,
+    supabaseUser: null,
     session: null,
     loading: true,
     signOut: async () => { },
+    user: null,
+    currentOrg: null,
+    userRole: null,
+    switchOrganization: () => { },
+    refreshMemberships: async () => { },
+    canImportData: false,
+    canManageMembers: false,
+    canDeleteOrg: false,
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    // Legacy state
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // Org-aware state
+    const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
+    const [currentOrgId, setCurrentOrgId] = useState<string | null>(null);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+    // Derived state
+    const currentOrg: Organization | null = currentOrgId
+        ? memberships.find(m => m.organization_id === currentOrgId)?.organization ?? null
+        : null;
+
+    const userRole: UserRole | null = isSuperAdmin
+        ? 'super_admin'
+        : currentOrgId
+            ? memberships.find(m => m.organization_id === currentOrgId)?.role ?? null
+            : null;
+
+    const canImportData = userRole === 'super_admin' || userRole === 'admin';
+    const canManageMembers = userRole === 'super_admin' || userRole === 'admin';
+    const canDeleteOrg = userRole === 'super_admin' || userRole === 'admin';
+
+    // AuthUser object for new API
+    const authUser: AuthUser | null = user ? {
+        id: user.id,
+        email: user.email ?? '',
+        memberships,
+        currentOrgId,
+        isSuperAdmin
+    } : null;
+
+    // Load memberships for a user
+    const loadMemberships = useCallback(async (userId: string) => {
+        try {
+            const [userMemberships, superAdminStatus] = await Promise.all([
+                getUserMemberships(userId),
+                checkIsSuperAdmin(userId)
+            ]);
+
+            setMemberships(userMemberships);
+            setIsSuperAdmin(superAdminStatus);
+
+            // Set current org from localStorage or default to first
+            const savedOrgId = localStorage.getItem(CURRENT_ORG_KEY);
+            if (savedOrgId && userMemberships.some(m => m.organization_id === savedOrgId)) {
+                setCurrentOrgId(savedOrgId);
+            } else if (userMemberships.length > 0) {
+                setCurrentOrgId(userMemberships[0].organization_id);
+            }
+        } catch (err) {
+            console.error('Failed to load memberships:', err);
+            setMemberships([]);
+            setIsSuperAdmin(false);
+        }
+    }, []);
+
+    // Refresh memberships (called after joining/leaving orgs)
+    const refreshMemberships = useCallback(async () => {
+        if (user?.id) {
+            await loadMemberships(user.id);
+        }
+    }, [user?.id, loadMemberships]);
+
+    // Switch current organization
+    const switchOrganization = useCallback((orgId: string) => {
+        if (memberships.some(m => m.organization_id === orgId) || isSuperAdmin) {
+            setCurrentOrgId(orgId);
+            localStorage.setItem(CURRENT_ORG_KEY, orgId);
+        }
+    }, [memberships, isSuperAdmin]);
+
     useEffect(() => {
-        // 🔐 Check for dev bypass first
+        // Check for dev bypass first
         const devBypass = localStorage.getItem('dev-auth-bypass');
         if (devBypass) {
             try {
                 const fakeSession = JSON.parse(devBypass);
                 setSession(fakeSession as Session);
                 setUser(fakeSession.user as User);
+                // For dev bypass, set a mock org
+                setMemberships([{
+                    id: 'dev-membership',
+                    organization_id: 'dev-org',
+                    user_id: fakeSession.user.id,
+                    role: 'admin',
+                    created_at: new Date().toISOString(),
+                    organization: {
+                        id: 'dev-org',
+                        name: 'Development',
+                        slug: 'dev',
+                        created_at: new Date().toISOString(),
+                        created_by: null,
+                        deleted_at: null
+                    }
+                }]);
+                setCurrentOrgId('dev-org');
+                setIsSuperAdmin(true); // Dev user is super admin
                 setLoading(false);
                 return;
             } catch (e) {
@@ -44,33 +164,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
         }
 
-        // 1. Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        // Get initial session
+        supabase.auth.getSession().then(async ({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
+
+            if (session?.user) {
+                await loadMemberships(session.user.id);
+            }
+
             setLoading(false);
         });
 
-        // 2. Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
+
+            if (session?.user) {
+                await loadMemberships(session.user.id);
+            } else {
+                setMemberships([]);
+                setCurrentOrgId(null);
+                setIsSuperAdmin(false);
+            }
+
             setLoading(false);
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [loadMemberships]);
 
     const signOut = async () => {
-        // Clear dev bypass if present
         localStorage.removeItem('dev-auth-bypass');
+        localStorage.removeItem(CURRENT_ORG_KEY);
         if (supabase) await supabase.auth.signOut();
-        // Force reload to clear state
         window.location.href = '/login';
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signOut }}>
+        <AuthContext.Provider value={{
+            supabaseUser: user,
+            session,
+            loading,
+            signOut,
+            user: authUser,
+            currentOrg,
+            userRole,
+            switchOrganization,
+            refreshMemberships,
+            canImportData,
+            canManageMembers,
+            canDeleteOrg,
+        }}>
             {children}
         </AuthContext.Provider>
     );

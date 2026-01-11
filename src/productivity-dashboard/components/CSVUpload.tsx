@@ -5,6 +5,9 @@ import { generateSampleData } from '../utils/sampleDataGenerator';
 import { ICIMSImportGuide } from './ICIMSImportGuide';
 import { useDashboard } from '../hooks/useDashboardContext';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
+import { useAuth } from '../../contexts/AuthContext';
+import { OrgSwitcher, CreateOrgModal } from './OrgSwitcher';
+import { createOrganization } from '../services/organizationService';
 
 interface CSVUploadProps {
   onUpload: (
@@ -25,7 +28,8 @@ interface FileState {
 }
 
 export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
-  const { clearPersistedData } = useDashboard();
+  const { clearPersistedData, canImportData } = useDashboard();
+  const { currentOrg, user, refreshMemberships, supabaseUser, userRole } = useAuth();
   const [files, setFiles] = useState<FileState>({
     requisitions: null,
     candidates: null,
@@ -37,6 +41,17 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const [showGuide, setShowGuide] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
+
+  const handleCreateOrg = async (name: string) => {
+    if (!supabaseUser?.id) throw new Error('Not authenticated');
+    await createOrganization({ name }, supabaseUser.id);
+    await refreshMemberships();
+  };
+
+  // Check if user has an org and can import
+  const hasNoOrg = !currentOrg;
+  const isMemberOnly = userRole === 'member';
 
   const handleFileChange = (type: keyof FileState) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -142,9 +157,41 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
       <div className="row justify-content-center">
         <div className="col-md-8">
+          {/* Organization Context */}
+          <div className="mb-4 d-flex justify-content-between align-items-center">
+            <OrgSwitcher
+              onCreateOrg={() => setShowCreateOrgModal(true)}
+            />
+          </div>
+
+          {/* No Organization Warning */}
+          {hasNoOrg && (
+            <div className="alert alert-warning mb-4">
+              <h5 className="alert-heading">No Organization Selected</h5>
+              <p className="mb-2">You need to create or join an organization before importing data.</p>
+              <button
+                className="btn btn-warning"
+                onClick={() => setShowCreateOrgModal(true)}
+              >
+                Create Organization
+              </button>
+            </div>
+          )}
+
+          {/* Member-Only Warning */}
+          {!hasNoOrg && isMemberOnly && (
+            <div className="alert alert-info mb-4">
+              <h5 className="alert-heading">View-Only Access</h5>
+              <p className="mb-0">
+                You are a member of <strong>{currentOrg?.name}</strong>.
+                Only organization admins can import data. Contact your admin if you need to upload data.
+              </p>
+            </div>
+          )}
+
           <div className="card">
             <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Import Data</h5>
+              <h5 className="mb-0">Import Data {currentOrg && <small className="text-muted">to {currentOrg.name}</small>}</h5>
               <button
                 className="btn btn-sm btn-outline-info"
                 onClick={() => setShowGuide(true)}
@@ -239,7 +286,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                 <button
                   type="submit"
                   className="btn btn-primary w-100"
-                  disabled={!files.requisitions || uploading || isLoading}
+                  disabled={!files.requisitions || uploading || isLoading || !canImportData || hasNoOrg}
                 >
                   {uploading || isLoading ? (
                     <>
@@ -296,6 +343,13 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
           </div>
         </div>
       </div>
+
+      {/* Create Organization Modal */}
+      <CreateOrgModal
+        isOpen={showCreateOrgModal}
+        onClose={() => setShowCreateOrgModal(false)}
+        onCreate={handleCreateOrg}
+      />
     </div>
   );
 }

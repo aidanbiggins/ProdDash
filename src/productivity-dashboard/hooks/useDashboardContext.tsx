@@ -34,6 +34,7 @@ import {
   calculateDataHealth
 } from '../services';
 import { fetchDashboardData, persistDashboardData, clearAllData } from '../services/dbService';
+import { useAuth } from '../../contexts/AuthContext';
 
 // ===== ACTION TYPES =====
 
@@ -178,6 +179,7 @@ interface DashboardContextType {
   refreshMetrics: () => void;
   reset: () => void;
   clearPersistedData: () => Promise<{ success: boolean; error?: string }>;
+  canImportData: boolean;
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
@@ -186,13 +188,20 @@ const DashboardContext = createContext<DashboardContextType | null>(null);
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
+  const { currentOrg, canImportData } = useAuth();
 
-  // Load persistence on mount
+  // Load data when org changes
   useEffect(() => {
-    async function initData() {
+    async function loadOrgData() {
+      if (!currentOrg?.id) {
+        // No org selected - reset to empty state
+        dispatch({ type: 'RESET' });
+        return;
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
-        const data = await fetchDashboardData();
+        const data = await fetchDashboardData(currentOrg.id);
         if (data.requisitions.length > 0) {
           dispatch({
             type: 'IMPORT_DATA',
@@ -204,20 +213,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               isDemo: false
             }
           });
-          // Trigger metric refresh safely (via ref or just effect dependency?)
-          // For simplicity we'll let existing effects or manual refresh handle it, 
-          // or we can call refreshMetrics inside useCallback but we don't have it defined yet in this scope.
-          // Ideally we dispatch IMPORT_DATA and let a useEffect trigger calculations.
+        } else {
+          // Org has no data yet
+          dispatch({ type: 'RESET' });
         }
       } catch (err) {
         console.error('Failed to load data from Supabase:', err);
-        // Don't show error to user immediately if it's just empty DB
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to load organization data' });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     }
-    initData();
-  }, []);
+    loadOrgData();
+  }, [currentOrg?.id]);
 
   const importCSVs = useCallback(async (
     requisitionsCsv: string,
@@ -226,6 +234,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     usersCsv: string,
     isDemo: boolean = false
   ): Promise<{ success: boolean; errors: string[] }> => {
+    // Check permissions - only admins can import
+    if (!isDemo && !canImportData) {
+      return { success: false, errors: ['Only organization admins can import data'] };
+    }
+
+    // Check org is selected
+    if (!isDemo && !currentOrg?.id) {
+      return { success: false, errors: ['No organization selected. Please create or join an organization first.'] };
+    }
+
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
@@ -237,12 +255,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       }
 
       // Persist to Supabase (only for real imports, not demo data)
-      if (!isDemo) {
+      if (!isDemo && currentOrg?.id) {
         await persistDashboardData(
           result.requisitions.data,
           result.candidates.data,
           result.events.data,
-          result.users.data
+          result.users.data,
+          currentOrg.id
         );
       }
 
@@ -299,7 +318,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_ERROR', payload: message });
       return { success: false, errors: [message] };
     }
-  }, []);
+  }, [canImportData, currentOrg?.id]);
 
   // Effect to recalculate metrics when dataStore changes (simplifies refreshMetrics)
   useEffect(() => {
@@ -443,9 +462,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearPersistedData = useCallback(async () => {
+    // Check permissions
+    if (!canImportData) {
+      return { success: false, error: 'Only organization admins can clear data' };
+    }
+
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      await clearAllData();
+      await clearAllData(currentOrg?.id);
       dispatch({ type: 'RESET' });
       dispatch({ type: 'SET_LOADING', payload: false });
       return { success: true };
@@ -456,7 +480,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: false });
       return { success: false, error: message };
     }
-  }, []);
+  }, [canImportData, currentOrg?.id]);
 
   const value: DashboardContextType = {
     state,
@@ -466,7 +490,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     selectRecruiter,
     refreshMetrics,
     reset,
-    clearPersistedData
+    clearPersistedData,
+    canImportData
   };
 
   return (

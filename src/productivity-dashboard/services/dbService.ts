@@ -7,20 +7,35 @@ const toDbDate = (date: Date | null | undefined): string | null => {
     return date.toISOString();
 };
 
-const toDbJson = (data: any) => {
-    return JSON.parse(JSON.stringify(data));
-};
-
-export const fetchDashboardData = async () => {
+/**
+ * Fetch dashboard data for a specific organization.
+ * If orgId is null, returns empty data (user needs to select/create an org).
+ * RLS enforces that users can only see their org's data.
+ */
+export const fetchDashboardData = async (orgId?: string | null) => {
     if (!supabase) {
         return { requisitions: [], candidates: [], events: [], users: [] };
     }
 
+    // If no org specified, fetch all user has access to (RLS enforces)
+    // For explicit org filtering, we add the filter
+    let reqsQuery = supabase.from('requisitions').select('*');
+    let candsQuery = supabase.from('candidates').select('*');
+    let eventsQuery = supabase.from('events').select('*');
+    let usersQuery = supabase.from('users').select('*');
+
+    if (orgId) {
+        reqsQuery = reqsQuery.eq('organization_id', orgId);
+        candsQuery = candsQuery.eq('organization_id', orgId);
+        eventsQuery = eventsQuery.eq('organization_id', orgId);
+        usersQuery = usersQuery.eq('organization_id', orgId);
+    }
+
     const [reqs, cands, events, users] = await Promise.all([
-        supabase.from('requisitions').select('*'),
-        supabase.from('candidates').select('*'),
-        supabase.from('events').select('*'),
-        supabase.from('users').select('*')
+        reqsQuery,
+        candsQuery,
+        eventsQuery,
+        usersQuery
     ]);
 
     if (reqs.error) throw reqs.error;
@@ -39,7 +54,7 @@ export const fetchDashboardData = async () => {
         ...c,
         applied_at: c.applied_at ? new Date(c.applied_at) : null,
         first_contacted_at: c.first_contacted_at ? new Date(c.first_contacted_at) : null,
-        current_stage_entered_at: new Date(c.current_stage_entered_at), // Assuming this exists in DB schema? Wait, I didn't add it to schema explicitly but it's in interface. I should check schema.
+        current_stage_entered_at: c.current_stage_entered_at ? new Date(c.current_stage_entered_at) : null,
         hired_at: c.hired_at ? new Date(c.hired_at) : null,
         offer_extended_at: c.offer_extended_at ? new Date(c.offer_extended_at) : null,
         offer_accepted_at: c.offer_accepted_at ? new Date(c.offer_accepted_at) : null
@@ -70,13 +85,19 @@ async function chunkedUpsert(table: string, data: any[], chunkSize: number = 500
     }
 }
 
+/**
+ * Persist dashboard data to the database.
+ * All data will be tagged with the organization ID.
+ */
 export const persistDashboardData = async (
     requisitions: Requisition[],
     candidates: Candidate[],
     events: Event[],
-    users: User[]
+    users: User[],
+    organizationId: string
 ) => {
     if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
+    if (!organizationId) throw new Error("Organization ID is required for data import");
 
     // Transform for DB - ONLY include columns that exist in the DB schema
     const dbReqs = requisitions.map(r => ({
@@ -93,7 +114,8 @@ export const persistDashboardData = async (
         location_type: r.location_type,
         opened_at: toDbDate(r.opened_at),
         closed_at: toDbDate(r.closed_at),
-        raw_data: null
+        raw_data: null,
+        organization_id: organizationId
     }));
 
     const dbCands = candidates.map(c => ({
@@ -107,8 +129,8 @@ export const persistDashboardData = async (
         offer_extended_at: toDbDate(c.offer_extended_at),
         offer_accepted_at: toDbDate(c.offer_accepted_at),
         disposition: c.disposition,
-        raw_data: null
-        // Note: columns like current_stage_entered_at are in entities.ts but not in DB schema.sql
+        raw_data: null,
+        organization_id: organizationId
     }));
 
     const dbEvents = events.map(e => ({
@@ -119,13 +141,19 @@ export const persistDashboardData = async (
         to_stage: e.to_stage,
         actor_user_id: e.actor_user_id,
         event_at: toDbDate(e.event_at),
-        metadata: e.metadata_json ? JSON.parse(e.metadata_json) : null
+        metadata: e.metadata_json ? JSON.parse(e.metadata_json) : null,
+        organization_id: organizationId
     }));
 
-    // Chunk inserts to avoid payload limits (Supabase/PostgREST typically limit to ~1000 records or payload size)
+    const dbUsers = users.map(u => ({
+        ...u,
+        organization_id: organizationId
+    }));
+
+    // Chunk inserts to avoid payload limits
     console.log(`Starting chunked upsert: ${users.length} users, ${dbReqs.length} reqs, ${dbCands.length} candidates, ${dbEvents.length} events`);
 
-    await chunkedUpsert('users', users);
+    await chunkedUpsert('users', dbUsers);
     await chunkedUpsert('requisitions', dbReqs);
     await chunkedUpsert('candidates', dbCands);
     await chunkedUpsert('events', dbEvents);
@@ -134,22 +162,21 @@ export const persistDashboardData = async (
 };
 
 /**
- * Clear all data from the database tables
- * Used before loading demo data to ensure clean state
+ * Helper to delete all rows from a table in batches to avoid timeouts.
+ * Optionally filter by organization ID.
  */
-/**
- * Helper to delete all rows from a table in batches to avoid timeouts
- */
-async function batchDelete(table: string, idColumn: string, batchSize: number = 500) {
+async function batchDelete(table: string, idColumn: string, orgId?: string | null, batchSize: number = 500) {
     if (!supabase) return;
 
     let hasMore = true;
     while (hasMore) {
-        // IDs are UUID or text, so we just select the ID to minimize payload
-        const { data, error } = await supabase
-            .from(table)
-            .select(idColumn)
-            .limit(batchSize);
+        let query = supabase.from(table).select(idColumn).limit(batchSize);
+
+        if (orgId) {
+            query = query.eq('organization_id', orgId);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         if (!data || data.length === 0) {
@@ -172,19 +199,19 @@ async function batchDelete(table: string, idColumn: string, batchSize: number = 
 }
 
 /**
- * Clear all data from the database tables
- * Used before loading demo data to ensure clean state
+ * Clear all data for a specific organization.
+ * If no orgId provided, clears all data the user has access to (careful!).
  */
-export const clearAllData = async () => {
+export const clearAllData = async (orgId?: string | null) => {
     if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
 
-    console.log("Starting batched clear of all data...");
+    console.log("Starting batched clear of data...");
 
     // Delete in order: events -> candidates -> requisitions -> users (respecting foreign keys)
-    await batchDelete('events', 'event_id');
-    await batchDelete('candidates', 'candidate_id');
-    await batchDelete('requisitions', 'req_id');
-    await batchDelete('users', 'user_id');
+    await batchDelete('events', 'event_id', orgId);
+    await batchDelete('candidates', 'candidate_id', orgId);
+    await batchDelete('requisitions', 'req_id', orgId);
+    await batchDelete('users', 'user_id', orgId);
 
-    console.log("Successfully cleared all data.");
+    console.log("Successfully cleared data.");
 };
