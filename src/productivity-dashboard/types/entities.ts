@@ -129,6 +129,21 @@ export interface Requisition {
   search_firm_used: boolean;
 }
 
+// Stage timestamps extracted from ATS data (e.g., iCIMS columns)
+export interface StageTimestamps {
+  screen_at?: Date;        // Recruiter/phone screen
+  hm_screen_at?: Date;     // Hiring manager screen
+  onsite_at?: Date;        // Onsite/panel interview
+  final_at?: Date;         // Final round interview
+  offer_at?: Date;         // Offer extended
+  // Raw interview dates (for more granularity)
+  interviews?: Array<{
+    stage: CanonicalStage;
+    date: Date;
+    column?: string;  // Original column name for debugging
+  }>;
+}
+
 export interface Candidate {
   candidate_id: string;
   name: string | null;
@@ -142,6 +157,8 @@ export interface Candidate {
   hired_at: Date | null;
   offer_extended_at: Date | null;
   offer_accepted_at: Date | null;
+  // Real stage timestamps from ATS (optional - populated by iCIMS parser)
+  stage_timestamps?: StageTimestamps;
 }
 
 export interface Event {

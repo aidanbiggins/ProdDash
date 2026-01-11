@@ -10,6 +10,8 @@ export type DrillDownType =
     | 'hires'
     | 'weightedHires'
     | 'offers'
+    | 'offerAcceptRate'
+    | 'medianTTF'
     | 'screens'
     | 'submittals'
     | 'openReqs'
@@ -32,6 +34,9 @@ interface DrillDownRecord {
     hmWeight?: number;
     status?: string;
     ageInDays?: number;
+    daysToFill?: number;
+    openDate?: Date;
+    hireDate?: Date;
 }
 
 interface DataDrillDownModalProps {
@@ -56,6 +61,8 @@ export function DataDrillDownModal({
     const [sortColumn, setSortColumn] = useState<string>('date');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
     const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(0);
+    const PAGE_SIZE = 50; // Show 50 rows at a time for performance
 
     // Filter records by search term
     const filteredRecords = useMemo(() => {
@@ -109,7 +116,20 @@ export function DataDrillDownModal({
             setSortColumn(column);
             setSortDirection('desc');
         }
+        setPage(0); // Reset to first page on sort change
     };
+
+    // Reset page when search term changes
+    React.useEffect(() => {
+        setPage(0);
+    }, [searchTerm]);
+
+    // Paginated records for display
+    const paginatedRecords = useMemo(() => {
+        return sortedRecords.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+    }, [sortedRecords, page]);
+
+    const totalPages = Math.ceil(sortedRecords.length / PAGE_SIZE);
 
     const exportCSV = () => {
         const headers = getColumns(type).map(c => c.label);
@@ -216,14 +236,14 @@ export function DataDrillDownModal({
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {sortedRecords.length === 0 ? (
+                                    {paginatedRecords.length === 0 ? (
                                         <tr>
                                             <td colSpan={columns.length} className="text-center text-muted py-4">
                                                 No records found
                                             </td>
                                         </tr>
                                     ) : (
-                                        sortedRecords.map((record, idx) => (
+                                        paginatedRecords.map((record, idx) => (
                                             <tr key={record.id || idx}>
                                                 {columns.map(col => (
                                                     <td
@@ -246,9 +266,46 @@ export function DataDrillDownModal({
                     </div>
 
                     <div className="modal-footer">
-                        <span className="text-muted small me-auto">
-                            Showing {sortedRecords.length} of {records.length} records
+                        <span className="text-muted small">
+                            Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, sortedRecords.length)} of {sortedRecords.length} records
                         </span>
+                        {totalPages > 1 && (
+                            <div className="btn-group btn-group-sm mx-auto">
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    disabled={page === 0}
+                                    onClick={() => setPage(0)}
+                                    title="First page"
+                                >
+                                    <i className="bi bi-chevron-bar-left"></i>
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    disabled={page === 0}
+                                    onClick={() => setPage(p => p - 1)}
+                                >
+                                    Previous
+                                </button>
+                                <span className="btn btn-outline-secondary disabled">
+                                    {page + 1} / {totalPages}
+                                </span>
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    disabled={page >= totalPages - 1}
+                                    onClick={() => setPage(p => p + 1)}
+                                >
+                                    Next
+                                </button>
+                                <button
+                                    className="btn btn-outline-secondary"
+                                    disabled={page >= totalPages - 1}
+                                    onClick={() => setPage(totalPages - 1)}
+                                    title="Last page"
+                                >
+                                    <i className="bi bi-chevron-bar-right"></i>
+                                </button>
+                            </div>
+                        )}
                         <button type="button" className="btn btn-secondary" onClick={onClose}>
                             Close
                         </button>
@@ -289,6 +346,23 @@ function getColumns(type: DrillDownType): { key: string; label: string }[] {
                 { key: 'recruiter', label: 'Recruiter' },
                 { key: 'status', label: 'Status' },
                 { key: 'date', label: 'Offer Date' }
+            ];
+        case 'offerAcceptRate':
+            return [
+                { key: 'candidateId', label: 'Candidate' },
+                { key: 'reqTitle', label: 'Job Title' },
+                { key: 'recruiter', label: 'Recruiter' },
+                { key: 'date', label: 'Offer Date' },
+                { key: 'status', label: 'Outcome' }
+            ];
+        case 'medianTTF':
+            return [
+                { key: 'candidateId', label: 'Candidate' },
+                { key: 'reqTitle', label: 'Job Title' },
+                { key: 'recruiter', label: 'Recruiter' },
+                { key: 'openDate', label: 'Req Opened' },
+                { key: 'hireDate', label: 'Hired' },
+                { key: 'daysToFill', label: 'Days to Fill' }
             ];
         case 'screens':
         case 'submittals':
@@ -341,6 +415,15 @@ function formatCell(value: any, key: string): React.ReactNode {
     if (key === 'ageInDays') {
         const color = value > 90 ? 'text-danger fw-bold' : value > 60 ? 'text-warning' : '';
         return <span className={color}>{value}d</span>;
+    }
+
+    if (key === 'daysToFill') {
+        const color = value > 90 ? 'text-danger fw-bold' : value > 60 ? 'text-warning' : 'text-success';
+        return <span className={color}>{value}d</span>;
+    }
+
+    if (key === 'openDate' || key === 'hireDate') {
+        return value instanceof Date ? format(value, 'MMM d, yyyy') : <span className="text-muted">—</span>;
     }
 
     return String(value);
@@ -422,4 +505,37 @@ export function buildReqsRecords(
         ageInDays: Math.floor((now.getTime() - r.opened_at.getTime()) / (1000 * 60 * 60 * 24)),
         date: r.opened_at
     }));
+}
+
+export function buildTTFRecords(
+    candidates: Candidate[],
+    requisitions: Requisition[],
+    users: User[]
+): DrillDownRecord[] {
+    const reqMap = new Map(requisitions.map(r => [r.req_id, r]));
+    const userMap = new Map(users.map(u => [u.user_id, u.name]));
+
+    return candidates
+        .filter(c => c.hired_at)
+        .map(c => {
+            const req = reqMap.get(c.req_id);
+            const openDate = req?.opened_at;
+            const hireDate = c.hired_at!;
+            const daysToFill = openDate
+                ? Math.floor((hireDate.getTime() - openDate.getTime()) / (1000 * 60 * 60 * 24))
+                : null;
+
+            return {
+                id: c.candidate_id,
+                candidateId: c.candidate_id,
+                reqId: c.req_id,
+                reqTitle: req?.req_title || 'Unknown',
+                recruiter: userMap.get(req?.recruiter_id || '') || req?.recruiter_id,
+                openDate: openDate,
+                hireDate: hireDate,
+                daysToFill: daysToFill ?? undefined,
+                date: hireDate
+            };
+        })
+        .sort((a, b) => (a.daysToFill ?? 0) - (b.daysToFill ?? 0)); // Sort by TTF
 }

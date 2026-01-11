@@ -1,13 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  ComposedChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, ReferenceLine
+  ComposedChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Legend, ReferenceLine, Area
 } from 'recharts';
 import { startOfWeek, endOfWeek, eachWeekOfInterval, isSameWeek, subWeeks, format, differenceInDays } from 'date-fns';
-import { RecruiterSummary, Requisition, Candidate, Event as DashboardEvent, User, ReqDetail, PriorPeriodMetrics, EventType, CanonicalStage, MetricFilters } from '../../types';
+import { RecruiterSummary, Requisition, Candidate, Event as DashboardEvent, User, ReqDetail, PriorPeriodMetrics, EventType, CanonicalStage, MetricFilters, RequisitionStatus } from '../../types';
 import { KPICard } from '../common/KPICard';
 import { DashboardConfig } from '../../types/config';
 import { exportReqListCSV, normalizeStage } from '../../services';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
+import { METRIC_FORMULAS } from '../common/MetricDrillDown';
 
 export interface RecruiterDetailTabProps {
   recruiterSummaries: RecruiterSummary[];
@@ -23,8 +25,16 @@ export interface RecruiterDetailTabProps {
   filters?: MetricFilters;
 }
 
-// Helper to calculate weekly activity
-function calculateWeeklyActivity(events: DashboardEvent[], recruiterId: string | null, config: DashboardConfig, weeksBack = 12) {
+// Helper to calculate weekly activity including productivity
+function calculateWeeklyActivity(
+  events: DashboardEvent[],
+  recruiterId: string | null,
+  config: DashboardConfig,
+  requisitions: Requisition[],
+  candidates: Candidate[],
+  complexityScores?: Map<string, { totalScore: number; levelWeight: number; hmWeight: number }>,
+  weeksBack = 12
+) {
   const end = new Date();
   const start = subWeeks(end, weeksBack);
   const weeks = eachWeekOfInterval({ start, end });
@@ -34,8 +44,38 @@ function calculateWeeklyActivity(events: DashboardEvent[], recruiterId: string |
     ? events.filter(e => e.actor_user_id === recruiterId)
     : events;
 
+  // Filter requisitions and candidates by recruiter
+  const recruiterReqs = recruiterId
+    ? requisitions.filter(r => r.recruiter_id === recruiterId)
+    : requisitions;
+  const recruiterReqIds = new Set(recruiterReqs.map(r => r.req_id));
+  const recruiterCandidates = candidates.filter(c => recruiterReqIds.has(c.req_id));
+
   return weeks.map(weekStart => {
+    const weekEnd = endOfWeek(weekStart);
     const weekEvents = relevantEvents.filter(e => isSameWeek(e.event_at, weekStart));
+
+    // Hires this week
+    const hiresThisWeek = recruiterCandidates.filter(c =>
+      c.hired_at && isSameWeek(c.hired_at, weekStart)
+    );
+    const hires = hiresThisWeek.length;
+
+    // Weighted hires
+    const weightedHires = hiresThisWeek.reduce((sum, c) => {
+      return sum + (complexityScores?.get(c.req_id)?.totalScore || 1);
+    }, 0);
+
+    // Open reqs during this week
+    const openReqCount = recruiterReqs.filter(r => {
+      const openedBefore = r.opened_at <= weekEnd;
+      const notClosedYet = !r.closed_at || r.closed_at >= weekStart;
+      return openedBefore && notClosedYet && r.status !== RequisitionStatus.Canceled;
+    }).length;
+
+    // Productivity index
+    const productivityIndex = openReqCount > 0 ? weightedHires / openReqCount : null;
+
     return {
       name: format(weekStart, 'MMM d'),
       screens: weekEvents.filter(e => e.event_type === EventType.SCREEN_COMPLETED).length,
@@ -43,7 +83,10 @@ function calculateWeeklyActivity(events: DashboardEvent[], recruiterId: string |
         if (e.event_type !== EventType.STAGE_CHANGE) return false;
         return normalizeStage(e.to_stage, config.stageMapping) === CanonicalStage.HM_SCREEN;
       }).length,
-      hires: weekEvents.filter(e => e.event_type === EventType.OFFER_ACCEPTED).length
+      hires,
+      weightedHires,
+      openReqCount,
+      productivityIndex
     };
   });
 }
@@ -141,13 +184,17 @@ export function RecruiterDetailTab({
       aging: {
         openReqCount: filteredRecruiterSummaries.reduce((sum, r) => sum + r.aging.openReqCount, 0),
         agingBuckets: [],
-        stalledReqs: { count: filteredRecruiterSummaries.reduce((sum, r) => sum + r.aging.stalledReqs.count, 0), threshold: 30, reqIds: [] }
+        stalledReqs: {
+          count: filteredRecruiterSummaries.reduce((sum, r) => sum + r.aging.stalledReqs.count, 0),
+          threshold: 30,
+          reqIds: filteredRecruiterSummaries.flatMap(r => r.aging.stalledReqs.reqIds)
+        }
       },
       weighted: {
         weightedHires: filteredRecruiterSummaries.reduce((sum, r) => sum + r.weighted.weightedHires, 0),
         weightedOffers: filteredRecruiterSummaries.reduce((sum, r) => sum + r.weighted.weightedOffers, 0),
         offerMultiplier: 1,
-        complexityScores: []
+        complexityScores: filteredRecruiterSummaries.flatMap(r => r.weighted.complexityScores)
       },
       timeAttribution: recruiterSummaries[0]?.timeAttribution || {
         recruiterControlledTime: { leadToFirstAction: null, screenToSubmittal: null },
@@ -232,10 +279,92 @@ export function RecruiterDetailTab({
     };
   }, [filteredRecruiterSummaries]);
 
+  // Build complexity scores map from selected recruiter(s) - needed for activity data
+  const complexityScoresMap = useMemo(() => {
+    const map = new Map<string, { totalScore: number; levelWeight: number; hmWeight: number }>();
+    const summaries = effectiveSelectedRecruiterId
+      ? filteredRecruiterSummaries.filter(r => r.recruiterId === effectiveSelectedRecruiterId)
+      : filteredRecruiterSummaries;
+    summaries.forEach(r => {
+      r.weighted.complexityScores.forEach(cs => {
+        map.set(cs.reqId, {
+          totalScore: cs.totalScore,
+          levelWeight: cs.levelWeight,
+          hmWeight: cs.hmWeight
+        });
+      });
+    });
+    return map;
+  }, [filteredRecruiterSummaries, effectiveSelectedRecruiterId]);
+
   // Activity Trends Data
   const activityData = useMemo(() => {
-    return calculateWeeklyActivity(events, effectiveSelectedRecruiterId === 'all' ? null : effectiveSelectedRecruiterId, config);
-  }, [events, effectiveSelectedRecruiterId, config]);
+    return calculateWeeklyActivity(
+      events,
+      effectiveSelectedRecruiterId === 'all' ? null : effectiveSelectedRecruiterId,
+      config,
+      filteredRequisitions,
+      candidates,
+      complexityScoresMap
+    );
+  }, [events, effectiveSelectedRecruiterId, config, filteredRequisitions, candidates, complexityScoresMap]);
+
+  // Drill-down state
+  const [drillDown, setDrillDown] = useState<{
+    isOpen: boolean;
+    type: DrillDownType;
+    title: string;
+    formula?: string;
+    totalValue?: string | number;
+  } | null>(null);
+
+  const openDrillDown = (type: DrillDownType, title: string, totalValue?: string | number) => {
+    const formulaInfo = METRIC_FORMULAS[type] || { formula: 'Custom calculation' };
+    setDrillDown({
+      isOpen: true,
+      type,
+      title,
+      formula: formulaInfo.formula,
+      totalValue
+    });
+  };
+
+  // Filter candidates/requisitions for selected recruiter
+  const recruiterCandidates = useMemo(() => {
+    if (!effectiveSelectedRecruiterId) return candidates;
+    const recruiterReqIds = new Set(filteredRequisitions.filter(r => r.recruiter_id === effectiveSelectedRecruiterId).map(r => r.req_id));
+    return candidates.filter(c => recruiterReqIds.has(c.req_id));
+  }, [candidates, filteredRequisitions, effectiveSelectedRecruiterId]);
+
+  const recruiterRequisitions = useMemo(() => {
+    if (!effectiveSelectedRecruiterId) return filteredRequisitions;
+    return filteredRequisitions.filter(r => r.recruiter_id === effectiveSelectedRecruiterId);
+  }, [filteredRequisitions, effectiveSelectedRecruiterId]);
+
+  // Build drill-down records based on type
+  const getDrillDownRecords = useMemo(() => {
+    if (!drillDown) return [];
+    switch (drillDown.type) {
+      case 'hires':
+        return buildHiresRecords(recruiterCandidates, recruiterRequisitions, users);
+      case 'weightedHires':
+        return buildHiresRecords(recruiterCandidates, recruiterRequisitions, users, complexityScoresMap);
+      case 'offers':
+        return buildOffersRecords(recruiterCandidates, recruiterRequisitions, users);
+      case 'offerAcceptRate':
+        return buildOffersRecords(recruiterCandidates, recruiterRequisitions, users);
+      case 'medianTTF':
+        return buildTTFRecords(recruiterCandidates, recruiterRequisitions, users);
+      case 'openReqs':
+        return buildReqsRecords(recruiterRequisitions.filter(r => r.status === 'Open'), users);
+      case 'stalledReqs':
+        // Use the stalled req IDs from the detail
+        const stalledReqIds = new Set(detail?.aging.stalledReqs.reqIds || []);
+        return buildReqsRecords(recruiterRequisitions.filter(r => stalledReqIds.has(r.req_id)), users);
+      default:
+        return [];
+    }
+  }, [drillDown, recruiterCandidates, recruiterRequisitions, users, complexityScoresMap, detail]);
 
   if (!detail) {
     return <div className="text-center py-5 text-muted">No recruiter data available</div>;
@@ -411,36 +540,9 @@ export function RecruiterDetailTab({
 
   return (
     <div>
-      {/* Header with Recruiter Selector */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex align-items-center gap-3">
-          <select
-            className="form-select"
-            style={{ width: 'auto', minWidth: '180px', fontWeight: 500, fontSize: '0.9rem' }}
-            value={effectiveSelectedRecruiterId || 'all'}
-            onChange={(e) => onSelectRecruiter(e.target.value === 'all' ? null : e.target.value)}
-            disabled={filters?.recruiterIds?.length === 1}
-          >
-            <option value="all">All Recruiters</option>
-            {filteredRecruiterSummaries
-              .sort((a, b) => a.recruiterName.localeCompare(b.recruiterName))
-              .map(r => (
-                <option key={r.recruiterId} value={r.recruiterId}>
-                  {r.recruiterName}
-                </option>
-              ))}
-          </select>
-          {detail.team && <span className="badge bg-secondary">{detail.team}</span>}
-        </div>
-        <div className="text-end">
-          <div className="fs-4 fw-bold text-primary">{detail.productivityIndex.toFixed(2)}</div>
-          <small className="text-muted">Avg Productivity Index</small>
-        </div>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="row g-3 mb-4">
-        <div className="col-6 col-md-2">
+      {/* KPI Cards - 7 cards using flex for equal width */}
+      <div className="d-flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Hires"
             value={detail.outcomes.hires}
@@ -454,9 +556,10 @@ export function RecruiterDetailTab({
                 label: priorPeriod.label
               } : undefined)
             }
+            onClick={() => openDrillDown('hires', 'Hires', detail.outcomes.hires)}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Weighted Hires"
             value={parseFloat(detail.weighted.weightedHires.toFixed(1))}
@@ -470,9 +573,10 @@ export function RecruiterDetailTab({
                 label: priorPeriod.label
               } : undefined)
             }
+            onClick={() => openDrillDown('weightedHires', 'Weighted Hires', detail.weighted.weightedHires.toFixed(1))}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Offers"
             value={detail.outcomes.offersExtended}
@@ -486,27 +590,84 @@ export function RecruiterDetailTab({
                 label: priorPeriod.label
               } : undefined)
             }
+            onClick={() => openDrillDown('offers', 'Offers Extended', detail.outcomes.offersExtended)}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Accept Rate"
             value={detail.outcomes.offerAcceptanceRate !== null
               ? `${(detail.outcomes.offerAcceptanceRate * 100).toFixed(0)}%`
               : 'N/A'}
+            onClick={() => openDrillDown('offerAcceptRate', 'Offer Accept Rate', detail.outcomes.offerAcceptanceRate !== null ? `${(detail.outcomes.offerAcceptanceRate * 100).toFixed(0)}%` : 'N/A')}
           />
         </div>
-        <div className="col-6 col-md-2">
-          <KPICard title="Open Reqs" value={detail.aging.openReqCount} />
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
+          <KPICard
+            title="Open Reqs"
+            value={detail.aging.openReqCount}
+            onClick={() => openDrillDown('openReqs', 'Open Requisitions', detail.aging.openReqCount)}
+          />
         </div>
-        <div className="col-6 col-md-2">
-          <KPICard title="Stalled" value={detail.aging.stalledReqs.count} />
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
+          <KPICard
+            title="Stalled"
+            value={detail.aging.stalledReqs.count}
+            subtitle="no activity 14+ days"
+            onClick={() => openDrillDown('stalledReqs', 'Stalled Requisitions', detail.aging.stalledReqs.count)}
+          />
+        </div>
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
+          <KPICard
+            title="Productivity"
+            value={detail.productivityIndex.toFixed(2)}
+            subtitle="Weighted Hires ÷ Open Reqs"
+          />
+        </div>
+      </div>
+
+      {/* Productivity Trend Chart */}
+      <div className="card-bespoke mb-4">
+        <div className="card-header">
+          <div className="d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">Productivity Trend</h6>
+            <small className="text-muted">Weighted Hires ÷ Open Reqs per Week</small>
+          </div>
+        </div>
+        <div className="card-body">
+          <ResponsiveContainer width="100%" height={180}>
+            <ComposedChart data={activityData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="name" fontSize={11} stroke="#64748b" />
+              <YAxis
+                fontSize={11}
+                stroke="#64748b"
+                domain={[0, 'auto']}
+                tickFormatter={(v) => v.toFixed(2)}
+              />
+              <Tooltip
+                formatter={(value: number | undefined) => [value != null ? value.toFixed(3) : '—', 'Productivity']}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="productivityIndex"
+                fill="#8b5cf6"
+                fillOpacity={0.15}
+                stroke="#8b5cf6"
+                strokeWidth={2.5}
+                name="Productivity Index"
+                dot={{ fill: '#8b5cf6', strokeWidth: 0, r: 3 }}
+                connectNulls
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* Charts Row */}
       <div className="row g-3 mb-4">
-        {/* Weekly Activity Trend (NEW) */}
+        {/* Weekly Activity Trend */}
         <div className="col-12">
           <div className="card-bespoke h-100">
             <div className="card-header d-flex justify-content-between align-items-center">
@@ -721,6 +882,19 @@ export function RecruiterDetailTab({
           </div>
         </div>
       </div>
+
+      {/* Drill Down Modal */}
+      {drillDown && (
+        <DataDrillDownModal
+          isOpen={drillDown.isOpen}
+          onClose={() => setDrillDown(null)}
+          title={drillDown.title}
+          type={drillDown.type}
+          records={getDrillDownRecords}
+          formula={drillDown.formula}
+          totalValue={drillDown.totalValue}
+        />
+      )}
     </div>
   );
 }

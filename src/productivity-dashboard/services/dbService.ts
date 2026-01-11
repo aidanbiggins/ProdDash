@@ -71,23 +71,40 @@ export const fetchDashboardData = async (orgId?: string | null) => {
     return { requisitions, candidates, events: eventList, users: userList };
 };
 
-// Helper for chunked upserts
+// Helper for chunked upserts with progress logging
 async function chunkedUpsert(table: string, data: any[], chunkSize: number = 500) {
-    if (data.length === 0) return;
+    if (data.length === 0) {
+        console.log(`[DB] Skipping ${table} - no data`);
+        return;
+    }
+
+    const totalChunks = Math.ceil(data.length / chunkSize);
+    console.log(`[DB] Upserting ${data.length} rows to ${table} in ${totalChunks} chunks...`);
+    const startTime = Date.now();
 
     for (let i = 0; i < data.length; i += chunkSize) {
+        const chunkNum = Math.floor(i / chunkSize) + 1;
         const chunk = data.slice(i, i + chunkSize);
+
+        if (chunkNum % 10 === 0 || chunkNum === totalChunks) {
+            console.log(`[DB] ${table}: chunk ${chunkNum}/${totalChunks}...`);
+        }
+
         const { error } = await supabase!.from(table).upsert(chunk);
         if (error) {
-            console.error(`Error upserting to ${table} (chunk ${i / chunkSize}):`, error);
+            console.error(`[DB] Error upserting to ${table} (chunk ${chunkNum}):`, error);
             throw error;
         }
     }
+
+    console.log(`[DB] ${table} complete in ${Date.now() - startTime}ms`);
 }
 
 /**
  * Persist dashboard data to the database.
  * All data will be tagged with the organization ID.
+ *
+ * Set localStorage.setItem('skip-db-persist', 'true') to skip persistence for testing.
  */
 export const persistDashboardData = async (
     requisitions: Requisition[],
@@ -96,8 +113,18 @@ export const persistDashboardData = async (
     users: User[],
     organizationId: string
 ) => {
+    // Check for skip flag (useful for testing large files)
+    const skipPersist = localStorage.getItem('skip-db-persist') === 'true';
+    if (skipPersist) {
+        console.warn('[DB] SKIPPING database persist (skip-db-persist flag is set)');
+        console.log(`[DB] Would have persisted: ${requisitions.length} reqs, ${candidates.length} candidates, ${events.length} events, ${users.length} users`);
+        return;
+    }
+
     if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
     if (!organizationId) throw new Error("Organization ID is required for data import");
+
+    console.log(`[DB] Starting persist: ${requisitions.length} reqs, ${candidates.length} candidates, ${events.length} events, ${users.length} users`);
 
     // Transform for DB - ONLY include columns that exist in the DB schema
     const dbReqs = requisitions.map(r => ({
@@ -122,7 +149,9 @@ export const persistDashboardData = async (
         candidate_id: c.candidate_id,
         name: c.name,
         req_id: c.req_id,
+        source: c.source,
         current_stage: c.current_stage,
+        current_stage_entered_at: toDbDate(c.current_stage_entered_at),
         applied_at: toDbDate(c.applied_at),
         first_contacted_at: toDbDate(c.first_contacted_at),
         hired_at: toDbDate(c.hired_at),
@@ -158,56 +187,131 @@ export const persistDashboardData = async (
 };
 
 /**
- * Helper to delete all rows from a table in batches to avoid timeouts.
- * Optionally filter by organization ID.
+ * Helper to delete rows from a table in large chunks.
+ * Uses 5000-row batches to balance speed vs timeout risk.
  */
-async function batchDelete(table: string, idColumn: string, orgId?: string | null, batchSize: number = 500) {
+async function chunkedDelete(table: string, idColumn: string, orgId?: string | null, chunkSize: number = 5000) {
     if (!supabase) return;
 
-    let hasMore = true;
-    while (hasMore) {
-        let query = supabase.from(table).select(idColumn).limit(batchSize);
+    const startTime = Date.now();
+    let totalDeleted = 0;
 
-        if (orgId) {
-            query = query.eq('organization_id', orgId);
+    // Delete records matching the org_id
+    if (orgId) {
+        console.log(`[DB Clear] Deleting from ${table} for org ${orgId}...`);
+        let hasMore = true;
+
+        while (hasMore) {
+            // Get a batch of IDs
+            const { data, error: selectError } = await supabase
+                .from(table)
+                .select(idColumn)
+                .eq('organization_id', orgId)
+                .limit(chunkSize);
+
+            if (selectError) {
+                console.error(`[DB Clear] Error selecting from ${table}:`, selectError);
+                throw selectError;
+            }
+
+            if (!data || data.length === 0) {
+                hasMore = false;
+                break;
+            }
+
+            // Delete this batch
+            const ids = data.map((row: any) => row[idColumn]);
+            const { error: deleteError } = await supabase
+                .from(table)
+                .delete()
+                .in(idColumn, ids);
+
+            if (deleteError) {
+                console.error(`[DB Clear] Error deleting from ${table}:`, deleteError);
+                throw deleteError;
+            }
+
+            totalDeleted += ids.length;
+            console.log(`[DB Clear] ${table}: deleted ${totalDeleted} rows so far...`);
+
+            if (data.length < chunkSize) hasMore = false;
+        }
+        console.log(`[DB Clear] Deleted ${totalDeleted} rows from ${table} in ${Date.now() - startTime}ms`);
+    }
+
+    // Also delete records with NULL organization_id (legacy data)
+    let nullDeleted = 0;
+    let hasMoreNull = true;
+    while (hasMoreNull) {
+        const { data, error: selectError } = await supabase
+            .from(table)
+            .select(idColumn)
+            .is('organization_id', null)
+            .limit(chunkSize);
+
+        if (selectError) {
+            console.error(`[DB Clear] Error selecting NULL org from ${table}:`, selectError);
+            throw selectError;
         }
 
-        const { data, error } = await query;
-
-        if (error) throw error;
         if (!data || data.length === 0) {
-            hasMore = false;
+            hasMoreNull = false;
             break;
         }
 
         const ids = data.map((row: any) => row[idColumn]);
-
         const { error: deleteError } = await supabase
             .from(table)
             .delete()
             .in(idColumn, ids);
 
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+            console.error(`[DB Clear] Error deleting NULL org from ${table}:`, deleteError);
+            throw deleteError;
+        }
 
-        // If we fetched less than limit, we are done
-        if (data.length < batchSize) hasMore = false;
+        nullDeleted += ids.length;
+        if (data.length < chunkSize) hasMoreNull = false;
+    }
+    if (nullDeleted > 0) {
+        console.log(`[DB Clear] Deleted ${nullDeleted} rows with NULL org_id from ${table}`);
     }
 }
 
 /**
  * Clear all data for a specific organization.
  * If no orgId provided, clears all data the user has access to (careful!).
+ * Uses chunked deletes (5000 rows at a time) to avoid timeouts.
  */
 export const clearAllData = async (orgId?: string | null) => {
     if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
 
-    console.log("Starting batched clear of data...");
+    console.log(`[DB Clear] Starting clear for org: ${orgId || 'ALL'}`);
+    const startTime = Date.now();
 
     // Delete in order: events -> candidates -> requisitions -> users (respecting foreign keys)
-    await batchDelete('events', 'event_id', orgId);
-    await batchDelete('candidates', 'candidate_id', orgId);
-    await batchDelete('requisitions', 'req_id', orgId);
-    await batchDelete('users', 'user_id', orgId);
+    // IMPORTANT: Each step must complete before the next begins
+    try {
+        console.log('[DB Clear] Step 1/4: Deleting events...');
+        await chunkedDelete('events', 'event_id', orgId);
 
-    console.log("Successfully cleared data.");
+        console.log('[DB Clear] Step 2/4: Deleting candidates...');
+        await chunkedDelete('candidates', 'candidate_id', orgId);
+
+        console.log('[DB Clear] Step 3/4: Deleting requisitions...');
+        await chunkedDelete('requisitions', 'req_id', orgId);
+
+        console.log('[DB Clear] Step 4/4: Deleting users...');
+        await chunkedDelete('users', 'user_id', orgId);
+
+        console.log(`[DB Clear] Successfully cleared all data in ${Date.now() - startTime}ms`);
+    } catch (error: any) {
+        console.error('[DB Clear] Error during clear:', error);
+        // If we get a foreign key error, it means candidates/events weren't fully deleted
+        if (error?.code === '23503') {
+            console.error('[DB Clear] Foreign key constraint error - some records may not have organization_id set');
+            console.error('[DB Clear] Try running: DELETE FROM candidates WHERE organization_id IS NULL; DELETE FROM events WHERE organization_id IS NULL;');
+        }
+        throw error;
+    }
 };

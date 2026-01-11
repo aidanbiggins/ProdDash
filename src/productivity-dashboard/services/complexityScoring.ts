@@ -6,12 +6,15 @@ import {
   Event,
   User,
   EventType,
+  CanonicalStage,
   ComplexityScore,
   HiringManagerFriction,
   HMTimeComposition,
+  StageTimeBreakdown,
   MetricFilters
 } from '../types';
 import { DashboardConfig } from '../types/config';
+import { normalizeStage } from './stageNormalization';
 
 // ===== UTILITY =====
 
@@ -26,6 +29,93 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
+// ===== STAGE TIME CALCULATION =====
+
+interface CandidateStageHistory {
+  candidateId: string;
+  stages: Array<{
+    canonical: CanonicalStage;
+    enteredAt: Date;
+    exitedAt: Date | null;
+  }>;
+}
+
+/**
+ * Calculates time spent in each pipeline stage for candidates under an HM's reqs
+ * Returns median hours spent in each stage
+ */
+function calculateStageTimesForHM(
+  hmReqIds: Set<string>,
+  events: Event[],
+  config: DashboardConfig
+): Partial<StageTimeBreakdown> {
+  // Filter events for this HM's reqs and sort by candidate and time
+  const hmEvents = events
+    .filter(e => hmReqIds.has(e.req_id) && e.event_type === EventType.STAGE_CHANGE)
+    .sort((a, b) => a.event_at.getTime() - b.event_at.getTime());
+
+  // Group events by candidate
+  const eventsByCandidate = new Map<string, Event[]>();
+  for (const e of hmEvents) {
+    const existing = eventsByCandidate.get(e.candidate_id) || [];
+    existing.push(e);
+    eventsByCandidate.set(e.candidate_id, existing);
+  }
+
+  // Calculate stage durations per candidate
+  const sourcingHours: number[] = [];
+  const screeningHours: number[] = [];
+  const hmReviewHours: number[] = [];
+  const interviewHours: number[] = [];
+
+  for (const [, candEvents] of eventsByCandidate) {
+    if (candEvents.length === 0) continue;
+
+    // Track time in each canonical stage
+    let lastStageEntry: { stage: CanonicalStage | null; enteredAt: Date } | null = null;
+
+    for (const event of candEvents) {
+      const toCanonical = normalizeStage(event.to_stage, config.stageMapping);
+
+      // If we have a previous stage and are moving to a different stage, calculate time spent
+      if (lastStageEntry && lastStageEntry.stage && toCanonical && toCanonical !== lastStageEntry.stage) {
+        const hoursInStage = differenceInHours(event.event_at, lastStageEntry.enteredAt);
+
+        if (hoursInStage > 0 && hoursInStage < 720) { // Sanity check: max 30 days per stage
+          switch (lastStageEntry.stage) {
+            case CanonicalStage.LEAD:
+            case CanonicalStage.APPLIED:
+              sourcingHours.push(hoursInStage);
+              break;
+            case CanonicalStage.SCREEN:
+              screeningHours.push(hoursInStage);
+              break;
+            case CanonicalStage.HM_SCREEN:
+              hmReviewHours.push(hoursInStage);
+              break;
+            case CanonicalStage.ONSITE:
+            case CanonicalStage.FINAL:
+              interviewHours.push(hoursInStage);
+              break;
+          }
+        }
+      }
+
+      // Update to new stage (track when they entered this stage)
+      if (toCanonical) {
+        lastStageEntry = { stage: toCanonical, enteredAt: event.event_at };
+      }
+    }
+  }
+
+  return {
+    sourcingHours: median(sourcingHours) ?? 0,
+    screeningHours: median(screeningHours) ?? 0,
+    hmReviewHours: median(hmReviewHours) ?? 0,
+    interviewHours: median(interviewHours) ?? 0
+  };
+}
+
 // ===== TIME COMPOSITION =====
 
 // Baseline hiring cycle time in hours (~30 days)
@@ -34,21 +124,66 @@ const BASELINE_CYCLE_HOURS = 720;
 /**
  * Calculates time composition metrics for an HM
  * Shows how much of the hiring cycle is spent waiting vs actively progressing
+ * Now includes stage-level breakdown for detailed visualization
  */
 export function calculateTimeComposition(
   feedbackLatencyMedian: number | null,
-  decisionLatencyMedian: number | null
+  decisionLatencyMedian: number | null,
+  stageTimesOverride?: Partial<StageTimeBreakdown>
 ): HMTimeComposition {
   const feedbackLatencyHours = feedbackLatencyMedian ?? 0;
   const decisionLatencyHours = decisionLatencyMedian ?? 0;
   const totalLatencyHours = feedbackLatencyHours + decisionLatencyHours;
 
-  // Active time is the remainder of a typical hiring cycle
-  const activeTimeHours = Math.max(0, BASELINE_CYCLE_HOURS - totalLatencyHours);
+  // Check if we have actual stage time data (any non-zero active stage)
+  const hasActualStageData = stageTimesOverride && (
+    (stageTimesOverride.sourcingHours ?? 0) > 0 ||
+    (stageTimesOverride.screeningHours ?? 0) > 0 ||
+    (stageTimesOverride.hmReviewHours ?? 0) > 0 ||
+    (stageTimesOverride.interviewHours ?? 0) > 0
+  );
 
-  // Time Tax: percentage of cycle spent waiting
+  // Calculate estimated active time based on baseline when no stage data
+  const estimatedActiveTime = Math.max(0, BASELINE_CYCLE_HOURS - totalLatencyHours);
+
+  // If we have actual stage times, use them; otherwise estimate from baseline
+  const stageBreakdown: StageTimeBreakdown = hasActualStageData
+    ? {
+        sourcingHours: Math.round(stageTimesOverride!.sourcingHours ?? 0),
+        screeningHours: Math.round(stageTimesOverride!.screeningHours ?? 0),
+        hmReviewHours: Math.round(stageTimesOverride!.hmReviewHours ?? 0),
+        interviewHours: Math.round(stageTimesOverride!.interviewHours ?? 0),
+        feedbackHours: Math.round(feedbackLatencyHours),
+        decisionHours: Math.round(decisionLatencyHours)
+      }
+    : {
+        // Estimate stage breakdown when no real data available
+        // Distribute the "active" time across stages proportionally (rough estimates)
+        // Typical breakdown: 15% sourcing, 20% screening, 25% HM review, 40% interview
+        sourcingHours: Math.round(estimatedActiveTime * 0.15),
+        screeningHours: Math.round(estimatedActiveTime * 0.20),
+        hmReviewHours: Math.round(estimatedActiveTime * 0.25),
+        interviewHours: Math.round(estimatedActiveTime * 0.40),
+        feedbackHours: Math.round(feedbackLatencyHours),
+        decisionHours: Math.round(decisionLatencyHours)
+      };
+
+  // Calculate total cycle time from all stages
+  const totalStageTime = stageBreakdown.sourcingHours +
+    stageBreakdown.screeningHours +
+    stageBreakdown.hmReviewHours +
+    stageBreakdown.interviewHours +
+    stageBreakdown.feedbackHours +
+    stageBreakdown.decisionHours;
+
+  // Active time is the non-latency portion (sourcing + screening + hmReview + interview)
+  const activeTimeHours = stageBreakdown.sourcingHours + stageBreakdown.screeningHours +
+    stageBreakdown.hmReviewHours + stageBreakdown.interviewHours;
+
+  // Time Tax: percentage of cycle spent waiting (feedback + decision latency)
+  const totalCycleTime = totalStageTime > 0 ? totalStageTime : BASELINE_CYCLE_HOURS;
   const timeTaxPercent = totalLatencyHours > 0
-    ? Math.round((totalLatencyHours / BASELINE_CYCLE_HOURS) * 100)
+    ? Math.round((totalLatencyHours / totalCycleTime) * 100)
     : 0;
 
   return {
@@ -56,7 +191,8 @@ export function calculateTimeComposition(
     feedbackLatencyHours: Math.round(feedbackLatencyHours),
     decisionLatencyHours: Math.round(decisionLatencyHours),
     totalLatencyHours: Math.round(totalLatencyHours),
-    timeTaxPercent
+    timeTaxPercent,
+    stageBreakdown
   };
 }
 
@@ -227,6 +363,9 @@ export function calculateHMFrictionMetrics(
     const feedbackLatencyMed = median(feedbackLatencies);
     const decisionLatencyMed = median(decisionLatencies);
 
+    // Calculate actual stage times from event data
+    const stageTimes = calculateStageTimesForHM(hmReqIds, events, config);
+
     results.push({
       hmId,
       hmName: user?.name || hmId,
@@ -236,7 +375,7 @@ export function calculateHMFrictionMetrics(
       offerAcceptanceRate: offers.length > 0 ? accepts.length / offers.length : null,
       hmWeight: 1.0,  // Will be calculated after we have all HM medians
       loopCount: loopCandidates.size,
-      composition: calculateTimeComposition(feedbackLatencyMed, decisionLatencyMed)
+      composition: calculateTimeComposition(feedbackLatencyMed, decisionLatencyMed, stageTimes)
     });
   }
 

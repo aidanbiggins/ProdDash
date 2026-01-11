@@ -998,8 +998,63 @@ export function importCsvData(
   usersCsv?: string
 ): CsvImportResult {
 
-  // DETECT MODE: Universal vs Multi-File
-  // We peek at the headers of the first file (requisitionsCsv)
+  // DETECT MODE: iCIMS Single-File vs Universal vs Multi-File
+  // We peek at the ORIGINAL headers (not normalized) to detect iCIMS format
+  const rawPreview = Papa.parse(requisitionsCsv, { preview: 1, header: true });
+  const rawHeaders = rawPreview.meta.fields || [];
+
+  // Check for iCIMS Submittal Export format (has characteristic columns like "Last Interview:", "Last Resume Submissions:")
+  const hasICIMSColumns = rawHeaders.some(h => h.startsWith('Last Resume Submissions:')) ||
+                          rawHeaders.some(h => h.startsWith('Last Interview:')) ||
+                          rawHeaders.some(h => h.includes('Job : Requisition ID'));
+
+  if (hasICIMSColumns) {
+    console.log(`Detected iCIMS Submittal Export format (${rawHeaders.length} columns)`);
+    // Use the specialized iCIMS parser
+    const { parseICIMSSingleFile } = require('./icimsParser');
+    const icimsResult = parseICIMSSingleFile(requisitionsCsv);
+
+    console.log(`iCIMS Import Stats:`, icimsResult.stats);
+    if (icimsResult.warnings.length > 0) {
+      console.warn(`iCIMS Import Warnings:`, icimsResult.warnings);
+    }
+
+    // Convert iCIMS result to CsvImportResult format
+    return {
+      requisitions: {
+        data: icimsResult.requisitions,
+        errors: [],
+        warnings: icimsResult.warnings.map((w: string, i: number) => ({ row: i, field: 'general', message: w, value: '' })),
+        rowCount: icimsResult.stats.totalRows,
+        successCount: icimsResult.requisitions.length
+      },
+      candidates: {
+        data: icimsResult.candidates,
+        errors: [],
+        warnings: [],
+        rowCount: icimsResult.stats.totalRows,
+        successCount: icimsResult.candidates.length
+      },
+      events: {
+        data: icimsResult.events,
+        errors: [],
+        warnings: [],
+        rowCount: icimsResult.stats.eventsGenerated,
+        successCount: icimsResult.events.length
+      },
+      users: {
+        data: icimsResult.users,
+        errors: [],
+        warnings: [],
+        rowCount: icimsResult.users.length,
+        successCount: icimsResult.users.length
+      },
+      isValid: true,
+      criticalErrors: []
+    };
+  }
+
+  // Continue with normalized headers for other detection
   const preview = Papa.parse(requisitionsCsv, { preview: 1, header: true, transformHeader: normalizeColumnName });
   const headers = preview.meta.fields || [];
 

@@ -11,3 +11,6 @@ export * from './dbService';
 export * from './hmFactTables';
 export * from './hmMetricsEngine';
 export * from './velocityAnalysis';
+export * from './forecastingService';
+export * from './icimsParser';
+export * from './eventGeneration';

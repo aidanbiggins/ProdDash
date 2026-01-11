@@ -171,8 +171,13 @@ export function createStageMappingConfig(
 
 // ===== STAGE NORMALIZATION =====
 
+// Set of valid canonical stage values for quick lookup
+const CANONICAL_STAGE_VALUES = new Set(Object.values(CanonicalStage));
+
 /**
- * Normalizes an ATS stage name to a canonical stage
+ * Normalizes an ATS stage name to a canonical stage.
+ * First checks if the input is already a canonical stage value,
+ * then falls back to looking up in the mappings config.
  */
 export function normalizeStage(
   atsStage: string | null | undefined,
@@ -180,6 +185,13 @@ export function normalizeStage(
 ): CanonicalStage | null {
   if (!atsStage) return null;
 
+  // First, check if the stage is already a canonical value
+  // This handles synthetic events that use canonical stages directly
+  if (CANONICAL_STAGE_VALUES.has(atsStage as CanonicalStage)) {
+    return atsStage as CanonicalStage;
+  }
+
+  // Fall back to looking up in the mappings config
   const mapping = config.mappings.find(m =>
     m.atsStage.toLowerCase() === atsStage.toLowerCase()
   );

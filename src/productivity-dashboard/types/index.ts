@@ -5,6 +5,7 @@ export * from './metrics';
 export * from './config';
 export * from './hmTypes';
 export * from './velocityTypes';
+export * from './forecastingTypes';
 
 // ===== DATA STORE STATE =====
 

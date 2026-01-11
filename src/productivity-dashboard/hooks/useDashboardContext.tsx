@@ -1,6 +1,6 @@
 // Dashboard Context and State Management
 
-import React, { createContext, useContext, useReducer, useCallback, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, ReactNode, useEffect, useRef } from 'react';
 import { subDays, differenceInDays } from 'date-fns';
 import {
   DataStore,
@@ -31,7 +31,10 @@ import {
   createHMWeightsMap,
   calculateAllComplexityScores,
   calculateQualityMetrics,
-  calculateDataHealth
+  calculateDataHealth,
+  generateEventsFromCandidates,
+  isEventGenerationNeeded,
+  EventGenerationProgress
 } from '../services';
 import { fetchDashboardData, persistDashboardData, clearAllData } from '../services/dbService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -42,6 +45,7 @@ type DashboardAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
   | { type: 'IMPORT_DATA'; payload: { requisitions: Requisition[]; candidates: Candidate[]; events: Event[]; users: User[]; isDemo?: boolean } }
+  | { type: 'ADD_EVENTS'; payload: Event[] }
   | { type: 'SET_CONFIG'; payload: DashboardConfig }
   | { type: 'SET_FILTERS'; payload: Partial<MetricFilters> }
   | { type: 'SET_OVERVIEW'; payload: OverviewMetrics }
@@ -118,6 +122,16 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
         }
       };
 
+    case 'ADD_EVENTS':
+      return {
+        ...state,
+        dataStore: {
+          ...state.dataStore,
+          events: [...state.dataStore.events, ...action.payload],
+          lastImportAt: new Date() // Trigger metrics recalculation
+        }
+      };
+
     case 'SET_CONFIG':
       return {
         ...state,
@@ -170,6 +184,15 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
 
 // ===== CONTEXT =====
 
+// Progress info for database persistence
+export interface PersistenceProgress {
+  phase: 'generating' | 'persisting';
+  current: number;
+  total: number;
+  eventsGenerated: number;
+  startTime: number;
+}
+
 interface DashboardContextType {
   state: DashboardState;
   importCSVs: (requisitionsCsv: string, candidatesCsv: string, eventsCsv: string, usersCsv: string, isDemo?: boolean) => Promise<{ success: boolean; errors: string[] }>;
@@ -179,6 +202,11 @@ interface DashboardContextType {
   refreshMetrics: () => void;
   reset: () => void;
   clearPersistedData: () => Promise<{ success: boolean; error?: string }>;
+  generateEvents: (
+    onProgress?: (progress: EventGenerationProgress) => void,
+    onPersistProgress?: (progress: PersistenceProgress) => void
+  ) => Promise<{ success: boolean; eventsGenerated: number; error?: string }>;
+  needsEventGeneration: boolean;
   canImportData: boolean;
 }
 
@@ -189,6 +217,24 @@ const DashboardContext = createContext<DashboardContextType | null>(null);
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
   const { currentOrg, canImportData } = useAuth();
+
+  // Helper to get/set import source from localStorage
+  const getStoredImportSource = (orgId: string): 'demo' | 'csv' | null => {
+    try {
+      const stored = localStorage.getItem(`importSource_${orgId}`);
+      return stored === 'demo' || stored === 'csv' ? stored : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const setStoredImportSource = (orgId: string, source: 'demo' | 'csv') => {
+    try {
+      localStorage.setItem(`importSource_${orgId}`, source);
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
 
   // Load data when org changes
   useEffect(() => {
@@ -203,6 +249,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       try {
         const data = await fetchDashboardData(currentOrg.id);
         if (data.requisitions.length > 0) {
+          // Check if this org's data was originally demo data
+          const storedSource = getStoredImportSource(currentOrg.id);
+          const isDemo = storedSource === 'demo';
+
           dispatch({
             type: 'IMPORT_DATA',
             payload: {
@@ -210,7 +260,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               candidates: data.candidates,
               events: data.events,
               users: data.users,
-              isDemo: false
+              isDemo
             }
           });
         } else {
@@ -263,6 +313,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           result.users.data,
           currentOrg.id
         );
+        // Store import source in localStorage so we know if it was demo data on reload
+        setStoredImportSource(currentOrg.id, isDemo ? 'demo' : 'csv');
       }
 
       dispatch({
@@ -320,10 +372,37 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, [canImportData, currentOrg?.id]);
 
-  // Effect to recalculate metrics when dataStore changes (simplifies refreshMetrics)
+  // Debounce timer ref
+  const metricsDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Effect to recalculate metrics when dataStore changes (DEBOUNCED for performance)
   useEffect(() => {
     if (state.dataStore.requisitions.length === 0) return;
-    refreshMetricsInternal();
+
+    // Clear any pending calculation
+    if (metricsDebounceRef.current) {
+      clearTimeout(metricsDebounceRef.current);
+    }
+
+    // Show loading state immediately
+    dispatch({ type: 'SET_LOADING', payload: true });
+
+    // Debounce the actual calculation (300ms delay)
+    metricsDebounceRef.current = setTimeout(() => {
+      // Use requestAnimationFrame to let UI update before heavy calculation
+      requestAnimationFrame(() => {
+        console.time('[Metrics] Total calculation time');
+        refreshMetricsInternal();
+        console.timeEnd('[Metrics] Total calculation time');
+        dispatch({ type: 'SET_LOADING', payload: false });
+      });
+    }, 300);
+
+    return () => {
+      if (metricsDebounceRef.current) {
+        clearTimeout(metricsDebounceRef.current);
+      }
+    };
   }, [state.dataStore.lastImportAt, state.filters, state.dataStore.config, state.selectedRecruiterId]);
 
   const updateConfig = useCallback((config: DashboardConfig) => {
@@ -418,8 +497,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     dispatch({ type: 'SET_OVERVIEW', payload: overview });
 
-    // Calculate weekly trends
-    const trends = calculateWeeklyTrends(candidates, events, requisitions, state.filters);
+    // Calculate weekly trends (with complexity scores for productivity)
+    const trends = calculateWeeklyTrends(candidates, events, requisitions, state.filters, complexityScores);
     dispatch({ type: 'SET_WEEKLY_TRENDS', payload: trends });
 
     // Calculate quality metrics
@@ -482,6 +561,96 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
   }, [canImportData, currentOrg?.id]);
 
+  // Generate events from existing candidates
+  const generateEvents = useCallback(async (
+    onProgress?: (progress: EventGenerationProgress) => void,
+    onPersistProgress?: (progress: PersistenceProgress) => void
+  ): Promise<{ success: boolean; eventsGenerated: number; error?: string }> => {
+    const { candidates, events, requisitions } = state.dataStore;
+
+    if (candidates.length === 0) {
+      return { success: false, eventsGenerated: 0, error: 'No candidates to generate events from' };
+    }
+
+    const startTime = Date.now();
+    console.log(`[Event Generation] Starting for ${candidates.length} candidates...`);
+
+    // Report generation phase
+    onPersistProgress?.({ phase: 'generating', current: 0, total: candidates.length, eventsGenerated: 0, startTime });
+
+    try {
+      // Pass requisitions for HM attribution in event generation
+      const result = await generateEventsFromCandidates(candidates, requisitions, (progress) => {
+        onProgress?.(progress);
+        onPersistProgress?.({ phase: 'generating', current: progress.processed, total: progress.total, eventsGenerated: progress.eventsGenerated, startTime });
+      });
+      console.log(`[Event Generation] Generated ${result.stats.eventsGenerated} events`);
+      console.log('[Event Generation] Stats:', result.stats);
+
+      // Add events to state
+      dispatch({ type: 'ADD_EVENTS', payload: result.events });
+
+      // Persist to Supabase if we have an org
+      if (currentOrg?.id && result.events.length > 0) {
+        console.log('[Event Generation] Persisting to Supabase...');
+
+        // Transform events for DB
+        const dbEvents = result.events.map(e => ({
+          event_id: e.event_id,
+          candidate_id: e.candidate_id,
+          req_id: e.req_id,
+          event_type: e.event_type,
+          from_stage: e.from_stage,
+          to_stage: e.to_stage,
+          actor_user_id: e.actor_user_id,
+          event_at: e.event_at,
+          metadata: e.metadata_json ? JSON.parse(e.metadata_json) : null,
+          organization_id: currentOrg.id
+        }));
+
+        const { supabase } = await import('../../lib/supabase');
+        if (supabase) {
+          // Batch insert in chunks of 500
+          const chunkSize = 500;
+          const totalChunks = Math.ceil(dbEvents.length / chunkSize);
+          console.log(`[Event Generation] Persisting ${dbEvents.length} events in ${totalChunks} chunks...`);
+
+          // Report persistence phase start
+          onPersistProgress?.({ phase: 'persisting', current: 0, total: totalChunks, eventsGenerated: result.stats.eventsGenerated, startTime });
+
+          for (let i = 0; i < dbEvents.length; i += chunkSize) {
+            const chunk = dbEvents.slice(i, i + chunkSize);
+            const chunkNum = Math.floor(i / chunkSize) + 1;
+            const { error } = await supabase.from('events').upsert(chunk);
+            if (error) {
+              console.error(`[Event Generation] DB error (chunk ${chunkNum}):`, error);
+              // Continue anyway - events are already in state
+            }
+
+            // Report progress on every chunk
+            onPersistProgress?.({ phase: 'persisting', current: chunkNum, total: totalChunks, eventsGenerated: result.stats.eventsGenerated, startTime });
+
+            if (chunkNum % 10 === 0 || chunkNum === totalChunks) {
+              console.log(`[Event Generation] Persisted chunk ${chunkNum}/${totalChunks}`);
+            }
+          }
+          console.log('[Event Generation] Persisted to Supabase');
+        }
+      }
+
+      return { success: true, eventsGenerated: result.stats.eventsGenerated };
+    } catch (error: any) {
+      console.error('[Event Generation] Error:', error);
+      return { success: false, eventsGenerated: 0, error: error.message || 'Event generation failed' };
+    }
+  }, [state.dataStore.candidates, currentOrg?.id]);
+
+  // Check if event generation is needed
+  const needsEventGeneration = isEventGenerationNeeded(
+    state.dataStore.candidates.length,
+    state.dataStore.events.length
+  );
+
   const value: DashboardContextType = {
     state,
     importCSVs,
@@ -491,6 +660,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     refreshMetrics,
     reset,
     clearPersistedData,
+    generateEvents,
+    needsEventGeneration,
     canImportData
   };
 

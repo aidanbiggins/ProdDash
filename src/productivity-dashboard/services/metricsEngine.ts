@@ -504,7 +504,8 @@ export function calculateWeeklyTrends(
   candidates: Candidate[],
   events: Event[],
   requisitions: Requisition[],
-  filter: MetricFilters
+  filter: MetricFilters,
+  complexityScores?: Map<string, number>
 ): WeeklyTrend[] {
   const weeks = eachWeekOfInterval({
     start: filter.dateRange.startDate,
@@ -515,16 +516,35 @@ export function calculateWeeklyTrends(
     requisitions.filter(r => matchesFilters(r, filter)).map(r => r.req_id)
   );
 
+  // Get filtered requisitions for open req calculations
+  const filteredReqs = requisitions.filter(r => matchesFilters(r, filter));
+
   return weeks.map(weekStart => {
     const weekEnd = endOfWeek(weekStart);
     const weekInterval = { start: weekStart, end: weekEnd };
 
     // Hires in this week
-    const hires = candidates.filter(c =>
+    const hiresThisWeek = candidates.filter(c =>
       filteredReqIds.has(c.req_id) &&
       c.hired_at &&
       isWithinInterval(c.hired_at, weekInterval)
-    ).length;
+    );
+    const hires = hiresThisWeek.length;
+
+    // Weighted hires - sum of complexity scores for hires this week
+    const weightedHires = hiresThisWeek.reduce((sum, c) => {
+      return sum + (complexityScores?.get(c.req_id) || 1);
+    }, 0);
+
+    // Open reqs during this week (opened before week end, not closed before week start)
+    const openReqCount = filteredReqs.filter(r => {
+      const openedBefore = r.opened_at <= weekEnd;
+      const notClosedYet = !r.closed_at || r.closed_at >= weekStart;
+      return openedBefore && notClosedYet && r.status !== RequisitionStatus.Canceled;
+    }).length;
+
+    // Productivity index
+    const productivityIndex = openReqCount > 0 ? weightedHires / openReqCount : null;
 
     // Offers in this week
     const offers = candidates.filter(c =>
@@ -611,7 +631,10 @@ export function calculateWeeklyTrends(
       submissions,
       stageChanges,
       applicants,
-      onsites
+      onsites,
+      weightedHires,
+      openReqCount,
+      productivityIndex
     };
   });
 }

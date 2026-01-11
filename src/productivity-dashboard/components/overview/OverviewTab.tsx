@@ -8,7 +8,7 @@ import {
 import { format, startOfWeek, isSameWeek } from 'date-fns';
 import { OverviewMetrics, RecruiterSummary, WeeklyTrend, DataHealth, Candidate, Requisition, User } from '../../types';
 import { KPICard } from '../common/KPICard';
-import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords } from '../common/DataDrillDownModal';
+import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
 import { METRIC_FORMULAS } from '../common/MetricDrillDown';
 import { exportRecruiterSummaryCSV } from '../../services';
 import { MetricFilters } from '../../types';
@@ -342,15 +342,20 @@ export function OverviewTab({
         return buildHiresRecords(candidates, requisitions, users, complexityScoresMap);
       case 'offers':
         return buildOffersRecords(candidates, requisitions, users);
+      case 'offerAcceptRate':
+        return buildOffersRecords(candidates, requisitions, users);
+      case 'medianTTF':
+        return buildTTFRecords(candidates, requisitions, users);
       case 'openReqs':
         return buildReqsRecords(requisitions.filter(r => r.status === 'Open'), users);
       case 'stalledReqs':
-        // Stalled reqs are those with no activity - just filter open reqs for now
-        return buildReqsRecords(requisitions.filter(r => r.status === 'Open'), users);
+        // Get stalled req IDs from all recruiter summaries
+        const stalledReqIds = new Set(overview.recruiterSummaries.flatMap(r => r.aging.stalledReqs.reqIds));
+        return buildReqsRecords(requisitions.filter(r => stalledReqIds.has(r.req_id)), users);
       default:
         return [];
     }
-  }, [drillDown, candidates, requisitions, users, complexityScoresMap]);
+  }, [drillDown, candidates, requisitions, users, complexityScoresMap, overview.recruiterSummaries]);
 
   // Format trend data for charts (team totals)
   const trendData = useMemo(() => weeklyTrends.map(t => ({
@@ -364,7 +369,10 @@ export function OverviewTab({
     submissions: t.submissions,
     stageChanges: t.stageChanges,
     applicants: t.applicants,
-    onsites: t.onsites
+    onsites: t.onsites,
+    weightedHires: t.weightedHires,
+    openReqCount: t.openReqCount,
+    productivityIndex: t.productivityIndex
   })), [weeklyTrends]);
 
   // Calculate filtered trend data when recruiters are selected
@@ -469,9 +477,9 @@ export function OverviewTab({
 
   return (
     <div>
-      {/* KPI Cards - show filtered values with total context when selection or top filters are active */}
-      <div className="row g-3 mb-4">
-        <div className="col-6 col-md-2">
+      {/* KPI Cards - 7 cards using flex for equal width */}
+      <div className="d-flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Hires"
             value={filteredStats ? filteredStats.hires : overview.totalHires}
@@ -486,7 +494,7 @@ export function OverviewTab({
             onClick={() => openDrillDown('hires', 'Hires', overview.totalHires)}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Weighted Hires"
             value={filteredStats ? parseFloat(filteredStats.weightedHires.toFixed(1)) : parseFloat(overview.totalWeightedHires.toFixed(1))}
@@ -502,7 +510,7 @@ export function OverviewTab({
             onClick={() => openDrillDown('weightedHires', 'Weighted Hires', overview.totalWeightedHires.toFixed(1))}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Offers"
             value={filteredStats ? filteredStats.offers : overview.totalOffers}
@@ -517,28 +525,79 @@ export function OverviewTab({
             onClick={() => openDrillDown('offers', 'Offers Extended', overview.totalOffers)}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
-            title="Offer Accept Rate"
+            title="Accept Rate"
             value={overview.totalOfferAcceptanceRate !== null
               ? `${(overview.totalOfferAcceptanceRate * 100).toFixed(0)}%`
               : 'N/A'}
+            onClick={() => openDrillDown('offerAcceptRate', 'Offer Accept Rate', overview.totalOfferAcceptanceRate !== null ? `${(overview.totalOfferAcceptanceRate * 100).toFixed(0)}%` : 'N/A')}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Median TTF"
             value={overview.medianTTF !== null ? `${overview.medianTTF}d` : 'N/A'}
             subtitle="days"
+            onClick={() => openDrillDown('medianTTF', 'Time to Fill', overview.medianTTF !== null ? `${overview.medianTTF}d` : 'N/A')}
           />
         </div>
-        <div className="col-6 col-md-2">
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Stalled Reqs"
             value={filteredStats ? filteredStats.stalled : overview.stalledReqCount}
             contextTotal={filteredStats ? overview.stalledReqCount : undefined}
             subtitle="no activity 14+ days"
+            onClick={() => openDrillDown('stalledReqs', 'Stalled Requisitions', overview.stalledReqCount)}
           />
+        </div>
+        <div style={{ flex: '1 1 0', minWidth: '120px' }}>
+          <KPICard
+            title="Productivity"
+            value={overview.recruiterSummaries.length > 0
+              ? (overview.recruiterSummaries.reduce((sum, r) => sum + r.productivityIndex, 0) / overview.recruiterSummaries.length).toFixed(2)
+              : '0.00'}
+            subtitle="Weighted Hires ÷ Open Reqs"
+          />
+        </div>
+      </div>
+
+      {/* Productivity Trend Chart */}
+      <div className="card-bespoke mb-4">
+        <div className="card-header">
+          <div className="d-flex justify-content-between align-items-center">
+            <h6 className="mb-0">Productivity Trend</h6>
+            <small className="text-muted">Weighted Hires ÷ Open Reqs per Week</small>
+          </div>
+        </div>
+        <div className="card-body">
+          <ResponsiveContainer width="100%" height={180}>
+            <ComposedChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="week" fontSize={11} stroke="#64748b" />
+              <YAxis
+                fontSize={11}
+                stroke="#64748b"
+                domain={[0, 'auto']}
+                tickFormatter={(v) => v.toFixed(2)}
+              />
+              <Tooltip
+                formatter={(value: number | undefined) => [value != null ? value.toFixed(3) : '—', 'Productivity']}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="productivityIndex"
+                fill="#8b5cf6"
+                fillOpacity={0.15}
+                stroke="#8b5cf6"
+                strokeWidth={2.5}
+                name="Productivity Index"
+                dot={{ fill: '#8b5cf6', strokeWidth: 0, r: 3 }}
+                connectNulls
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

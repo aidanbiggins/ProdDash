@@ -38,9 +38,13 @@ export function KPICard({
   const isMobile = useIsMobile();
 
   // Calculate percentage change if we have both current and prior values
+  // When prior is 0, we can't calculate a percentage but we can show the comparison
   const percentChange = priorPeriod && typeof value === 'number' && priorPeriod.value > 0
     ? ((value - priorPeriod.value) / priorPeriod.value) * 100
     : null;
+
+  // Flag to show comparison even when prior was 0 (new activity case)
+  const showNewComparison = priorPeriod && typeof value === 'number' && priorPeriod.value === 0 && value > 0;
 
   // Calculate percentage of total when contextTotal is provided
   const percentOfTotal = contextTotal !== undefined && typeof value === 'number' && typeof contextTotal === 'number' && contextTotal > 0
@@ -72,7 +76,9 @@ export function KPICard({
               ? 'var(--color-primary)'
               : percentChange !== null
                 ? (percentChange >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
-                : 'var(--color-slate-200)'
+                : showNewComparison
+                  ? 'var(--color-success)'
+                  : 'var(--color-slate-200)'
           }}
         ></div>
 
@@ -87,31 +93,41 @@ export function KPICard({
             <h3 className={`stat-value ${isMobile ? 'mb-1' : 'mb-2'}`}>{value}</h3>
           )}
 
-          <div className="d-flex align-items-center gap-2 mt-auto" style={{ fontSize: isMobile ? '0.65rem' : '0.75rem', minHeight: isMobile ? 'unset' : '1.2rem' }}>
+          <div className="d-flex flex-column mt-auto" style={{ fontSize: isMobile ? '0.65rem' : '0.75rem' }}>
             {/* Show percentage of total when filtered */}
             {percentOfTotal !== null ? (
               <span className="text-primary fw-medium">
                 {percentOfTotal}% of total
               </span>
             ) : percentChange !== null ? (
-              <div className="d-flex align-items-center flex-nowrap overflow-hidden">
-                <span className={`fw-bold ${isMobile ? '' : 'me-2'} flex-shrink-0 ${percentChange >= 0 ? 'text-success' : 'text-danger'}`}>
+              <div className="d-flex flex-column">
+                <span className={`fw-bold ${percentChange >= 0 ? 'text-success' : 'text-danger'}`}>
                   <i className={`bi bi-arrow-${percentChange >= 0 ? 'up' : 'down'}-short me-0`}></i>
                   {Math.abs(percentChange).toFixed(0)}%
                 </span>
-                {!isMobile && priorPeriod && (
-                  <span className="text-muted text-truncate" title={`vs ${priorPeriod.value} ${priorPeriod.label}`}>
+                {priorPeriod && (
+                  <span className="text-muted" style={{ fontSize: isMobile ? '0.6rem' : '0.7rem' }}>
                     vs {priorPeriod.value} {priorPeriod.label || 'prior period'}
                   </span>
                 )}
               </div>
-            ) : !priorPeriod && trend ? (
-              <div className="d-flex align-items-center">
-                <span className={`fw-bold me-2 ${trend.isPositive ? 'text-success' : 'text-danger'}`}>
-                  <i className={`bi bi-arrow-${trend.isPositive ? 'up' : 'down'}-short me-0`}></i>
-                  {Math.abs(trend.value).toFixed(1)}%
+            ) : showNewComparison ? (
+              <div className="d-flex flex-column">
+                <span className="fw-bold text-success">
+                  <i className="bi bi-plus-lg me-1"></i>
+                  {value}
                 </span>
+                {priorPeriod && (
+                  <span className="text-muted" style={{ fontSize: isMobile ? '0.6rem' : '0.7rem' }}>
+                    vs 0 {priorPeriod.label || 'prior period'}
+                  </span>
+                )}
               </div>
+            ) : !priorPeriod && trend ? (
+              <span className={`fw-bold ${trend.isPositive ? 'text-success' : 'text-danger'}`}>
+                <i className={`bi bi-arrow-${trend.isPositive ? 'up' : 'down'}-short me-0`}></i>
+                {Math.abs(trend.value).toFixed(1)}%
+              </span>
             ) : (
               <span className="text-muted opacity-50">–</span>
             )}

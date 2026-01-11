@@ -134,12 +134,24 @@ export interface TimeAttribution {
 
 // ===== HIRING MANAGER FRICTION =====
 
+// Stage-level time breakdown for pipeline visualization
+export interface StageTimeBreakdown {
+  sourcingHours: number;      // Req open → first candidate in pipeline
+  screeningHours: number;     // Time in screen stage (recruiter screens)
+  hmReviewHours: number;      // Submitted to HM → interview scheduled
+  interviewHours: number;     // Time in interview/onsite stages
+  feedbackHours: number;      // Time waiting for interview feedback
+  decisionHours: number;      // Time waiting for final decision
+}
+
 export interface HMTimeComposition {
-  activeTimeHours: number;      // Productive interviewing time
+  activeTimeHours: number;      // Productive interviewing time (legacy - sum of sourcing+screening+hmReview+interview)
   feedbackLatencyHours: number; // Time waiting for interview feedback
   decisionLatencyHours: number; // Time waiting for hire/no-hire decision
   totalLatencyHours: number;    // feedbackLatency + decisionLatency
   timeTaxPercent: number;       // % of cycle spent waiting (0-100)
+  // Stage breakdown for detailed visualization
+  stageBreakdown: StageTimeBreakdown;
 }
 
 export interface HiringManagerFriction {
@@ -259,6 +271,9 @@ export interface WeeklyTrend {
   stageChanges: number;      // Total pipeline movement (all stage transitions)
   applicants: number;        // New applications received
   onsites: number;           // Candidates entering onsite/interview loop stage
+  weightedHires: number;     // Sum of complexity scores for hires this week
+  openReqCount: number;      // Number of open reqs during this week
+  productivityIndex: number | null;  // weightedHires / openReqCount
 }
 
 // ===== SOURCE EFFECTIVENESS =====

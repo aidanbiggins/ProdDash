@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import './../dashboard-theme.css'; // Import bespoke theme
-import { useDashboard } from '../hooks/useDashboardContext';
+import { useDashboard, PersistenceProgress } from '../hooks/useDashboardContext';
 import { CSVUpload } from './CSVUpload';
 import { FilterBar } from './common/FilterBar';
-import { DataHealthPanel } from './common/DataHealthPanel';
+import { DataHealthBadge } from './common/DataHealthBadge';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
 import { OverviewTab } from './overview/OverviewTab';
 import { RecruiterDetailTab } from './recruiter-detail/RecruiterDetailTab';
@@ -15,6 +15,7 @@ import { SourceEffectivenessTab } from './source-effectiveness/SourceEffectivene
 import { StageMappingModal } from './StageMappingModal';
 import { HiringManagersTab } from './hiring-managers';
 import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
+import { ForecastingTab } from './forecasting';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { useDataMasking } from '../contexts/DataMaskingContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -25,10 +26,10 @@ import { OrgSettings } from './OrgSettings';
 import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
 
-type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity';
+type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting';
 
 export function ProductivityDashboard() {
-  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, canImportData } = useDashboard();
+  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData } = useDashboard();
   const { isMasked, toggleMasking } = useDataMasking();
   const { currentOrg, user, refreshMemberships, supabaseUser } = useAuth();
   const isMobile = useIsMobile();
@@ -42,6 +43,46 @@ export function ProductivityDashboard() {
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [showOrgSettings, setShowOrgSettings] = useState(false);
   const [showSuperAdminPanel, setShowSuperAdminPanel] = useState(false);
+
+  // Event generation state
+  const [isGeneratingEvents, setIsGeneratingEvents] = useState(false);
+  const [eventGenProgress, setEventGenProgress] = useState<{ processed: number; total: number; eventsGenerated: number } | null>(null);
+  const [eventGenDismissed, setEventGenDismissed] = useState(false);
+  const [persistProgress, setPersistProgress] = useState<PersistenceProgress | null>(null);
+
+  // Fun encouraging messages for progress UI
+  const encouragingMessages = [
+    "Building your recruiting timeline... 🚀",
+    "Generating interview events... 📅",
+    "Processing candidate journeys... 🎯",
+    "Almost there, stay caffeinated! ☕",
+    "Your data is looking great! ✨",
+    "Creating stage transitions... 🔄",
+    "Mapping hiring manager activity... 📊",
+    "This is totally worth the wait... 💪",
+    "Crunching those numbers... 🔢",
+    "Brewing insights from your data... 🍵"
+  ];
+
+  // Get current encouraging message based on progress
+  const getCurrentMessage = (progress: PersistenceProgress | null): string => {
+    if (!progress) return encouragingMessages[0];
+    const messageIndex = Math.floor((progress.current / Math.max(progress.total, 1)) * (encouragingMessages.length - 1));
+    return encouragingMessages[Math.min(messageIndex, encouragingMessages.length - 1)];
+  };
+
+  // Calculate time remaining estimate
+  const getTimeRemaining = (progress: PersistenceProgress | null): string => {
+    if (!progress || progress.current === 0) return 'Calculating...';
+    const elapsed = Date.now() - progress.startTime;
+    const rate = progress.current / elapsed; // items per ms
+    const remaining = progress.total - progress.current;
+    const msRemaining = remaining / rate;
+
+    if (msRemaining < 1000) return 'Almost done!';
+    if (msRemaining < 60000) return `~${Math.ceil(msRemaining / 1000)}s remaining`;
+    return `~${Math.ceil(msRemaining / 60000)}m remaining`;
+  };
 
   const isSuperAdmin = user?.isSuperAdmin || false;
 
@@ -58,27 +99,23 @@ export function ProductivityDashboard() {
     onTabChange: (tab) => setActiveTab(tab as TabType)
   });
 
-  // Calculate source effectiveness metrics
+  // Calculate source effectiveness metrics - ONLY when on source-mix tab
   const sourceEffectiveness = useMemo(() => {
-    if (!hasData) return null;
+    if (!hasData || activeTab !== 'source-mix') return null;
     const { requisitions, candidates, events, config } = state.dataStore;
     const normalizedEvents = normalizeEventStages(events, config.stageMapping);
     return calculateSourceEffectiveness(candidates, requisitions, normalizedEvents, state.filters);
-  }, [hasData, state.dataStore, state.filters]);
+  }, [hasData, activeTab, state.dataStore.requisitions, state.dataStore.candidates, state.dataStore.events, state.dataStore.config.stageMapping, state.filters]);
 
-  // Calculate velocity metrics for decay analysis
+  // Calculate velocity metrics for decay analysis - ONLY when on velocity tab
   const velocityMetrics = useMemo(() => {
-    if (!hasData) return null;
+    if (!hasData || activeTab !== 'velocity') return null;
     const { requisitions, candidates, events, users } = state.dataStore;
     return calculateVelocityMetrics(candidates, requisitions, events, users, state.filters);
-  }, [hasData, state.dataStore, state.filters]);
+  }, [hasData, activeTab, state.dataStore.requisitions, state.dataStore.candidates, state.dataStore.events, state.dataStore.users, state.filters]);
 
-  // Refresh metrics when filters change or data is imported
-  useEffect(() => {
-    if (hasData) {
-      refreshMetrics();
-    }
-  }, [hasData, state.filters.dateRange, refreshMetrics]);
+  // NOTE: Removed redundant useEffect that was calling refreshMetrics on dateRange change
+  // The context's debounced effect already handles this
 
   // Stage mapping modal can be opened manually from the header menu
   // Auto-popup disabled as config isn't persisted and would show on every page load
@@ -122,6 +159,41 @@ export function ProductivityDashboard() {
       }
     } finally {
       setIsClearing(false);
+    }
+  };
+
+  // Handle event generation
+  const handleGenerateEvents = async () => {
+    setIsGeneratingEvents(true);
+    setEventGenProgress({ processed: 0, total: state.dataStore.candidates.length, eventsGenerated: 0 });
+    setPersistProgress(null);
+
+    try {
+      const result = await generateEvents(
+        // Generation progress callback
+        (progress) => {
+          setEventGenProgress({
+            processed: progress.processed,
+            total: progress.total,
+            eventsGenerated: progress.eventsGenerated
+          });
+        },
+        // Persistence progress callback
+        (progress) => {
+          setPersistProgress(progress);
+        }
+      );
+
+      if (result.success) {
+        setEventGenDismissed(true); // Auto-dismiss on success
+        console.log(`[UI] Event generation complete: ${result.eventsGenerated} events`);
+      } else {
+        console.error('[UI] Event generation failed:', result.error);
+      }
+    } finally {
+      setIsGeneratingEvents(false);
+      setEventGenProgress(null);
+      setPersistProgress(null);
     }
   };
 
@@ -227,6 +299,104 @@ export function ProductivityDashboard() {
           </div>
         )}
 
+        {/* Event Generation Banner */}
+        {needsEventGeneration && !eventGenDismissed && !isDemo && (
+          <div
+            className="mb-3 rounded"
+            style={{
+              backgroundColor: isGeneratingEvents ? 'var(--color-slate-900, #1a1a2e)' : 'var(--color-warning-light, #fff3cd)',
+              border: isGeneratingEvents ? '1px solid var(--color-slate-700, #333)' : '1px solid var(--color-warning, #ffc107)',
+              overflow: 'hidden',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            {isGeneratingEvents ? (
+              // Fun animated progress UI
+              <div className="p-4">
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h5 className="mb-1 text-white d-flex align-items-center gap-2">
+                      <span className="spinner-grow spinner-grow-sm" style={{ color: '#ffc107' }} />
+                      {persistProgress?.phase === 'persisting' ? 'Saving to Database' : 'Generating Events'}
+                    </h5>
+                    <p className="mb-0 text-white-50">
+                      {getCurrentMessage(persistProgress)}
+                    </p>
+                  </div>
+                  <span className="badge bg-warning text-dark fs-6">
+                    {getTimeRemaining(persistProgress)}
+                  </span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="progress mb-3" style={{ height: '12px', backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                  <div
+                    className="progress-bar"
+                    style={{
+                      width: `${persistProgress ? (persistProgress.current / Math.max(persistProgress.total, 1)) * 100 : 0}%`,
+                      background: 'linear-gradient(90deg, #ffc107, #ff9800)',
+                      transition: 'width 0.3s ease'
+                    }}
+                  />
+                </div>
+
+                {/* Stats row */}
+                <div className="d-flex justify-content-between text-white-50 small">
+                  <div>
+                    <span className="text-white fw-bold">
+                      {(persistProgress?.eventsGenerated || eventGenProgress?.eventsGenerated || 0).toLocaleString()}
+                    </span>
+                    {' '}events generated
+                  </div>
+                  <div>
+                    {persistProgress?.phase === 'generating' ? (
+                      <>
+                        <span className="text-white fw-bold">
+                          {persistProgress.current.toLocaleString()}
+                        </span>
+                        {' / '}
+                        {persistProgress.total.toLocaleString()} candidates processed
+                      </>
+                    ) : persistProgress?.phase === 'persisting' ? (
+                      <>
+                        <span className="text-white fw-bold">
+                          {persistProgress.current.toLocaleString()}
+                        </span>
+                        {' / '}
+                        {persistProgress.total.toLocaleString()} chunks saved
+                      </>
+                    ) : (
+                      'Starting...'
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Static prompt to generate events
+              <div className="p-3 d-flex align-items-center gap-3">
+                <span style={{ fontSize: '1.5rem' }}>⚡</span>
+                <div className="flex-grow-1">
+                  <strong>Events Not Generated</strong>
+                  <div className="small text-muted">
+                    Your data was imported without stage events. Generate events to enable HM Friction, Quality Guardrails, and activity tracking.
+                  </div>
+                </div>
+                <button
+                  className="btn btn-warning btn-sm"
+                  onClick={handleGenerateEvents}
+                >
+                  Generate Events
+                </button>
+                <button
+                  className="btn-close"
+                  onClick={() => setEventGenDismissed(true)}
+                  title="Dismiss"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Header */}
         {isMobile ? (
           // Mobile Header - compact with hamburger
@@ -258,9 +428,23 @@ export function ProductivityDashboard() {
                 />
               </div>
               <h1 className="mb-0 display-6 fw-bold text-dark">Recruiting Insights</h1>
-              <div className="d-flex gap-3 mt-2 text-muted small">
-                <span>{state.dataStore.requisitions.length} Requisitions</span>
-                <span>{state.dataStore.candidates.length} Candidates</span>
+              <div className="d-flex flex-wrap gap-3 mt-2 text-muted small align-items-center">
+                <span>{state.dataStore.requisitions.filter(r => r.status === 'Open').length} Open Reqs</span>
+                <span className="opacity-50">•</span>
+                <span>{state.dataStore.candidates.filter(c => c.disposition === 'Active').length} Active Candidates</span>
+                <span className="opacity-50">•</span>
+                <span>{state.overview?.recruiterSummaries.length || 0} Recruiters</span>
+                <span className="opacity-50">•</span>
+                <span>{state.hmFriction.length} Hiring Managers</span>
+                {state.dataStore.lastImportAt && (
+                  <>
+                    <span className="opacity-50">•</span>
+                    <span className="d-flex align-items-center gap-1">
+                      <i className="bi bi-clock-history" style={{ fontSize: '0.7rem' }}></i>
+                      {state.dataStore.lastImportAt.toLocaleString()}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             <div className="dashboard-header-actions">
@@ -278,75 +462,51 @@ export function ProductivityDashboard() {
               >
                 {state.isLoading ? 'Syncing...' : 'Refresh Data'}
               </button>
-              <div className="position-relative">
-                <button
-                  className="btn btn-bespoke-secondary"
-                  onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-                  title="More options"
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <circle cx="10" cy="4" r="1.5" />
-                    <circle cx="10" cy="10" r="1.5" />
-                    <circle cx="10" cy="16" r="1.5" />
-                  </svg>
-                </button>
-                {showHeaderMenu && (
-                  <>
-                    <div
-                      className="position-fixed top-0 start-0 w-100 h-100"
-                      style={{ zIndex: 1000 }}
-                      onClick={() => setShowHeaderMenu(false)}
-                    />
-                    <div
-                      className="position-absolute end-0 mt-2 py-2 bg-white rounded-3 shadow-lg"
-                      style={{ zIndex: 1001, minWidth: '180px', border: '1px solid var(--color-slate-200)' }}
-                    >
-                      <button
-                        className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent"
-                        onClick={() => { setShowStageMapping(true); setShowHeaderMenu(false); }}
-                        style={{ cursor: 'pointer' }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-100)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              <DataHealthBadge
+                health={state.dataStore.dataHealth}
+                onConfigureStages={() => setShowStageMapping(true)}
+                onExportData={handleExportRawData}
+                onClearDatabase={() => setShowClearConfirm(true)}
+              />
+              {/* Super Admin menu - only show when user is super admin */}
+              {isSuperAdmin && (
+                <div className="position-relative">
+                  <button
+                    className="btn btn-bespoke-secondary"
+                    onClick={() => setShowHeaderMenu(!showHeaderMenu)}
+                    title="Admin options"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                      <circle cx="10" cy="4" r="1.5" />
+                      <circle cx="10" cy="10" r="1.5" />
+                      <circle cx="10" cy="16" r="1.5" />
+                    </svg>
+                  </button>
+                  {showHeaderMenu && (
+                    <>
+                      <div
+                        className="position-fixed top-0 start-0 w-100 h-100"
+                        style={{ zIndex: 1000 }}
+                        onClick={() => setShowHeaderMenu(false)}
+                      />
+                      <div
+                        className="position-absolute end-0 mt-2 py-2 bg-white rounded-3 shadow-lg"
+                        style={{ zIndex: 1001, minWidth: '180px', border: '1px solid var(--color-slate-200)' }}
                       >
-                        Stage Mapping
-                      </button>
-                      <button
-                        className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent"
-                        onClick={() => { handleExportRawData(); setShowHeaderMenu(false); }}
-                        style={{ cursor: 'pointer' }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-100)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        Export Data
-                      </button>
-                      <hr className="my-2" />
-                      <button
-                        className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent text-danger"
-                        onClick={() => { setShowClearConfirm(true); setShowHeaderMenu(false); }}
-                        style={{ cursor: 'pointer' }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-100)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        Clear Database
-                      </button>
-                      {isSuperAdmin && (
-                        <>
-                          <hr className="my-2" />
-                          <button
-                            className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent text-danger"
-                            onClick={() => { setShowSuperAdminPanel(true); setShowHeaderMenu(false); }}
-                            style={{ cursor: 'pointer' }}
-                            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-100)'}
-                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                          >
-                            Super Admin Panel
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+                        <button
+                          className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent text-danger"
+                          onClick={() => { setShowSuperAdminPanel(true); setShowHeaderMenu(false); }}
+                          style={{ cursor: 'pointer' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-100)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          Super Admin Panel
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -403,6 +563,12 @@ export function ProductivityDashboard() {
             >
               Velocity
             </button>
+            <button
+              className={`nav-link ${activeTab === 'forecasting' ? 'active' : ''}`}
+              onClick={() => setActiveTab('forecasting')}
+            >
+              Forecast
+            </button>
           </div>
         )}
 
@@ -419,8 +585,8 @@ export function ProductivityDashboard() {
 
         {/* Main Content */}
         <div className="row g-4">
-          {/* Main Area */}
-          <div className={isMobile ? 'col-12' : 'col-lg-9'}>
+          {/* Main Area - Full width now that sidebar is removed */}
+          <div className="col-12">
             {/* Desktop Tabs */}
             {!isMobile && (
               <div className="nav-pills-bespoke mb-4">
@@ -465,6 +631,12 @@ export function ProductivityDashboard() {
                 onClick={() => setActiveTab('velocity')}
               >
                 Velocity Insights
+              </button>
+              <button
+                className={`nav-link ${activeTab === 'forecasting' ? 'active' : ''}`}
+                onClick={() => setActiveTab('forecasting')}
+              >
+                Forecasting
               </button>
               </div>
             )}
@@ -539,58 +711,21 @@ export function ProductivityDashboard() {
                 {activeTab === 'velocity' && velocityMetrics && (
                   <VelocityInsightsTab metrics={velocityMetrics} />
                 )}
+
+                {activeTab === 'forecasting' && (
+                  <ForecastingTab
+                    requisitions={state.dataStore.requisitions}
+                    candidates={state.dataStore.candidates}
+                    events={state.dataStore.events}
+                    users={state.dataStore.users}
+                    config={state.dataStore.config}
+                    hmFriction={state.hmFriction}
+                  />
+                )}
               </>
             )}
           </div>
 
-          {/* Sidebar - hidden on mobile for cleaner experience, hidden in print */}
-          {!isMobile && (
-            <div className="col-lg-3 sidebar-column">
-              <DataHealthPanel
-                health={state.dataStore.dataHealth}
-                onConfigureStages={() => setShowStageMapping(true)}
-              />
-
-              {/* Quick Stats */}
-              <div className="card-bespoke mt-4">
-                <div className="card-header border-0 bg-transparent pt-3 px-3 pb-0">
-                  <h6 className="mb-0 fw-bold">Quick Stats</h6>
-                </div>
-                <div className="card-body p-3">
-                  <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                    <span className="small text-muted">Recruiters</span>
-                    <strong className="text-dark">{state.overview?.recruiterSummaries.length || 0}</strong>
-                  </div>
-                  <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                    <span className="small text-muted">Hiring Managers</span>
-                    <strong className="text-dark">{state.hmFriction.length}</strong>
-                  </div>
-                  <div className="d-flex justify-content-between align-items-center py-2 border-bottom border-light">
-                    <span className="small text-muted">Open Reqs</span>
-                    <strong className="text-dark">
-                      {state.dataStore.requisitions.filter(r => r.status === 'Open').length}
-                    </strong>
-                  </div>
-                  <div className="d-flex justify-content-between align-items-center py-2">
-                    <span className="small text-muted">Active Candidates</span>
-                    <strong className="text-dark">
-                      {state.dataStore.candidates.filter(c => c.disposition === 'Active').length}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Last Import Info */}
-              {state.dataStore.lastImportAt && (
-                <div className="mt-4 p-3 rounded" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-slate-200)' }}>
-                  <small className="text-muted d-flex align-items-center gap-2">
-                    <i className="bi bi-clock-history"></i>
-                    Last synced: {state.dataStore.lastImportAt.toLocaleString()}
-                  </small>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <StageMappingModal
