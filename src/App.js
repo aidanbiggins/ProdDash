@@ -1,10 +1,23 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard'; // Legacy dashboard
 import ComparisonView from './components/ComparisonView'; // Legacy
 import { RecruiterProductivityDashboard } from './productivity-dashboard';
+import { InviteAcceptPage } from './components/InviteAcceptPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+// Login route that redirects logged-in users to returnUrl or home
+function LoginRoute() {
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl') || '/';
+
+  if (user) {
+    return <Navigate to={returnUrl} />;
+  }
+  return <Login />;
+}
 
 // Protected route wrapper
 function ProtectedRoute({ children }) {
@@ -26,7 +39,10 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+      <Route path="/login" element={<LoginRoute />} />
+
+      {/* Invite Accept Page - accessible without login but requires login to accept */}
+      <Route path="/invite/:token" element={<InviteAcceptPage />} />
 
       {/* Main Dashboard - Protected */}
       <Route path="/" element={

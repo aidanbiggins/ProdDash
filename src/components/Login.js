@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [searchParams] = useSearchParams();
+
+  // Get return URL from query params (for invite redirects, etc.)
+  const returnUrl = searchParams.get('returnUrl') || '/';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,7 +30,7 @@ const Login = () => {
         }
       };
       localStorage.setItem('dev-auth-bypass', JSON.stringify(fakeSession));
-      window.location.href = '/';
+      window.location.href = returnUrl;
       return;
     }
 
@@ -38,10 +43,15 @@ const Login = () => {
     setMessage('');
 
     // Using Magic Link for simplicity, but easy to add Google/Password
+    // Include returnUrl in the redirect so user goes back to where they came from
+    const redirectUrl = returnUrl !== '/'
+      ? `${window.location.origin}${returnUrl}`
+      : window.location.origin;
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: redirectUrl,
       },
     });
 
