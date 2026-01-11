@@ -87,12 +87,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Load memberships for a user
     const loadMemberships = useCallback(async (userId: string) => {
+        console.log('[Auth] Loading memberships for user:', userId);
         try {
             const [userMemberships, superAdminStatus] = await Promise.all([
                 getUserMemberships(userId),
                 checkIsSuperAdmin(userId)
             ]);
 
+            console.log('[Auth] Memberships loaded:', userMemberships.length, 'isSuperAdmin:', superAdminStatus);
             setMemberships(userMemberships);
             setIsSuperAdmin(superAdminStatus);
 
@@ -127,6 +129,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         let isMounted = true;
+
+        // Safety timeout - ensure loading never hangs indefinitely
+        const safetyTimeout = setTimeout(() => {
+            if (isMounted && loading) {
+                console.warn('Auth loading timeout - forcing complete');
+                setLoading(false);
+            }
+        }, 10000); // 10 second timeout
 
         // Check for dev bypass first
         const devBypass = localStorage.getItem('dev-auth-bypass');
@@ -168,9 +178,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const initAuth = async () => {
             if (!supabase) return; // TypeScript guard
+            console.log('[Auth] initAuth starting');
             try {
                 // Get initial session
                 const { data: { session } } = await supabase.auth.getSession();
+                console.log('[Auth] Got session:', session?.user?.email ?? 'no session');
 
                 if (!isMounted) return;
 
@@ -181,12 +193,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     try {
                         await loadMemberships(session.user.id);
                     } catch (err) {
-                        console.error('Failed to load memberships:', err);
+                        console.error('[Auth] Failed to load memberships:', err);
                     }
                 }
             } catch (err) {
-                console.error('Auth init error:', err);
+                console.error('[Auth] Init error:', err);
             } finally {
+                console.log('[Auth] initAuth complete, setting loading=false');
                 if (isMounted) {
                     setLoading(false);
                 }
@@ -219,6 +232,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         return () => {
             isMounted = false;
+            clearTimeout(safetyTimeout);
             subscription.unsubscribe();
         };
     }, [loadMemberships]);
