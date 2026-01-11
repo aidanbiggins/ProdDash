@@ -126,6 +126,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [memberships, isSuperAdmin]);
 
     useEffect(() => {
+        let isMounted = true;
+
         // Check for dev bypass first
         const devBypass = localStorage.getItem('dev-auth-bypass');
         if (devBypass) {
@@ -164,25 +166,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
         }
 
-        // Get initial session
-        supabase.auth.getSession().then(async ({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
+        const initAuth = async () => {
+            try {
+                // Get initial session
+                const { data: { session } } = await supabase.auth.getSession();
 
-            if (session?.user) {
-                await loadMemberships(session.user.id);
+                if (!isMounted) return;
+
+                setSession(session);
+                setUser(session?.user ?? null);
+
+                if (session?.user) {
+                    try {
+                        await loadMemberships(session.user.id);
+                    } catch (err) {
+                        console.error('Failed to load memberships:', err);
+                    }
+                }
+            } catch (err) {
+                console.error('Auth init error:', err);
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
+        };
 
-            setLoading(false);
-        });
+        initAuth();
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (!isMounted) return;
+
             setSession(session);
             setUser(session?.user ?? null);
 
             if (session?.user) {
-                await loadMemberships(session.user.id);
+                try {
+                    await loadMemberships(session.user.id);
+                } catch (err) {
+                    console.error('Failed to load memberships on auth change:', err);
+                }
             } else {
                 setMemberships([]);
                 setCurrentOrgId(null);
@@ -192,7 +216,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, [loadMemberships]);
 
     const signOut = async () => {
