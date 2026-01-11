@@ -176,56 +176,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
         }
 
-        const initAuth = async () => {
-            if (!supabase) return; // TypeScript guard
-            console.log('[Auth] initAuth starting');
-            try {
-                // Get initial session with retry for AbortError
-                let session = null;
-                let retries = 3;
-                while (retries > 0) {
-                    try {
-                        const { data } = await supabase.auth.getSession();
-                        session = data.session;
-                        break;
-                    } catch (e: any) {
-                        if (e?.name === 'AbortError' && retries > 1) {
-                            console.log('[Auth] AbortError, retrying...', retries - 1, 'left');
-                            retries--;
-                            await new Promise(r => setTimeout(r, 500));
-                        } else {
-                            throw e;
-                        }
-                    }
-                }
-                console.log('[Auth] Got session:', session?.user?.email ?? 'no session');
+        // Use onAuthStateChange as the primary auth mechanism
+        // This avoids AbortError issues with getSession()
+        console.log('[Auth] Setting up auth listener');
 
-                if (!isMounted) return;
-
-                setSession(session);
-                setUser(session?.user ?? null);
-
-                if (session?.user) {
-                    try {
-                        await loadMemberships(session.user.id);
-                    } catch (err) {
-                        console.error('[Auth] Failed to load memberships:', err);
-                    }
-                }
-            } catch (err) {
-                console.error('[Auth] Init error:', err);
-            } finally {
-                console.log('[Auth] initAuth complete, setting loading=false');
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        initAuth();
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('[Auth] Auth state changed:', event, session?.user?.email ?? 'no session');
             if (!isMounted) return;
 
             setSession(session);
@@ -235,7 +191,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 try {
                     await loadMemberships(session.user.id);
                 } catch (err) {
-                    console.error('Failed to load memberships on auth change:', err);
+                    console.error('[Auth] Failed to load memberships:', err);
                 }
             } else {
                 setMemberships([]);
@@ -246,9 +202,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
         });
 
+        // Fallback: if no auth event fires within 3 seconds, force loading complete
+        const fallbackTimeout = setTimeout(() => {
+            if (isMounted && loading) {
+                console.log('[Auth] No auth event received, completing loading');
+                setLoading(false);
+            }
+        }, 3000);
+
         return () => {
             isMounted = false;
             clearTimeout(safetyTimeout);
+            clearTimeout(fallbackTimeout);
             subscription.unsubscribe();
         };
     }, [loadMemberships]);
