@@ -1,6 +1,7 @@
 // Configuration types for the Recruiter Productivity Dashboard
 
 import { CanonicalStage } from './entities';
+import { PipelineBenchmarkConfig, DEFAULT_PIPELINE_BENCHMARKS, RecruiterGoal } from './pipelineTypes';
 
 // ===== STAGE MAPPING =====
 
@@ -53,6 +54,8 @@ export interface DashboardConfig {
   marketWeights: MarketWeightsConfig;
   nicheWeights: NicheWeightsConfig;
   thresholds: ThresholdsConfig;
+  pipelineBenchmarks: PipelineBenchmarkConfig;
+  recruiterGoals: RecruiterGoal[];
 }
 
 // ===== CONFIG CHANGE LOG =====
@@ -115,5 +118,7 @@ export const DEFAULT_CONFIG: DashboardConfig = {
     lowConfidenceThreshold: 10,  // percentage
     minLoopsForHMWeight: 3,
     offerMultiplier: 0.6
-  }
+  },
+  pipelineBenchmarks: DEFAULT_PIPELINE_BENCHMARKS,
+  recruiterGoals: []
 };

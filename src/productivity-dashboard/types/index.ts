@@ -6,12 +6,15 @@ export * from './config';
 export * from './hmTypes';
 export * from './velocityTypes';
 export * from './forecastingTypes';
+export * from './loadingTypes';
+export * from './pipelineTypes';
 
 // ===== DATA STORE STATE =====
 
 import { Requisition, Candidate, Event, User } from './entities';
 import { DashboardConfig } from './config';
 import { MetricFilters, OverviewMetrics, RecruiterSummary, HiringManagerFriction, QualityMetrics, WeeklyTrend } from './metrics';
+import { LoadingState } from './loadingTypes';
 
 export interface DataHealth {
   candidatesMissingFirstContact: { count: number; percentage: number };
@@ -44,6 +47,7 @@ export interface DashboardState {
   qualityMetrics: QualityMetrics | null;
   weeklyTrends: WeeklyTrend[];
   isLoading: boolean;
+  loadingState: LoadingState;
   error: string | null;
 }
 

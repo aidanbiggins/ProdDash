@@ -1,7 +1,7 @@
 // Source Effectiveness Tab Component
 // Analyzes recruiting channel performance (Referral vs Inbound vs Sourced etc)
 
-import React from 'react';
+import React, { JSX } from 'react';
 import {
     BarChart,
     Bar,
@@ -12,8 +12,7 @@ import {
     ResponsiveContainer,
     Cell,
     PieChart,
-    Pie,
-    Legend
+    Pie
 } from 'recharts';
 import { SourceEffectivenessMetrics } from '../../types';
 
@@ -23,16 +22,189 @@ interface SourceEffectivenessTabProps {
 
 // Color palette for sources
 const SOURCE_COLORS: Record<string, string> = {
-    Referral: '#059669',   // Emerald - best source typically
-    Sourced: '#0f766e',    // Teal - proactive sourcing
-    Inbound: '#6366f1',    // Indigo - applicants
-    Internal: '#8b5cf6',   // Violet - internal mobility
-    Agency: '#d97706',     // Amber - expensive
-    Other: '#64748b'       // Slate
+    Referral: '#059669',
+    Sourced: '#0f766e',
+    Inbound: '#6366f1',
+    Internal: '#8b5cf6',
+    Agency: '#d97706',
+    Other: '#64748b'
 };
 
+const STATUS_COLORS = {
+    danger: '#dc2626',
+    success: '#059669',
+    neutral: '#64748b'
+} as const;
+
 function getSourceColor(source: string): string {
-    return SOURCE_COLORS[source] || '#64748b';
+    return SOURCE_COLORS[source] || SOURCE_COLORS.Other;
+}
+
+// Reusable component for source color indicator
+interface SourceColorDotProps {
+    source: string;
+    size?: number;
+}
+
+function SourceColorDot({ source, size = 8 }: SourceColorDotProps): JSX.Element {
+    return (
+        <span
+            className="rounded-circle d-inline-block"
+            style={{ width: size, height: size, background: getSourceColor(source) }}
+        />
+    );
+}
+
+// Efficiency channel data type
+interface EfficiencyChannel {
+    source: string;
+    candidates: number;
+    hires: number;
+    candidatesPerHire: number | null;
+    efficiencyVsAvg: number | null;
+    isMirage: boolean;
+    isEfficient: boolean;
+    hireRate: number | null;
+}
+
+// Channel card for mirage/efficient channels
+interface ChannelCardProps {
+    title: string;
+    subtitle: string;
+    channels: EfficiencyChannel[];
+    variant: 'danger' | 'success';
+}
+
+function ChannelCard({ title, subtitle, channels, variant }: ChannelCardProps): JSX.Element {
+    const color = variant === 'danger' ? STATUS_COLORS.danger : STATUS_COLORS.success;
+    const bgAlpha = variant === 'danger' ? 'rgba(220, 38, 38, 0.05)' : 'rgba(5, 150, 105, 0.05)';
+
+    return (
+        <div className="card-bespoke h-100" style={{ borderLeft: `4px solid ${color}` }}>
+            <div className="card-header" style={{ background: bgAlpha }}>
+                <h6 style={{ color }}>{title}</h6>
+                <small className="text-muted">{subtitle}</small>
+            </div>
+            <div className="card-body">
+                {channels.map(ch => (
+                    <div
+                        key={ch.source}
+                        className="d-flex justify-content-between align-items-center py-2"
+                        style={{ borderBottom: '1px solid var(--color-slate-100)' }}
+                    >
+                        <div className="d-flex align-items-center gap-2">
+                            <SourceColorDot source={ch.source} size={10} />
+                            <span className="fw-medium">{ch.source}</span>
+                        </div>
+                        <div className="text-end">
+                            <ChannelMetric channel={ch} variant={variant} />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+interface ChannelMetricProps {
+    channel: EfficiencyChannel;
+    variant: 'danger' | 'success';
+}
+
+function ChannelMetric({ channel, variant }: ChannelMetricProps): JSX.Element {
+    const color = variant === 'danger' ? STATUS_COLORS.danger : STATUS_COLORS.success;
+
+    if (variant === 'danger' && channel.hires === 0) {
+        return (
+            <div>
+                <span className="badge bg-danger">0 hires</span>
+                <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                    {channel.candidates} candidates processed
+                </div>
+            </div>
+        );
+    }
+
+    const comparisonText = variant === 'danger'
+        ? `${Math.round(channel.efficiencyVsAvg || 0)}% worse than avg`
+        : `${Math.abs(Math.round(channel.efficiencyVsAvg || 0))}% better than avg`;
+
+    return (
+        <div>
+            <span style={{ color, fontWeight: 600 }}>
+                {channel.candidatesPerHire?.toFixed(1)} candidates/hire
+            </span>
+            <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                {comparisonText}
+            </div>
+        </div>
+    );
+}
+
+// Status badge helper
+function getStatusBadge(item: EfficiencyChannel): JSX.Element {
+    if (item.isMirage) {
+        return (
+            <span className="badge" style={{ background: 'rgba(220, 38, 38, 0.1)', color: STATUS_COLORS.danger }}>
+                Mirage
+            </span>
+        );
+    }
+    if (item.isEfficient) {
+        return (
+            <span className="badge" style={{ background: 'rgba(5, 150, 105, 0.1)', color: STATUS_COLORS.success }}>
+                Efficient
+            </span>
+        );
+    }
+    const label = item.hires === 0 ? 'No Hires' : 'Average';
+    return (
+        <span className="badge" style={{ background: 'rgba(100, 116, 139, 0.1)', color: STATUS_COLORS.neutral }}>
+            {label}
+        </span>
+    );
+}
+
+// Pass rate styling helper
+interface PassRateStyle {
+    bgColor: string;
+    textColor: string;
+}
+
+function getPassRateStyle(passRate: number | null): PassRateStyle {
+    if (passRate === null) {
+        return { bgColor: 'transparent', textColor: 'var(--color-slate-400)' };
+    }
+    if (passRate >= 0.7) {
+        return { bgColor: 'rgba(5, 150, 105, 0.15)', textColor: STATUS_COLORS.success };
+    }
+    if (passRate >= 0.4) {
+        return { bgColor: 'rgba(217, 119, 6, 0.15)', textColor: '#d97706' };
+    }
+    return { bgColor: 'rgba(220, 38, 38, 0.15)', textColor: STATUS_COLORS.danger };
+}
+
+// Rate badge with configurable thresholds
+interface RateBadgeProps {
+    rate: number | null;
+    thresholds: { high: number; medium: number };
+}
+
+function RateBadge({ rate, thresholds }: RateBadgeProps): JSX.Element {
+    if (rate === null) {
+        return <span className="text-muted">—</span>;
+    }
+    let badgeClass = 'badge-warning-soft';
+    if (rate >= thresholds.high) {
+        badgeClass = 'badge-success-soft';
+    } else if (rate >= thresholds.medium) {
+        badgeClass = 'badge-neutral-soft';
+    }
+    return (
+        <span className={`badge-bespoke ${badgeClass}`}>
+            {Math.round(rate * 100)}%
+        </span>
+    );
 }
 
 export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
@@ -58,6 +230,48 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
             fill: getSourceColor(s.source)
         }));
 
+    // Calculate source efficiency metrics
+    const avgCandidatesPerHire = data.totalHires > 0
+        ? data.totalCandidates / data.totalHires
+        : 0;
+
+    // Sources with efficiency data (only those with hires can have efficiency)
+    const efficiencyData = data.bySource
+        .filter(s => s.totalCandidates >= minCandidatesForChart)
+        .map(s => {
+            const candidatesPerHire = s.hires > 0 ? s.totalCandidates / s.hires : null;
+            const efficiencyVsAvg = candidatesPerHire && avgCandidatesPerHire > 0
+                ? ((candidatesPerHire - avgCandidatesPerHire) / avgCandidatesPerHire) * 100
+                : null;
+            // A source is a "mirage" if it takes 50%+ more candidates per hire than average
+            // OR if it has significant volume but zero hires
+            const isMirage = (efficiencyVsAvg !== null && efficiencyVsAvg > 50) ||
+                (s.hires === 0 && s.totalCandidates >= 10);
+            // A source is "efficient" if it takes 25%+ fewer candidates per hire than average
+            const isEfficient = efficiencyVsAvg !== null && efficiencyVsAvg < -25;
+
+            return {
+                source: s.source,
+                candidates: s.totalCandidates,
+                hires: s.hires,
+                candidatesPerHire,
+                efficiencyVsAvg,
+                isMirage,
+                isEfficient,
+                hireRate: s.hireRate
+            };
+        })
+        .sort((a, b) => {
+            // Sort by candidates per hire (worst first, then sources with no hires)
+            if (a.candidatesPerHire === null && b.candidatesPerHire === null) return b.candidates - a.candidates;
+            if (a.candidatesPerHire === null) return -1; // No hires = worst
+            if (b.candidatesPerHire === null) return 1;
+            return b.candidatesPerHire - a.candidatesPerHire; // Higher = worse
+        });
+
+    const mirageChannels = efficiencyData.filter(s => s.isMirage);
+    const efficientChannels = efficiencyData.filter(s => s.isEfficient);
+
     return (
         <div>
             {/* Summary Cards */}
@@ -66,17 +280,17 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                     <div className="col-md-4">
                         <div className="card-bespoke h-100">
                             <div className="card-body text-center py-4">
-                                <div className="stat-label mb-2">Best Performing Source</div>
+                                <div className="stat-label mb-2">Top Hiring Source</div>
                                 <div className="stat-value" style={{ color: getSourceColor(data.bestSource.name) }}>
                                     {data.bestSource.name}
                                 </div>
                                 <div className="mt-2">
                                     <span className="badge-bespoke badge-success-soft">
-                                        {Math.round(data.bestSource.hireRate * 100)}% hire rate
+                                        {Math.round(data.bestSource.hireRate * 100)}% of hires
                                     </span>
                                 </div>
                                 <small className="text-muted d-block mt-1">
-                                    {data.bySource.find(s => s.source === data.bestSource!.name)?.hires || 0} hires from {data.bySource.find(s => s.source === data.bestSource!.name)?.totalCandidates || 0} candidates
+                                    {data.bestSource.hires.toLocaleString()} hires of {data.totalHires?.toLocaleString() || 0} total
                                 </small>
                             </div>
                         </div>
@@ -99,17 +313,17 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                     <div className="col-md-4">
                         <div className="card-bespoke h-100">
                             <div className="card-body text-center py-4">
-                                <div className="stat-label mb-2">Lowest Hire Rate</div>
+                                <div className="stat-label mb-2">Lowest Conversion Rate</div>
                                 <div className="stat-value" style={{ color: getSourceColor(data.worstSource.name) }}>
                                     {data.worstSource.name}
                                 </div>
                                 <div className="mt-2">
                                     <span className="badge-bespoke badge-warning-soft">
-                                        {Math.round(data.worstSource.hireRate * 100)}% hire rate
+                                        {Math.round(data.worstSource.hireRate * 100)}% conversion
                                     </span>
                                 </div>
                                 <small className="text-muted d-block mt-1">
-                                    {data.bySource.find(s => s.source === data.worstSource!.name)?.hires || 0} hires from {data.bySource.find(s => s.source === data.worstSource!.name)?.totalCandidates || 0} candidates
+                                    {data.worstSource.hires.toLocaleString()} hires from {data.worstSource.totalCandidates.toLocaleString()} candidates
                                 </small>
                             </div>
                         </div>
@@ -215,6 +429,87 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                 </div>
             </div>
 
+            {/* Source Efficiency Analysis - Mirage Channel Detection */}
+            {efficiencyData.length > 0 && (
+                <div className="row g-4 mb-4">
+                    {mirageChannels.length > 0 && (
+                        <div className="col-md-6">
+                            <ChannelCard
+                                title="Mirage Channels"
+                                subtitle="High activity, low results - consider reducing investment"
+                                channels={mirageChannels}
+                                variant="danger"
+                            />
+                        </div>
+                    )}
+
+                    {efficientChannels.length > 0 && (
+                        <div className={`col-md-${mirageChannels.length > 0 ? '6' : '12'}`}>
+                            <ChannelCard
+                                title="High Efficiency Channels"
+                                subtitle="Best ROI - consider increasing investment"
+                                channels={efficientChannels}
+                                variant="success"
+                            />
+                        </div>
+                    )}
+
+                    <div className="col-12">
+                        <div className="card-bespoke">
+                            <div className="card-header">
+                                <h6>Source Efficiency Comparison</h6>
+                                <small className="text-muted">
+                                    Average: {avgCandidatesPerHire.toFixed(1)} candidates per hire
+                                </small>
+                            </div>
+                            <div className="card-body p-0">
+                                <div className="table-responsive">
+                                    <table className="table table-bespoke table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Source</th>
+                                                <th className="text-end">Candidates</th>
+                                                <th className="text-end">Hires</th>
+                                                <th className="text-end">Candidates/Hire</th>
+                                                <th className="text-end">vs Average</th>
+                                                <th className="text-center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {efficiencyData.map(s => (
+                                                <tr key={s.source}>
+                                                    <td>
+                                                        <div className="d-flex align-items-center gap-2">
+                                                            <SourceColorDot source={s.source} />
+                                                            {s.source}
+                                                        </div>
+                                                    </td>
+                                                    <td className="text-end">{s.candidates.toLocaleString()}</td>
+                                                    <td className="text-end">{s.hires.toLocaleString()}</td>
+                                                    <td className="text-end">
+                                                        {s.candidatesPerHire !== null ? s.candidatesPerHire.toFixed(1) : '—'}
+                                                    </td>
+                                                    <td className="text-end">
+                                                        {s.efficiencyVsAvg !== null ? (
+                                                            <span style={{ color: s.efficiencyVsAvg > 0 ? STATUS_COLORS.danger : STATUS_COLORS.success }}>
+                                                                {s.efficiencyVsAvg > 0 ? '+' : ''}{Math.round(s.efficiencyVsAvg)}%
+                                                            </span>
+                                                        ) : '—'}
+                                                    </td>
+                                                    <td className="text-center">
+                                                        {getStatusBadge(s)}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Funnel Comparison by Source */}
             <div className="card-bespoke mb-4">
                 <div className="card-header">
@@ -239,36 +534,18 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                     <tr key={source.source}>
                                         <td className="fw-medium">
                                             <div className="d-flex align-items-center gap-2">
-                                                <span
-                                                    className="rounded-circle d-inline-block"
-                                                    style={{ width: 8, height: 8, background: getSourceColor(source.source) }}
-                                                />
+                                                <SourceColorDot source={source.source} />
                                                 {source.source}
                                             </div>
                                         </td>
                                         {source.funnel.map((stage, idx) => {
-                                            const passRate = stage.passRate;
-                                            const bgColor = passRate === null ? 'transparent' :
-                                                passRate >= 0.7 ? 'rgba(5, 150, 105, 0.15)' :
-                                                    passRate >= 0.4 ? 'rgba(217, 119, 6, 0.15)' :
-                                                        'rgba(220, 38, 38, 0.15)';
-                                            const textColor = passRate === null ? 'var(--color-slate-400)' :
-                                                passRate >= 0.7 ? '#059669' :
-                                                    passRate >= 0.4 ? '#d97706' :
-                                                        '#dc2626';
-
+                                            const { bgColor, textColor } = getPassRateStyle(stage.passRate);
                                             return (
-                                                <td
-                                                    key={idx}
-                                                    className="text-center"
-                                                    style={{
-                                                        background: bgColor
-                                                    }}
-                                                >
+                                                <td key={idx} className="text-center" style={{ background: bgColor }}>
                                                     {stage.entered > 0 ? (
                                                         <div>
                                                             <div style={{ fontWeight: 600, color: textColor }}>
-                                                                {passRate !== null ? `${Math.round(passRate * 100)}%` : '—'}
+                                                                {stage.passRate !== null ? `${Math.round(stage.passRate * 100)}%` : '—'}
                                                             </div>
                                                             <div style={{ fontSize: '0.65rem', color: 'var(--color-slate-500)' }}>
                                                                 {stage.passed}/{stage.entered}
@@ -318,39 +595,18 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                     <tr key={s.source}>
                                         <td className="fw-medium">
                                             <div className="d-flex align-items-center gap-2">
-                                                <span
-                                                    className="rounded-circle d-inline-block"
-                                                    style={{ width: 8, height: 8, background: getSourceColor(s.source) }}
-                                                />
+                                                <SourceColorDot source={s.source} />
                                                 {s.source}
                                             </div>
                                         </td>
+                                        <td className="text-end">{s.totalCandidates}</td>
+                                        <td className="text-end">{s.hires}</td>
                                         <td className="text-end">
-                                            {s.totalCandidates}
+                                            <RateBadge rate={s.hireRate} thresholds={{ high: 0.15, medium: 0.05 }} />
                                         </td>
+                                        <td className="text-end">{s.offers}</td>
                                         <td className="text-end">
-                                            {s.hires}
-                                        </td>
-                                        <td className="text-end">
-                                            {s.hireRate !== null ? (
-                                                <span className={`badge-bespoke ${s.hireRate >= 0.15 ? 'badge-success-soft' : s.hireRate >= 0.05 ? 'badge-neutral-soft' : 'badge-warning-soft'}`}>
-                                                    {Math.round(s.hireRate * 100)}%
-                                                </span>
-                                            ) : (
-                                                <span className="text-muted">—</span>
-                                            )}
-                                        </td>
-                                        <td className="text-end">
-                                            {s.offers}
-                                        </td>
-                                        <td className="text-end">
-                                            {s.offerAcceptRate !== null ? (
-                                                <span className={`badge-bespoke ${s.offerAcceptRate >= 0.8 ? 'badge-success-soft' : s.offerAcceptRate >= 0.6 ? 'badge-neutral-soft' : 'badge-warning-soft'}`}>
-                                                    {Math.round(s.offerAcceptRate * 100)}%
-                                                </span>
-                                            ) : (
-                                                <span className="text-muted">—</span>
-                                            )}
+                                            <RateBadge rate={s.offerAcceptRate} thresholds={{ high: 0.8, medium: 0.6 }} />
                                         </td>
                                         <td className="text-end text-muted">
                                             {s.medianTimeToHire !== null ? `${s.medianTimeToHire}d` : '—'}

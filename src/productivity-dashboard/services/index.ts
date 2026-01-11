@@ -14,3 +14,4 @@ export * from './velocityAnalysis';
 export * from './forecastingService';
 export * from './icimsParser';
 export * from './eventGeneration';
+export * from './pipelineBenchmarkService';

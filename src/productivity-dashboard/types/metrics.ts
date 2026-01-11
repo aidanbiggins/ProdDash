@@ -302,12 +302,17 @@ export interface SourceEffectivenessMetrics {
   bySource: SourceMetrics[];
   bestSource: {
     name: string;
-    hireRate: number;
+    hireRate: number;  // For best: % of all hires from this source
+    hires: number;
+    totalCandidates: number;
   } | null;
   worstSource: {
     name: string;
-    hireRate: number;
+    hireRate: number;  // For worst: actual conversion rate (hires/candidates)
+    hires: number;
+    totalCandidates: number;
   } | null;
   totalCandidates: number;
+  totalHires: number;  // Total hires across all sources
   sourceDistribution: Array<{ source: string; percentage: number }>;
 }

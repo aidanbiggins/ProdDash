@@ -1,7 +1,7 @@
 // Velocity Insights Tab Component
 // Analyzes factors that contribute to fast, successful hires
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   AreaChart,
   Area,
@@ -15,11 +15,24 @@ import {
   ReferenceLine,
   Cell
 } from 'recharts';
-import { VelocityMetrics, DecayDataPoint, VelocityInsight, CohortComparison, SuccessFactorComparison } from '../../types';
+import { VelocityMetrics, DecayDataPoint, VelocityInsight, CohortComparison, SuccessFactorComparison, Requisition, Candidate, Event, User, HiringManagerFriction, MetricFilters } from '../../types';
+import { DashboardConfig } from '../../types/config';
+import { PipelineBenchmarkConfig, HistoricalBenchmarkResult } from '../../types/pipelineTypes';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { PipelineHealthCard, BenchmarkConfigModal } from '../pipeline-health';
+import { calculatePipelineHealth, generateHistoricalBenchmarks } from '../../services';
 
 interface VelocityInsightsTabProps {
   metrics: VelocityMetrics;
+  // Additional props for pipeline health
+  requisitions?: Requisition[];
+  candidates?: Candidate[];
+  events?: Event[];
+  users?: User[];
+  hmFriction?: HiringManagerFriction[];
+  config?: DashboardConfig;
+  filters?: MetricFilters;
+  onUpdateConfig?: (config: DashboardConfig) => void;
 }
 
 // Color scale for decay visualization (green to red)
@@ -71,11 +84,55 @@ function InsightCard({ insight }: { insight: VelocityInsight }) {
   );
 }
 
-export function VelocityInsightsTab({ metrics }: VelocityInsightsTabProps) {
+export function VelocityInsightsTab({
+  metrics,
+  requisitions,
+  candidates,
+  events,
+  users,
+  hmFriction,
+  config,
+  filters,
+  onUpdateConfig
+}: VelocityInsightsTabProps) {
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? 250 : 320;
 
   const { candidateDecay, reqDecay, insights } = metrics;
+
+  // Pipeline Health state
+  const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
+  const [historicalBenchmarks, setHistoricalBenchmarks] = useState<HistoricalBenchmarkResult | null>(null);
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(false);
+
+  // Calculate pipeline health if we have the required data
+  const pipelineHealth = useMemo(() => {
+    if (!requisitions?.length || !candidates?.length || !events || !users || !hmFriction || !config || !filters) {
+      return null;
+    }
+    return calculatePipelineHealth(requisitions, candidates, events, users, hmFriction, config, filters);
+  }, [requisitions, candidates, events, users, hmFriction, config, filters]);
+
+  // Load historical benchmarks
+  const handleLoadHistorical = () => {
+    if (!requisitions || !candidates || !events || !config) return;
+    setIsLoadingHistorical(true);
+    setTimeout(() => {
+      const result = generateHistoricalBenchmarks(requisitions, candidates, events, config);
+      setHistoricalBenchmarks(result);
+      setIsLoadingHistorical(false);
+    }, 100);
+  };
+
+  // Save benchmark config
+  const handleSaveBenchmarks = (newConfig: PipelineBenchmarkConfig) => {
+    if (config && onUpdateConfig) {
+      onUpdateConfig({
+        ...config,
+        pipelineBenchmarks: newConfig
+      });
+    }
+  };
 
   // Format candidate decay data for chart
   const candidateChartData = candidateDecay.dataPoints
@@ -146,6 +203,30 @@ export function VelocityInsightsTab({ metrics }: VelocityInsightsTabProps) {
           </div>
         </div>
       </div>
+
+      {/* Pipeline Health Section - Full Detail */}
+      {(pipelineHealth || config) && (
+        <div className="mb-4">
+          <PipelineHealthCard
+            healthSummary={pipelineHealth}
+            compact={false}
+            onConfigureClick={() => setShowBenchmarkConfig(true)}
+          />
+        </div>
+      )}
+
+      {/* Benchmark Config Modal */}
+      {config && (
+        <BenchmarkConfigModal
+          isOpen={showBenchmarkConfig}
+          onClose={() => setShowBenchmarkConfig(false)}
+          currentConfig={config.pipelineBenchmarks}
+          historicalBenchmarks={historicalBenchmarks}
+          onSave={handleSaveBenchmarks}
+          onLoadHistorical={handleLoadHistorical}
+          isLoadingHistorical={isLoadingHistorical}
+        />
+      )}
 
       {/* Decay Curves */}
       <div className="row g-4 mb-4">

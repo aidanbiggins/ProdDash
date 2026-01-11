@@ -15,7 +15,12 @@ import {
   Candidate,
   Event,
   User,
-  DataHealth
+  DataHealth,
+  LoadingState,
+  BackgroundOperation,
+  OperationPhase,
+  createInitialLoadingState,
+  calculateOverallProgress
 } from '../types';
 import { DEFAULT_CONFIG, DashboardConfig } from '../types/config';
 import {
@@ -39,6 +44,9 @@ import {
 import { fetchDashboardData, persistDashboardData, clearAllData } from '../services/dbService';
 import { useAuth } from '../../contexts/AuthContext';
 
+// Utility to yield to browser and allow UI updates
+const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0));
+
 // ===== ACTION TYPES =====
 
 type DashboardAction =
@@ -55,7 +63,14 @@ type DashboardAction =
   | { type: 'SET_QUALITY_METRICS'; payload: QualityMetrics }
   | { type: 'SET_WEEKLY_TRENDS'; payload: WeeklyTrend[] }
   | { type: 'SET_DATA_HEALTH'; payload: DataHealth }
-  | { type: 'RESET' };
+  | { type: 'RESET' }
+  // Loading state actions
+  | { type: 'START_OPERATION'; payload: { id: string; phase: OperationPhase; label: string; total: number } }
+  | { type: 'UPDATE_OPERATION'; payload: { id: string; current: number; total?: number } }
+  | { type: 'COMPLETE_OPERATION'; payload: { id: string } }
+  | { type: 'FAIL_OPERATION'; payload: { id: string; error: string } }
+  | { type: 'CLEAR_OPERATIONS' }
+  | { type: 'SET_DATA_READY'; payload: Partial<LoadingState> };
 
 // ===== INITIAL STATE =====
 
@@ -95,6 +110,7 @@ const initialState: DashboardState = {
   qualityMetrics: null,
   weeklyTrends: [],
   isLoading: false,
+  loadingState: createInitialLoadingState(),
   error: null
 };
 
@@ -119,6 +135,20 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
           users: action.payload.users,
           lastImportAt: new Date(),
           importSource: action.payload.isDemo ? 'demo' : 'csv'
+        },
+        // Set loading state flags for base data
+        loadingState: {
+          ...state.loadingState,
+          hasBaseData: action.payload.requisitions.length > 0 || action.payload.candidates.length > 0,
+          hasEvents: action.payload.events.length > 0,
+          // Reset metric flags since we'll need to recalculate
+          hasOverviewMetrics: false,
+          hasRecruiterMetrics: false,
+          hasHMMetrics: false,
+          hasQualityMetrics: false,
+          hasTrendMetrics: false,
+          isFullyReady: false,
+          overallProgress: 0
         }
       };
 
@@ -177,6 +207,117 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
     case 'RESET':
       return initialState;
 
+    // Loading state actions
+    case 'START_OPERATION': {
+      const newOp: BackgroundOperation = {
+        id: action.payload.id,
+        phase: action.payload.phase,
+        label: action.payload.label,
+        current: 0,
+        total: action.payload.total,
+        startTime: Date.now(),
+        status: 'running'
+      };
+      const operations = [...state.loadingState.operations, newOp];
+      return {
+        ...state,
+        loadingState: {
+          ...state.loadingState,
+          operations,
+          overallProgress: calculateOverallProgress(operations),
+          isFullyReady: false
+        }
+      };
+    }
+
+    case 'UPDATE_OPERATION': {
+      const operations = state.loadingState.operations.map(op =>
+        op.id === action.payload.id
+          ? { ...op, current: action.payload.current, total: action.payload.total ?? op.total }
+          : op
+      );
+      return {
+        ...state,
+        loadingState: {
+          ...state.loadingState,
+          operations,
+          overallProgress: calculateOverallProgress(operations)
+        }
+      };
+    }
+
+    case 'COMPLETE_OPERATION': {
+      const operations = state.loadingState.operations.map(op =>
+        op.id === action.payload.id
+          ? { ...op, status: 'complete' as const, current: op.total }
+          : op
+      );
+      const allComplete = operations.every(op => op.status === 'complete');
+      return {
+        ...state,
+        loadingState: {
+          ...state.loadingState,
+          operations,
+          overallProgress: calculateOverallProgress(operations),
+          isFullyReady: allComplete
+        }
+      };
+    }
+
+    case 'FAIL_OPERATION': {
+      const operations = state.loadingState.operations.map(op =>
+        op.id === action.payload.id
+          ? { ...op, status: 'error' as const, error: action.payload.error }
+          : op
+      );
+      return {
+        ...state,
+        loadingState: {
+          ...state.loadingState,
+          operations,
+          overallProgress: calculateOverallProgress(operations)
+        }
+      };
+    }
+
+    case 'CLEAR_OPERATIONS':
+      return {
+        ...state,
+        loadingState: {
+          ...state.loadingState,
+          operations: [],
+          overallProgress: 0
+        }
+      };
+
+    case 'SET_DATA_READY': {
+      const newLoadingState = {
+        ...state.loadingState,
+        ...action.payload
+      };
+      // Calculate progress based on completed flags
+      const flagsToCheck = [
+        newLoadingState.hasBaseData,
+        newLoadingState.hasEvents,
+        newLoadingState.hasOverviewMetrics,
+        newLoadingState.hasHMMetrics,
+        newLoadingState.hasQualityMetrics,
+        newLoadingState.hasTrendMetrics
+      ];
+      const completedFlags = flagsToCheck.filter(Boolean).length;
+      const overallProgress = Math.round((completedFlags / flagsToCheck.length) * 100);
+      const isFullyReady = completedFlags === flagsToCheck.length;
+
+      return {
+        ...state,
+        loadingState: {
+          ...newLoadingState,
+          isFullyReady,
+          overallProgress
+        }
+      };
+    }
+
     default:
       return state;
   }
@@ -208,6 +349,13 @@ interface DashboardContextType {
   ) => Promise<{ success: boolean; eventsGenerated: number; error?: string }>;
   needsEventGeneration: boolean;
   canImportData: boolean;
+  // Loading state helpers
+  startOperation: (id: string, phase: OperationPhase, label: string, total: number) => void;
+  updateOperation: (id: string, current: number, total?: number) => void;
+  completeOperation: (id: string) => void;
+  failOperation: (id: string, error: string) => void;
+  clearOperations: () => void;
+  setDataReady: (flags: Partial<LoadingState>) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
@@ -390,9 +538,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     // Debounce the actual calculation (300ms delay)
     metricsDebounceRef.current = setTimeout(() => {
       // Use requestAnimationFrame to let UI update before heavy calculation
-      requestAnimationFrame(() => {
+      requestAnimationFrame(async () => {
         console.time('[Metrics] Total calculation time');
-        refreshMetricsInternal();
+        await refreshMetricsInternal();
         console.timeEnd('[Metrics] Total calculation time');
         dispatch({ type: 'SET_LOADING', payload: false });
       });
@@ -417,14 +565,29 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SELECT_RECRUITER', payload: recruiterId });
   }, []);
 
-  // Internal function to reuse logic
-  const refreshMetricsInternal = () => {
+  // Internal async function for non-blocking metric calculations
+  const refreshMetricsInternal = async () => {
     const { requisitions, candidates, events, users, config } = state.dataStore;
     const normalizedEvents = normalizeEventStages(events, config.stageMapping);
+
+    // Start tracking operations
+    dispatch({ type: 'CLEAR_OPERATIONS' });
+    dispatch({ type: 'START_OPERATION', payload: { id: 'hm-metrics', phase: 'calculating-hm', label: 'Analyzing hiring managers', total: 1 } });
+    dispatch({ type: 'START_OPERATION', payload: { id: 'overview-metrics', phase: 'calculating-overview', label: 'Calculating overview metrics', total: 1 } });
+    dispatch({ type: 'START_OPERATION', payload: { id: 'quality-metrics', phase: 'calculating-quality', label: 'Computing quality metrics', total: 1 } });
+    dispatch({ type: 'START_OPERATION', payload: { id: 'trend-metrics', phase: 'calculating-trends', label: 'Building trend data', total: 1 } });
+
+    // Yield to allow UI to show operations
+    await yieldToBrowser();
 
     // Calculate HM friction first (needed for weights)
     const hmFriction = calculateHMFrictionMetrics(requisitions, events, users, state.filters, config);
     dispatch({ type: 'SET_HM_FRICTION', payload: hmFriction });
+    dispatch({ type: 'COMPLETE_OPERATION', payload: { id: 'hm-metrics' } });
+    dispatch({ type: 'SET_DATA_READY', payload: { hasHMMetrics: true } });
+
+    // Yield before next heavy calculation
+    await yieldToBrowser();
 
     const hmWeights = createHMWeightsMap(hmFriction);
     const complexityScores = calculateAllComplexityScores(requisitions, hmWeights, config);
@@ -496,10 +659,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     }
 
     dispatch({ type: 'SET_OVERVIEW', payload: overview });
+    dispatch({ type: 'COMPLETE_OPERATION', payload: { id: 'overview-metrics' } });
+    dispatch({ type: 'SET_DATA_READY', payload: { hasOverviewMetrics: true, hasRecruiterMetrics: true } });
+
+    // Yield before trends calculation
+    await yieldToBrowser();
 
     // Calculate weekly trends (with complexity scores for productivity)
     const trends = calculateWeeklyTrends(candidates, events, requisitions, state.filters, complexityScores);
     dispatch({ type: 'SET_WEEKLY_TRENDS', payload: trends });
+    dispatch({ type: 'COMPLETE_OPERATION', payload: { id: 'trend-metrics' } });
+    dispatch({ type: 'SET_DATA_READY', payload: { hasTrendMetrics: true } });
+
+    // Yield before quality calculation
+    await yieldToBrowser();
 
     // Calculate quality metrics
     const quality = calculateQualityMetrics(
@@ -511,9 +684,12 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       config
     );
     dispatch({ type: 'SET_QUALITY_METRICS', payload: quality });
+    dispatch({ type: 'COMPLETE_OPERATION', payload: { id: 'quality-metrics' } });
+    dispatch({ type: 'SET_DATA_READY', payload: { hasQualityMetrics: true } });
 
     // Refresh recruiter detail if one is selected
     if (state.selectedRecruiterId) {
+      await yieldToBrowser();
       const detail = calculateRecruiterSummary(
         state.selectedRecruiterId,
         requisitions,
@@ -651,6 +827,31 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     state.dataStore.events.length
   );
 
+  // Loading state helper functions
+  const startOperation = useCallback((id: string, phase: OperationPhase, label: string, total: number) => {
+    dispatch({ type: 'START_OPERATION', payload: { id, phase, label, total } });
+  }, []);
+
+  const updateOperation = useCallback((id: string, current: number, total?: number) => {
+    dispatch({ type: 'UPDATE_OPERATION', payload: { id, current, total } });
+  }, []);
+
+  const completeOperation = useCallback((id: string) => {
+    dispatch({ type: 'COMPLETE_OPERATION', payload: { id } });
+  }, []);
+
+  const failOperation = useCallback((id: string, error: string) => {
+    dispatch({ type: 'FAIL_OPERATION', payload: { id, error } });
+  }, []);
+
+  const clearOperations = useCallback(() => {
+    dispatch({ type: 'CLEAR_OPERATIONS' });
+  }, []);
+
+  const setDataReady = useCallback((flags: Partial<LoadingState>) => {
+    dispatch({ type: 'SET_DATA_READY', payload: flags });
+  }, []);
+
   const value: DashboardContextType = {
     state,
     importCSVs,
@@ -662,7 +863,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     clearPersistedData,
     generateEvents,
     needsEventGeneration,
-    canImportData
+    canImportData,
+    startOperation,
+    updateOperation,
+    completeOperation,
+    failOperation,
+    clearOperations,
+    setDataReady
   };
 
   return (

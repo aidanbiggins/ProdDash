@@ -418,6 +418,10 @@ function formatCell(value: any, key: string): React.ReactNode {
     }
 
     if (key === 'daysToFill') {
+        // Negative values indicate data quality issues (hired before req opened)
+        if (value < 0) {
+            return <span className="text-danger fw-bold" title="Data issue: Hired before req opened">{value}d ⚠️</span>;
+        }
         const color = value > 90 ? 'text-danger fw-bold' : value > 60 ? 'text-warning' : 'text-success';
         return <span className={color}>{value}d</span>;
     }
@@ -537,5 +541,14 @@ export function buildTTFRecords(
                 date: hireDate
             };
         })
-        .sort((a, b) => (a.daysToFill ?? 0) - (b.daysToFill ?? 0)); // Sort by TTF
+        // Sort: valid positive TTF first (ascending), then invalid/negative at the end
+        .sort((a, b) => {
+            const aValid = (a.daysToFill ?? -1) >= 0;
+            const bValid = (b.daysToFill ?? -1) >= 0;
+            // If one is valid and one isn't, valid comes first
+            if (aValid && !bValid) return -1;
+            if (!aValid && bValid) return 1;
+            // Otherwise sort by TTF value
+            return (a.daysToFill ?? 0) - (b.daysToFill ?? 0);
+        });
 }

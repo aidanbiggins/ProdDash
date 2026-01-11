@@ -6,6 +6,8 @@ import { useDashboard, PersistenceProgress } from '../hooks/useDashboardContext'
 import { CSVUpload } from './CSVUpload';
 import { FilterBar } from './common/FilterBar';
 import { DataHealthBadge } from './common/DataHealthBadge';
+import { ProgressIndicator, ProgressPill } from './common/ProgressIndicator';
+import { TabSkeleton, KPISkeleton, ChartSkeleton, TableSkeleton } from './common/Skeletons';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
 import { OverviewTab } from './overview/OverviewTab';
 import { RecruiterDetailTab } from './recruiter-detail/RecruiterDetailTab';
@@ -29,7 +31,8 @@ import { createOrganization } from '../services/organizationService';
 type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting';
 
 export function ProductivityDashboard() {
-  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData } = useDashboard();
+  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations } = useDashboard();
+  const [showProgressPanel, setShowProgressPanel] = useState(false);
   const { isMasked, toggleMasking } = useDataMasking();
   const { currentOrg, user, refreshMemberships, supabaseUser } = useAuth();
   const isMobile = useIsMobile();
@@ -429,7 +432,14 @@ export function ProductivityDashboard() {
               </div>
               <h1 className="mb-0 display-6 fw-bold text-dark">Recruiting Insights</h1>
               <div className="d-flex flex-wrap gap-3 mt-2 text-muted small align-items-center">
-                <span>{state.dataStore.requisitions.filter(r => r.status === 'Open').length} Open Reqs</span>
+                <span>{state.dataStore.requisitions.filter(r => {
+                  // Flexible open req detection
+                  if (r.status === 'Open') return true;
+                  const statusLower = r.status?.toLowerCase() || '';
+                  if (statusLower.includes('open') || statusLower === 'active') return true;
+                  if (r.status !== 'Closed' && !r.closed_at) return true;
+                  return false;
+                }).length} Open Reqs</span>
                 <span className="opacity-50">•</span>
                 <span>{state.dataStore.candidates.filter(c => c.disposition === 'Active').length} Active Candidates</span>
                 <span className="opacity-50">•</span>
@@ -455,6 +465,13 @@ export function ProductivityDashboard() {
               >
                 {isMasked ? '🔒 PII Masked' : '🔓 Show PII'}
               </button>
+              {/* Progress indicator pill */}
+              {state.loadingState.operations.length > 0 && (
+                <ProgressPill
+                  loadingState={state.loadingState}
+                  onClick={() => setShowProgressPanel(true)}
+                />
+              )}
               <button
                 className="btn btn-bespoke-primary"
                 onClick={refreshMetrics}
@@ -641,15 +658,11 @@ export function ProductivityDashboard() {
               </div>
             )}
 
-            {/* Tab Content */}
-            {state.isLoading ? (
-              <div className="text-center py-5">
-                <div className="spinner-border text-primary" />
-                <p className="mt-2 text-muted">Calculating metrics...</p>
-              </div>
-            ) : (
-              <>
-                {activeTab === 'overview' && state.overview && (
+            {/* Tab Content - Progressive rendering with skeletons */}
+            <>
+              {/* Overview Tab */}
+              {activeTab === 'overview' && (
+                state.loadingState.hasOverviewMetrics && state.overview ? (
                   <OverviewTab
                     overview={state.overview}
                     weeklyTrends={state.weeklyTrends}
@@ -659,10 +672,19 @@ export function ProductivityDashboard() {
                     candidates={state.dataStore.candidates}
                     requisitions={state.dataStore.requisitions}
                     users={state.dataStore.users}
+                    events={state.dataStore.events}
+                    hmFriction={state.hmFriction}
+                    config={state.dataStore.config}
+                    onUpdateConfig={updateConfig}
                   />
-                )}
+                ) : (
+                  <TabSkeleton showKPIs showChart showTable kpiCount={5} tableRows={8} />
+                )
+              )}
 
-                {activeTab === 'recruiter' && state.overview && (
+              {/* Recruiter Tab */}
+              {activeTab === 'recruiter' && (
+                state.loadingState.hasRecruiterMetrics && state.overview ? (
                   <RecruiterDetailTab
                     recruiterSummaries={state.overview.recruiterSummaries}
                     selectedRecruiterId={state.selectedRecruiterId}
@@ -676,9 +698,14 @@ export function ProductivityDashboard() {
                     recruiterPriorPeriods={state.overview.recruiterPriorPeriods}
                     filters={state.filters}
                   />
-                )}
+                ) : (
+                  <TabSkeleton showKPIs={false} showChart={false} showTable tableRows={10} tableColumns={6} />
+                )
+              )}
 
-                {activeTab === 'hm-friction' && (
+              {/* HM Friction Tab */}
+              {activeTab === 'hm-friction' && (
+                state.loadingState.hasHMMetrics ? (
                   <HMFrictionTab
                     friction={state.hmFriction}
                     requisitions={state.dataStore.requisitions}
@@ -686,44 +713,73 @@ export function ProductivityDashboard() {
                     users={state.dataStore.users}
                     filters={state.filters}
                   />
-                )}
+                ) : (
+                  <TabSkeleton showKPIs showChart={false} showTable kpiCount={4} tableRows={6} />
+                )
+              )}
 
-                {activeTab === 'quality' && state.qualityMetrics && (
+              {/* Quality Tab */}
+              {activeTab === 'quality' && (
+                state.loadingState.hasQualityMetrics && state.qualityMetrics ? (
                   <QualityTab quality={state.qualityMetrics} />
-                )}
+                ) : (
+                  <TabSkeleton showKPIs showChart showTable kpiCount={3} chartType="pie" tableRows={5} />
+                )
+              )}
 
-                {activeTab === 'source-mix' && sourceEffectiveness && (
+              {/* Source Mix Tab */}
+              {activeTab === 'source-mix' && (
+                sourceEffectiveness ? (
                   <SourceEffectivenessTab data={sourceEffectiveness} />
-                )}
+                ) : (
+                  <TabSkeleton showKPIs={false} showChart showTable chartType="bar" tableRows={6} />
+                )
+              )}
 
-                {activeTab === 'hiring-managers' && (
-                  <HiringManagersTab
+              {/* Hiring Managers Tab */}
+              {activeTab === 'hiring-managers' && (
+                <HiringManagersTab
+                  requisitions={state.dataStore.requisitions}
+                  candidates={state.dataStore.candidates}
+                  events={state.dataStore.events}
+                  users={state.dataStore.users}
+                  stageMappingConfig={state.dataStore.config.stageMapping}
+                  lastImportAt={state.dataStore.lastImportAt}
+                  filters={state.filters}
+                />
+              )}
+
+              {/* Velocity Tab */}
+              {activeTab === 'velocity' && (
+                velocityMetrics ? (
+                  <VelocityInsightsTab
+                    metrics={velocityMetrics}
                     requisitions={state.dataStore.requisitions}
                     candidates={state.dataStore.candidates}
                     events={state.dataStore.events}
                     users={state.dataStore.users}
-                    stageMappingConfig={state.dataStore.config.stageMapping}
-                    lastImportAt={state.dataStore.lastImportAt}
-                    filters={state.filters}
-                  />
-                )}
-
-                {activeTab === 'velocity' && velocityMetrics && (
-                  <VelocityInsightsTab metrics={velocityMetrics} />
-                )}
-
-                {activeTab === 'forecasting' && (
-                  <ForecastingTab
-                    requisitions={state.dataStore.requisitions}
-                    candidates={state.dataStore.candidates}
-                    events={state.dataStore.events}
-                    users={state.dataStore.users}
-                    config={state.dataStore.config}
                     hmFriction={state.hmFriction}
+                    config={state.dataStore.config}
+                    filters={state.filters}
+                    onUpdateConfig={updateConfig}
                   />
-                )}
-              </>
-            )}
+                ) : (
+                  <TabSkeleton showKPIs showChart showTable={false} kpiCount={4} chartType="line" />
+                )
+              )}
+
+              {/* Forecasting Tab */}
+              {activeTab === 'forecasting' && (
+                <ForecastingTab
+                  requisitions={state.dataStore.requisitions}
+                  candidates={state.dataStore.candidates}
+                  events={state.dataStore.events}
+                  users={state.dataStore.users}
+                  config={state.dataStore.config}
+                  hmFriction={state.hmFriction}
+                />
+              )}
+            </>
           </div>
 
         </div>
@@ -767,6 +823,19 @@ export function ProductivityDashboard() {
           isOpen={showSuperAdminPanel}
           onClose={() => setShowSuperAdminPanel(false)}
         />
+
+        {/* Progress Indicator Panel */}
+        {showProgressPanel && (
+          <ProgressIndicator
+            loadingState={state.loadingState}
+            onDismiss={() => {
+              setShowProgressPanel(false);
+              if (state.loadingState.isFullyReady) {
+                clearOperations();
+              }
+            }}
+          />
+        )}
       </div>
     </div>
   );

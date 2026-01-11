@@ -98,21 +98,28 @@ export function calculateOutcomeMetrics(
     isInDateRange(c.offer_extended_at, filter)
   );
 
-  // Offers accepted in date range
+  // Offers accepted: count only candidates whose offer was EXTENDED in date range AND accepted
+  // This prevents counting acceptances for offers extended before the range, which would cause >100% rates
   const offersAccepted = relevantCandidates.filter(c =>
-    isInDateRange(c.offer_accepted_at, filter)
+    isInDateRange(c.offer_extended_at, filter) && c.offer_accepted_at !== null
   );
 
-  // Time to fill for reqs closed in range
-  const closedReqs = requisitions.filter(r =>
-    matchesFilters(r, filter) &&
-    r.status === RequisitionStatus.Closed &&
-    isInDateRange(r.closed_at, filter)
-  );
+  // Time to fill: calculate from hired candidates in date range
+  // This matches what the drill-down shows and is more meaningful than req close dates
+  const reqMap = new Map(requisitions.filter(r => matchesFilters(r, filter)).map(r => [r.req_id, r]));
 
-  const ttfValues = closedReqs
-    .filter(r => r.closed_at && r.opened_at)
-    .map(r => differenceInDays(r.closed_at!, r.opened_at));
+  const ttfValues = relevantCandidates
+    .filter(c =>
+      c.disposition === CandidateDisposition.Hired &&
+      c.hired_at &&
+      isInDateRange(c.hired_at, filter)
+    )
+    .map(c => {
+      const req = reqMap.get(c.req_id);
+      if (!req?.opened_at || !c.hired_at) return null;
+      return differenceInDays(c.hired_at, req.opened_at);
+    })
+    .filter((ttf): ttf is number => ttf !== null && ttf >= 0); // Filter out nulls and negative values (data quality issues)
 
   return {
     hires: hiresInRange.length,
@@ -879,13 +886,43 @@ export function calculateSourceEffectiveness(
     requisitions.filter(r => matchesFilters(r, filter)).map(r => r.req_id)
   );
 
-  // Filter candidates to matching reqs and within date range
-  const relevantCandidates = candidates.filter(c =>
-    filteredReqIds.has(c.req_id) &&
-    (isInDateRange(c.applied_at, filter) ||
-      isInDateRange(c.first_contacted_at, filter) ||
-      isInDateRange(c.hired_at, filter))
-  );
+  // Filter candidates to matching reqs who ENTERED the pipeline within date range
+  // Use the EARLIEST known date to avoid bias toward recently-active candidates
+  const relevantCandidates = candidates.filter(c => {
+    if (!filteredReqIds.has(c.req_id)) return false;
+
+    // Find the earliest date from stage_timestamps or standard fields
+    let earliestDate: Date | null = c.applied_at || c.first_contacted_at;
+
+    // Check stage_timestamps for earlier dates (if available)
+    if (c.stage_timestamps) {
+      const st = c.stage_timestamps;
+      const allDates: Date[] = [];
+
+      if (st.screen_at) allDates.push(st.screen_at);
+      if (st.hm_screen_at) allDates.push(st.hm_screen_at);
+      if (st.onsite_at) allDates.push(st.onsite_at);
+      if (st.final_at) allDates.push(st.final_at);
+      if (st.offer_at) allDates.push(st.offer_at);
+      if (st.interviews) {
+        st.interviews.forEach(i => allDates.push(i.date));
+      }
+
+      if (allDates.length > 0) {
+        const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+        if (!earliestDate || minDate < earliestDate) {
+          earliestDate = minDate;
+        }
+      }
+    }
+
+    // Fallback to current_stage_entered_at only if we have no earlier date
+    if (!earliestDate) {
+      earliestDate = c.current_stage_entered_at;
+    }
+
+    return earliestDate ? isInDateRange(earliestDate, filter) : false;
+  });
 
   // Group candidates by source
   const candidatesBySource = new Map<string, Candidate[]>();
@@ -1042,16 +1079,35 @@ export function calculateSourceEffectiveness(
 
   // Source distribution - calculate first so we can use totalCandidates
   const totalCandidates = relevantCandidates.length;
+  const totalHires = bySource.reduce((sum, s) => sum + s.hires, 0);
 
-  // Find best and worst performing sources (with at least some volume)
-  // Use dynamic threshold - lower when filtered data is small
+  // Find best and worst performing sources
+  // Best = source with MOST hires (by volume)
+  // Worst = source with LOWEST hire rate (among sources with meaningful volume)
   const minVolumeThreshold = totalCandidates < 50 ? 1 : 5;
-  const sourcesWithVolume = bySource.filter(s => s.totalCandidates >= minVolumeThreshold && s.hireRate !== null);
-  const bestSource = sourcesWithVolume.length > 0
-    ? { name: sourcesWithVolume[0].source, hireRate: sourcesWithVolume[0].hireRate! }
+  const sourcesWithVolume = bySource.filter(s => s.totalCandidates >= minVolumeThreshold);
+  const sourcesWithHireRate = sourcesWithVolume.filter(s => s.hireRate !== null);
+
+  // Best source = most hires by volume, show as % of all hires
+  const sourcesSortedByHires = [...sourcesWithVolume].sort((a, b) => b.hires - a.hires);
+  const bestSource = sourcesSortedByHires.length > 0
+    ? {
+        name: sourcesSortedByHires[0].source,
+        hireRate: totalHires > 0 ? sourcesSortedByHires[0].hires / totalHires : 0, // % of total hires
+        hires: sourcesSortedByHires[0].hires,
+        totalCandidates: sourcesSortedByHires[0].totalCandidates
+      }
     : null;
-  const worstSource = sourcesWithVolume.length > 1
-    ? { name: sourcesWithVolume[sourcesWithVolume.length - 1].source, hireRate: sourcesWithVolume[sourcesWithVolume.length - 1].hireRate! }
+
+  // Worst source = lowest conversion rate (hire rate) among sources with volume
+  const sourcesSortedByRate = [...sourcesWithHireRate].sort((a, b) => (a.hireRate || 0) - (b.hireRate || 0));
+  const worstSource = sourcesSortedByRate.length > 0
+    ? {
+        name: sourcesSortedByRate[0].source,
+        hireRate: sourcesSortedByRate[0].hireRate!, // actual conversion rate
+        hires: sourcesSortedByRate[0].hires,
+        totalCandidates: sourcesSortedByRate[0].totalCandidates
+      }
     : null;
   const sourceDistribution = bySource.map(s => ({
     source: s.source,
@@ -1063,6 +1119,7 @@ export function calculateSourceEffectiveness(
     bestSource,
     worstSource,
     totalCandidates,
+    totalHires,
     sourceDistribution
   };
 }

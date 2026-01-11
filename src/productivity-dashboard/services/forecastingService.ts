@@ -854,7 +854,23 @@ export function calculateActiveRoleHealth(
     requisitions, candidates, events, users, hmFriction, config
   );
 
-  const openReqs = requisitions.filter(r => r.status === RequisitionStatus.Open);
+  // More flexible detection of "open" requisitions:
+  // 1. Status is explicitly "Open"
+  // 2. Status is NOT "Closed" and req has no closed_at date
+  // 3. Status contains "open" or "active" (case-insensitive, for different ATS formats)
+  const openReqs = requisitions.filter(r => {
+    // Explicit Open status
+    if (r.status === RequisitionStatus.Open) return true;
+
+    // Status contains "open" or "active" (case-insensitive)
+    const statusLower = r.status?.toLowerCase() || '';
+    if (statusLower.includes('open') || statusLower === 'active') return true;
+
+    // Not explicitly closed and has no close date - treat as open
+    if (r.status !== RequisitionStatus.Closed && !r.closed_at) return true;
+
+    return false;
+  });
 
   return openReqs.map(req => {
     const roleProfile: RoleProfile = {

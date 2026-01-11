@@ -6,14 +6,17 @@ import {
   Tooltip, Legend, ResponsiveContainer, Area, ComposedChart
 } from 'recharts';
 import { format, startOfWeek, isSameWeek } from 'date-fns';
-import { OverviewMetrics, RecruiterSummary, WeeklyTrend, DataHealth, Candidate, Requisition, User } from '../../types';
+import { OverviewMetrics, RecruiterSummary, WeeklyTrend, DataHealth, Candidate, Requisition, User, Event, HiringManagerFriction } from '../../types';
+import { DashboardConfig } from '../../types/config';
 import { KPICard } from '../common/KPICard';
 import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
 import { METRIC_FORMULAS } from '../common/MetricDrillDown';
-import { exportRecruiterSummaryCSV } from '../../services';
+import { exportRecruiterSummaryCSV, calculatePipelineHealth, generateHistoricalBenchmarks } from '../../services';
 import { MetricFilters } from '../../types';
 import { BespokeTable, BespokeTableColumn } from '../common/BespokeTable';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { PipelineHealthCard, BenchmarkConfigModal } from '../pipeline-health';
+import { PipelineBenchmarkConfig, HistoricalBenchmarkResult } from '../../types/pipelineTypes';
 
 interface OverviewTabProps {
   overview: OverviewMetrics;
@@ -21,10 +24,14 @@ interface OverviewTabProps {
   dataHealth: DataHealth;
   filters: MetricFilters;
   onSelectRecruiter: (recruiterId: string) => void;
-  // Raw data for drill-down
+  // Raw data for drill-down and pipeline health
   candidates: Candidate[];
   requisitions: Requisition[];
   users: User[];
+  events: Event[];
+  hmFriction: HiringManagerFriction[];
+  config: DashboardConfig;
+  onUpdateConfig: (config: DashboardConfig) => void;
 }
 
 export function OverviewTab({
@@ -35,7 +42,11 @@ export function OverviewTab({
   onSelectRecruiter,
   candidates,
   requisitions,
-  users
+  users,
+  events,
+  hmFriction,
+  config,
+  onUpdateConfig
 }: OverviewTabProps) {
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? 180 : 220;
@@ -79,6 +90,44 @@ export function OverviewTab({
 
   const resetFunnelMetrics = () => {
     setSelectedFunnelMetrics(new Set(['offers', 'hires']));
+  };
+
+  // Pipeline Health state
+  const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
+  const [historicalBenchmarks, setHistoricalBenchmarks] = useState<HistoricalBenchmarkResult | null>(null);
+  const [isLoadingHistorical, setIsLoadingHistorical] = useState(false);
+
+  // Calculate pipeline health
+  const pipelineHealth = useMemo(() => {
+    if (!requisitions.length || !candidates.length) return null;
+    return calculatePipelineHealth(
+      requisitions,
+      candidates,
+      events,
+      users,
+      hmFriction,
+      config,
+      filters
+    );
+  }, [requisitions, candidates, events, users, hmFriction, config, filters]);
+
+  // Load historical benchmarks
+  const handleLoadHistorical = () => {
+    setIsLoadingHistorical(true);
+    // Simulate async for UI feedback
+    setTimeout(() => {
+      const result = generateHistoricalBenchmarks(requisitions, candidates, events, config);
+      setHistoricalBenchmarks(result);
+      setIsLoadingHistorical(false);
+    }, 100);
+  };
+
+  // Save benchmark config
+  const handleSaveBenchmarks = (newConfig: PipelineBenchmarkConfig) => {
+    onUpdateConfig({
+      ...config,
+      pipelineBenchmarks: newConfig
+    });
   };
 
   // Custom tooltip with funnel conversion ratios
@@ -562,17 +611,29 @@ export function OverviewTab({
         </div>
       </div>
 
-      {/* Productivity Trend Chart */}
-      <div className="card-bespoke mb-4">
-        <div className="card-header">
-          <div className="d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">Productivity Trend</h6>
-            <small className="text-muted">Weighted Hires ÷ Open Reqs per Week</small>
-          </div>
+      {/* Pipeline Health + Productivity Trend Row */}
+      <div className="row g-4 mb-4">
+        {/* Pipeline Health Card (Compact) */}
+        <div className="col-lg-4">
+          <PipelineHealthCard
+            healthSummary={pipelineHealth}
+            compact={true}
+            onConfigureClick={() => setShowBenchmarkConfig(true)}
+          />
         </div>
-        <div className="card-body">
-          <ResponsiveContainer width="100%" height={180}>
-            <ComposedChart data={chartData}>
+
+        {/* Productivity Trend Chart */}
+        <div className="col-lg-8">
+          <div className="card-bespoke h-100">
+            <div className="card-header">
+              <div className="d-flex justify-content-between align-items-center">
+                <h6 className="mb-0">Productivity Trend</h6>
+                <small className="text-muted">Weighted Hires ÷ Open Reqs per Week</small>
+              </div>
+            </div>
+            <div className="card-body">
+              <ResponsiveContainer width="100%" height={180}>
+                <ComposedChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="week" fontSize={11} stroke="#64748b" />
               <YAxis
@@ -598,8 +659,21 @@ export function OverviewTab({
               />
             </ComposedChart>
           </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Benchmark Config Modal */}
+      <BenchmarkConfigModal
+        isOpen={showBenchmarkConfig}
+        onClose={() => setShowBenchmarkConfig(false)}
+        currentConfig={config.pipelineBenchmarks}
+        historicalBenchmarks={historicalBenchmarks}
+        onSave={handleSaveBenchmarks}
+        onLoadHistorical={handleLoadHistorical}
+        isLoadingHistorical={isLoadingHistorical}
+      />
 
       {/* Weekly Funnel Activity Chart */}
       <div className="card-bespoke mb-4">
