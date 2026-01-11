@@ -151,14 +151,10 @@ export const persistDashboardData = async (
     }));
 
     // Chunk inserts to avoid payload limits
-    console.log(`Starting chunked upsert: ${users.length} users, ${dbReqs.length} reqs, ${dbCands.length} candidates, ${dbEvents.length} events`);
-
     await chunkedUpsert('users', dbUsers);
     await chunkedUpsert('requisitions', dbReqs);
     await chunkedUpsert('candidates', dbCands);
     await chunkedUpsert('events', dbEvents);
-
-    console.log('Successfully persisted all data to Supabase');
 };
 
 /**

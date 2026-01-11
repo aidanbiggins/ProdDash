@@ -254,8 +254,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         return { success: false, errors: result.criticalErrors };
       }
 
-      // Persist to Supabase (only for real imports, not demo data)
-      if (!isDemo && currentOrg?.id) {
+      // Persist to Supabase (including demo data so it survives org switches)
+      if (currentOrg?.id) {
         await persistDashboardData(
           result.requisitions.data,
           result.candidates.data,

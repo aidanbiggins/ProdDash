@@ -109,7 +109,10 @@ export function ProductivityDashboard() {
   const handleCreateOrg = async (name: string) => {
     if (!supabaseUser?.id) throw new Error('Not authenticated');
     await createOrganization({ name }, supabaseUser.id);
-    await refreshMemberships();
+    // Don't await - let the modal close immediately while memberships refresh
+    refreshMemberships().catch(err => {
+      console.error('Failed to refresh memberships:', err);
+    });
   };
 
   const handleClearDataConfirm = async () => {

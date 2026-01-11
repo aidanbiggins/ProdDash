@@ -54,8 +54,8 @@ function formatDate(date: Date): string {
   return format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'");
 }
 
-function generateId(prefix: string, index: number): string {
-  return `${prefix}_${String(index).padStart(4, '0')}`;
+function generateId(prefix: string, index: number, sessionId: string): string {
+  return `${prefix}_${sessionId}_${String(index).padStart(4, '0')}`;
 }
 
 // Simulate candidate journey through funnel
@@ -123,6 +123,10 @@ export function generateSampleData(config: {
     hmCount = 10
   } = config;
 
+  // Generate unique session ID for this demo data generation
+  // This ensures each org gets unique IDs that won't conflict with other orgs
+  const sessionId = Math.random().toString(36).substring(2, 8);
+
   const now = new Date();
   const startDate = subDays(now, 120); // 4 months of data
 
@@ -134,12 +138,15 @@ export function generateSampleData(config: {
   const hmNames: { id: string; name: string }[] = [];
 
   // Generate recruiter names
+  const managerId = `manager_${sessionId}`;
+  const execId = `exec_${sessionId}`;
+
   for (let i = 1; i <= recruiterCount; i++) {
     const name = generateName();
     const emailName = `${name.first.toLowerCase()}.${name.last.toLowerCase()}`;
-    const id = `recruiter_${i}`;
+    const id = `recruiter_${sessionId}_${i}`;
     recruiterNames.push({ id, name: name.full });
-    users.push(`${id},${name.full},Recruiter,TA Team,manager_1,${emailName}@company.com`);
+    users.push(`${id},${name.full},Recruiter,TA Team,${managerId},${emailName}@company.com`);
   }
 
   // Generate hiring manager names
@@ -147,16 +154,16 @@ export function generateSampleData(config: {
     const name = generateName();
     const emailName = `${name.first.toLowerCase()}.${name.last.toLowerCase()}`;
     const func = randomItem(FUNCTIONS);
-    const id = `hm_${i}`;
+    const id = `hm_${sessionId}_${i}`;
     hmNames.push({ id, name: name.full });
-    users.push(`${id},${name.full},HiringManager,${func},exec_1,${emailName}@company.com`);
+    users.push(`${id},${name.full},HiringManager,${func},${execId},${emailName}@company.com`);
   }
 
   // Add TA manager and exec
   const managerName = generateName();
   const execName = generateName();
-  users.push(`manager_1,${managerName.full},Admin,TA Team,,${managerName.first.toLowerCase()}.${managerName.last.toLowerCase()}@company.com`);
-  users.push(`exec_1,${execName.full},HiringManager,Engineering,,${execName.first.toLowerCase()}.${execName.last.toLowerCase()}@company.com`);
+  users.push(`${managerId},${managerName.full},Admin,TA Team,,${managerName.first.toLowerCase()}.${managerName.last.toLowerCase()}@company.com`);
+  users.push(`${execId},${execName.full},HiringManager,Engineering,,${execName.first.toLowerCase()}.${execName.last.toLowerCase()}@company.com`);
 
   // Generate Requisitions with varied ages
   const requisitions: string[] = [];
@@ -200,10 +207,11 @@ export function generateSampleData(config: {
     const recruiterId = recruiterNames[(i - 1) % recruiterCount].id;
     const hmId = hmNames[(i - 1) % hmCount].id;
 
-    reqData.push({ id: `req_${i}`, openedAt, recruiterId, hmId });
+    const reqId = `req_${sessionId}_${i}`;
+    reqData.push({ id: reqId, openedAt, recruiterId, hmId });
 
     requisitions.push(
-      `req_${i},${level} ${jf} Engineer,${func},${jf},${level},${locType},${region},,100000,200000,${formatDate(openedAt)},${closedAt},${status},${hmId},${recruiterId},${func},New,P1,false,false`
+      `${reqId},${level} ${jf} Engineer,${func},${jf},${level},${locType},${region},,100000,200000,${formatDate(openedAt)},${closedAt},${status},${hmId},${recruiterId},${func},New,P1,false,false`
     );
   }
 
@@ -221,7 +229,7 @@ export function generateSampleData(config: {
     const candCount = Math.floor(Math.random() * (candidatesPerReq - 5)) + 8;
 
     for (let c = 0; c < candCount; c++) {
-      const candId = `cand_${candidateIndex}`;
+      const candId = `cand_${sessionId}_${candidateIndex}`;
       const appliedAt = randomDate(req.openedAt, subDays(now, 3));
       const firstContactAt = addDays(appliedAt, Math.floor(Math.random() * 3) + 1);
 
@@ -247,7 +255,7 @@ export function generateSampleData(config: {
         if (prevStage) {
           // Stage change event
           events.push(
-            `evt_${eventIndex},${candId},${req.id},STAGE_CHANGE,${prevStage.stage},${currentStage.stage},${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},STAGE_CHANGE,${prevStage.stage},${currentStage.stage},${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
           eventIndex++;
         }
@@ -255,7 +263,7 @@ export function generateSampleData(config: {
         // Additional events based on stage
         if (currentStage.stage === 'Screen') {
           events.push(
-            `evt_${eventIndex},${candId},${req.id},SCREEN_COMPLETED,,,${req.recruiterId},${formatDate(addDays(currentStage.enteredAt, 1))},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},SCREEN_COMPLETED,,,${req.recruiterId},${formatDate(addDays(currentStage.enteredAt, 1))},`
           );
           eventIndex++;
         }
@@ -265,7 +273,7 @@ export function generateSampleData(config: {
           // Otherwise, we submit feedback to populate "Review Speed"
           if (stallDays === 0) {
             events.push(
-              `evt_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(currentStage.enteredAt, 2))},`
+              `evt_${sessionId}_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(currentStage.enteredAt, 2))},`
             );
             eventIndex++;
           }
@@ -273,13 +281,13 @@ export function generateSampleData(config: {
 
         if (currentStage.stage === 'Onsite') {
           events.push(
-            `evt_${eventIndex},${candId},${req.id},INTERVIEW_SCHEDULED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},INTERVIEW_SCHEDULED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
           eventIndex++;
 
           const interviewDate = addDays(currentStage.enteredAt, 1);
           events.push(
-            `evt_${eventIndex},${candId},${req.id},INTERVIEW_COMPLETED,,,${req.recruiterId},${formatDate(interviewDate)},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},INTERVIEW_COMPLETED,,,${req.recruiterId},${formatDate(interviewDate)},`
           );
           eventIndex++;
 
@@ -287,21 +295,21 @@ export function generateSampleData(config: {
           // 1-5 days after interview to populate "Feedback Speed" metric
           const feedbackDelay = Math.floor(Math.random() * 5) + 1;
           events.push(
-            `evt_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(interviewDate, feedbackDelay))},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},FEEDBACK_SUBMITTED,,,${req.hmId},${formatDate(addDays(interviewDate, feedbackDelay))},`
           );
           eventIndex++;
         }
 
         if (currentStage.stage === 'Offer') {
           events.push(
-            `evt_${eventIndex},${candId},${req.id},OFFER_EXTENDED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},OFFER_EXTENDED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
           eventIndex++;
         }
 
         if (currentStage.stage === 'Hired') {
           events.push(
-            `evt_${eventIndex},${candId},${req.id},OFFER_ACCEPTED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},OFFER_ACCEPTED,,,${req.recruiterId},${formatDate(currentStage.enteredAt)},`
           );
           eventIndex++;
         }
@@ -316,7 +324,7 @@ export function generateSampleData(config: {
         if (journey.disposition === 'Rejected') {
           // Genereate STAGE_CHANGE -> Rejected
           events.push(
-            `evt_${eventIndex},${candId},${req.id},STAGE_CHANGE,${finalStage},Rejected,${req.recruiterId},${formatDate(lastEventDate)},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},STAGE_CHANGE,${finalStage},Rejected,${req.recruiterId},${formatDate(lastEventDate)},`
           );
           eventIndex++;
 
@@ -326,7 +334,7 @@ export function generateSampleData(config: {
             // For demo purposes, let's mix it up to ensure Offer -> Decline populates
             if (Math.random() > 0.5) {
               events.push(
-                `evt_${eventIndex},${candId},${req.id},OFFER_DECLINED,,,${req.recruiterId},${formatDate(lastEventDate)},`
+                `evt_${sessionId}_${eventIndex},${candId},${req.id},OFFER_DECLINED,,,${req.recruiterId},${formatDate(lastEventDate)},`
               );
               eventIndex++;
             }
@@ -334,7 +342,7 @@ export function generateSampleData(config: {
         } else if (journey.disposition === 'Withdrawn') {
           // Generate CANDIDATE_WITHDREW
           events.push(
-            `evt_${eventIndex},${candId},${req.id},CANDIDATE_WITHDREW,,,${req.recruiterId},${formatDate(lastEventDate)},`
+            `evt_${sessionId}_${eventIndex},${candId},${req.id},CANDIDATE_WITHDREW,,,${req.recruiterId},${formatDate(lastEventDate)},`
           );
           eventIndex++;
         }
