@@ -5,5 +5,13 @@ const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 // Fail gracefully if config is missing (so app doesn't crash on load)
 export const supabase = (supabaseUrl && supabaseAnonKey)
-    ? createClient(supabaseUrl, supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: true,
+            flowType: 'implicit', // Use implicit flow for magic links (simpler, avoids PKCE issues)
+            storageKey: 'prod-dash-auth', // Unique key to avoid conflicts
+        }
+    })
     : null;
