@@ -59,6 +59,7 @@ CSV Upload → csvParser.ts → DashboardState → metricsEngine.ts → Componen
 - `dataHygieneTypes.ts` - Data health types: `ReqHealthStatus`, `GhostCandidateStatus`, `DataHygieneSummary`
 
 **Tab Components** (`/components/`):
+- `ControlTowerTab` - **Default landing page** with executive command center view
 - `OverviewTab` - KPIs and high-level metrics
 - `RecruiterDetailTab` - Individual recruiter performance
 - `HMFrictionTab` - Hiring manager latency analysis
@@ -66,6 +67,39 @@ CSV Upload → csvParser.ts → DashboardState → metricsEngine.ts → Componen
 - `QualityTab` - Candidate quality metrics
 - `SourceEffectivenessTab` - Source ROI analysis
 - `DataHealthTab` - Data hygiene: Zombie reqs, Ghost candidates, True TTF vs Raw TTF comparison
+
+### Control Tower (Default Tab)
+
+The Control Tower (`/components/control-tower/`) is the default landing page after data load. It provides an executive command center with four main sections:
+
+**1. Health KPIs** - 5 key indicators with red/yellow/green status:
+- Median TTF (target: <45 days)
+- Offers count
+- Accept Rate (target: >80%)
+- Stalled Reqs count
+- HM Latency (avg feedback time in days)
+
+**2. Risks** - Top 10 at-risk requisitions with reason labels:
+- `zombie` - No activity 30+ days
+- `stalled` - No activity 14-30 days
+- `pipeline_gap` - Empty candidate pipeline
+- `hm_delay` - HM action overdue 3+ days
+- `offer_risk` - Candidate in offer stage 7+ days
+- `at_risk` - Open 120+ days with <5 candidates
+
+**3. Actions** - Unified queue combining recruiter and HM actions:
+- HM actions: Feedback due, Resume review, Decision needed
+- Recruiter actions: Source candidates (empty pipeline), Revive or close (zombie reqs)
+- Urgency levels: critical (>5d), high (>2d), medium (>0d), low
+
+**4. Forecast** - Pipeline-based hiring predictions:
+- Expected hires (probability-weighted from active candidates)
+- Gap to goal (open reqs minus expected hires)
+- Confidence level (based on req health ratio)
+
+**Dataset Status Bar** - Shows data source info, record counts, health score, unmapped stages, and last refresh time.
+
+**Deep Links** - Clicking items navigates to detailed views (req detail, HM queue, etc.)
 
 ### Key Patterns
 

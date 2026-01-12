@@ -19,7 +19,11 @@ import { HiringManagersTab } from './hiring-managers';
 import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
 import { ForecastingTab } from './forecasting';
 import { DataHealthTab } from './data-health';
+import { ControlTowerTab } from './control-tower';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
+import { calculatePendingActions } from '../services/hmMetricsEngine';
+import { buildHMFactTables } from '../services/hmFactTables';
+import { DEFAULT_HM_RULES } from '../config/hmRules';
 import { useDataMasking } from '../contexts/DataMaskingContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useUrlState } from '../hooks/useUrlState';
@@ -29,7 +33,7 @@ import { OrgSettings } from './OrgSettings';
 import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
 
-type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
+type TabType = 'control-tower' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations } = useDashboard();
@@ -37,7 +41,7 @@ export function ProductivityDashboard() {
   const { isMasked, toggleMasking } = useDataMasking();
   const { currentOrg, user, refreshMemberships, supabaseUser } = useAuth();
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>('control-tower');
   const [showStageMapping, setShowStageMapping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -555,6 +559,12 @@ export function ProductivityDashboard() {
         {isMobile && (
           <div className="nav-pills-bespoke mb-2" style={{ overflowX: 'auto', whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
             <button
+              className={`nav-link ${activeTab === 'control-tower' ? 'active' : ''}`}
+              onClick={() => { selectRecruiter(null); setActiveTab('control-tower'); }}
+            >
+              Control Tower
+            </button>
+            <button
               className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
               onClick={() => { selectRecruiter(null); setActiveTab('overview'); }}
             >
@@ -630,6 +640,12 @@ export function ProductivityDashboard() {
             {!isMobile && (
               <div className="nav-pills-bespoke mb-4">
                 <button
+                  className={`nav-link ${activeTab === 'control-tower' ? 'active' : ''}`}
+                  onClick={() => { selectRecruiter(null); setActiveTab('control-tower'); }}
+                >
+                  Control Tower
+                </button>
+                <button
                   className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
                   onClick={() => { selectRecruiter(null); setActiveTab('overview'); }}
                 >
@@ -688,6 +704,48 @@ export function ProductivityDashboard() {
 
             {/* Tab Content - Progressive rendering with skeletons */}
             <>
+              {/* Control Tower Tab */}
+              {activeTab === 'control-tower' && (
+                state.loadingState.hasOverviewMetrics && state.overview ? (
+                  <ControlTowerTab
+                    requisitions={state.dataStore.requisitions}
+                    candidates={state.dataStore.candidates}
+                    events={state.dataStore.events}
+                    users={state.dataStore.users}
+                    overview={state.overview}
+                    hmFriction={state.hmFriction}
+                    hmActions={(() => {
+                      // Calculate HM pending actions for Control Tower
+                      const factTables = buildHMFactTables(
+                        state.dataStore.requisitions,
+                        state.dataStore.candidates,
+                        state.dataStore.events,
+                        state.dataStore.users,
+                        state.dataStore.config.stageMapping,
+                        state.dataStore.lastImportAt || new Date()
+                      );
+                      return calculatePendingActions(factTables, state.dataStore.users, DEFAULT_HM_RULES);
+                    })()}
+                    config={state.dataStore.config}
+                    filters={state.filters}
+                    dataHealth={state.dataStore.dataHealth}
+                    importSource={state.dataStore.importSource}
+                    lastImportAt={state.dataStore.lastImportAt}
+                    onNavigateToReq={(reqId) => {
+                      selectRecruiter(null);
+                      setActiveTab('recruiter');
+                      // Note: Could enhance to select specific req in future
+                    }}
+                    onNavigateToHM={(hmUserId) => {
+                      setActiveTab('hiring-managers');
+                    }}
+                    onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
+                  />
+                ) : (
+                  <TabSkeleton showKPIs showChart={false} showTable kpiCount={5} tableRows={6} />
+                )
+              )}
+
               {/* Overview Tab */}
               {activeTab === 'overview' && (
                 state.loadingState.hasOverviewMetrics && state.overview ? (
