@@ -18,6 +18,8 @@ import { HMOverview } from './HMOverview';
 import { HMScorecard } from './HMScorecard';
 import { HMActionQueue } from './HMActionQueue';
 import { HMForecastsTab } from './HMForecastsTab';
+import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
+import { hasActiveDimensionalFilters } from '../../services/filterUtils';
 
 interface HiringManagersTabProps {
     requisitions: Requisition[];
@@ -176,6 +178,16 @@ export function HiringManagersTab({
 
     return (
         <div className="animate-fade-in">
+            {/* Filter Active Indicator */}
+            {filters && (
+                <FilterActiveIndicator
+                    filters={filters}
+                    totalCount={requisitions.length}
+                    filteredCount={filteredGlobalReqs.length}
+                    itemLabel="requisitions"
+                />
+            )}
+
             {/* Header & Sub-Navigation */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                 <div className="nav-pills-bespoke">

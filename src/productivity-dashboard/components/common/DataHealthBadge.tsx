@@ -91,14 +91,14 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
         onClick={() => setIsOpen(!isOpen)}
         className="btn d-flex align-items-center justify-content-center"
         style={{
-          width: '36px',
-          height: '36px',
+          width: '42px',
+          height: '42px',
           padding: 0,
           borderRadius: '8px',
           backgroundColor: badgeBg,
           color: 'white',
           fontWeight: 700,
-          fontSize: '0.9rem',
+          fontSize: '1rem',
           border: 'none',
           cursor: 'pointer'
         }}

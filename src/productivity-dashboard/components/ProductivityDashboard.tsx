@@ -74,6 +74,7 @@ export function ProductivityDashboard() {
   const [eventGenProgress, setEventGenProgress] = useState<{ processed: number; total: number; eventsGenerated: number } | null>(null);
   const [eventGenDismissed, setEventGenDismissed] = useState(false);
   const [persistProgress, setPersistProgress] = useState<PersistenceProgress | null>(null);
+  const [eventGenComplete, setEventGenComplete] = useState<{ eventsGenerated: number; timestamp: number } | null>(null);
 
   // Fun encouraging messages for progress UI
   const encouragingMessages = [
@@ -194,6 +195,7 @@ export function ProductivityDashboard() {
   // Handle event generation
   const handleGenerateEvents = async () => {
     setIsGeneratingEvents(true);
+    setEventGenComplete(null);
     setEventGenProgress({ processed: 0, total: state.dataStore.candidates.length, eventsGenerated: 0 });
     setPersistProgress(null);
 
@@ -214,8 +216,13 @@ export function ProductivityDashboard() {
       );
 
       if (result.success) {
-        setEventGenDismissed(true); // Auto-dismiss on success
+        // Show success state for 4 seconds before dismissing
+        setEventGenComplete({ eventsGenerated: result.eventsGenerated, timestamp: Date.now() });
         console.log(`[UI] Event generation complete: ${result.eventsGenerated} events`);
+        setTimeout(() => {
+          setEventGenDismissed(true);
+          setEventGenComplete(null);
+        }, 4000);
       } else {
         console.error('[UI] Event generation failed:', result.error);
       }
@@ -329,17 +336,34 @@ export function ProductivityDashboard() {
         )}
 
         {/* Event Generation Banner */}
-        {needsEventGeneration && !eventGenDismissed && !isDemo && (
+        {(needsEventGeneration || eventGenComplete) && !eventGenDismissed && !isDemo && (
           <div
             className="mb-3 rounded"
             style={{
-              backgroundColor: isGeneratingEvents ? 'var(--color-slate-900, #1a1a2e)' : 'var(--color-warning-light, #fff3cd)',
-              border: isGeneratingEvents ? '1px solid var(--color-slate-700, #333)' : '1px solid var(--color-warning, #ffc107)',
+              backgroundColor: isGeneratingEvents ? 'var(--color-slate-900, #1a1a2e)' : eventGenComplete ? 'var(--color-success-bg, #0d3320)' : 'var(--color-warning-light, #fff3cd)',
+              border: isGeneratingEvents ? '1px solid var(--color-slate-700, #333)' : eventGenComplete ? '1px solid var(--color-success, #10b981)' : '1px solid var(--color-warning, #ffc107)',
               overflow: 'hidden',
               transition: 'all 0.3s ease'
             }}
           >
-            {isGeneratingEvents ? (
+            {eventGenComplete ? (
+              // Success completion state
+              <div className="p-3 d-flex align-items-center gap-3" style={{ color: '#ffffff' }}>
+                <span style={{ fontSize: '1.5rem' }}>✅</span>
+                <div className="flex-grow-1">
+                  <strong style={{ color: '#10b981' }}>Events Generated Successfully!</strong>
+                  <div className="small" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    Created {eventGenComplete.eventsGenerated.toLocaleString()} stage transition events from your candidate data.
+                  </div>
+                </div>
+                <button
+                  className="btn-close"
+                  onClick={() => { setEventGenDismissed(true); setEventGenComplete(null); }}
+                  title="Dismiss"
+                  style={{ filter: 'invert(1) grayscale(100%) brightness(200%)' }}
+                />
+              </div>
+            ) : isGeneratingEvents ? (
               // Fun animated progress UI
               <div className="p-4" style={{ color: '#ffffff' }}>
                 <div className="d-flex justify-content-between align-items-start mb-3">
@@ -504,12 +528,17 @@ export function ProductivityDashboard() {
                 />
               )}
               <button
-                className="btn btn-bespoke-primary"
+                className="btn btn-bespoke-primary d-inline-flex align-items-center justify-content-center"
                 onClick={refetchData}
                 disabled={state.isLoading}
-                title="Reload data from database"
+                title={state.isLoading ? 'Syncing data...' : 'Refresh data from database'}
+                style={{ width: '42px', height: '42px', padding: 0 }}
               >
-                {state.isLoading ? 'Syncing...' : 'Refresh Data'}
+                {state.isLoading ? (
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                ) : (
+                  <i className="bi bi-arrow-clockwise" style={{ fontSize: '1.1rem' }}></i>
+                )}
               </button>
               <DataHealthBadge
                 health={state.dataStore.dataHealth}
@@ -521,9 +550,10 @@ export function ProductivityDashboard() {
               {isSuperAdmin && (
                 <div className="position-relative">
                   <button
-                    className="btn btn-bespoke-secondary"
+                    className="btn btn-bespoke-secondary d-flex align-items-center justify-content-center"
                     onClick={() => setShowHeaderMenu(!showHeaderMenu)}
                     title="Admin options"
+                    style={{ width: '42px', height: '42px', padding: 0 }}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                       <circle cx="10" cy="4" r="1.5" />

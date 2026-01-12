@@ -1490,11 +1490,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     right: -280px;
     width: 280px;
     height: 100%;
-    background: white;
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    background: #141414;
+    box-shadow: -2px 0 20px rgba(0, 0, 0, 0.5);
     transition: right 0.3s ease;
     display: flex;
     flex-direction: column;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mobile-menu-overlay.show .mobile-menu-drawer {
@@ -1506,7 +1507,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    border-bottom: 1px solid var(--color-slate-200);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+}
+
+.mobile-menu-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
 }
 
 .mobile-menu-content {
@@ -1523,25 +1529,26 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     background: transparent;
     text-align: left;
     font-size: 0.95rem;
-    color: var(--color-slate-700);
+    color: #e2e8f0;
     cursor: pointer;
     transition: background 0.15s;
 }
 
 .mobile-menu-item:hover,
 .mobile-menu-item:active {
-    background: var(--color-slate-100);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .mobile-menu-item.active {
     color: var(--color-accent);
     font-weight: 500;
+    background: rgba(212, 163, 115, 0.1);
 }
 
 .mobile-menu-content hr {
     margin: 0.5rem 1rem;
     border: none;
-    border-top: 1px solid var(--color-slate-200);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Mobile Filter Panel */

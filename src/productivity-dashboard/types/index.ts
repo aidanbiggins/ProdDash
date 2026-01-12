@@ -12,6 +12,7 @@ export * from './dataHygieneTypes';
 export * from './canonicalTypes';
 export * from './explainTypes';
 export * from './actionTypes';
+export * from './preMortemTypes';
 
 // ===== DATA STORE STATE =====
 

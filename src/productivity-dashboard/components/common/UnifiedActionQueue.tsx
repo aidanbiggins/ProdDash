@@ -128,6 +128,7 @@ function ActionRow({
 }) {
   const priorityMeta = PRIORITY_META[action.priority];
   const ownerMeta = OWNER_TYPE_META[action.owner_type];
+  const isGreyedOut = action.matchesFilter === false;
 
   // Format due date
   const dueText = action.due_in_days <= 0
@@ -135,6 +136,10 @@ function ActionRow({
     : action.due_in_days === 1
     ? '1 day'
     : `${action.due_in_days}d`;
+
+  // Colors for greyed-out state
+  const greyColor = 'rgba(100, 116, 139, 0.6)';
+  const greyBg = 'rgba(100, 116, 139, 0.2)';
 
   return (
     <div
@@ -145,6 +150,7 @@ function ActionRow({
         border: '1px solid rgba(255, 255, 255, 0.08)',
         cursor: 'pointer',
         transition: 'all 0.15s ease',
+        opacity: isGreyedOut ? 0.4 : 1,
       }}
       onMouseEnter={e => {
         e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
@@ -162,7 +168,7 @@ function ActionRow({
           width: '4px',
           height: '100%',
           minHeight: '40px',
-          backgroundColor: priorityMeta.color,
+          backgroundColor: isGreyedOut ? greyColor : priorityMeta.color,
           borderRadius: '2px',
           flexShrink: 0,
         }}
@@ -175,7 +181,7 @@ function ActionRow({
           <span
             className="action-title text-truncate"
             style={{
-              color: 'var(--text-primary)',
+              color: isGreyedOut ? 'var(--text-secondary)' : 'var(--text-primary)',
               fontSize: '0.85rem',
               fontWeight: 500,
             }}
@@ -191,8 +197,8 @@ function ActionRow({
           <span
             className="badge"
             style={{
-              backgroundColor: `${ownerMeta.color}20`,
-              color: ownerMeta.color,
+              backgroundColor: isGreyedOut ? greyBg : `${ownerMeta.color}20`,
+              color: isGreyedOut ? greyColor : ownerMeta.color,
               fontSize: '0.65rem',
               padding: '0.15rem 0.35rem',
             }}
@@ -233,8 +239,8 @@ function ActionRow({
         <span
           className="badge"
           style={{
-            backgroundColor: priorityMeta.bgColor,
-            color: priorityMeta.color,
+            backgroundColor: isGreyedOut ? greyBg : priorityMeta.bgColor,
+            color: isGreyedOut ? greyColor : priorityMeta.color,
             fontSize: '0.6rem',
             textTransform: 'uppercase',
           }}
@@ -244,7 +250,7 @@ function ActionRow({
         <span
           className="small"
           style={{
-            color: action.due_in_days <= 0 ? '#ef4444' : 'var(--text-secondary)',
+            color: isGreyedOut ? greyColor : (action.due_in_days <= 0 ? '#ef4444' : 'var(--text-secondary)'),
             fontSize: '0.7rem',
           }}
         >

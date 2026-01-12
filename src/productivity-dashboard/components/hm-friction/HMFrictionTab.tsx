@@ -8,6 +8,7 @@ import {
 import { HiringManagerFriction, Requisition, Event, User, MetricFilters } from '../../types';
 import { exportHMFrictionCSV } from '../../services';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
 
 // Helper to truncate long names
 const truncateName = (name: string, maxLen: number) =>
@@ -282,6 +283,16 @@ export function HMFrictionTab({
 
   return (
     <div>
+      {/* Filter Active Indicator */}
+      {filters && (
+        <FilterActiveIndicator
+          filters={filters}
+          totalCount={friction.length}
+          filteredCount={filteredFriction.length}
+          itemLabel="hiring managers"
+        />
+      )}
+
       {/* Overview Stats - Time Tax focused - Clickable KPI Tiles */}
       <div className="row g-3 mb-4">
         <div className="col-6 col-md-3">

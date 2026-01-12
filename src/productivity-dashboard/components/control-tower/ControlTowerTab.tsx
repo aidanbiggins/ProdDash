@@ -19,8 +19,10 @@ import {
   saveActionState,
   getOpenActions,
 } from '../../services/actionQueueService';
-// Forecasting imports - simplified for Control Tower summary
-import { differenceInDays } from 'date-fns';
+import { runPreMortemBatch } from '../../services/preMortemService';
+import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../types/preMortemTypes';
+import { PreMortemDrawer } from '../common/PreMortemDrawer';
+import { AnimatedStat } from '../common/AnimatedNumber';
 
 interface ControlTowerTabProps {
   requisitions: Requisition[];
@@ -41,20 +43,6 @@ interface ControlTowerTabProps {
   onNavigateToReq: (reqId: string) => void;
   onNavigateToHM: (hmUserId: string) => void;
   onNavigateToTab: (tab: string) => void;
-}
-
-// Risk reason types for the Risks section
-type RiskReason = 'stalled' | 'zombie' | 'pipeline_gap' | 'hm_delay' | 'offer_risk' | 'at_risk';
-
-interface AtRiskReq {
-  reqId: string;
-  reqTitle: string;
-  recruiterName: string;
-  hmName: string;
-  reason: RiskReason;
-  reasonLabel: string;
-  daysAtRisk: number;
-  severity: 'high' | 'medium' | 'low';
 }
 
 
@@ -100,9 +88,11 @@ function HealthIndicator({ status, label, value, subtitle, onExplain }: {
           </span>
         </div>
       </div>
-      <div className="stat-value" style={{ fontSize: '1.75rem', color: 'var(--text-primary)' }}>
-        {value}
-      </div>
+      <AnimatedStat
+        value={value}
+        className="stat-value"
+        style={{ fontSize: '1.75rem', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}
+      />
       {subtitle && (
         <div className="small" style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
           {subtitle}
@@ -217,6 +207,10 @@ export function ControlTowerTab({
   // ===== ACTION DETAIL DRAWER STATE =====
   const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState<ActionItem | null>(null);
+
+  // ===== PRE-MORTEM DRAWER STATE =====
+  const [preMortemDrawerOpen, setPreMortemDrawerOpen] = useState(false);
+  const [selectedPreMortem, setSelectedPreMortem] = useState<PreMortemResult | null>(null);
 
   // Generate dataset ID for localStorage persistence
   const datasetId = useMemo(() => {
@@ -381,124 +375,84 @@ export function ControlTowerTab({
     };
   }, [overview, requisitions, candidates, events, hmFriction]);
 
-  // ===== AT-RISK REQUISITIONS =====
-  const atRiskReqs = useMemo((): AtRiskReq[] => {
-    const risks: AtRiskReq[] = [];
-    const openReqs = requisitions.filter(r => r.status === RequisitionStatus.Open);
-    const now = new Date();
+  // ===== FILTER HELPERS =====
+  // Helper to check if a req matches current filters
+  const reqMatchesFilters = useCallback((reqId: string): boolean => {
+    const req = requisitions.find(r => r.req_id === reqId);
+    if (!req) return false;
 
-    for (const req of openReqs) {
-      const health = assessReqHealth(req, candidates, events);
-      const recruiter = users.find(u => u.user_id === req.recruiter_id);
-      const hm = users.find(u => u.user_id === req.hiring_manager_id);
-      const reqCandidates = candidates.filter(c => c.req_id === req.req_id);
-      const activeCandidates = reqCandidates.filter(c => c.disposition === CandidateDisposition.Active);
-
-      let reason: RiskReason | null = null;
-      let reasonLabel = '';
-      let severity: 'high' | 'medium' | 'low' = 'medium';
-      let daysAtRisk = 0;
-
-      // Check for zombie
-      if (health.status === ReqHealthStatus.ZOMBIE) {
-        reason = 'zombie';
-        reasonLabel = 'Zombie Req';
-        severity = 'high';
-        daysAtRisk = health.daysSinceLastActivity || 0;
-      }
-      // Check for stalled
-      else if (health.status === ReqHealthStatus.STALLED) {
-        reason = 'stalled';
-        reasonLabel = 'Stalled';
-        severity = 'medium';
-        daysAtRisk = health.daysSinceLastActivity || 0;
-      }
-      // Check for at-risk
-      else if (health.status === ReqHealthStatus.AT_RISK) {
-        reason = 'at_risk';
-        reasonLabel = 'At Risk';
-        severity = 'medium';
-        daysAtRisk = health.daysOpen || 0;
-      }
-
-      // Check for pipeline gap (no active candidates in funnel)
-      if (!reason && activeCandidates.length === 0 && req.opened_at) {
-        const daysOpen = differenceInDays(now, req.opened_at);
-        if (daysOpen > 14) {
-          reason = 'pipeline_gap';
-          reasonLabel = 'Empty Pipeline';
-          severity = daysOpen > 30 ? 'high' : 'medium';
-          daysAtRisk = daysOpen;
-        }
-      }
-
-      // Check for HM delay - look for pending HM actions on this req
-      if (!reason) {
-        const reqHmActions = hmActions.filter(a => a.reqId === req.req_id);
-        const overdueAction = reqHmActions.find(a => a.daysOverdue > 3);
-        if (overdueAction) {
-          reason = 'hm_delay';
-          reasonLabel = 'HM Delay';
-          severity = overdueAction.daysOverdue > 7 ? 'high' : 'medium';
-          daysAtRisk = overdueAction.daysOverdue;
-        }
-      }
-
-      // Check for offer risk - candidate in offer stage for too long
-      if (!reason) {
-        const offerCandidates = reqCandidates.filter(c =>
-          c.current_stage?.toLowerCase().includes('offer') &&
-          c.disposition === CandidateDisposition.Active
-        );
-        for (const oc of offerCandidates) {
-          if (oc.current_stage_entered_at) {
-            const daysInOffer = differenceInDays(now, oc.current_stage_entered_at);
-            if (daysInOffer > 7) {
-              reason = 'offer_risk';
-              reasonLabel = 'Offer at Risk';
-              severity = daysInOffer > 14 ? 'high' : 'medium';
-              daysAtRisk = daysInOffer;
-              break;
-            }
-          }
-        }
-      }
-
-      if (reason) {
-        risks.push({
-          reqId: req.req_id,
-          reqTitle: req.req_title,
-          recruiterName: recruiter?.name || 'Unknown',
-          hmName: hm?.name || 'Unknown',
-          reason,
-          reasonLabel,
-          daysAtRisk,
-          severity
-        });
+    // Check recruiter filter
+    if (filters.recruiterIds && filters.recruiterIds.length > 0) {
+      if (!req.recruiter_id || !filters.recruiterIds.includes(req.recruiter_id)) {
+        return false;
       }
     }
 
-    // Sort by severity then days at risk
-    return risks
-      .sort((a, b) => {
-        const severityOrder = { high: 3, medium: 2, low: 1 };
-        if (severityOrder[b.severity] !== severityOrder[a.severity]) {
-          return severityOrder[b.severity] - severityOrder[a.severity];
-        }
-        return b.daysAtRisk - a.daysAtRisk;
-      })
-      .slice(0, 10);
-  }, [requisitions, candidates, events, users, hmActions]);
+    // Check hiring manager filter
+    if (filters.hiringManagerIds && filters.hiringManagerIds.length > 0) {
+      if (!req.hiring_manager_id || !filters.hiringManagerIds.includes(req.hiring_manager_id)) {
+        return false;
+      }
+    }
+
+    // Check function filter
+    if (filters.functions && filters.functions.length > 0) {
+      if (!req.function || !filters.functions.includes(req.function)) {
+        return false;
+      }
+    }
+
+    // Check job family filter
+    if (filters.jobFamilies && filters.jobFamilies.length > 0) {
+      if (!req.job_family || !filters.jobFamilies.includes(req.job_family)) {
+        return false;
+      }
+    }
+
+    // Check level filter
+    if (filters.levels && filters.levels.length > 0) {
+      if (!req.level || !filters.levels.includes(req.level)) {
+        return false;
+      }
+    }
+
+    // Check region filter
+    if (filters.regions && filters.regions.length > 0) {
+      if (!req.location_region || !filters.regions.includes(req.location_region)) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [requisitions, filters]);
+
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(() => {
+    return (
+      (filters.recruiterIds && filters.recruiterIds.length > 0) ||
+      (filters.hiringManagerIds && filters.hiringManagerIds.length > 0) ||
+      (filters.functions && filters.functions.length > 0) ||
+      (filters.jobFamilies && filters.jobFamilies.length > 0) ||
+      (filters.levels && filters.levels.length > 0) ||
+      (filters.regions && filters.regions.length > 0)
+    );
+  }, [filters]);
 
   // ===== FORECAST =====
   // Simplified pipeline-based forecast for Control Tower summary
   const forecastData = useMemo(() => {
-    const openReqs = requisitions.filter(r => r.status === RequisitionStatus.Open);
+    const allOpenReqs = requisitions.filter(r => r.status === RequisitionStatus.Open);
+
+    // Filter reqs based on active filters
+    const filteredOpenReqs = hasActiveFilters
+      ? allOpenReqs.filter(r => reqMatchesFilters(r.req_id))
+      : allOpenReqs;
+
     let expectedHires = 0;
     let healthyReqs = 0;
     let riskyReqs = 0;
 
-    for (const req of openReqs) {
+    for (const req of filteredOpenReqs) {
       const health = assessReqHealth(req, candidates, events);
       const activeCandidates = candidates.filter(c =>
         c.req_id === req.req_id && c.disposition === CandidateDisposition.Active
@@ -520,12 +474,12 @@ export function ControlTowerTab({
       }
     }
 
-    // Hiring goal is number of open reqs
-    const hiringGoal = openReqs.length;
+    // Hiring goal is number of filtered open reqs
+    const hiringGoal = filteredOpenReqs.length;
     const gap = Math.max(0, hiringGoal - Math.round(expectedHires));
 
     // Confidence based on how many reqs are healthy vs risky
-    const healthRatio = openReqs.length > 0 ? healthyReqs / openReqs.length : 0;
+    const healthRatio = filteredOpenReqs.length > 0 ? healthyReqs / filteredOpenReqs.length : 0;
     const confidence: 'high' | 'medium' | 'low' =
       healthRatio >= 0.7 ? 'high' : healthRatio >= 0.4 ? 'medium' : 'low';
 
@@ -534,25 +488,105 @@ export function ControlTowerTab({
       hiringGoal,
       gap,
       confidence,
-      openReqCount: openReqs.length
+      openReqCount: filteredOpenReqs.length,
+      totalOpenReqCount: allOpenReqs.length,
+      isFiltered: hasActiveFilters,
     };
-  }, [requisitions, candidates, events]);
-
-  // Risk badge colors
-  const riskBadgeColors: Record<RiskReason, { bg: string; text: string }> = {
-    zombie: { bg: 'rgba(239, 68, 68, 0.2)', text: '#ef4444' },
-    stalled: { bg: 'rgba(245, 158, 11, 0.2)', text: '#f59e0b' },
-    pipeline_gap: { bg: 'rgba(168, 85, 247, 0.2)', text: '#a855f7' },
-    hm_delay: { bg: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6' },
-    offer_risk: { bg: 'rgba(236, 72, 153, 0.2)', text: '#ec4899' },
-    at_risk: { bg: 'rgba(249, 115, 22, 0.2)', text: '#f97316' }
-  };
+  }, [requisitions, candidates, events, hasActiveFilters, reqMatchesFilters]);
 
   const confidenceColors: Record<string, string> = {
     high: '#22c55e',
     medium: '#f59e0b',
     low: '#ef4444'
   };
+
+  // ===== PRE-MORTEM ANALYSIS =====
+  const preMortemResults = useMemo(() => {
+    return runPreMortemBatch(requisitions, candidates, events, hmActions);
+  }, [requisitions, candidates, events, hmActions]);
+
+  // Get top at-risk reqs for display (HIGH and MED), with filter awareness
+  const atRiskPreMortems = useMemo(() => {
+    const atRisk = preMortemResults
+      .filter(r => r.risk_band === 'HIGH' || r.risk_band === 'MED')
+      .map(r => ({
+        ...r,
+        matchesFilter: reqMatchesFilters(r.req_id),
+      }))
+      .sort((a, b) => {
+        // Sort matching items first, then by risk score
+        if (a.matchesFilter !== b.matchesFilter) {
+          return a.matchesFilter ? -1 : 1;
+        }
+        return b.risk_score - a.risk_score;
+      })
+      .slice(0, 10);
+    return atRisk;
+  }, [preMortemResults, reqMatchesFilters]);
+
+  // Count high risk that match filters
+  const highRiskCount = useMemo(() => {
+    if (hasActiveFilters) {
+      return preMortemResults.filter(r => r.risk_band === 'HIGH' && reqMatchesFilters(r.req_id)).length;
+    }
+    return preMortemResults.filter(r => r.risk_band === 'HIGH').length;
+  }, [preMortemResults, reqMatchesFilters, hasActiveFilters]);
+
+  // Handler for opening PreMortem drawer
+  const handlePreMortemClick = useCallback((result: PreMortemResult) => {
+    setSelectedPreMortem(result);
+    setPreMortemDrawerOpen(true);
+  }, []);
+
+  // Handler for adding PreMortem actions to queue
+  const handleAddPreMortemToQueue = useCallback((actions: ActionItem[]) => {
+    setActionQueue(prev => {
+      // Deduplicate by action_id
+      const existingIds = new Set(prev.map(a => a.action_id));
+      const newActions = actions.filter(a => !existingIds.has(a.action_id));
+      return [...prev, ...newActions];
+    });
+  }, []);
+
+  // Check if an action matches current filters
+  const actionMatchesFilters = useCallback((action: ActionItem): boolean => {
+    // Check req-based filters
+    if (action.req_id && action.req_id !== 'general') {
+      if (!reqMatchesFilters(action.req_id)) {
+        return false;
+      }
+    }
+
+    // Check HM filter for HM actions
+    if (action.owner_type === 'HIRING_MANAGER' && filters.hiringManagerIds && filters.hiringManagerIds.length > 0) {
+      if (!filters.hiringManagerIds.includes(action.owner_id)) {
+        return false;
+      }
+    }
+
+    return true;
+  }, [reqMatchesFilters, filters.hiringManagerIds]);
+
+  // Enrich action queue with filter match status
+  const enrichedActionQueue = useMemo(() => {
+    if (!hasActiveFilters) {
+      return actionQueue.map(a => ({ ...a, matchesFilter: true }));
+    }
+
+    return actionQueue
+      .map(a => ({
+        ...a,
+        matchesFilter: actionMatchesFilters(a),
+      }))
+      .sort((a, b) => {
+        // Sort matching items first
+        if (a.matchesFilter !== b.matchesFilter) {
+          return a.matchesFilter ? -1 : 1;
+        }
+        // Then by priority and due date (existing sort)
+        return 0;
+      });
+  }, [actionQueue, hasActiveFilters, actionMatchesFilters]);
 
   return (
     <div className="animate-fade-in">
@@ -627,20 +661,20 @@ export function ControlTowerTab({
         </div>
       </div>
 
-      {/* Two column layout for Risks and Actions */}
+      {/* Two column layout for Pre-Mortem and Actions */}
       <div className="row g-4 mb-4">
-        {/* Section 2: Risks */}
+        {/* Section 2: Pre-Mortem (Risks) */}
         <div className="col-lg-6">
           <div className="glass-panel p-3 h-100">
             <div className="section-header">
               <h3 className="section-header-title">
                 Risks
-                {atRiskReqs.length > 0 && (
+                {highRiskCount > 0 && (
                   <span
                     className="badge ms-2"
                     style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', fontSize: '0.7rem' }}
                   >
-                    {atRiskReqs.length}
+                    {highRiskCount} HIGH
                   </span>
                 )}
               </h3>
@@ -652,48 +686,63 @@ export function ControlTowerTab({
               </button>
             </div>
 
-            {atRiskReqs.length === 0 ? (
+            {atRiskPreMortems.length === 0 ? (
               <div className="text-center py-4" style={{ color: 'var(--text-secondary)' }}>
                 <i className="bi bi-shield-check" style={{ fontSize: '2rem', color: '#22c55e' }}></i>
                 <p className="mt-2 mb-0">No at-risk requisitions</p>
               </div>
             ) : (
               <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                {atRiskReqs.map((risk, idx) => (
-                  <div
-                    key={risk.reqId}
-                    className="d-flex align-items-center py-2 px-2 rounded mb-1"
-                    style={{
-                      background: idx % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => onNavigateToReq(risk.reqId)}
-                  >
-                    <div className="flex-grow-1 min-width-0">
-                      <div className="d-flex align-items-center gap-2 mb-1">
-                        <span
-                          className="badge"
-                          style={{
-                            background: riskBadgeColors[risk.reason].bg,
-                            color: riskBadgeColors[risk.reason].text,
-                            fontSize: '0.65rem'
-                          }}
-                        >
-                          {risk.reasonLabel}
-                        </span>
-                        <span className="text-truncate" style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 500 }}>
-                          {risk.reqTitle}
-                        </span>
+                {atRiskPreMortems.map((result, idx) => {
+                  const isGreyedOut = hasActiveFilters && !result.matchesFilter;
+                  return (
+                    <div
+                      key={result.req_id}
+                      className="d-flex align-items-center py-2 px-2 rounded mb-1"
+                      style={{
+                        background: idx % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
+                        cursor: 'pointer',
+                        opacity: isGreyedOut ? 0.4 : 1,
+                        transition: 'opacity 0.2s ease',
+                      }}
+                      onClick={() => handlePreMortemClick(result)}
+                    >
+                      <div className="flex-grow-1 min-width-0">
+                        <div className="d-flex align-items-center gap-2 mb-1">
+                          <span
+                            className="badge font-mono"
+                            style={{
+                              background: isGreyedOut ? 'rgba(100, 116, 139, 0.5)' : getRiskBandColor(result.risk_band),
+                              fontSize: '0.65rem',
+                              minWidth: '28px',
+                              textAlign: 'center'
+                            }}
+                          >
+                            {result.risk_score}
+                          </span>
+                          <span
+                            className="badge"
+                            style={{
+                              background: isGreyedOut ? 'rgba(100, 116, 139, 0.2)' : `${getRiskBandColor(result.risk_band)}20`,
+                              color: isGreyedOut ? 'rgba(100, 116, 139, 0.8)' : getRiskBandColor(result.risk_band),
+                              fontSize: '0.6rem'
+                            }}
+                          >
+                            {getFailureModeLabel(result.failure_mode)}
+                          </span>
+                          <span className="text-truncate" style={{ color: isGreyedOut ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 500 }}>
+                            {result.req_title}
+                          </span>
+                        </div>
+                        <div className="d-flex gap-3" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                          <span><i className="bi bi-calendar me-1"></i>{result.days_open}d open</span>
+                          <span><i className="bi bi-people me-1"></i>{result.active_candidate_count} active</span>
+                        </div>
                       </div>
-                      <div className="d-flex gap-3" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        <span><i className="bi bi-person me-1"></i>{risk.recruiterName}</span>
-                        <span><i className="bi bi-briefcase me-1"></i>{risk.hmName}</span>
-                        <span className="font-mono">{risk.daysAtRisk}d</span>
-                      </div>
+                      <i className="bi bi-chevron-right" style={{ color: 'var(--text-secondary)' }}></i>
                     </div>
-                    <i className="bi bi-chevron-right" style={{ color: 'var(--text-secondary)' }}></i>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -723,7 +772,7 @@ export function ControlTowerTab({
             </div>
 
             <UnifiedActionQueue
-              actions={actionQueue}
+              actions={enrichedActionQueue}
               onActionClick={handleActionClick}
               maxDisplay={8}
             />
@@ -747,26 +796,33 @@ export function ControlTowerTab({
           <div className="col-md-4">
             <div className="text-center">
               <div className="stat-label mb-2" style={{ color: 'var(--text-secondary)' }}>Expected Hires</div>
-              <div className="stat-value" style={{ fontSize: '2.5rem', color: 'var(--text-primary)' }}>
-                {forecastData.expectedHires}
-              </div>
+              <AnimatedStat
+                value={forecastData.expectedHires}
+                className="stat-value"
+                style={{ fontSize: '2.5rem', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}
+              />
               <div className="small" style={{ color: 'var(--text-secondary)' }}>
                 of {forecastData.openReqCount} open reqs
+                {forecastData.isFiltered && forecastData.totalOpenReqCount !== forecastData.openReqCount && (
+                  <span style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    {' '}({forecastData.totalOpenReqCount} total)
+                  </span>
+                )}
               </div>
             </div>
           </div>
           <div className="col-md-4">
             <div className="text-center">
               <div className="stat-label mb-2" style={{ color: 'var(--text-secondary)' }}>Pipeline Gap</div>
-              <div
+              <AnimatedStat
+                value={forecastData.gap}
                 className="stat-value"
                 style={{
                   fontSize: '2.5rem',
-                  color: forecastData.gap === 0 ? '#22c55e' : forecastData.gap <= 5 ? '#f59e0b' : '#ef4444'
+                  color: forecastData.gap === 0 ? '#22c55e' : forecastData.gap <= 5 ? '#f59e0b' : '#ef4444',
+                  fontVariantNumeric: 'tabular-nums'
                 }}
-              >
-                {forecastData.gap}
-              </div>
+              />
               <div className="small" style={{ color: 'var(--text-secondary)' }}>
                 {forecastData.gap === 0 ? 'pipeline covers all reqs' : 'reqs need more sourcing'}
               </div>
@@ -808,6 +864,14 @@ export function ControlTowerTab({
         onMarkDone={handleMarkDone}
         onDismiss={handleDismiss}
         onViewEvidence={handleViewEvidence}
+      />
+
+      {/* Pre-Mortem Drawer */}
+      <PreMortemDrawer
+        isOpen={preMortemDrawerOpen}
+        onClose={() => setPreMortemDrawerOpen(false)}
+        result={selectedPreMortem}
+        onAddToQueue={handleAddPreMortemToQueue}
       />
     </div>
   );

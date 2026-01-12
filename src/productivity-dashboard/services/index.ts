@@ -19,3 +19,4 @@ export * from './reqHealthService';
 export * from './canonicalDataLayer';
 export * from './explain';
 export * from './actionQueueService';
+export * from './preMortemService';

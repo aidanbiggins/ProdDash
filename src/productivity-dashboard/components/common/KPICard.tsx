@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { AnimatedStat } from './AnimatedNumber';
 
 interface KPICardProps {
   title: string;
@@ -85,12 +86,20 @@ export function KPICard({
         <div className="d-flex flex-column h-100">
           {/* Value display - shows "filtered / total" when context is provided */}
           {hasContext ? (
-            <div className={isMobile ? 'mb-1' : 'mb-2'}>
-              <span className="stat-value text-primary" style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{value}</span>
+            <div className={isMobile ? 'mb-1' : 'mb-2'} style={{ fontVariantNumeric: 'tabular-nums' }}>
+              <AnimatedStat
+                value={typeof value === 'number' ? value : value}
+                className="stat-value text-primary"
+                style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, display: 'inline' }}
+              />
               <span style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}> / {contextTotal}</span>
             </div>
           ) : (
-            <h3 className={`stat-value ${isMobile ? 'mb-1' : 'mb-2'}`} style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{value}</h3>
+            <AnimatedStat
+              value={typeof value === 'number' ? value : value}
+              className={`stat-value ${isMobile ? 'mb-1' : 'mb-2'}`}
+              style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, fontVariantNumeric: 'tabular-nums', display: 'block' }}
+            />
           )}
 
           <div className="d-flex flex-column mt-auto" style={{ fontSize: isMobile ? '0.65rem' : '0.75rem' }}>

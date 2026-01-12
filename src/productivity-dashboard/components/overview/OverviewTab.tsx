@@ -17,6 +17,7 @@ import { BespokeTable, BespokeTableColumn } from '../common/BespokeTable';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { PipelineHealthCard, BenchmarkConfigModal } from '../pipeline-health';
 import { PipelineBenchmarkConfig, HistoricalBenchmarkResult } from '../../types/pipelineTypes';
+import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
 
 interface OverviewTabProps {
   overview: OverviewMetrics;
@@ -526,6 +527,14 @@ export function OverviewTab({
 
   return (
     <div>
+      {/* Filter Active Indicator */}
+      <FilterActiveIndicator
+        filters={filters}
+        totalCount={unfilteredTotals ? unfilteredTotals.hires : undefined}
+        filteredCount={hasTopFilters ? overview.totalHires : undefined}
+        itemLabel="hires shown"
+      />
+
       {/* KPI Cards - 7 cards using flex for equal width */}
       <div className="d-flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
         <div style={{ flex: '1 1 0', minWidth: '120px' }}>

@@ -6,7 +6,10 @@ import { ICIMSImportGuide } from './ICIMSImportGuide';
 import { useDashboard } from '../hooks/useDashboardContext';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
 import { ImportProgressModal } from './common/ImportProgressModal';
+import { PIIWarningModal } from './common/PIIWarningModal';
 import { ImportProgress, ClearProgress } from '../services/dbService';
+import { importCsvData } from '../services/csvParser';
+import { detectPII, PIIDetectionResult } from '../services/piiService';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgSwitcher, CreateOrgModal } from './OrgSwitcher';
 import { createOrganization } from '../services/organizationService';
@@ -18,7 +21,8 @@ interface CSVUploadProps {
     eventsCsv: string,
     usersCsv: string,
     isDemo?: boolean,
-    onProgress?: (progress: ImportProgress) => void
+    onProgress?: (progress: ImportProgress) => void,
+    shouldAnonymize?: boolean
   ) => Promise<{ success: boolean; errors: string[] }>;
   isLoading: boolean;
 }
@@ -47,6 +51,13 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const [clearProgress, setClearProgress] = useState<ClearProgress | null>(null);
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
+
+  // PII Detection state
+  const [showPIIWarning, setShowPIIWarning] = useState(false);
+  const [piiDetectionResult, setPiiDetectionResult] = useState<PIIDetectionResult | null>(null);
+  const [pendingCsvData, setPendingCsvData] = useState<{ req: string; cand: string; event: string; user: string } | null>(null);
+  const [pendingDemoData, setPendingDemoData] = useState<{ req: string; cand: string; event: string; user: string } | null>(null);
+  const [isProcessingPII, setIsProcessingPII] = useState(false);
 
   const handleCreateOrg = async (name: string) => {
     if (!supabaseUser?.id) throw new Error('Not authenticated');
@@ -95,7 +106,23 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
         files.users ? readFileAsText(files.users) : Promise.resolve(undefined)
       ]);
 
-      // Pass undefined for missing files
+      // Parse CSV to detect PII in candidates
+      const parseResult = importCsvData(reqCsv, candCsv || '', eventCsv || '', userCsv || '');
+
+      if (parseResult.candidates.data.length > 0) {
+        const piiResult = detectPII(parseResult.candidates.data);
+
+        if (piiResult.hasPII) {
+          // Store CSV data and show PII warning modal
+          setPendingCsvData({ req: reqCsv, cand: candCsv || '', event: eventCsv || '', user: userCsv || '' });
+          setPiiDetectionResult(piiResult);
+          setShowPIIWarning(true);
+          setUploading(false);
+          return; // Stop here - user must decide
+        }
+      }
+
+      // No PII detected, proceed with import
       const result = await onUpload(
         reqCsv,
         candCsv || '',  // csvParser expects string, empty string handled as empty
@@ -129,6 +156,28 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
         hmCount: 10
       });
 
+      // Parse candidate CSV to detect PII
+      const parseResult = importCsvData(sampleData.requisitions, sampleData.candidates, sampleData.events, sampleData.users);
+
+      if (parseResult.candidates.data.length > 0) {
+        const piiResult = detectPII(parseResult.candidates.data);
+
+        if (piiResult.hasPII) {
+          // Store demo data and show PII warning modal
+          setPendingDemoData({
+            req: sampleData.requisitions,
+            cand: sampleData.candidates,
+            event: sampleData.events,
+            user: sampleData.users
+          });
+          setPiiDetectionResult(piiResult);
+          setShowPIIWarning(true);
+          setUploading(false);
+          return;
+        }
+      }
+
+      // No PII detected, proceed with import
       const result = await onUpload(
         sampleData.requisitions,
         sampleData.candidates,
@@ -164,6 +213,77 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
     } finally {
       setIsClearing(false);
       setClearProgress(null);
+    }
+  };
+
+  // PII Modal handlers
+  const handlePIIClose = () => {
+    setShowPIIWarning(false);
+    setPiiDetectionResult(null);
+    setPendingCsvData(null);
+    setPendingDemoData(null);
+    setIsProcessingPII(false);
+  };
+
+  const handleAnonymize = async () => {
+    const data = pendingCsvData || pendingDemoData;
+    if (!data) return;
+
+    const isDemo = !!pendingDemoData;
+    setIsProcessingPII(true);
+    setImportProgress(null);
+
+    try {
+      const result = await onUpload(
+        data.req,
+        data.cand,
+        data.event,
+        data.user,
+        isDemo,
+        (progress) => setImportProgress(progress),
+        true // shouldAnonymize
+      );
+
+      if (!result.success) {
+        setErrors(result.errors);
+      }
+      handlePIIClose();
+    } catch (error) {
+      setErrors([error instanceof Error ? error.message : 'Unknown error during anonymization']);
+    } finally {
+      setIsProcessingPII(false);
+      setImportProgress(null);
+    }
+  };
+
+  const handleImportAsIs = async () => {
+    const data = pendingCsvData || pendingDemoData;
+    if (!data) return;
+
+    const isDemo = !!pendingDemoData;
+    setIsProcessingPII(true);
+    setImportProgress(null);
+
+    try {
+      const result = await onUpload(
+        data.req,
+        data.cand,
+        data.event,
+        data.user,
+        isDemo,
+        (progress) => setImportProgress(progress),
+        false // shouldAnonymize
+      );
+
+      if (!result.success) {
+        setErrors(result.errors);
+      }
+      handlePIIClose();
+    } catch (error) {
+      setErrors([error instanceof Error ? error.message : 'Unknown error during import']);
+    } finally {
+      setIsProcessingPII(false);
+      setImportProgress(null);
     }
   };
 
@@ -358,9 +478,21 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
               {/* Import Progress Modal */}
               <ImportProgressModal
-                isOpen={uploading && importProgress !== null}
+                isOpen={(uploading || isProcessingPII) && importProgress !== null}
                 progress={importProgress}
               />
+
+              {/* PII Warning Modal */}
+              {piiDetectionResult && (
+                <PIIWarningModal
+                  isOpen={showPIIWarning}
+                  onClose={handlePIIClose}
+                  detectionResult={piiDetectionResult}
+                  onAnonymize={handleAnonymize}
+                  onImportAsIs={handleImportAsIs}
+                  isProcessing={isProcessingPII}
+                />
+              )}
 
             </div>
           </div>

@@ -41,6 +41,7 @@ import {
   isEventGenerationNeeded,
   EventGenerationProgress
 } from '../services';
+import { anonymizeCandidatesWithSummary } from '../services/piiService';
 import { fetchDashboardData, persistDashboardData, clearAllData, ClearProgress, ImportProgress } from '../services/dbService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -342,7 +343,8 @@ interface DashboardContextType {
     eventsCsv: string,
     usersCsv: string,
     isDemo?: boolean,
-    onProgress?: (progress: ImportProgress) => void
+    onProgress?: (progress: ImportProgress) => void,
+    shouldAnonymize?: boolean
   ) => Promise<{ success: boolean; errors: string[] }>;
   updateConfig: (config: DashboardConfig) => void;
   updateFilters: (filters: Partial<MetricFilters>) => void;
@@ -439,7 +441,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     eventsCsv: string,
     usersCsv: string,
     isDemo: boolean = false,
-    onProgress?: (progress: ImportProgress) => void
+    onProgress?: (progress: ImportProgress) => void,
+    shouldAnonymize: boolean = false
   ): Promise<{ success: boolean; errors: string[] }> => {
     // Check permissions - only admins can import
     if (!isDemo && !canImportData) {
@@ -483,11 +486,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         return { success: false, errors: result.criticalErrors };
       }
 
+      // Anonymize candidates if requested
+      let candidatesData = result.candidates.data;
+      if (shouldAnonymize && candidatesData.length > 0) {
+        console.log('[Import] Anonymizing candidate PII...');
+        const anonResult = anonymizeCandidatesWithSummary(candidatesData);
+        candidatesData = anonResult.candidates;
+        console.log('[Import] Anonymization complete:', anonResult.summary);
+      }
+
       // Persist to Supabase (including demo data so it survives org switches)
       if (currentOrg?.id) {
         await persistDashboardData(
           result.requisitions.data,
-          result.candidates.data,
+          candidatesData,
           result.events.data,
           result.users.data,
           currentOrg.id,
@@ -501,7 +513,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         type: 'IMPORT_DATA',
         payload: {
           requisitions: result.requisitions.data,
-          candidates: result.candidates.data,
+          candidates: candidatesData,
           events: result.events.data,
           users: result.users.data,
           isDemo
@@ -738,6 +750,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     } else {
       dispatch({ type: 'SET_RECRUITER_DETAIL', payload: null });
     }
+
+    // Mark all operations as complete and clear after a short delay
+    dispatch({ type: 'SET_DATA_READY', payload: { isFullyReady: true } });
+
+    // Clear operations after a short delay to ensure UI shows completion state briefly
+    setTimeout(() => {
+      dispatch({ type: 'CLEAR_OPERATIONS' });
+    }, 500);
   };
 
   const refreshMetrics = useCallback(() => {

@@ -216,14 +216,26 @@ export function generateSampleData(config: {
   }
 
   // Generate Candidates with realistic funnel progression
+  // Include PII (names, emails, phones) to demonstrate the PII detection/anonymization feature
   const candidates: string[] = [];
-  candidates.push('candidate_id,req_id,source,applied_at,first_contacted_at,current_stage,current_stage_entered_at,disposition,hired_at,offer_extended_at,offer_accepted_at');
+  candidates.push('candidate_id,candidate_name,candidate_email,candidate_phone,req_id,source,applied_at,first_contacted_at,current_stage,current_stage_entered_at,disposition,hired_at,offer_extended_at,offer_accepted_at');
 
   const events: string[] = [];
   events.push('event_id,candidate_id,req_id,event_type,from_stage,to_stage,actor_user_id,event_at,metadata_json');
 
   let candidateIndex = 1;
   let eventIndex = 1;
+
+  // Email domains for realistic PII
+  const EMAIL_DOMAINS = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'proton.me'];
+
+  // Generate realistic phone number
+  const generatePhone = (): string => {
+    const areaCode = Math.floor(Math.random() * 800) + 200;
+    const exchange = Math.floor(Math.random() * 900) + 100;
+    const subscriber = Math.floor(Math.random() * 9000) + 1000;
+    return `(${areaCode}) ${exchange}-${subscriber}`;
+  };
 
   for (const req of reqData) {
     const candCount = Math.floor(Math.random() * (candidatesPerReq - 5)) + 8;
@@ -233,11 +245,18 @@ export function generateSampleData(config: {
       const appliedAt = randomDate(req.openedAt, subDays(now, 3));
       const firstContactAt = addDays(appliedAt, Math.floor(Math.random() * 3) + 1);
 
+      // Generate candidate PII
+      const candName = generateName();
+      const emailDomain = randomItem(EMAIL_DOMAINS);
+      const candEmail = `${candName.first.toLowerCase()}.${candName.last.toLowerCase()}${Math.floor(Math.random() * 100)}@${emailDomain}`;
+      // 60% of candidates have phone numbers
+      const candPhone = Math.random() < 0.6 ? generatePhone() : '';
+
       // Simulate the candidate's journey through the funnel
       const journey = simulateCandidateJourney(addDays(appliedAt, 1), now);
 
       candidates.push(
-        `${candId},${req.id},${randomItem(SOURCES)},${formatDate(appliedAt)},${formatDate(firstContactAt)},${journey.finalStage},${formatDate(journey.stages[journey.stages.length - 1].enteredAt)},${journey.disposition},${journey.hiredAt ? formatDate(journey.hiredAt) : ''},${journey.offerExtendedAt ? formatDate(journey.offerExtendedAt) : ''},${journey.offerAcceptedAt ? formatDate(journey.offerAcceptedAt) : ''}`
+        `${candId},"${candName.full}",${candEmail},${candPhone},${req.id},${randomItem(SOURCES)},${formatDate(appliedAt)},${formatDate(firstContactAt)},${journey.finalStage},${formatDate(journey.stages[journey.stages.length - 1].enteredAt)},${journey.disposition},${journey.hiredAt ? formatDate(journey.hiredAt) : ''},${journey.offerExtendedAt ? formatDate(journey.offerExtendedAt) : ''},${journey.offerAcceptedAt ? formatDate(journey.offerAcceptedAt) : ''}`
       );
 
       // Generate events for each stage transition

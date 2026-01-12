@@ -179,7 +179,9 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   'candidate_id': ['person_id', 'applicant_id', 'profile_id', 'candidate',
     // iCIMS specific
     'person_system_id', 'person_id'],
-  'candidate_name': ['person_full_name_first_last', 'applicant_name', 'full_name'],
+  'candidate_name': ['person_full_name_first_last', 'applicant_name', 'full_name', 'name'],
+  'candidate_email': ['email', 'applicant_email', 'contact_email', 'personal_email'],
+  'candidate_phone': ['phone', 'phone_number', 'mobile', 'contact_phone', 'cell_phone'],
   'source': ['candidate_source', 'origin', 'source_type', 'how_found'],
   'current_stage': ['stage', 'status', 'workflow_status', 'pipeline_stage', 'current_status'],
   'current_stage_entered_at': ['stage_date', 'status_date', 'stage_entered', 'last_stage_change'],

@@ -86,6 +86,9 @@ export interface ActionItem {
   // === Status & Timestamps ===
   created_at: Date;
   status: ActionStatus;
+
+  // === Filter State (optional, set by UI) ===
+  matchesFilter?: boolean;  // Whether this action matches current dashboard filters
 }
 
 /**
