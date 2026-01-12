@@ -362,9 +362,9 @@ td[class*="numeric"] {
    BUTTON STYLES - Modern Dark Mode
    ======================================== */
 .btn-bespoke-primary {
-    background: #f59e0b;
-    color: #0a0a0a;
-    border: 1px solid #f59e0b;
+    background: var(--accent, #38bdf8) !important;
+    color: #0f172a !important;
+    border: 1px solid var(--accent, #38bdf8) !important;
     border-radius: 6px;
     padding: 0.5rem 1rem;
     font-family: var(--font-body);
@@ -376,15 +376,22 @@ td[class*="numeric"] {
 }
 
 .btn-bespoke-primary:hover {
-    background: #d97706;
-    border-color: #d97706;
-    color: #0a0a0a;
+    background: var(--accent-hover, #0ea5e9) !important;
+    border-color: var(--accent-hover, #0ea5e9) !important;
+    color: #0f172a !important;
+}
+
+.btn-bespoke-primary:disabled {
+    background: var(--text-secondary, #94a3b8) !important;
+    border-color: var(--text-secondary, #94a3b8) !important;
+    color: #0f172a !important;
+    opacity: 0.7;
 }
 
 .btn-bespoke-secondary {
-    background: #1c1c1c;
-    color: #e4e4e7 !important;
-    border: 1px solid #3f3f46;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary, #F8FAFC) !important;
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.15)) !important;
     border-radius: 6px;
     padding: 0.5rem 1rem;
     font-family: var(--font-body);
@@ -396,9 +403,9 @@ td[class*="numeric"] {
 }
 
 .btn-bespoke-secondary:hover {
-    border-color: #52525b;
-    background: #27272a;
-    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.25) !important;
+    color: var(--text-primary, #F8FAFC) !important;
 }
 
 /* ========================================
@@ -2151,12 +2158,17 @@ aside {
     color: #F8FAFC;
 }
 
-.btn-bespoke-secondary {
-    color: #F8FAFC !important;
+/* Ensure bespoke buttons have full styling including backgrounds */
+.btn.btn-bespoke-primary {
+    background: var(--accent, #38bdf8) !important;
+    color: #0f172a !important;
+    border-color: var(--accent, #38bdf8) !important;
 }
 
-.btn-bespoke-primary {
-    color: #0f172a !important;
+.btn.btn-bespoke-secondary {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #F8FAFC !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 /* RULE 7: Dropdown and menu glass effect */
