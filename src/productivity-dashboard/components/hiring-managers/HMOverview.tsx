@@ -103,13 +103,13 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
 
     // Header style matching Recruiter Leaderboard
     const thStyle = {
-        borderBottom: '2px solid var(--color-slate-200)',
+        borderBottom: '2px solid var(--glass-border)',
         padding: '0.625rem 0.5rem',
         fontSize: '0.7rem',
         fontWeight: 600,
         textTransform: 'uppercase' as const,
         letterSpacing: '0.03em',
-        color: 'var(--color-slate-600)',
+        color: 'var(--text-secondary)',
         whiteSpace: 'nowrap' as const
     };
 
@@ -118,14 +118,14 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
         ...thStyle,
         cursor: 'pointer',
         userSelect: 'none' as const,
-        color: sortField === field ? 'var(--color-accent)' : 'var(--color-slate-600)'
+        color: sortField === field ? 'var(--accent)' : 'var(--text-secondary)'
     });
 
     // Cell style
     const tdStyle = {
         padding: '0.5rem',
-        borderBottom: '1px solid var(--color-slate-100)',
-        color: 'var(--color-slate-700)',
+        borderBottom: '1px solid var(--glass-border)',
+        color: 'var(--text-primary)',
         fontSize: '0.85rem'
     };
 
@@ -387,7 +387,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                 />
                                             </td>
                                             <td style={tdStyle}>
-                                                <strong style={{ color: 'var(--color-slate-800)', fontSize: '0.85rem' }}>{hm.hmName}</strong>
+                                                <strong style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{hm.hmName}</strong>
                                                 {hm.team && <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{hm.team}</small>}
                                             </td>
                                             <td style={tdStyle} className="text-muted">{hm.team || '—'}</td>
@@ -399,7 +399,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                         {hm.pendingActionsCount}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>0</span>
+                                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>0</span>
                                                 )}
                                             </td>
                                             <td className="text-end" style={tdStyle}>
@@ -408,7 +408,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                         {hm.feedbackDueCount}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>0</span>
+                                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>0</span>
                                                 )}
                                             </td>
                                             <td className="text-end" style={tdStyle}>
@@ -417,7 +417,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                         {hm.reviewDueCount}
                                                     </span>
                                                 ) : (
-                                                    <span style={{ color: 'var(--color-slate-700)', fontSize: '0.85rem' }}>0</span>
+                                                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>0</span>
                                                 )}
                                             </td>
                                             <td className="text-end" style={tdStyle}>

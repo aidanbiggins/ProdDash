@@ -219,13 +219,13 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
           </div>
 
           {/* Data Actions */}
-          <div className="border-top">
+          <div className="border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
             {onConfigureStages && (
               <button
                 className="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2"
-                style={{ fontSize: '0.85rem', cursor: 'pointer' }}
+                style={{ fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-primary)' }}
                 onClick={() => { onConfigureStages(); setIsOpen(false); }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-50)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 Stage Mapping
@@ -234,9 +234,9 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
             {onExportData && (
               <button
                 className="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2"
-                style={{ fontSize: '0.85rem', cursor: 'pointer' }}
+                style={{ fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-primary)' }}
                 onClick={() => { onExportData(); setIsOpen(false); }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-50)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 Export Data
@@ -244,10 +244,10 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
             )}
             {onClearDatabase && (
               <button
-                className="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2 text-danger"
-                style={{ fontSize: '0.85rem', cursor: 'pointer' }}
+                className="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2"
+                style={{ fontSize: '0.85rem', cursor: 'pointer', color: 'var(--danger)' }}
                 onClick={() => { onClearDatabase(); setIsOpen(false); }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-50)'}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 Clear Database

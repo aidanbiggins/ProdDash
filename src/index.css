@@ -18,6 +18,19 @@
   --glass-border-hover: rgba(255, 255, 255, 0.15);
   --glass-blur: 16px;
 
+  /* Legacy slate color mappings (for backward compatibility) */
+  /* Maps old --color-slate-* to readable colors in dark mode */
+  --color-slate-50: rgba(255, 255, 255, 0.05);
+  --color-slate-100: rgba(255, 255, 255, 0.08);
+  --color-slate-200: rgba(255, 255, 255, 0.12);
+  --color-slate-300: #94A3B8;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #94A3B8;
+  --color-slate-600: #CBD5E1;
+  --color-slate-700: #E2E8F0;
+  --color-slate-800: #F1F5F9;
+  --color-slate-900: #F8FAFC;
+
   /* Text Colors */
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
@@ -505,6 +518,34 @@ h4, h5, h6 {
 /* Ensure no dark text on dark backgrounds */
 .text-dark, .text-black {
   color: var(--text-primary) !important;
+}
+
+/* Ensure all buttons have readable text in dark mode */
+button, .btn {
+  color: var(--text-primary);
+}
+
+button:not([class*="btn-"]):not(.nav-link) {
+  color: var(--text-primary);
+}
+
+/* Fix transparent/outline buttons */
+.btn-outline-secondary, .btn-outline-primary, .btn-outline-light {
+  color: var(--text-primary) !important;
+  border-color: var(--glass-border) !important;
+}
+
+.btn-outline-secondary:hover, .btn-outline-primary:hover, .btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-link {
+  color: var(--accent) !important;
+}
+
+.btn-link:hover {
+  color: var(--accent-hover) !important;
 }
 
 /* Badge overrides */
