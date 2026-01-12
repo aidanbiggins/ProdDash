@@ -137,9 +137,17 @@ export function FilterBar({
             onChange={(dateRange) => onChange({ dateRange })}
           />
           <button
-            className={`btn btn-sm ${isExpanded ? 'btn-bespoke-primary' : 'btn-light'}`}
+            className={`btn btn-sm ${isExpanded ? 'btn-bespoke-primary' : ''}`}
             onClick={() => setIsExpanded(!isExpanded)}
-            style={{ padding: '0.375rem 0.5rem', whiteSpace: 'nowrap' }}
+            style={{
+              padding: '0.375rem 0.5rem',
+              whiteSpace: 'nowrap',
+              ...(!isExpanded && {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'var(--text-primary, #F8FAFC)'
+              })
+            }}
           >
             {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
             <svg className={`ms-1 ${isExpanded ? 'rotate-180' : ''}`} width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ transition: 'transform 0.2s' }}>

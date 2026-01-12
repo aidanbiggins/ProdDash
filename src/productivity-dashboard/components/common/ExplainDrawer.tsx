@@ -12,7 +12,8 @@ interface ExplainDrawerProps {
 }
 
 export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerProps) {
-  if (!isOpen || !explanation) return null;
+  // Don't render anything if we've never had an explanation
+  if (!explanation) return null;
 
   const { status } = explanation;
   const isBlocked = status === 'blocked';
@@ -25,6 +26,9 @@ export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerPro
         style={{
           backgroundColor: 'rgba(0,0,0,0.5)',
           zIndex: 1040,
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+          transition: 'opacity 0.3s ease-in-out',
         }}
         onClick={onClose}
       />
@@ -38,6 +42,8 @@ export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerPro
           backgroundColor: 'var(--surface-elevated, #1e293b)',
           zIndex: 1050,
           boxShadow: '-4px 0 20px rgba(0,0,0,0.3)',
+          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s ease-in-out',
         }}
       >
         {/* Header */}

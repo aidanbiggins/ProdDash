@@ -429,9 +429,14 @@ export function ProductivityDashboard() {
               <small className="text-muted">{state.dataStore.requisitions.length} Reqs · {state.dataStore.candidates.length} Candidates</small>
             </div>
             <button
-              className="btn btn-light"
+              className="btn"
               onClick={() => setShowMobileMenu(true)}
-              style={{ padding: '0.5rem' }}
+              style={{
+                padding: '0.5rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'var(--text-primary, #F8FAFC)'
+              }}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="3" y1="6" x2="21" y2="6" />
