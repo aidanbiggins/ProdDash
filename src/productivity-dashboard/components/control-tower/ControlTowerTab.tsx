@@ -757,7 +757,7 @@ export function ControlTowerTab({
           </div>
           <div className="col-md-4">
             <div className="text-center">
-              <div className="stat-label mb-2" style={{ color: 'var(--text-secondary)' }}>Gap to Goal</div>
+              <div className="stat-label mb-2" style={{ color: 'var(--text-secondary)' }}>Pipeline Gap</div>
               <div
                 className="stat-value"
                 style={{
@@ -765,10 +765,10 @@ export function ControlTowerTab({
                   color: forecastData.gap === 0 ? '#22c55e' : forecastData.gap <= 5 ? '#f59e0b' : '#ef4444'
                 }}
               >
-                {forecastData.gap > 0 ? `-${forecastData.gap}` : '0'}
+                {forecastData.gap}
               </div>
               <div className="small" style={{ color: 'var(--text-secondary)' }}>
-                {forecastData.gap === 0 ? 'On track' : 'roles to fill'}
+                {forecastData.gap === 0 ? 'pipeline covers all reqs' : 'reqs need more sourcing'}
               </div>
             </div>
           </div>
