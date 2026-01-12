@@ -258,19 +258,32 @@ export function ControlTowerTab({
   }, [requisitions, candidates, events, users, filters, config, overview, hmFriction]);
 
   // ===== UNIFIED ACTION QUEUE =====
-  const [actionQueue, setActionQueue] = useState<ActionItem[]>([]);
+  const [manualActions, setManualActions] = useState<ActionItem[]>([]);
+  const [actionStatuses, setActionStatuses] = useState<Map<string, 'DONE' | 'DISMISSED'>>(new Map());
 
-  // Generate unified actions
-  useMemo(() => {
-    const actions = generateUnifiedActionQueue({
+  // Generate unified actions from data sources
+  const generatedActions = useMemo(() => {
+    return generateUnifiedActionQueue({
       hmActions,
       explanations: allExplanations,
       requisitions,
       users,
       datasetId,
     });
-    setActionQueue(actions);
   }, [hmActions, allExplanations, requisitions, users, datasetId]);
+
+  // Merge generated actions with manually added actions (from PreMortem) and apply statuses
+  const actionQueue = useMemo(() => {
+    const generatedIds = new Set(generatedActions.map(a => a.action_id));
+    // Keep manual actions that don't duplicate generated ones
+    const uniqueManualActions = manualActions.filter(a => !generatedIds.has(a.action_id));
+    const allActions = [...generatedActions, ...uniqueManualActions];
+    // Apply any status overrides
+    return allActions.map(action => {
+      const status = actionStatuses.get(action.action_id);
+      return status ? { ...action, status } : action;
+    });
+  }, [generatedActions, manualActions, actionStatuses]);
 
   // Action handlers
   const handleActionClick = useCallback((action: ActionItem) => {
@@ -280,17 +293,13 @@ export function ControlTowerTab({
 
   const handleMarkDone = useCallback((actionId: string) => {
     saveActionState(datasetId, actionId, 'DONE');
-    setActionQueue(prev => prev.map(a =>
-      a.action_id === actionId ? { ...a, status: 'DONE' } : a
-    ));
+    setActionStatuses(prev => new Map(prev).set(actionId, 'DONE'));
     setActionDrawerOpen(false);
   }, [datasetId]);
 
   const handleDismiss = useCallback((actionId: string) => {
     saveActionState(datasetId, actionId, 'DISMISSED');
-    setActionQueue(prev => prev.map(a =>
-      a.action_id === actionId ? { ...a, status: 'DISMISSED' } : a
-    ));
+    setActionStatuses(prev => new Map(prev).set(actionId, 'DISMISSED'));
     setActionDrawerOpen(false);
   }, [datasetId]);
 
@@ -540,13 +549,16 @@ export function ControlTowerTab({
 
   // Handler for adding PreMortem actions to queue
   const handleAddPreMortemToQueue = useCallback((actions: ActionItem[]) => {
-    setActionQueue(prev => {
-      // Deduplicate by action_id
-      const existingIds = new Set(prev.map(a => a.action_id));
-      const newActions = actions.filter(a => !existingIds.has(a.action_id));
+    setManualActions(prev => {
+      // Deduplicate by action_id (check both manual and generated actions)
+      const existingManualIds = new Set(prev.map(a => a.action_id));
+      const existingGeneratedIds = new Set(generatedActions.map(a => a.action_id));
+      const newActions = actions.filter(a =>
+        !existingManualIds.has(a.action_id) && !existingGeneratedIds.has(a.action_id)
+      );
       return [...prev, ...newActions];
     });
-  }, []);
+  }, [generatedActions]);
 
   // Check if an action matches current filters
   const actionMatchesFilters = useCallback((action: ActionItem): boolean => {
