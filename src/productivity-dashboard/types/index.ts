@@ -10,6 +10,7 @@ export * from './loadingTypes';
 export * from './pipelineTypes';
 export * from './dataHygieneTypes';
 export * from './canonicalTypes';
+export * from './explainTypes';
 
 // ===== DATA STORE STATE =====
 

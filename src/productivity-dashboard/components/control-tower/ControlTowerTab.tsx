@@ -1,13 +1,16 @@
 // Control Tower Tab - Executive command center for recruiting operations
 // Provides at-a-glance health, risks, actions, and forecasts
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Requisition, Candidate, Event, User, RequisitionStatus, CandidateDisposition } from '../../types/entities';
 import { HiringManagerFriction, OverviewMetrics, MetricFilters } from '../../types';
 import { DashboardConfig } from '../../types/config';
 import { HMPendingAction, HMActionType } from '../../types/hmTypes';
 import { assessReqHealth } from '../../services/reqHealthService';
 import { ReqHealthStatus } from '../../types/dataHygieneTypes';
+import { ExplainDrawer } from '../common/ExplainDrawer';
+import { getExplanation } from '../../services/explain';
+import { Explanation, ExplainProviderId } from '../../types/explainTypes';
 // Forecasting imports - simplified for Control Tower summary
 import { differenceInDays } from 'date-fns';
 
@@ -62,11 +65,12 @@ interface UnifiedAction {
 }
 
 // Health indicator component
-function HealthIndicator({ status, label, value, subtitle }: {
+function HealthIndicator({ status, label, value, subtitle, onExplain }: {
   status: 'green' | 'yellow' | 'red';
   label: string;
   value: string | number;
   subtitle?: string;
+  onExplain?: () => void;
 }) {
   const colors = {
     green: { bg: 'rgba(34, 197, 94, 0.15)', border: '#22c55e', text: '#22c55e' },
@@ -83,12 +87,24 @@ function HealthIndicator({ status, label, value, subtitle }: {
     >
       <div className="d-flex justify-content-between align-items-start mb-2">
         <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-        <span
-          className="badge"
-          style={{ background: c.bg, color: c.text, fontSize: '0.65rem', textTransform: 'uppercase' }}
-        >
-          {status}
-        </span>
+        <div className="d-flex align-items-center gap-1">
+          {onExplain && (
+            <button
+              className="btn btn-sm p-0"
+              onClick={(e) => { e.stopPropagation(); onExplain(); }}
+              title="Explain this metric"
+              style={{ color: 'var(--text-secondary)', lineHeight: 1 }}
+            >
+              <i className="bi bi-question-circle" style={{ fontSize: '0.85rem' }}></i>
+            </button>
+          )}
+          <span
+            className="badge"
+            style={{ background: c.bg, color: c.text, fontSize: '0.65rem', textTransform: 'uppercase' }}
+          >
+            {status}
+          </span>
+        </div>
       </div>
       <div className="stat-value" style={{ fontSize: '1.75rem', color: 'var(--text-primary)' }}>
         {value}
@@ -199,6 +215,26 @@ export function ControlTowerTab({
   onNavigateToHM,
   onNavigateToTab
 }: ControlTowerTabProps) {
+
+  // ===== EXPLAIN DRAWER STATE =====
+  const [explainDrawerOpen, setExplainDrawerOpen] = useState(false);
+  const [currentExplanation, setCurrentExplanation] = useState<Explanation | null>(null);
+
+  const handleExplain = useCallback((providerId: ExplainProviderId) => {
+    const context = {
+      requisitions,
+      candidates,
+      events,
+      users,
+      filters,
+      config,
+      overview,
+      hmFriction,
+    };
+    const explanation = getExplanation(providerId, context);
+    setCurrentExplanation(explanation);
+    setExplainDrawerOpen(true);
+  }, [requisitions, candidates, events, users, filters, config, overview, hmFriction]);
 
   // ===== HEALTH KPIs =====
   const healthKPIs = useMemo(() => {
@@ -572,6 +608,7 @@ export function ControlTowerTab({
               label="Median TTF"
               value={healthKPIs.ttf.value}
               subtitle={healthKPIs.ttf.subtitle}
+              onExplain={() => handleExplain('median_ttf')}
             />
           </div>
           <div className="col-6 col-md">
@@ -580,6 +617,7 @@ export function ControlTowerTab({
               label="Offers"
               value={healthKPIs.offers.value}
               subtitle={healthKPIs.offers.subtitle}
+              onExplain={() => handleExplain('time_to_offer')}
             />
           </div>
           <div className="col-6 col-md">
@@ -588,6 +626,7 @@ export function ControlTowerTab({
               label="Accept Rate"
               value={healthKPIs.acceptRate.value}
               subtitle={healthKPIs.acceptRate.subtitle}
+              onExplain={() => handleExplain('offer_accept_rate')}
             />
           </div>
           <div className="col-6 col-md">
@@ -596,6 +635,7 @@ export function ControlTowerTab({
               label="Stalled Reqs"
               value={healthKPIs.stalledReqs.value}
               subtitle={healthKPIs.stalledReqs.subtitle}
+              onExplain={() => handleExplain('stalled_reqs')}
             />
           </div>
           <div className="col-6 col-md">
@@ -604,6 +644,7 @@ export function ControlTowerTab({
               label="HM Latency"
               value={healthKPIs.hmLatency.value}
               subtitle={healthKPIs.hmLatency.subtitle}
+              onExplain={() => handleExplain('hm_latency')}
             />
           </div>
         </div>
@@ -823,6 +864,13 @@ export function ControlTowerTab({
           </div>
         </div>
       </div>
+
+      {/* Explain Drawer */}
+      <ExplainDrawer
+        isOpen={explainDrawerOpen}
+        onClose={() => setExplainDrawerOpen(false)}
+        explanation={currentExplanation}
+      />
     </div>
   );
 }
