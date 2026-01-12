@@ -21,6 +21,7 @@ import { ForecastingTab } from './forecasting';
 import { DataHealthTab } from './data-health';
 import { ControlTowerTab } from './control-tower';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
+import { ClearProgress } from '../services/dbService';
 import { calculatePendingActions } from '../services/hmMetricsEngine';
 import { buildHMFactTables } from '../services/hmFactTables';
 import { DEFAULT_HM_RULES } from '../config/hmRules';
@@ -36,7 +37,7 @@ import { createOrganization } from '../services/organizationService';
 type TabType = 'control-tower' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
 
 export function ProductivityDashboard() {
-  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations } = useDashboard();
+  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations } = useDashboard();
   const [showProgressPanel, setShowProgressPanel] = useState(false);
   const { isMasked, toggleMasking } = useDataMasking();
   const { currentOrg, user, refreshMemberships, supabaseUser } = useAuth();
@@ -45,6 +46,7 @@ export function ProductivityDashboard() {
   const [showStageMapping, setShowStageMapping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [clearProgress, setClearProgress] = useState<ClearProgress | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [demoDismissed, setDemoDismissed] = useState(false);
@@ -174,14 +176,18 @@ export function ProductivityDashboard() {
 
   const handleClearDataConfirm = async () => {
     setIsClearing(true);
+    setClearProgress(null);
     try {
-      const result = await clearPersistedData();
+      const result = await clearPersistedData((progress) => {
+        setClearProgress(progress);
+      });
       if (result.success) {
         setShowClearConfirm(false);
         // Success handled by state reset
       }
     } finally {
       setIsClearing(false);
+      setClearProgress(null);
     }
   };
 
@@ -265,9 +271,9 @@ export function ProductivityDashboard() {
           </button>
           <button
             className="mobile-menu-item"
-            onClick={() => { refreshMetrics(); setShowMobileMenu(false); }}
+            onClick={() => { refetchData(); setShowMobileMenu(false); }}
           >
-            Refresh Data
+            Reload from Database
           </button>
           <hr />
           <button
@@ -335,14 +341,14 @@ export function ProductivityDashboard() {
           >
             {isGeneratingEvents ? (
               // Fun animated progress UI
-              <div className="p-4">
+              <div className="p-4" style={{ color: '#ffffff' }}>
                 <div className="d-flex justify-content-between align-items-start mb-3">
                   <div>
-                    <h5 className="mb-1 text-white d-flex align-items-center gap-2">
+                    <h5 className="mb-1 d-flex align-items-center gap-2" style={{ color: '#ffffff' }}>
                       <span className="spinner-grow spinner-grow-sm" style={{ color: '#ffc107' }} />
                       {persistProgress?.phase === 'persisting' ? 'Saving to Database' : 'Generating Events'}
                     </h5>
-                    <p className="mb-0 text-white-50">
+                    <p className="mb-0" style={{ color: 'rgba(255,255,255,0.6)' }}>
                       {getCurrentMessage(persistProgress)}
                     </p>
                   </div>
@@ -364,9 +370,9 @@ export function ProductivityDashboard() {
                 </div>
 
                 {/* Stats row */}
-                <div className="d-flex justify-content-between text-white-50 small">
+                <div className="d-flex justify-content-between small" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   <div>
-                    <span className="text-white fw-bold">
+                    <span style={{ color: '#ffffff', fontWeight: 'bold' }}>
                       {(persistProgress?.eventsGenerated || eventGenProgress?.eventsGenerated || 0).toLocaleString()}
                     </span>
                     {' '}events generated
@@ -374,7 +380,7 @@ export function ProductivityDashboard() {
                   <div>
                     {persistProgress?.phase === 'generating' ? (
                       <>
-                        <span className="text-white fw-bold">
+                        <span style={{ color: '#ffffff', fontWeight: 'bold' }}>
                           {persistProgress.current.toLocaleString()}
                         </span>
                         {' / '}
@@ -382,7 +388,7 @@ export function ProductivityDashboard() {
                       </>
                     ) : persistProgress?.phase === 'persisting' ? (
                       <>
-                        <span className="text-white fw-bold">
+                        <span style={{ color: '#ffffff', fontWeight: 'bold' }}>
                           {persistProgress.current.toLocaleString()}
                         </span>
                         {' / '}
@@ -499,8 +505,9 @@ export function ProductivityDashboard() {
               )}
               <button
                 className="btn btn-bespoke-primary"
-                onClick={refreshMetrics}
+                onClick={refetchData}
                 disabled={state.isLoading}
+                title="Reload data from database"
               >
                 {state.isLoading ? 'Syncing...' : 'Refresh Data'}
               </button>
@@ -906,6 +913,7 @@ export function ProductivityDashboard() {
           onCancel={() => setShowClearConfirm(false)}
           onConfirm={handleClearDataConfirm}
           isClearing={isClearing}
+          clearProgress={clearProgress}
         />
 
         {/* Create Organization Modal */}

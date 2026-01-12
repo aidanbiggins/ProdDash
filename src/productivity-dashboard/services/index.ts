@@ -18,3 +18,4 @@ export * from './pipelineBenchmarkService';
 export * from './reqHealthService';
 export * from './canonicalDataLayer';
 export * from './explain';
+export * from './actionQueueService';

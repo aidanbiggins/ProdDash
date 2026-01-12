@@ -101,6 +101,46 @@ The Control Tower (`/components/control-tower/`) is the default landing page aft
 
 **Deep Links** - Clicking items navigates to detailed views (req detail, HM queue, etc.)
 
+### Unified Action Queue
+
+The action queue system (`/types/actionTypes.ts`, `/services/actionQueueService.ts`) consolidates actions from multiple sources into a prioritized, filterable queue:
+
+**ActionItem Type:**
+```typescript
+interface ActionItem {
+  action_id: string;          // Deterministic ID: hash(owner_type + owner_id + req_id + action_type)
+  owner_type: 'RECRUITER' | 'HIRING_MANAGER' | 'TA_OPS';
+  owner_id: string;
+  owner_name: string;
+  req_id: string;             // 'general' for portfolio-level actions
+  action_type: ActionType;    // FEEDBACK_DUE, REVIEW_STALLED_REQS, SOURCE_CANDIDATES, etc.
+  title: string;
+  priority: 'P0' | 'P1' | 'P2';  // P0=blocking, P1=risk, P2=optimization
+  due_in_days: number;
+  due_date: Date;
+  evidence: ActionEvidence;   // Links back to Explain provider
+  recommended_steps: string[];
+  status: 'OPEN' | 'DONE' | 'DISMISSED';
+}
+```
+
+**Action Sources:**
+1. **HM Queue** (`generateActionsFromHMQueue`): Maps `HMPendingAction` to `ActionItem`
+   - Priority based on days overdue: >3d = P0, >0d = P1, else P2
+2. **Explain Engine** (`generateActionsFromExplain`): Maps `RecommendedAction` from all 5 providers
+   - high → P0, medium → P1, low → P2
+
+**Deduplication:** Same owner_type + owner_id + req_id + action_type keeps highest priority action.
+
+**Persistence:** localStorage keyed by `proddash_action_states_{datasetId}`:
+- `saveActionState(datasetId, actionId, status)` - Marks action as DONE/DISMISSED
+- `loadActionStates(datasetId)` - Loads persisted states
+- `applyPersistedStates(actions, datasetId)` - Applies stored states to generated actions
+
+**UI Components:**
+- `UnifiedActionQueue` - Filter tabs (All | Recruiter | HM | Ops) with action list
+- `ActionDetailDrawer` - Action detail with evidence linking and Mark Done/Dismiss buttons
+
 ### Key Patterns
 
 **Canonical Stages**: Raw stage names from CSV are normalized via `stageNormalization.ts` to `CanonicalStage` enum values (LEAD, APPLIED, SCREEN, HM_SCREEN, ONSITE, FINAL, OFFER, HIRED, REJECTED, WITHDRAWN).

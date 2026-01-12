@@ -11,6 +11,7 @@ export * from './pipelineTypes';
 export * from './dataHygieneTypes';
 export * from './canonicalTypes';
 export * from './explainTypes';
+export * from './actionTypes';
 
 // ===== DATA STORE STATE =====
 

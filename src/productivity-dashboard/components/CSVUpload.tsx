@@ -5,6 +5,8 @@ import { generateSampleData } from '../utils/sampleDataGenerator';
 import { ICIMSImportGuide } from './ICIMSImportGuide';
 import { useDashboard } from '../hooks/useDashboardContext';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
+import { ImportProgressModal } from './common/ImportProgressModal';
+import { ImportProgress, ClearProgress } from '../services/dbService';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgSwitcher, CreateOrgModal } from './OrgSwitcher';
 import { createOrganization } from '../services/organizationService';
@@ -15,7 +17,8 @@ interface CSVUploadProps {
     candidatesCsv: string,
     eventsCsv: string,
     usersCsv: string,
-    isDemo?: boolean
+    isDemo?: boolean,
+    onProgress?: (progress: ImportProgress) => void
   ) => Promise<{ success: boolean; errors: string[] }>;
   isLoading: boolean;
 }
@@ -41,6 +44,8 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const [showGuide, setShowGuide] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [clearProgress, setClearProgress] = useState<ClearProgress | null>(null);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
 
   const handleCreateOrg = async (name: string) => {
@@ -80,6 +85,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
     setUploading(true);
     setErrors([]);
+    setImportProgress(null);
 
     try {
       const [reqCsv, candCsv, eventCsv, userCsv] = await Promise.all([
@@ -94,7 +100,9 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
         reqCsv,
         candCsv || '',  // csvParser expects string, empty string handled as empty
         eventCsv || '',
-        userCsv || ''
+        userCsv || '',
+        false, // isDemo
+        (progress) => setImportProgress(progress)
       );
 
       if (!result.success) {
@@ -104,12 +112,14 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
       setErrors([error instanceof Error ? error.message : 'Unknown error during upload']);
     } finally {
       setUploading(false);
+      setImportProgress(null);
     }
   }, [files, onUpload]);
 
   const handleLoadDemo = useCallback(async () => {
     setUploading(true);
     setErrors([]);
+    setImportProgress(null);
 
     try {
       const sampleData = generateSampleData({
@@ -124,7 +134,8 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
         sampleData.candidates,
         sampleData.events,
         sampleData.users,
-        true // isDemo
+        true, // isDemo
+        (progress) => setImportProgress(progress)
       );
 
       if (!result.success) {
@@ -134,13 +145,17 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
       setErrors([error instanceof Error ? error.message : 'Error loading demo data']);
     } finally {
       setUploading(false);
+      setImportProgress(null);
     }
   }, [onUpload]);
 
   const handleClearDataConfirm = async () => {
     setIsClearing(true);
+    setClearProgress(null);
     try {
-      const result = await clearPersistedData();
+      const result = await clearPersistedData((progress) => {
+        setClearProgress(progress);
+      });
       if (!result.success) {
         setErrors([result.error || 'Failed to clear database']);
       } else {
@@ -148,6 +163,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
       }
     } finally {
       setIsClearing(false);
+      setClearProgress(null);
     }
   };
 
@@ -337,6 +353,13 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                 onCancel={() => setShowClearConfirm(false)}
                 onConfirm={handleClearDataConfirm}
                 isClearing={isClearing}
+                clearProgress={clearProgress}
+              />
+
+              {/* Import Progress Modal */}
+              <ImportProgressModal
+                isOpen={uploading && importProgress !== null}
+                progress={importProgress}
               />
 
             </div>

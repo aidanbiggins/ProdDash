@@ -71,16 +71,36 @@ export const fetchDashboardData = async (orgId?: string | null) => {
     return { requisitions, candidates, events: eventList, users: userList };
 };
 
+// Progress callback for import/persist operations
+export interface ImportProgress {
+    phase: 'parsing' | 'persisting';
+    step: number;
+    totalSteps: number;
+    table: string;
+    rowsProcessed: number;
+    totalRows: number;
+    status: 'processing' | 'complete';
+}
+
+export type ImportProgressCallback = (progress: ImportProgress) => void;
+
 // Helper for chunked upserts with progress logging
-async function chunkedUpsert(table: string, data: any[], chunkSize: number = 500) {
+async function chunkedUpsert(
+    table: string,
+    data: any[],
+    chunkSize: number = 500,
+    onProgress?: (rowsUpserted: number, totalRows: number) => void
+) {
     if (data.length === 0) {
         console.log(`[DB] Skipping ${table} - no data`);
+        onProgress?.(0, 0);
         return;
     }
 
     const totalChunks = Math.ceil(data.length / chunkSize);
     console.log(`[DB] Upserting ${data.length} rows to ${table} in ${totalChunks} chunks...`);
     const startTime = Date.now();
+    let rowsUpserted = 0;
 
     for (let i = 0; i < data.length; i += chunkSize) {
         const chunkNum = Math.floor(i / chunkSize) + 1;
@@ -95,6 +115,9 @@ async function chunkedUpsert(table: string, data: any[], chunkSize: number = 500
             console.error(`[DB] Error upserting to ${table} (chunk ${chunkNum}):`, error);
             throw error;
         }
+
+        rowsUpserted += chunk.length;
+        onProgress?.(rowsUpserted, data.length);
     }
 
     console.log(`[DB] ${table} complete in ${Date.now() - startTime}ms`);
@@ -111,7 +134,8 @@ export const persistDashboardData = async (
     candidates: Candidate[],
     events: Event[],
     users: User[],
-    organizationId: string
+    organizationId: string,
+    onProgress?: ImportProgressCallback
 ) => {
     // Check for skip flag (useful for testing large files)
     const skipPersist = localStorage.getItem('skip-db-persist') === 'true';
@@ -179,19 +203,78 @@ export const persistDashboardData = async (
         organization_id: organizationId
     }));
 
+    // Tables to persist in order
+    const tables = [
+        { name: 'users', data: dbUsers, label: 'Users' },
+        { name: 'requisitions', data: dbReqs, label: 'Requisitions' },
+        { name: 'candidates', data: dbCands, label: 'Candidates' },
+        { name: 'events', data: dbEvents, label: 'Events' }
+    ];
+
     // Chunk inserts to avoid payload limits
-    await chunkedUpsert('users', dbUsers);
-    await chunkedUpsert('requisitions', dbReqs);
-    await chunkedUpsert('candidates', dbCands);
-    await chunkedUpsert('events', dbEvents);
+    for (let i = 0; i < tables.length; i++) {
+        const { name, data, label } = tables[i];
+        const step = i + 1;
+
+        // Report starting this table
+        onProgress?.({
+            phase: 'persisting',
+            step,
+            totalSteps: 4,
+            table: label,
+            rowsProcessed: 0,
+            totalRows: data.length,
+            status: 'processing'
+        });
+
+        await chunkedUpsert(name, data, 500, (rowsUpserted, totalRows) => {
+            onProgress?.({
+                phase: 'persisting',
+                step,
+                totalSteps: 4,
+                table: label,
+                rowsProcessed: rowsUpserted,
+                totalRows,
+                status: 'processing'
+            });
+        });
+
+        // Report table complete
+        onProgress?.({
+            phase: 'persisting',
+            step,
+            totalSteps: 4,
+            table: label,
+            rowsProcessed: data.length,
+            totalRows: data.length,
+            status: 'complete'
+        });
+    }
 };
 
+// Progress callback for clear operations
+export interface ClearProgress {
+    step: number;
+    totalSteps: number;
+    table: string;
+    rowsDeleted: number;
+    status: 'counting' | 'deleting' | 'complete';
+}
+
+export type ClearProgressCallback = (progress: ClearProgress) => void;
+
 /**
- * Helper to delete rows from a table in large chunks.
- * Uses 5000-row batches to balance speed vs timeout risk.
+ * Helper to delete rows from a table in chunks.
+ * Uses 200-row batches to avoid URL length limits with .in() queries.
  */
-async function chunkedDelete(table: string, idColumn: string, orgId?: string | null, chunkSize: number = 5000) {
-    if (!supabase) return;
+async function chunkedDelete(
+    table: string,
+    idColumn: string,
+    orgId?: string | null,
+    chunkSize: number = 200,
+    onProgress?: (rowsDeleted: number) => void
+): Promise<number> {
+    if (!supabase) return 0;
 
     const startTime = Date.now();
     let totalDeleted = 0;
@@ -202,7 +285,7 @@ async function chunkedDelete(table: string, idColumn: string, orgId?: string | n
         let hasMore = true;
 
         while (hasMore) {
-            // Get a batch of IDs
+            // Get a batch of IDs - use smaller chunk to keep URL size manageable
             const { data, error: selectError } = await supabase
                 .from(table)
                 .select(idColumn)
@@ -219,7 +302,7 @@ async function chunkedDelete(table: string, idColumn: string, orgId?: string | n
                 break;
             }
 
-            // Delete this batch
+            // Delete this batch using .in() with IDs - smaller chunk avoids URL length limits
             const ids = data.map((row: any) => row[idColumn]);
             const { error: deleteError } = await supabase
                 .from(table)
@@ -232,7 +315,13 @@ async function chunkedDelete(table: string, idColumn: string, orgId?: string | n
             }
 
             totalDeleted += ids.length;
-            console.log(`[DB Clear] ${table}: deleted ${totalDeleted} rows so far...`);
+            onProgress?.(totalDeleted);
+            if (totalDeleted % 1000 === 0 || data.length < chunkSize) {
+                console.log(`[DB Clear] ${table}: deleted ${totalDeleted} rows so far...`);
+            }
+
+            // Small delay to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 20));
 
             if (data.length < chunkSize) hasMore = false;
         }
@@ -271,38 +360,81 @@ async function chunkedDelete(table: string, idColumn: string, orgId?: string | n
         }
 
         nullDeleted += ids.length;
+        onProgress?.(totalDeleted + nullDeleted);
         if (data.length < chunkSize) hasMoreNull = false;
     }
     if (nullDeleted > 0) {
         console.log(`[DB Clear] Deleted ${nullDeleted} rows with NULL org_id from ${table}`);
     }
+
+    return totalDeleted + nullDeleted;
 }
 
 /**
  * Clear all data for a specific organization.
  * If no orgId provided, clears all data the user has access to (careful!).
- * Uses chunked deletes (5000 rows at a time) to avoid timeouts.
+ * Uses chunked deletes (200 rows at a time) to avoid URL length limits.
  */
-export const clearAllData = async (orgId?: string | null) => {
+export const clearAllData = async (
+    orgId?: string | null,
+    onProgress?: ClearProgressCallback
+) => {
     if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
 
     console.log(`[DB Clear] Starting clear for org: ${orgId || 'ALL'}`);
     const startTime = Date.now();
 
+    const tables = [
+        { name: 'events', idColumn: 'event_id', label: 'Events' },
+        { name: 'candidates', idColumn: 'candidate_id', label: 'Candidates' },
+        { name: 'requisitions', idColumn: 'req_id', label: 'Requisitions' },
+        { name: 'users', idColumn: 'user_id', label: 'Users' }
+    ];
+
     // Delete in order: events -> candidates -> requisitions -> users (respecting foreign keys)
     // IMPORTANT: Each step must complete before the next begins
     try {
-        console.log('[DB Clear] Step 1/4: Deleting events...');
-        await chunkedDelete('events', 'event_id', orgId);
+        for (let i = 0; i < tables.length; i++) {
+            const { name, idColumn, label } = tables[i];
+            const step = i + 1;
 
-        console.log('[DB Clear] Step 2/4: Deleting candidates...');
-        await chunkedDelete('candidates', 'candidate_id', orgId);
+            console.log(`[DB Clear] Step ${step}/4: Deleting ${name}...`);
 
-        console.log('[DB Clear] Step 3/4: Deleting requisitions...');
-        await chunkedDelete('requisitions', 'req_id', orgId);
+            // Report starting
+            onProgress?.({
+                step,
+                totalSteps: 4,
+                table: label,
+                rowsDeleted: 0,
+                status: 'deleting'
+            });
 
-        console.log('[DB Clear] Step 4/4: Deleting users...');
-        await chunkedDelete('users', 'user_id', orgId);
+            // Delete with progress callback
+            const deleted = await chunkedDelete(
+                name,
+                idColumn,
+                orgId,
+                200,
+                (rowsDeleted) => {
+                    onProgress?.({
+                        step,
+                        totalSteps: 4,
+                        table: label,
+                        rowsDeleted,
+                        status: 'deleting'
+                    });
+                }
+            );
+
+            // Report complete for this table
+            onProgress?.({
+                step,
+                totalSteps: 4,
+                table: label,
+                rowsDeleted: deleted || 0,
+                status: 'complete'
+            });
+        }
 
         console.log(`[DB Clear] Successfully cleared all data in ${Date.now() - startTime}ms`);
     } catch (error: any) {

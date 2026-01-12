@@ -5,12 +5,20 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { Requisition, Candidate, Event, User, RequisitionStatus, CandidateDisposition } from '../../types/entities';
 import { HiringManagerFriction, OverviewMetrics, MetricFilters } from '../../types';
 import { DashboardConfig } from '../../types/config';
-import { HMPendingAction, HMActionType } from '../../types/hmTypes';
+import { HMPendingAction } from '../../types/hmTypes';
 import { assessReqHealth } from '../../services/reqHealthService';
 import { ReqHealthStatus } from '../../types/dataHygieneTypes';
 import { ExplainDrawer } from '../common/ExplainDrawer';
 import { getExplanation } from '../../services/explain';
 import { Explanation, ExplainProviderId } from '../../types/explainTypes';
+import { ActionItem } from '../../types/actionTypes';
+import { UnifiedActionQueue } from '../common/UnifiedActionQueue';
+import { ActionDetailDrawer } from '../common/ActionDetailDrawer';
+import {
+  generateUnifiedActionQueue,
+  saveActionState,
+  getOpenActions,
+} from '../../services/actionQueueService';
 // Forecasting imports - simplified for Control Tower summary
 import { differenceInDays } from 'date-fns';
 
@@ -49,20 +57,6 @@ interface AtRiskReq {
   severity: 'high' | 'medium' | 'low';
 }
 
-// Unified action type for recruiter + HM actions
-interface UnifiedAction {
-  id: string;
-  type: 'recruiter' | 'hm';
-  actionLabel: string;
-  reqId: string;
-  reqTitle: string;
-  ownerName: string;
-  ownerType: 'Recruiter' | 'HM';
-  candidateName?: string;
-  daysWaiting: number;
-  urgency: 'critical' | 'high' | 'medium' | 'low';
-  suggestedAction: string;
-}
 
 // Health indicator component
 function HealthIndicator({ status, label, value, subtitle, onExplain }: {
@@ -220,6 +214,16 @@ export function ControlTowerTab({
   const [explainDrawerOpen, setExplainDrawerOpen] = useState(false);
   const [currentExplanation, setCurrentExplanation] = useState<Explanation | null>(null);
 
+  // ===== ACTION DETAIL DRAWER STATE =====
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
+  const [selectedAction, setSelectedAction] = useState<ActionItem | null>(null);
+
+  // Generate dataset ID for localStorage persistence
+  const datasetId = useMemo(() => {
+    // Create a stable ID from dataset characteristics
+    return `ds_${requisitions.length}_${candidates.length}_${lastImportAt?.getTime() || 0}`;
+  }, [requisitions.length, candidates.length, lastImportAt]);
+
   const handleExplain = useCallback((providerId: ExplainProviderId) => {
     const context = {
       requisitions,
@@ -235,6 +239,71 @@ export function ControlTowerTab({
     setCurrentExplanation(explanation);
     setExplainDrawerOpen(true);
   }, [requisitions, candidates, events, users, filters, config, overview, hmFriction]);
+
+  // ===== GENERATE ALL EXPLANATIONS =====
+  const allExplanations = useMemo(() => {
+    const context = {
+      requisitions,
+      candidates,
+      events,
+      users,
+      filters,
+      config,
+      overview,
+      hmFriction,
+    };
+
+    const explanations = new Map<ExplainProviderId, Explanation>();
+    const providerIds: ExplainProviderId[] = ['median_ttf', 'hm_latency', 'stalled_reqs', 'offer_accept_rate', 'time_to_offer'];
+
+    for (const id of providerIds) {
+      explanations.set(id, getExplanation(id, context));
+    }
+
+    return explanations;
+  }, [requisitions, candidates, events, users, filters, config, overview, hmFriction]);
+
+  // ===== UNIFIED ACTION QUEUE =====
+  const [actionQueue, setActionQueue] = useState<ActionItem[]>([]);
+
+  // Generate unified actions
+  useMemo(() => {
+    const actions = generateUnifiedActionQueue({
+      hmActions,
+      explanations: allExplanations,
+      requisitions,
+      users,
+      datasetId,
+    });
+    setActionQueue(actions);
+  }, [hmActions, allExplanations, requisitions, users, datasetId]);
+
+  // Action handlers
+  const handleActionClick = useCallback((action: ActionItem) => {
+    setSelectedAction(action);
+    setActionDrawerOpen(true);
+  }, []);
+
+  const handleMarkDone = useCallback((actionId: string) => {
+    saveActionState(datasetId, actionId, 'DONE');
+    setActionQueue(prev => prev.map(a =>
+      a.action_id === actionId ? { ...a, status: 'DONE' } : a
+    ));
+    setActionDrawerOpen(false);
+  }, [datasetId]);
+
+  const handleDismiss = useCallback((actionId: string) => {
+    saveActionState(datasetId, actionId, 'DISMISSED');
+    setActionQueue(prev => prev.map(a =>
+      a.action_id === actionId ? { ...a, status: 'DISMISSED' } : a
+    ));
+    setActionDrawerOpen(false);
+  }, [datasetId]);
+
+  const handleViewEvidence = useCallback((providerId: ExplainProviderId) => {
+    setActionDrawerOpen(false);
+    handleExplain(providerId);
+  }, [handleExplain]);
 
   // ===== HEALTH KPIs =====
   const healthKPIs = useMemo(() => {
@@ -421,90 +490,6 @@ export function ControlTowerTab({
       .slice(0, 10);
   }, [requisitions, candidates, events, users, hmActions]);
 
-  // ===== UNIFIED ACTIONS =====
-  const unifiedActions = useMemo((): UnifiedAction[] => {
-    const actions: UnifiedAction[] = [];
-
-    // Add HM actions
-    for (const action of hmActions) {
-      const urgency = action.daysOverdue > 5 ? 'critical' :
-        action.daysOverdue > 2 ? 'high' :
-        action.daysOverdue > 0 ? 'medium' : 'low';
-
-      actions.push({
-        id: `hm-${action.reqId}-${action.candidateId}`,
-        type: 'hm',
-        actionLabel: action.actionType === HMActionType.FEEDBACK_DUE ? 'Feedback Due' :
-          action.actionType === HMActionType.REVIEW_DUE ? 'Resume Review' : 'Decision Needed',
-        reqId: action.reqId,
-        reqTitle: action.reqTitle,
-        ownerName: action.hmName,
-        ownerType: 'HM',
-        candidateName: action.candidateName,
-        daysWaiting: action.daysWaiting,
-        urgency,
-        suggestedAction: action.suggestedAction
-      });
-    }
-
-    // Add recruiter actions (stalled reqs, pipeline gaps)
-    const openReqs = requisitions.filter(r => r.status === RequisitionStatus.Open);
-    for (const req of openReqs) {
-      const health = assessReqHealth(req, candidates, events);
-      const recruiter = users.find(u => u.user_id === req.recruiter_id);
-      const reqCandidates = candidates.filter(c => c.req_id === req.req_id);
-      const activeCandidates = reqCandidates.filter(c => c.disposition === CandidateDisposition.Active);
-
-      // Add action for empty pipeline
-      if (activeCandidates.length === 0 && req.opened_at) {
-        const daysOpen = differenceInDays(new Date(), req.opened_at);
-        if (daysOpen > 7) {
-          actions.push({
-            id: `rec-pipeline-${req.req_id}`,
-            type: 'recruiter',
-            actionLabel: 'Source Candidates',
-            reqId: req.req_id,
-            reqTitle: req.req_title,
-            ownerName: recruiter?.name || 'Unknown',
-            ownerType: 'Recruiter',
-            daysWaiting: daysOpen,
-            urgency: daysOpen > 21 ? 'critical' : daysOpen > 14 ? 'high' : 'medium',
-            suggestedAction: 'Add candidates to this req - pipeline is empty'
-          });
-        }
-      }
-
-      // Add action for stalled req
-      if (health.status === ReqHealthStatus.STALLED || health.status === ReqHealthStatus.ZOMBIE) {
-        actions.push({
-          id: `rec-stalled-${req.req_id}`,
-          type: 'recruiter',
-          actionLabel: health.status === ReqHealthStatus.ZOMBIE ? 'Revive or Close' : 'Re-engage',
-          reqId: req.req_id,
-          reqTitle: req.req_title,
-          ownerName: recruiter?.name || 'Unknown',
-          ownerType: 'Recruiter',
-          daysWaiting: health.daysSinceLastActivity || 0,
-          urgency: health.status === ReqHealthStatus.ZOMBIE ? 'critical' : 'high',
-          suggestedAction: health.status === ReqHealthStatus.ZOMBIE
-            ? 'This req has been inactive for 30+ days. Consider closing or re-sourcing.'
-            : 'Re-engage with candidates or HM to move this req forward'
-        });
-      }
-    }
-
-    // Sort by urgency then days waiting
-    return actions
-      .sort((a, b) => {
-        const urgencyOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-        if (urgencyOrder[b.urgency] !== urgencyOrder[a.urgency]) {
-          return urgencyOrder[b.urgency] - urgencyOrder[a.urgency];
-        }
-        return b.daysWaiting - a.daysWaiting;
-      })
-      .slice(0, 15);
-  }, [requisitions, candidates, events, users, hmActions]);
-
   // ===== FORECAST =====
   // Simplified pipeline-based forecast for Control Tower summary
   const forecastData = useMemo(() => {
@@ -561,14 +546,6 @@ export function ControlTowerTab({
     hm_delay: { bg: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6' },
     offer_risk: { bg: 'rgba(236, 72, 153, 0.2)', text: '#ec4899' },
     at_risk: { bg: 'rgba(249, 115, 22, 0.2)', text: '#f97316' }
-  };
-
-  // Urgency badge colors
-  const urgencyColors: Record<string, { bg: string; text: string }> = {
-    critical: { bg: 'rgba(239, 68, 68, 0.2)', text: '#ef4444' },
-    high: { bg: 'rgba(245, 158, 11, 0.2)', text: '#f59e0b' },
-    medium: { bg: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6' },
-    low: { bg: 'rgba(34, 197, 94, 0.2)', text: '#22c55e' }
   };
 
   const confidenceColors: Record<string, string> = {
@@ -722,18 +699,18 @@ export function ControlTowerTab({
           </div>
         </div>
 
-        {/* Section 3: Actions */}
+        {/* Section 3: Unified Actions */}
         <div className="col-lg-6">
           <div className="glass-panel p-3 h-100">
             <div className="section-header">
               <h3 className="section-header-title">
-                Actions
-                {unifiedActions.length > 0 && (
+                Unified Actions
+                {getOpenActions(actionQueue).length > 0 && (
                   <span
                     className="badge ms-2"
                     style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', fontSize: '0.7rem' }}
                   >
-                    {unifiedActions.length}
+                    {getOpenActions(actionQueue).length}
                   </span>
                 )}
               </h3>
@@ -745,60 +722,11 @@ export function ControlTowerTab({
               </button>
             </div>
 
-            {unifiedActions.length === 0 ? (
-              <div className="text-center py-4" style={{ color: 'var(--text-secondary)' }}>
-                <i className="bi bi-check-circle" style={{ fontSize: '2rem', color: '#22c55e' }}></i>
-                <p className="mt-2 mb-0">No pending actions</p>
-              </div>
-            ) : (
-              <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                {unifiedActions.map((action, idx) => (
-                  <div
-                    key={action.id}
-                    className="d-flex align-items-center py-2 px-2 rounded mb-1"
-                    style={{
-                      background: idx % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => action.type === 'hm' ? onNavigateToHM(action.ownerName) : onNavigateToReq(action.reqId)}
-                  >
-                    <div className="flex-grow-1 min-width-0">
-                      <div className="d-flex align-items-center gap-2 mb-1">
-                        <span
-                          className="badge"
-                          style={{
-                            background: urgencyColors[action.urgency].bg,
-                            color: urgencyColors[action.urgency].text,
-                            fontSize: '0.65rem'
-                          }}
-                        >
-                          {action.actionLabel}
-                        </span>
-                        <span
-                          className="badge"
-                          style={{
-                            background: action.type === 'hm' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(168, 85, 247, 0.2)',
-                            color: action.type === 'hm' ? '#3b82f6' : '#a855f7',
-                            fontSize: '0.6rem'
-                          }}
-                        >
-                          {action.ownerType}
-                        </span>
-                      </div>
-                      <div className="text-truncate" style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>
-                        {action.reqTitle}
-                      </div>
-                      <div className="d-flex gap-3" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                        <span>{action.ownerName}</span>
-                        {action.candidateName && <span>for {action.candidateName}</span>}
-                        <span className="font-mono">{action.daysWaiting}d waiting</span>
-                      </div>
-                    </div>
-                    <i className="bi bi-chevron-right" style={{ color: 'var(--text-secondary)' }}></i>
-                  </div>
-                ))}
-              </div>
-            )}
+            <UnifiedActionQueue
+              actions={actionQueue}
+              onActionClick={handleActionClick}
+              maxDisplay={8}
+            />
           </div>
         </div>
       </div>
@@ -870,6 +798,16 @@ export function ControlTowerTab({
         isOpen={explainDrawerOpen}
         onClose={() => setExplainDrawerOpen(false)}
         explanation={currentExplanation}
+      />
+
+      {/* Action Detail Drawer */}
+      <ActionDetailDrawer
+        isOpen={actionDrawerOpen}
+        onClose={() => setActionDrawerOpen(false)}
+        action={selectedAction}
+        onMarkDone={handleMarkDone}
+        onDismiss={handleDismiss}
+        onViewEvidence={handleViewEvidence}
       />
     </div>
   );

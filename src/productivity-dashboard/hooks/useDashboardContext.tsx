@@ -41,7 +41,7 @@ import {
   isEventGenerationNeeded,
   EventGenerationProgress
 } from '../services';
-import { fetchDashboardData, persistDashboardData, clearAllData } from '../services/dbService';
+import { fetchDashboardData, persistDashboardData, clearAllData, ClearProgress, ImportProgress } from '../services/dbService';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Utility to yield to browser and allow UI updates
@@ -336,13 +336,21 @@ export interface PersistenceProgress {
 
 interface DashboardContextType {
   state: DashboardState;
-  importCSVs: (requisitionsCsv: string, candidatesCsv: string, eventsCsv: string, usersCsv: string, isDemo?: boolean) => Promise<{ success: boolean; errors: string[] }>;
+  importCSVs: (
+    requisitionsCsv: string,
+    candidatesCsv: string,
+    eventsCsv: string,
+    usersCsv: string,
+    isDemo?: boolean,
+    onProgress?: (progress: ImportProgress) => void
+  ) => Promise<{ success: boolean; errors: string[] }>;
   updateConfig: (config: DashboardConfig) => void;
   updateFilters: (filters: Partial<MetricFilters>) => void;
   selectRecruiter: (recruiterId: string | null) => void;
   refreshMetrics: () => void;
+  refetchData: () => Promise<{ success: boolean; error?: string }>;
   reset: () => void;
-  clearPersistedData: () => Promise<{ success: boolean; error?: string }>;
+  clearPersistedData: (onProgress?: (progress: ClearProgress) => void) => Promise<{ success: boolean; error?: string }>;
   generateEvents: (
     onProgress?: (progress: EventGenerationProgress) => void,
     onPersistProgress?: (progress: PersistenceProgress) => void
@@ -430,7 +438,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     candidatesCsv: string,
     eventsCsv: string,
     usersCsv: string,
-    isDemo: boolean = false
+    isDemo: boolean = false,
+    onProgress?: (progress: ImportProgress) => void
   ): Promise<{ success: boolean; errors: string[] }> => {
     // Check permissions - only admins can import
     if (!isDemo && !canImportData) {
@@ -445,7 +454,29 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LOADING', payload: true });
 
     try {
+      // Report parsing phase
+      onProgress?.({
+        phase: 'parsing',
+        step: 1,
+        totalSteps: 1,
+        table: 'CSV',
+        rowsProcessed: 0,
+        totalRows: 0,
+        status: 'processing'
+      });
+
       const result = importCsvData(requisitionsCsv, candidatesCsv, eventsCsv, usersCsv);
+
+      // Report parsing complete
+      onProgress?.({
+        phase: 'parsing',
+        step: 1,
+        totalSteps: 1,
+        table: 'CSV',
+        rowsProcessed: result.requisitions.rowCount + result.candidates.rowCount,
+        totalRows: result.requisitions.rowCount + result.candidates.rowCount,
+        status: 'complete'
+      });
 
       if (!result.isValid) {
         dispatch({ type: 'SET_ERROR', payload: result.criticalErrors.join('; ') });
@@ -459,7 +490,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           result.candidates.data,
           result.events.data,
           result.users.data,
-          currentOrg.id
+          currentOrg.id,
+          onProgress
         );
         // Store import source in localStorage so we know if it was demo data on reload
         setStoredImportSource(currentOrg.id, isDemo ? 'demo' : 'csv');
@@ -712,11 +744,61 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     refreshMetricsInternal();
   }, [state.dataStore, state.filters, state.selectedRecruiterId]);
 
+  // Re-fetch data from Supabase (useful after interrupted imports or data corruption)
+  const refetchData = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    if (!currentOrg?.id) {
+      return { success: false, error: 'No organization selected' };
+    }
+
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+
+    try {
+      console.log('[Refetch] Re-fetching data from Supabase...');
+      const data = await fetchDashboardData(currentOrg.id);
+
+      if (data.requisitions.length > 0) {
+        const storedSource = getStoredImportSource(currentOrg.id);
+        const isDemo = storedSource === 'demo';
+
+        console.log(`[Refetch] Loaded ${data.requisitions.length} reqs, ${data.candidates.length} candidates, ${data.events.length} events`);
+
+        dispatch({
+          type: 'IMPORT_DATA',
+          payload: {
+            requisitions: data.requisitions,
+            candidates: data.candidates,
+            events: data.events,
+            users: data.users,
+            isDemo
+          }
+        });
+
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return { success: true };
+      } else {
+        // No data in Supabase - reset to import screen
+        console.log('[Refetch] No data found in Supabase');
+        dispatch({ type: 'RESET' });
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return { success: true };
+      }
+    } catch (err: any) {
+      console.error('[Refetch] Failed:', err);
+      const message = err instanceof Error ? err.message : 'Failed to re-fetch data';
+      dispatch({ type: 'SET_ERROR', payload: message });
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { success: false, error: message };
+    }
+  }, [currentOrg?.id]);
+
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
   }, []);
 
-  const clearPersistedData = useCallback(async () => {
+  const clearPersistedData = useCallback(async (
+    onProgress?: (progress: ClearProgress) => void
+  ) => {
     // Check permissions
     if (!canImportData) {
       return { success: false, error: 'Only organization admins can clear data' };
@@ -724,7 +806,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      await clearAllData(currentOrg?.id);
+      await clearAllData(currentOrg?.id, onProgress);
       dispatch({ type: 'RESET' });
       dispatch({ type: 'SET_LOADING', payload: false });
       return { success: true };
@@ -797,10 +879,25 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           for (let i = 0; i < dbEvents.length; i += chunkSize) {
             const chunk = dbEvents.slice(i, i + chunkSize);
             const chunkNum = Math.floor(i / chunkSize) + 1;
-            const { error } = await supabase.from('events').upsert(chunk);
-            if (error) {
-              console.error(`[Event Generation] DB error (chunk ${chunkNum}):`, error);
-              // Continue anyway - events are already in state
+
+            // Add timeout to prevent hanging on network issues
+            const upsertWithTimeout = async () => {
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Upsert timeout')), 30000)
+              );
+              const upsertPromise = supabase.from('events').upsert(chunk);
+              return Promise.race([upsertPromise, timeoutPromise]);
+            };
+
+            try {
+              const response = await upsertWithTimeout() as { error: any };
+              if (response?.error) {
+                console.error(`[Event Generation] DB error (chunk ${chunkNum}):`, response.error);
+                // Continue anyway - events are already in state
+              }
+            } catch (timeoutError) {
+              console.warn(`[Event Generation] Chunk ${chunkNum} timed out, continuing...`);
+              // Continue anyway - some data may not have persisted
             }
 
             // Report progress on every chunk
@@ -809,6 +906,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             if (chunkNum % 10 === 0 || chunkNum === totalChunks) {
               console.log(`[Event Generation] Persisted chunk ${chunkNum}/${totalChunks}`);
             }
+
+            // Yield to browser to prevent UI freeze and allow auth token handling
+            await new Promise(resolve => setTimeout(resolve, 10));
           }
           console.log('[Event Generation] Persisted to Supabase');
         }
@@ -859,6 +959,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     updateFilters,
     selectRecruiter,
     refreshMetrics,
+    refetchData,
     reset,
     clearPersistedData,
     generateEvents,
