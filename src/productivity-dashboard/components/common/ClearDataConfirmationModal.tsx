@@ -40,7 +40,7 @@ export function ClearDataConfirmationModal({
                             After clearing, you will need to re-import your CSV files or load the demo data again.
                         </p>
                     </div>
-                    <div className="modal-footer bg-light">
+                    <div className="modal-footer" style={{ background: 'rgba(30, 41, 59, 0.8)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                         <button
                             type="button"
                             className="btn btn-secondary"

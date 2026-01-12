@@ -74,10 +74,10 @@ export function buildForecastingBenchmarks(
     r.status === RequisitionStatus.Closed && r.closed_at
   );
 
-  // Calculate TTF for each closed req
+  // Calculate TTF for each closed req (must have both dates)
   const reqTTFs = new Map<string, number>();
   for (const req of closedReqs) {
-    if (req.closed_at) {
+    if (req.closed_at && req.opened_at) {
       const ttf = differenceInDays(req.closed_at, req.opened_at);
       if (ttf > 0 && ttf < 365) { // Sanity check
         reqTTFs.set(req.req_id, ttf);
@@ -882,7 +882,7 @@ export function calculateActiveRoleHealth(
     };
 
     const { benchmark } = getCohortBenchmark(roleProfile, benchmarks);
-    const daysOpen = differenceInDays(new Date(), req.opened_at);
+    const daysOpen = req.opened_at ? differenceInDays(new Date(), req.opened_at) : 0;
     const reqCandidates = candidates.filter(c => c.req_id === req.req_id);
     const activeCandidates = reqCandidates.filter(c => c.disposition === CandidateDisposition.Active);
 
@@ -890,7 +890,7 @@ export function calculateActiveRoleHealth(
     const reqEvents = events.filter(e => e.req_id === req.req_id);
     const lastActivity = reqEvents.length > 0
       ? new Date(Math.max(...reqEvents.map(e => e.event_at.getTime())))
-      : req.opened_at;
+      : (req.opened_at || new Date());  // Fallback to now if no opened_at
     const daysSinceActivity = differenceInDays(new Date(), lastActivity);
 
     // Group candidates by stage

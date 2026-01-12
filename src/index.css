@@ -1,0 +1,600 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap");
+
+/* ============================================
+   DAVOS GLASS DESIGN SYSTEM
+   High-end fintech aesthetic with glass effects
+   ============================================ */
+
+:root {
+  /* Font Stack */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+  /* Davos Glass Core Tokens */
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-bg-elevated: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+  --glass-blur: 16px;
+
+  /* Text Colors */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  /* Accent Colors */
+  --accent: #38bdf8;
+  --accent-hover: #0ea5e9;
+  --accent-soft: rgba(56, 189, 248, 0.15);
+
+  /* Status Colors */
+  --success: #22c55e;
+  --success-soft: rgba(34, 197, 94, 0.15);
+  --warning: #f59e0b;
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.15);
+
+  /* Layout */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(56, 189, 248, 0.15);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+body {
+  font-family: var(--font-sans) !important;
+  letter-spacing: -0.015em;
+  color: var(--text-primary) !important;
+  background: linear-gradient(135deg, #0f172a 0%, #020617 50%, #0f172a 100%) !important;
+  background-attachment: fixed !important;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Scale */
+h1, h2, h3 {
+  font-family: var(--font-display) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.03em;
+  color: var(--text-primary) !important;
+}
+
+h1 { font-size: 2rem !important; }
+h2 { font-size: 1.5rem !important; }
+h3 { font-size: 1.25rem !important; }
+h4, h5, h6 {
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em;
+  color: var(--text-primary) !important;
+}
+
+/* Monospace Numbers */
+.font-mono, .tabular-nums, .data-value, .kpi-value, .stat-value {
+  font-family: var(--font-mono) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   GLASS PANEL - Core Container
+   ============================================ */
+.glass-panel {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--glass-border-hover) !important;
+}
+
+.glass-panel-elevated {
+  background: var(--glass-bg-elevated) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+/* ============================================
+   SECTION HEADER
+   ============================================ */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.section-header-title {
+  font-family: var(--font-display) !important;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.section-header-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
+.section-header-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* ============================================
+   DAVOS BADGE - Status Indicators
+   ============================================ */
+.davos-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: var(--radius-sm);
+  border: none;
+}
+
+.davos-badge-success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.davos-badge-warning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.davos-badge-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.davos-badge-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.davos-badge-neutral {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-4);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+}
+
+/* ============================================
+   DATA TABLE SHELL
+   ============================================ */
+.data-table-shell {
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.data-table-shell .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.data-table-shell table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.data-table-shell thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(8px);
+}
+
+.data-table-shell th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border);
+  white-space: nowrap;
+}
+
+.data-table-shell td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.data-table-shell tbody tr {
+  transition: background 0.15s ease;
+}
+
+.data-table-shell tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.data-table-shell tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Numeric cells */
+.data-table-shell td.numeric {
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+/* ============================================
+   KPI CARD UPDATES
+   ============================================ */
+.kpi-value, .stat-value {
+  font-family: var(--font-mono) !important;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+.btn-davos-primary {
+  background: var(--accent);
+  color: #0f172a;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+}
+
+.btn-davos-primary:hover {
+  background: var(--accent-hover);
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.btn-davos-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+}
+
+.btn-davos-secondary:hover {
+  border-color: var(--glass-border-hover);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+/* ============================================
+   OVERRIDE BOOTSTRAP DEFAULTS
+   ============================================ */
+/* Cards */
+.card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.card-header {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.card-body {
+  color: var(--text-primary) !important;
+}
+
+.card-bespoke {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Tables */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--text-primary);
+  --bs-table-border-color: var(--glass-border);
+  color: var(--text-primary);
+}
+
+.table th {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--glass-border);
+}
+
+.table td {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.table-hover > tbody > tr:hover {
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+/* Forms */
+.form-control, .form-select {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  border-radius: 0 !important;
+  color: var(--text-primary) !important;
+  padding: var(--space-2) var(--space-1);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 1px 0 0 var(--accent) !important;
+  background: transparent !important;
+}
+
+.form-label {
+  color: var(--text-secondary) !important;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Modals */
+.modal-content {
+  background: var(--glass-bg-elevated) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.modal-header {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+
+.modal-footer {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border-top: 1px solid var(--glass-border) !important;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+  background: var(--glass-bg-elevated) !important;
+  backdrop-filter: blur(var(--glass-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) !important;
+  border: 1px solid var(--glass-border) !important;
+}
+
+.dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Alerts */
+.alert {
+  border-radius: var(--radius-md);
+}
+
+.alert-info {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.alert-warning {
+  background: var(--warning-soft) !important;
+  border-color: var(--warning) !important;
+  color: var(--warning) !important;
+}
+
+.alert-danger {
+  background: var(--danger-soft) !important;
+  border-color: var(--danger) !important;
+  color: var(--danger) !important;
+}
+
+.alert-success {
+  background: var(--success-soft) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
+}
+
+/* Text utilities */
+.text-primary { color: var(--accent) !important; }
+.text-success { color: var(--success) !important; }
+.text-warning { color: var(--warning) !important; }
+.text-danger { color: var(--danger) !important; }
+.text-muted { color: var(--text-secondary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+
+/* Ensure no dark text on dark backgrounds */
+.text-dark, .text-black {
+  color: var(--text-primary) !important;
+}
+
+/* Badge overrides */
+.badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2em 0.5em;
+  border-radius: var(--radius-sm) !important;
+}
+
+.badge.bg-success {
+  background: var(--success-soft) !important;
+  color: var(--success) !important;
+}
+
+.badge.bg-warning {
+  background: var(--warning-soft) !important;
+  color: var(--warning) !important;
+}
+
+.badge.bg-danger {
+  background: var(--danger-soft) !important;
+  color: var(--danger) !important;
+}
+
+.badge.bg-primary {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+.badge.bg-secondary {
+  background: rgba(148, 163, 184, 0.15) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* List group */
+.list-group-item {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--text-primary) !important;
+}
+
+.list-group-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Nav pills - keep existing nav-pills-bespoke styling from dashboard-theme.css */
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 767px) {
+  :root {
+    --space-4: 12px;
+    --space-5: 16px;
+    --space-6: 24px;
+  }
+
+  .kpi-value, .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .section-header-actions {
+    width: 100%;
+  }
+}

@@ -18,6 +18,7 @@ import { StageMappingModal } from './StageMappingModal';
 import { HiringManagersTab } from './hiring-managers';
 import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
 import { ForecastingTab } from './forecasting';
+import { DataHealthTab } from './data-health';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { useDataMasking } from '../contexts/DataMaskingContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -28,7 +29,7 @@ import { OrgSettings } from './OrgSettings';
 import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
 
-type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting';
+type TabType = 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations } = useDashboard();
@@ -46,6 +47,21 @@ export function ProductivityDashboard() {
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [showOrgSettings, setShowOrgSettings] = useState(false);
   const [showSuperAdminPanel, setShowSuperAdminPanel] = useState(false);
+
+  // Data hygiene state - req IDs to exclude from metrics
+  const [excludedReqIds, setExcludedReqIds] = useState<Set<string>>(new Set());
+
+  const handleToggleExclusion = (reqId: string) => {
+    setExcludedReqIds(prev => {
+      const next = new Set(prev);
+      if (next.has(reqId)) {
+        next.delete(reqId);
+      } else {
+        next.add(reqId);
+      }
+      return next;
+    });
+  };
 
   // Event generation state
   const [isGeneratingEvents, setIsGeneratingEvents] = useState(false);
@@ -268,7 +284,7 @@ export function ProductivityDashboard() {
   );
 
   return (
-    <div className={`container-fluid bg-light ${isMobile ? 'py-2 px-2' : 'py-4'}`} style={{ minHeight: '100vh' }}>
+    <div className={`container-fluid ${isMobile ? 'py-2 px-2' : 'py-4'}`} style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
       <div className={isMobile ? '' : 'container-xxl'}>
         {/* Mobile Menu Overlay */}
         {isMobile && <MobileMenu />}
@@ -430,9 +446,9 @@ export function ProductivityDashboard() {
                   onOrgSettings={() => setShowOrgSettings(true)}
                 />
               </div>
-              <h1 className="mb-0 display-6 fw-bold text-dark">Recruiting Insights</h1>
-              <div className="d-flex flex-wrap gap-3 mt-2 text-muted small align-items-center">
-                <span>{state.dataStore.requisitions.filter(r => {
+              <h1 className="mb-0" style={{ color: '#ffffff', fontSize: '1.75rem', fontWeight: 700 }}>Recruiting Insights</h1>
+              <div className="d-flex flex-wrap gap-3 mt-2 align-items-center" style={{ color: '#F8FAFC', fontSize: '0.875rem' }}>
+                <span style={{ color: '#F8FAFC' }}>{state.dataStore.requisitions.filter(r => {
                   // Flexible open req detection
                   if (r.status === 'Open') return true;
                   const statusLower = r.status?.toLowerCase() || '';
@@ -440,16 +456,16 @@ export function ProductivityDashboard() {
                   if (r.status !== 'Closed' && !r.closed_at) return true;
                   return false;
                 }).length} Open Reqs</span>
-                <span className="opacity-50">•</span>
-                <span>{state.dataStore.candidates.filter(c => c.disposition === 'Active').length} Active Candidates</span>
-                <span className="opacity-50">•</span>
-                <span>{state.overview?.recruiterSummaries.length || 0} Recruiters</span>
-                <span className="opacity-50">•</span>
-                <span>{state.hmFriction.length} Hiring Managers</span>
+                <span style={{ color: '#a1a1aa' }}>•</span>
+                <span style={{ color: '#F8FAFC' }}>{state.dataStore.candidates.filter(c => c.disposition === 'Active').length} Active Candidates</span>
+                <span style={{ color: '#a1a1aa' }}>•</span>
+                <span style={{ color: '#F8FAFC' }}>{state.overview?.recruiterSummaries.length || 0} Recruiters</span>
+                <span style={{ color: '#a1a1aa' }}>•</span>
+                <span style={{ color: '#F8FAFC' }}>{state.hmFriction.length} Hiring Managers</span>
                 {state.dataStore.lastImportAt && (
                   <>
-                    <span className="opacity-50">•</span>
-                    <span className="d-flex align-items-center gap-1">
+                    <span style={{ color: '#a1a1aa' }}>•</span>
+                    <span className="d-flex align-items-center gap-1" style={{ color: '#F8FAFC' }}>
                       <i className="bi bi-clock-history" style={{ fontSize: '0.7rem' }}></i>
                       {state.dataStore.lastImportAt.toLocaleString()}
                     </span>
@@ -507,8 +523,8 @@ export function ProductivityDashboard() {
                         onClick={() => setShowHeaderMenu(false)}
                       />
                       <div
-                        className="position-absolute end-0 mt-2 py-2 bg-white rounded-3 shadow-lg"
-                        style={{ zIndex: 1001, minWidth: '180px', border: '1px solid var(--color-slate-200)' }}
+                        className="position-absolute end-0 mt-2 py-2 rounded-3 shadow-lg"
+                        style={{ zIndex: 1001, minWidth: '180px', backgroundColor: '#141414', border: '1px solid #3f3f46' }}
                       >
                         <button
                           className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent text-danger"
@@ -586,6 +602,12 @@ export function ProductivityDashboard() {
             >
               Forecast
             </button>
+            <button
+              className={`nav-link ${activeTab === 'data-health' ? 'active' : ''}`}
+              onClick={() => setActiveTab('data-health')}
+            >
+              Health
+            </button>
           </div>
         )}
 
@@ -607,54 +629,60 @@ export function ProductivityDashboard() {
             {/* Desktop Tabs */}
             {!isMobile && (
               <div className="nav-pills-bespoke mb-4">
-              <button
-                className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-                onClick={() => { selectRecruiter(null); setActiveTab('overview'); }}
-              >
-                Overview
-              </button>
-              <button
-                className={`nav-link ${activeTab === 'recruiter' ? 'active' : ''}`}
-                onClick={() => setActiveTab('recruiter')}
-              >
-                Recruiter Detail
-              </button>
-              <button
-                className={`nav-link ${activeTab === 'hm-friction' ? 'active' : ''}`}
-                onClick={() => setActiveTab('hm-friction')}
-              >
-                HM Friction
-              </button>
-              <button
-                className={`nav-link ${activeTab === 'quality' ? 'active' : ''}`}
-                onClick={() => setActiveTab('quality')}
-              >
-                Quality Guardrails
-              </button>
-              <button
-                className={`nav-link ${activeTab === 'source-mix' ? 'active' : ''}`}
-                onClick={() => setActiveTab('source-mix')}
-              >
-                Source Mix
-              </button>
-              <button
-                className={`nav-link ${activeTab === 'hiring-managers' ? 'active' : ''}`}
-                onClick={() => setActiveTab('hiring-managers')}
-              >
-                Hiring Managers
-              </button>
-              <button
-                className={`nav-link ${activeTab === 'velocity' ? 'active' : ''}`}
-                onClick={() => setActiveTab('velocity')}
-              >
-                Velocity Insights
-              </button>
-              <button
-                className={`nav-link ${activeTab === 'forecasting' ? 'active' : ''}`}
-                onClick={() => setActiveTab('forecasting')}
-              >
-                Forecasting
-              </button>
+                <button
+                  className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
+                  onClick={() => { selectRecruiter(null); setActiveTab('overview'); }}
+                >
+                  Overview
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'recruiter' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('recruiter')}
+                >
+                  Recruiter Detail
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'hm-friction' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('hm-friction')}
+                >
+                  HM Friction
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'quality' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('quality')}
+                >
+                  Quality Guardrails
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'source-mix' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('source-mix')}
+                >
+                  Source Mix
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'hiring-managers' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('hiring-managers')}
+                >
+                  Hiring Managers
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'velocity' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('velocity')}
+                >
+                  Velocity Insights
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'forecasting' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('forecasting')}
+                >
+                  Forecasting
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'data-health' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('data-health')}
+                >
+                  Data Health
+                </button>
               </div>
             )}
 
@@ -777,6 +805,18 @@ export function ProductivityDashboard() {
                   users={state.dataStore.users}
                   config={state.dataStore.config}
                   hmFriction={state.hmFriction}
+                />
+              )}
+
+              {/* Data Health Tab */}
+              {activeTab === 'data-health' && (
+                <DataHealthTab
+                  requisitions={state.dataStore.requisitions}
+                  candidates={state.dataStore.candidates}
+                  events={state.dataStore.events}
+                  users={state.dataStore.users}
+                  excludedReqIds={excludedReqIds}
+                  onToggleExclusion={handleToggleExclusion}
                 />
               )}
             </>

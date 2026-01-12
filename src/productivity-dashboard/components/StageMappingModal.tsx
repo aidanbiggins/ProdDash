@@ -210,19 +210,19 @@ export function StageMappingModal({
             </div>
 
             {/* Summary */}
-            <div className="mt-4 p-3 bg-light rounded">
+            <div className="mt-4 p-3 rounded" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div className="row text-center">
                 <div className="col">
-                  <div className="h4 mb-0">{allStages.length}</div>
-                  <small className="text-muted">Total Stages</small>
+                  <div className="h4 mb-0" style={{ color: '#F8FAFC' }}>{allStages.length}</div>
+                  <small style={{ color: '#94A3B8' }}>Total Stages</small>
                 </div>
                 <div className="col">
                   <div className="h4 mb-0 text-success">{mappings.length}</div>
-                  <small className="text-muted">Mapped</small>
+                  <small style={{ color: '#94A3B8' }}>Mapped</small>
                 </div>
                 <div className="col">
                   <div className="h4 mb-0 text-warning">{unmappedStages.length}</div>
-                  <small className="text-muted">Unmapped</small>
+                  <small style={{ color: '#94A3B8' }}>Unmapped</small>
                 </div>
               </div>
             </div>

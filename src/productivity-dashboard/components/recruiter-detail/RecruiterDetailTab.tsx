@@ -68,6 +68,7 @@ function calculateWeeklyActivity(
 
     // Open reqs during this week
     const openReqCount = recruiterReqs.filter(r => {
+      if (!r.opened_at) return false;  // STRICT: skip reqs without opened_at
       const openedBefore = r.opened_at <= weekEnd;
       const notClosedYet = !r.closed_at || r.closed_at >= weekStart;
       return openedBefore && notClosedYet && r.status !== RequisitionStatus.Canceled;
@@ -389,7 +390,7 @@ export function RecruiterDetailTab({
       stageDistribution[c.current_stage] = (stageDistribution[c.current_stage] || 0) + 1;
     });
 
-    const ageInDays = differenceInDays(now, req.opened_at);
+    const ageInDays = req.opened_at ? differenceInDays(now, req.opened_at) : 0;
     const isStalled = detail.aging.stalledReqs.reqIds.includes(req.req_id);
 
     const complexityEntry = detail.weighted.complexityScores.find(cs => cs.reqId === req.req_id);
@@ -509,7 +510,7 @@ export function RecruiterDetailTab({
   });
 
   const renderSortIcon = (column: string) => {
-    if (sortColumn !== column) return <i className="bi bi-arrow-down-up text-muted opacity-25 ms-1" style={{ fontSize: '0.7rem' }}></i>;
+    if (sortColumn !== column) return <i className="bi bi-arrow-down-up ms-1" style={{ fontSize: '0.7rem', color: '#71717a' }}></i>;
     return sortDirection === 'asc'
       ? <i className="bi bi-arrow-up-short ms-1 text-primary"></i>
       : <i className="bi bi-arrow-down-short ms-1 text-primary"></i>;
@@ -637,11 +638,11 @@ export function RecruiterDetailTab({
         <div className="card-body">
           <ResponsiveContainer width="100%" height={180}>
             <ComposedChart data={activityData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" fontSize={11} stroke="#64748b" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
+              <XAxis dataKey="name" fontSize={11} stroke="#94A3B8" />
               <YAxis
                 fontSize={11}
-                stroke="#64748b"
+                stroke="#94A3B8"
                 domain={[0, 'auto']}
                 tickFormatter={(v) => v.toFixed(2)}
               />
@@ -677,9 +678,9 @@ export function RecruiterDetailTab({
             <div className="card-body">
               <ResponsiveContainer width="100%" height={chartHeight}>
                 <ComposedChart data={activityData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" fontSize={12} stroke="#64748b" tickMargin={10} />
-                  <YAxis fontSize={12} stroke="#64748b" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" />
+                  <XAxis dataKey="name" fontSize={12} stroke="#94A3B8" tickMargin={10} />
+                  <YAxis fontSize={12} stroke="#94A3B8" />
                   <Tooltip
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
@@ -705,8 +706,8 @@ export function RecruiterDetailTab({
               <ResponsiveContainer width="100%" height={chartHeight}>
                 <BarChart data={funnelData} layout="vertical" barGap={2}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                  <XAxis type="number" domain={[0, 100]} unit="%" fontSize={12} stroke="#64748b" />
-                  <YAxis type="category" dataKey="name" width={110} fontSize={12} stroke="#64748b" />
+                  <XAxis type="number" domain={[0, 100]} unit="%" fontSize={12} stroke="#94A3B8" />
+                  <YAxis type="category" dataKey="name" width={110} fontSize={12} stroke="#94A3B8" />
                   <Tooltip
                     cursor={{ fill: 'transparent' }}
                     formatter={(value, name) => [`${Number(value).toFixed(1)}%`, name]}

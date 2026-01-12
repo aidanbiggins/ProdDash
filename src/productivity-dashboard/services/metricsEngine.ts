@@ -328,6 +328,7 @@ export function calculateAgingMetrics(
   ];
 
   for (const req of openReqs) {
+    if (!req.opened_at) continue;  // STRICT: skip reqs without opened_at
     const age = differenceInDays(now, req.opened_at);
     for (const bucket of buckets) {
       if (age >= bucket.min && (bucket.max === null || age <= bucket.max)) {
@@ -341,6 +342,7 @@ export function calculateAgingMetrics(
   // Find stalled reqs (no candidate stage change in last N days)
   const stalledReqIds: string[] = [];
   for (const req of openReqs) {
+    if (!req.opened_at) continue;  // STRICT: skip reqs without opened_at
     const reqEvents = events.filter(e =>
       e.req_id === req.req_id &&
       e.event_type === EventType.STAGE_CHANGE
@@ -545,6 +547,7 @@ export function calculateWeeklyTrends(
 
     // Open reqs during this week (opened before week end, not closed before week start)
     const openReqCount = filteredReqs.filter(r => {
+      if (!r.opened_at) return false;  // STRICT: skip reqs without opened_at
       const openedBefore = r.opened_at <= weekEnd;
       const notClosedYet = !r.closed_at || r.closed_at >= weekStart;
       return openedBefore && notClosedYet && r.status !== RequisitionStatus.Canceled;
@@ -722,9 +725,10 @@ export function calculateRecruiterSummary(
     weightedOffers += (complexityScores.get(offer.req_id) || 1) * config.thresholds.offerMultiplier;
   }
 
-  // Active req load
+  // Active req load (skip reqs without opened_at)
   const activeReqLoad = recruiterReqs.filter(r =>
     matchesFilters(r, filter) &&
+    r.opened_at &&  // STRICT: must have opened_at
     (r.status === RequisitionStatus.Open ||
       (r.opened_at <= filter.dateRange.endDate &&
         (!r.closed_at || r.closed_at >= filter.dateRange.startDate)))
@@ -827,7 +831,7 @@ export function calculateOverviewMetrics(
       e.event_type === EventType.STAGE_CHANGE
     );
     if (reqEvents.length === 0) {
-      if (differenceInDays(now, req.opened_at) > config.thresholds.stalledReqDays) {
+      if (req.opened_at && differenceInDays(now, req.opened_at) > config.thresholds.stalledReqDays) {
         stalledCount++;
       }
     } else {

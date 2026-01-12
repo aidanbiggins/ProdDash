@@ -238,11 +238,11 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                   Use the Supabase dashboard to add/remove entries from the <code>super_admins</code> table.
                 </div>
 
-                <h6>How to Add a Super Admin</h6>
-                <ol className="mb-4">
+                <h6 style={{ color: '#F8FAFC' }}>How to Add a Super Admin</h6>
+                <ol className="mb-4" style={{ color: '#94A3B8' }}>
                   <li>Get the user's UUID from the <code>auth.users</code> table in Supabase</li>
                   <li>Insert into <code>super_admins</code> table:
-                    <pre className="bg-light p-2 rounded mt-2">
+                    <pre className="p-2 rounded mt-2" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
 {`INSERT INTO super_admins (user_id)
 VALUES ('user-uuid-here');`}
                     </pre>

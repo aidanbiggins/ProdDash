@@ -305,7 +305,7 @@ export function calculatePendingActions(
                 reqTitle: req.req_title,
                 candidateId: cand.candidate_id,
                 candidateName: cand.candidate_id ?? 'Unknown',
-                triggerDate: cand.currentStageEnteredAt ?? new Date(),
+                triggerDate: cand.currentStageEnteredAt ?? null,  // STRICT: null if missing
                 daysWaiting: cand.stageAgeDays,
                 daysOverdue: cand.stageAgeDays - rules.hmReviewDueDays,
                 suggestedAction: PENDING_ACTION_SUGGESTIONS.REVIEW_DUE
@@ -328,7 +328,7 @@ export function calculatePendingActions(
                 reqTitle: req.req_title,
                 candidateId: cand.candidate_id,
                 candidateName: cand.candidate_id ?? 'Unknown',
-                triggerDate: cand.currentStageEnteredAt ?? new Date(),
+                triggerDate: cand.currentStageEnteredAt ?? null,  // STRICT: null if missing
                 daysWaiting: cand.stageAgeDays,
                 daysOverdue: cand.stageAgeDays - rules.decisionDueDays,
                 suggestedAction: PENDING_ACTION_SUGGESTIONS.DECISION_DUE

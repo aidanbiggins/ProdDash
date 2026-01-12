@@ -225,17 +225,17 @@ export function HMFrictionTab({
     [filteredFriction]
   );
 
-  // Get color for heatmap cell based on hours
+  // Get color for heatmap cell based on hours (dark mode)
   const getHeatmapColor = (hours: number | null, type: 'feedback' | 'decision') => {
-    if (hours === null) return '#f1f5f9'; // gray for no data
+    if (hours === null) return '#27272a'; // dark gray for no data
     const thresholds = type === 'feedback'
       ? { good: 24, warn: 48, bad: 72 }
       : { good: 48, warn: 72, bad: 120 };
 
-    if (hours <= thresholds.good) return '#dcfce7'; // green
-    if (hours <= thresholds.warn) return '#fef3c7'; // yellow
-    if (hours <= thresholds.bad) return '#fed7aa'; // orange
-    return '#fecaca'; // red
+    if (hours <= thresholds.good) return 'rgba(16, 185, 129, 0.25)'; // green
+    if (hours <= thresholds.warn) return 'rgba(245, 158, 11, 0.25)'; // yellow
+    if (hours <= thresholds.bad) return 'rgba(249, 115, 22, 0.25)'; // orange
+    return 'rgba(239, 68, 68, 0.25)'; // red
   };
 
   const handleExport = () => {
@@ -249,7 +249,7 @@ export function HMFrictionTab({
 
   // Helper to render sort icon
   const renderSortIcon = (column: keyof HiringManagerFriction) => {
-    if (sortColumn !== column) return <i className="bi bi-arrow-down-up text-muted opacity-25 ms-1" style={{ fontSize: '0.7rem' }}></i>;
+    if (sortColumn !== column) return <i className="bi bi-arrow-down-up ms-1" style={{ fontSize: '0.7rem', color: '#71717a' }}></i>;
     return sortDirection === 'asc'
       ? <i className="bi bi-arrow-up-short ms-1 text-primary"></i>
       : <i className="bi bi-arrow-down-short ms-1 text-primary"></i>;
@@ -362,7 +362,7 @@ export function HMFrictionTab({
               <div className="table-responsive">
                 <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
                   <thead>
-                    <tr style={{ background: '#f8fafc' }}>
+                    <tr style={{ background: '#0a0a0a' }}>
                       <th>Hiring Manager</th>
                       <th className="text-end">Reqs</th>
                       <th className="text-end">Loops</th>
@@ -408,7 +408,7 @@ export function HMFrictionTab({
                 <div className="row mb-3">
                   {timeTaxDistribution.map(bucket => (
                     <div key={bucket.label} className="col-4 col-md-2 mb-2">
-                      <div className="text-center p-2 rounded" style={{ background: bucket.min >= 30 ? '#fef2f2' : bucket.min >= 20 ? '#fefce8' : '#f0fdf4' }}>
+                      <div className="text-center p-2 rounded" style={{ background: bucket.min >= 30 ? 'rgba(239, 68, 68, 0.15)' : bucket.min >= 20 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)' }}>
                         <div className="small text-muted">{bucket.label}</div>
                         <div className="fw-bold" style={{ fontSize: '1.5rem' }}>{bucket.count}</div>
                         <div className="small text-muted">HMs</div>
@@ -426,7 +426,7 @@ export function HMFrictionTab({
                     <div className="table-responsive">
                       <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
                         <thead>
-                          <tr style={{ background: '#fef2f2' }}>
+                          <tr style={{ background: 'rgba(239, 68, 68, 0.15)' }}>
                             <th>Hiring Manager</th>
                             <th className="text-end">Time Tax</th>
                             <th className="text-end">Feedback Latency</th>
@@ -455,7 +455,7 @@ export function HMFrictionTab({
             {/* Latency Impact Panel */}
             {expandedKPI === 'latencyImpact' && (
               <div>
-                <div className="mb-3 p-3 rounded" style={{ background: '#fefce8' }}>
+                <div className="mb-3 p-3 rounded" style={{ background: 'rgba(245, 158, 11, 0.15)' }}>
                   <div className="d-flex justify-content-between align-items-center">
                     <span>Total latency across all HMs:</span>
                     <strong className="text-warning" style={{ fontSize: '1.25rem' }}>{totalLatencyImpactDays} days</strong>
@@ -465,7 +465,7 @@ export function HMFrictionTab({
                 <div className="table-responsive">
                   <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
                     <thead>
-                      <tr style={{ background: '#f8fafc' }}>
+                      <tr style={{ background: '#0a0a0a' }}>
                         <th>Hiring Manager</th>
                         <th className="text-end">Total Latency</th>
                         <th className="text-end">% of Total</th>
@@ -585,7 +585,7 @@ export function HMFrictionTab({
         <div className="card-body">
           <ResponsiveContainer width="100%" height={mainChartHeight}>
             <BarChart data={compositionChartData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
               <XAxis
                 type="number"
                 unit=" hrs"
@@ -606,9 +606,9 @@ export function HMFrictionTab({
                   const d = payload[0].payload;
                   const totalCycle = d.sourcing + d.screening + d.hmReview + d.interview + d.feedback + d.decision;
                   return (
-                    <div className="bg-white border rounded p-3 shadow-sm" style={{ minWidth: '240px' }}>
-                      <div className="fw-bold mb-2">{d.fullName}</div>
-                      <div className="small text-muted mb-2">Pipeline Stage Breakdown</div>
+                    <div className="rounded p-3" style={{ minWidth: '240px', background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+                      <div className="fw-bold mb-2" style={{ color: '#F8FAFC' }}>{d.fullName}</div>
+                      <div className="small mb-2" style={{ color: '#94A3B8' }}>Pipeline Stage Breakdown</div>
                       <div className="d-flex justify-content-between">
                         <span style={{ color: '#64748b' }}>● Sourcing:</span>
                         <strong>{d.sourcing} hrs</strong>
@@ -680,7 +680,7 @@ export function HMFrictionTab({
               {decayCurveData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={smallChartHeight}>
                   <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
                     <XAxis
                       type="number"
                       dataKey="latencyDays"
@@ -706,11 +706,11 @@ export function HMFrictionTab({
                         if (!active || !payload || !payload[0]) return null;
                         const d = payload[0].payload;
                         return (
-                          <div className="bg-white border rounded p-2 shadow-sm">
-                            <div className="fw-bold">{d.hmName}</div>
-                            <div className="small">Latency: {d.latencyDays} days</div>
-                            <div className="small">Accept Rate: {d.acceptanceRate}%</div>
-                            <div className="small text-muted">({d.loopCount} loops)</div>
+                          <div className="rounded p-2" style={{ background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <div className="fw-bold" style={{ color: '#F8FAFC' }}>{d.hmName}</div>
+                            <div className="small" style={{ color: '#F8FAFC' }}>Latency: {d.latencyDays} days</div>
+                            <div className="small" style={{ color: '#F8FAFC' }}>Accept Rate: {d.acceptanceRate}%</div>
+                            <div className="small" style={{ color: '#94A3B8' }}>({d.loopCount} loops)</div>
                           </div>
                         );
                       }}
@@ -771,7 +771,7 @@ export function HMFrictionTab({
                 <div className="table-responsive">
                   <table className="table table-sm mb-0" style={{ fontSize: '0.8rem' }}>
                     <thead>
-                      <tr style={{ background: '#f8fafc' }}>
+                      <tr style={{ background: '#0a0a0a' }}>
                         <th style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>HM</th>
                         <th className="text-center" style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>Feedback (hrs)</th>
                         <th className="text-center" style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>Decision (hrs)</th>

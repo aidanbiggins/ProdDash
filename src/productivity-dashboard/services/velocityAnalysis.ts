@@ -164,8 +164,9 @@ function calculateReqDecay(
   const filteredReqs = filterRequisitions(requisitions, filters);
 
   // Only look at reqs that have been open long enough or are closed
-  // Exclude reqs that are too new to judge
+  // Exclude reqs that are too new to judge or missing opened_at
   const analyzableReqs = filteredReqs.filter(r => {
+    if (!r.opened_at) return false; // STRICT: skip reqs without opened_at
     if (r.status === RequisitionStatus.Closed) return true;
     if (r.status === RequisitionStatus.Canceled) return false; // Don't count canceled
     // For open reqs, only include if they're old enough
@@ -176,7 +177,7 @@ function calculateReqDecay(
   // Calculate days open and fill status for each req
   const reqsWithTime = analyzableReqs.map(r => {
     const endDate = r.closed_at || new Date();
-    const daysOpen = differenceInDays(endDate, r.opened_at);
+    const daysOpen = differenceInDays(endDate, r.opened_at!); // opened_at guaranteed by filter above
     const filled = r.status === RequisitionStatus.Closed && r.closed_at !== null;
     return { req: r, daysOpen, filled };
   });
@@ -267,7 +268,7 @@ function calculateCohortComparison(
 
   // Get only filled reqs (successful hires)
   const filledReqs = filteredReqs.filter(r =>
-    r.status === RequisitionStatus.Closed && r.closed_at !== null
+    r.status === RequisitionStatus.Closed && r.closed_at !== null && r.opened_at !== null
   );
 
   if (filledReqs.length < 6) {
@@ -277,7 +278,7 @@ function calculateCohortComparison(
 
   // Calculate time-to-fill for each req
   const reqsWithTTF = filledReqs.map(r => {
-    const ttf = differenceInDays(r.closed_at!, r.opened_at);
+    const ttf = differenceInDays(r.closed_at!, r.opened_at!); // Both guaranteed by filter above
     return { req: r, ttf };
   }).sort((a, b) => a.ttf - b.ttf);
 

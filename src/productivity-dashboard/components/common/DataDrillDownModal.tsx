@@ -218,9 +218,9 @@ export function DataDrillDownModal({
 
                         {/* Formula (if provided) */}
                         {formula && (
-                            <div className="px-3 py-2 bg-light border-bottom">
-                                <small className="text-muted">
-                                    <strong>Formula:</strong> <code>{formula}</code>
+                            <div className="px-3 py-2 border-bottom" style={{ background: 'rgba(30, 41, 59, 0.6)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                                <small style={{ color: '#94A3B8' }}>
+                                    <strong style={{ color: '#F8FAFC' }}>Formula:</strong> <code style={{ color: '#2dd4bf' }}>{formula}</code>
                                 </small>
                             </div>
                         )}
@@ -498,17 +498,19 @@ export function buildReqsRecords(
     const userMap = new Map(users.map(u => [u.user_id, u.name]));
     const now = new Date();
 
-    return requisitions.map(r => ({
-        id: r.req_id,
-        reqId: r.req_id,
-        reqTitle: r.req_title,
-        level: r.level,
-        recruiter: userMap.get(r.recruiter_id) || r.recruiter_id,
-        hiringManager: userMap.get(r.hiring_manager_id) || r.hiring_manager_id,
-        status: r.status,
-        ageInDays: Math.floor((now.getTime() - r.opened_at.getTime()) / (1000 * 60 * 60 * 24)),
-        date: r.opened_at
-    }));
+    return requisitions
+        .filter(r => r.opened_at)  // STRICT: only include reqs with opened_at
+        .map(r => ({
+            id: r.req_id,
+            reqId: r.req_id,
+            reqTitle: r.req_title,
+            level: r.level,
+            recruiter: userMap.get(r.recruiter_id) || r.recruiter_id,
+            hiringManager: userMap.get(r.hiring_manager_id) || r.hiring_manager_id,
+            status: r.status,
+            ageInDays: Math.floor((now.getTime() - r.opened_at!.getTime()) / (1000 * 60 * 60 * 24)),
+            date: r.opened_at ?? undefined
+        }));
 }
 
 export function buildTTFRecords(
@@ -535,7 +537,7 @@ export function buildTTFRecords(
                 reqId: c.req_id,
                 reqTitle: req?.req_title || 'Unknown',
                 recruiter: userMap.get(req?.recruiter_id || '') || req?.recruiter_id,
-                openDate: openDate,
+                openDate: openDate ?? undefined,  // STRICT: convert null to undefined for type compat
                 hireDate: hireDate,
                 daysToFill: daysToFill ?? undefined,
                 date: hireDate

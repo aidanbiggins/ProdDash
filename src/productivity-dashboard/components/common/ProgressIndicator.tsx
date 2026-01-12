@@ -47,13 +47,13 @@ export function ProgressIndicator({ loadingState, onDismiss }: ProgressIndicator
         className="btn d-flex align-items-center gap-2"
         onClick={() => setIsExpanded(true)}
         style={{
-          background: hasError ? 'var(--color-red-100, #fee2e2)' : 'var(--color-primary-100, #e0e7ff)',
+          background: hasError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(212, 163, 115, 0.15)',
           border: 'none',
           borderRadius: '20px',
           padding: '6px 16px',
           fontSize: '0.85rem',
           fontWeight: 500,
-          color: hasError ? 'var(--color-red-700, #b91c1c)' : 'var(--color-primary-700, #4338ca)'
+          color: hasError ? '#f87171' : '#f59e0b'
         }}
       >
         {hasError ? (

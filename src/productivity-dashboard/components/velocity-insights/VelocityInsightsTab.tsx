@@ -35,49 +35,88 @@ interface VelocityInsightsTabProps {
   onUpdateConfig?: (config: DashboardConfig) => void;
 }
 
-// Color scale for decay visualization (green to red)
+// Color scale for decay visualization - Modern Tailwind
 function getDecayColor(rate: number): string {
-  if (rate >= 0.8) return '#059669'; // green
-  if (rate >= 0.6) return '#84cc16'; // lime
-  if (rate >= 0.4) return '#eab308'; // yellow
-  if (rate >= 0.2) return '#f97316'; // orange
-  return '#dc2626'; // red
+  if (rate >= 0.8) return '#10B981'; // Emerald-500
+  if (rate >= 0.6) return '#22C55E'; // Green-500
+  if (rate >= 0.4) return '#F59E0B'; // Amber-500
+  if (rate >= 0.2) return '#F97316'; // Orange-500
+  return '#EF4444'; // Red-500
 }
 
-// Insight card component
+// Insight card component - Clean, minimal design
 function InsightCard({ insight }: { insight: VelocityInsight }) {
-  const bgColor = insight.type === 'warning' ? 'rgba(234, 179, 8, 0.1)' :
-    insight.type === 'success' ? 'rgba(5, 150, 105, 0.1)' :
-      'rgba(99, 102, 241, 0.1)';
-  const borderColor = insight.type === 'warning' ? '#eab308' :
-    insight.type === 'success' ? '#059669' :
-      '#6366f1';
-  const icon = insight.type === 'warning' ? '⚠️' :
-    insight.type === 'success' ? '✓' : 'ℹ️';
+  // Use subtle, unified styling - no rainbow colors
+  const iconMap = {
+    warning: '!',
+    success: '✓',
+    info: 'i'
+  };
+  const icon = iconMap[insight.type] || 'i';
+
+  // Dark mode icon backgrounds
+  const iconBg = insight.type === 'warning' ? 'rgba(245, 158, 11, 0.15)' :
+    insight.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(96, 165, 250, 0.15)';
+  const iconColor = insight.type === 'warning' ? '#f59e0b' :
+    insight.type === 'success' ? '#10b981' : '#60a5fa';
 
   return (
     <div
-      className="p-3 rounded-3 mb-3"
-      style={{ background: bgColor, borderLeft: `4px solid ${borderColor}` }}
+      className="p-3 mb-3"
+      style={{
+        background: '#141414',
+        borderLeft: '3px solid #3f3f46',
+        borderRadius: '2px'
+      }}
     >
-      <div className="d-flex align-items-start gap-2">
-        <span style={{ fontSize: '1.1rem' }}>{icon}</span>
+      <div className="d-flex align-items-start gap-3">
+        <span
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '2px',
+            background: iconBg,
+            color: iconColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            flexShrink: 0
+          }}
+        >
+          {icon}
+        </span>
         <div className="flex-grow-1">
-          <div className="fw-bold mb-1">{insight.title}</div>
-          <div className="small text-muted mb-2">{insight.description}</div>
-          {insight.metric && (
-            <span
-              className="badge me-2"
-              style={{ background: borderColor, color: 'white' }}
-            >
-              {insight.metric}
-            </span>
-          )}
-          {insight.action && (
-            <span className="small text-muted">
-              → {insight.action}
-            </span>
-          )}
+          <div className="fw-semibold mb-1" style={{ color: '#f5f5f5', fontSize: '0.875rem' }}>
+            {insight.title}
+          </div>
+          <div className="mb-2" style={{ color: '#94A3B8', fontSize: '0.8rem', lineHeight: 1.4 }}>
+            {insight.description}
+          </div>
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            {insight.metric && (
+              <span
+                style={{
+                  background: '#27272a',
+                  color: '#94A3B8',
+                  padding: '2px 8px',
+                  fontSize: '0.65rem',
+                  fontWeight: 600,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  letterSpacing: '0.02em',
+                  borderRadius: '2px'
+                }}
+              >
+                {insight.metric}
+              </span>
+            )}
+            {insight.action && (
+              <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>
+                → {insight.action}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -238,7 +277,7 @@ export function VelocityInsightsTab({
                 <span style={{ fontSize: '1.25rem' }}>📉</span>
                 <div>
                   <h6 className="mb-0">Candidate Decay Curve</h6>
-                  <small className="text-muted">Offer acceptance rate by time in process</small>
+                  <small style={{ color: '#94A3B8' }}>Offer acceptance rate by time in process</small>
                 </div>
               </div>
             </div>
@@ -246,19 +285,19 @@ export function VelocityInsightsTab({
               {candidateChartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={chartHeight}>
                   <BarChart data={candidateChartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 11 }}
-                      stroke="#64748b"
+                      tick={{ fontSize: 11, fill: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}
+                      stroke="#94A3B8"
                       angle={-20}
                       textAnchor="end"
                       height={60}
                     />
                     <YAxis
                       domain={[0, 100]}
-                      tick={{ fontSize: 11 }}
-                      stroke="#64748b"
+                      tick={{ fontSize: 11, fill: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}
+                      stroke="#94A3B8"
                       tickFormatter={(v) => `${v}%`}
                     />
                     <Tooltip
@@ -266,12 +305,12 @@ export function VelocityInsightsTab({
                         if (!active || !payload || !payload[0]) return null;
                         const d = payload[0].payload;
                         return (
-                          <div className="bg-white border rounded p-2 shadow-sm">
-                            <div className="fw-bold">{d.name}</div>
+                          <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
+                            <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.name}</div>
                             <div style={{ color: getDecayColor(d.rate / 100) }}>
                               {d.rate}% acceptance rate
                             </div>
-                            <div className="small text-muted">{d.count} offers</div>
+                            <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>{d.count} offers</div>
                           </div>
                         );
                       }}
@@ -298,8 +337,8 @@ export function VelocityInsightsTab({
                   <small>Need candidates with offers extended</small>
                 </div>
               )}
-              <div className="mt-3 p-2 rounded" style={{ background: 'var(--color-slate-50)', fontSize: '0.8rem' }}>
-                <strong>Reading this chart:</strong> Each bar shows the offer acceptance rate for candidates
+              <div className="mt-3 p-2 rounded" style={{ background: '#141414', fontSize: '0.8rem', color: '#94A3B8' }}>
+                <strong style={{ color: '#94A3B8' }}>Reading this chart:</strong> Each bar shows the offer acceptance rate for candidates
                 who received offers after that many days in process. Declining bars indicate candidate
                 interest decay — they're getting other offers or losing enthusiasm.
               </div>
@@ -315,7 +354,7 @@ export function VelocityInsightsTab({
                 <span style={{ fontSize: '1.25rem' }}>📊</span>
                 <div>
                   <h6 className="mb-0">Requisition Decay Curve</h6>
-                  <small className="text-muted">Fill probability by days open</small>
+                  <small style={{ color: '#94A3B8' }}>Fill probability by days open</small>
                 </div>
               </div>
             </div>
@@ -325,23 +364,23 @@ export function VelocityInsightsTab({
                   <AreaChart data={reqChartData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
                     <defs>
                       <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 11 }}
-                      stroke="#64748b"
+                      tick={{ fontSize: 11, fill: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}
+                      stroke="#94A3B8"
                       angle={-20}
                       textAnchor="end"
                       height={60}
                     />
                     <YAxis
                       domain={[0, 100]}
-                      tick={{ fontSize: 11 }}
-                      stroke="#64748b"
+                      tick={{ fontSize: 11, fill: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}
+                      stroke="#94A3B8"
                       tickFormatter={(v) => `${v}%`}
                     />
                     <Tooltip
@@ -349,12 +388,12 @@ export function VelocityInsightsTab({
                         if (!active || !payload || !payload[0]) return null;
                         const d = payload[0].payload;
                         return (
-                          <div className="bg-white border rounded p-2 shadow-sm">
-                            <div className="fw-bold">{d.name}</div>
-                            <div style={{ color: '#6366f1' }}>
+                          <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
+                            <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.name}</div>
+                            <div style={{ color: '#2dd4bf' }}>
                               {d.rate}% fill rate
                             </div>
-                            <div className="small text-muted">{d.count} reqs in this window</div>
+                            <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>{d.count} reqs in this window</div>
                           </div>
                         );
                       }}
@@ -368,7 +407,7 @@ export function VelocityInsightsTab({
                     <Area
                       type="monotone"
                       dataKey="rate"
-                      stroke="#6366f1"
+                      stroke="#2dd4bf"
                       strokeWidth={2}
                       fill="url(#fillGradient)"
                     />
@@ -381,8 +420,8 @@ export function VelocityInsightsTab({
                   <small>Need closed reqs to analyze fill rates</small>
                 </div>
               )}
-              <div className="mt-3 p-2 rounded" style={{ background: 'var(--color-slate-50)', fontSize: '0.8rem' }}>
-                <strong>Reading this chart:</strong> Shows the fill rate for reqs that took X days to close.
+              <div className="mt-3 p-2 rounded" style={{ background: '#141414', fontSize: '0.8rem', color: '#94A3B8' }}>
+                <strong style={{ color: '#94A3B8' }}>Reading this chart:</strong> Shows the fill rate for reqs that took X days to close.
                 A declining curve indicates that longer-open reqs are less likely to fill — they may have
                 unrealistic requirements, poor HM engagement, or market misalignment.
               </div>
@@ -440,20 +479,18 @@ export function VelocityInsightsTab({
                         {factor.slowHiresValue} {factor.unit}
                       </td>
                       <td className="text-center" style={{ padding: '0.75rem 1rem' }}>
-                        <span className={`badge ${
-                          factor.factor === 'Avg Time to Fill' ? 'bg-secondary' :
+                        <span className={`badge ${factor.factor === 'Avg Time to Fill' ? 'bg-secondary' :
                           factor.impactLevel === 'high' ? 'bg-danger' :
-                          factor.impactLevel === 'medium' ? 'bg-warning' : 'bg-secondary'
-                        }`} style={{ fontWeight: 500 }}>
+                            factor.impactLevel === 'medium' ? 'bg-warning' : 'bg-secondary'
+                          }`} style={{ fontWeight: 500 }}>
                           {factor.delta} {factor.unit !== '%' && factor.unit !== 'days' ? '' : ''}
                         </span>
                       </td>
                       <td className="text-center" style={{ padding: '0.75rem 1rem' }}>
                         {factor.factor !== 'Avg Time to Fill' && (
-                          <span className={`badge-bespoke ${
-                            factor.impactLevel === 'high' ? 'badge-danger-soft' :
+                          <span className={`badge-bespoke ${factor.impactLevel === 'high' ? 'badge-danger-soft' :
                             factor.impactLevel === 'medium' ? 'badge-warning-soft' : 'badge-neutral-soft'
-                          }`}>
+                            }`}>
                             {factor.impactLevel}
                           </span>
                         )}
@@ -466,23 +503,23 @@ export function VelocityInsightsTab({
                 </tbody>
               </table>
             </div>
-            <div className="p-3" style={{ background: 'var(--color-slate-50)', borderTop: '1px solid var(--color-slate-200)' }}>
+            <div className="p-3" style={{ background: '#141414', borderTop: '1px solid #27272a' }}>
               <div className="row g-3 text-center">
                 <div className="col-4">
-                  <div className="small text-muted mb-1">Fast Hires Referral %</div>
-                  <div className="fw-bold" style={{ color: '#059669' }}>
+                  <div style={{ fontSize: '0.65rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '4px' }}>Fast Hires Referral %</div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1rem', color: '#10B981' }}>
                     {Math.round(metrics.cohortComparison.fastHires.referralPercent)}%
                   </div>
                 </div>
                 <div className="col-4">
-                  <div className="small text-muted mb-1">All Hires Avg TTF</div>
-                  <div className="fw-bold" style={{ color: 'var(--color-accent)' }}>
+                  <div style={{ fontSize: '0.65rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '4px' }}>All Hires Avg TTF</div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1rem', color: '#60a5fa' }}>
                     {Math.round(metrics.cohortComparison.allHires.avgTimeToFill)}d
                   </div>
                 </div>
                 <div className="col-4">
-                  <div className="small text-muted mb-1">Slow Hires Referral %</div>
-                  <div className="fw-bold" style={{ color: '#dc2626' }}>
+                  <div style={{ fontSize: '0.65rem', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: '4px' }}>Slow Hires Referral %</div>
+                  <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1rem', color: '#EF4444' }}>
                     {Math.round(metrics.cohortComparison.slowHires.referralPercent)}%
                   </div>
                 </div>
@@ -497,8 +534,17 @@ export function VelocityInsightsTab({
         <div className="card-bespoke mb-4">
           <div className="card-header">
             <div className="d-flex align-items-center gap-2">
-              <span style={{ fontSize: '1.25rem' }}>💡</span>
-              <h6 className="mb-0">Key Insights</h6>
+              <span style={{
+                width: 24,
+                height: 24,
+                background: 'rgba(245, 158, 11, 0.15)',
+                borderRadius: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.75rem'
+              }}>💡</span>
+              <h6 className="mb-0" style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8' }}>Key Insights</h6>
             </div>
           </div>
           <div className="card-body">
@@ -513,34 +559,43 @@ export function VelocityInsightsTab({
       <div className="card-bespoke">
         <div className="card-header">
           <div className="d-flex align-items-center gap-2">
-            <span style={{ fontSize: '1.25rem' }}>🎯</span>
-            <h6 className="mb-0">Strategic Implications</h6>
+            <span style={{
+              width: 24,
+              height: 24,
+              background: 'rgba(212, 163, 115, 0.15)',
+              borderRadius: '2px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.75rem'
+            }}>🎯</span>
+            <h6 className="mb-0" style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8' }}>Strategic Implications</h6>
           </div>
         </div>
         <div className="card-body">
-          <div className="row g-4">
+          <div className="row g-3">
             <div className="col-md-4">
-              <div className="p-3 rounded-3" style={{ background: 'rgba(5, 150, 105, 0.1)' }}>
-                <h6 className="text-success mb-2">Speed = Competitive Advantage</h6>
-                <p className="small text-muted mb-0">
+              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #10B981' }}>
+                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Speed = Competitive Advantage</h6>
+                <p style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: 0 }}>
                   Every day in process reduces your odds. Top candidates have options.
                   Compress timelines ruthlessly — aim for offers within {candidateDecay.decayStartDay || 21} days.
                 </p>
               </div>
             </div>
             <div className="col-md-4">
-              <div className="p-3 rounded-3" style={{ background: 'rgba(234, 179, 8, 0.1)' }}>
-                <h6 style={{ color: '#b45309' }} className="mb-2">Stale Reqs Need Intervention</h6>
-                <p className="small text-muted mb-0">
+              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #F59E0B' }}>
+                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Stale Reqs Need Intervention</h6>
+                <p style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: 0 }}>
                   Reqs open beyond {reqDecay.decayStartDay || 60} days rarely close without changes.
                   Reassess requirements, HM alignment, or comp band. Don't let them linger.
                 </p>
               </div>
             </div>
             <div className="col-md-4">
-              <div className="p-3 rounded-3" style={{ background: 'rgba(99, 102, 241, 0.1)' }}>
-                <h6 style={{ color: '#4f46e5' }} className="mb-2">Pipeline Momentum Matters</h6>
-                <p className="small text-muted mb-0">
+              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #2dd4bf' }}>
+                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Pipeline Momentum Matters</h6>
+                <p style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: 0 }}>
                   The decay curves show urgency is real. Prioritize candidates furthest along,
                   push HMs for faster feedback, and keep multiple candidates moving in parallel.
                 </p>

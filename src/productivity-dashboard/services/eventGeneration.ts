@@ -68,6 +68,7 @@ export interface EventGenerationResult {
     feedbackSubmittedEvents: number;
     offerEvents: number;
     hiredEvents: number;
+    skippedCandidates: number;  // STRICT: candidates skipped due to missing timestamp data
   };
 }
 
@@ -98,7 +99,8 @@ export async function generateEventsFromCandidates(
     interviewCompletedEvents: 0,
     feedbackSubmittedEvents: 0,
     offerEvents: 0,
-    hiredEvents: 0
+    hiredEvents: 0,
+    skippedCandidates: 0  // STRICT: candidates skipped due to missing timestamp data
   };
 
   // Build a map of req_id to hiring_manager_id for HM attribution
@@ -166,12 +168,22 @@ export async function generateEventsFromCandidates(
       stageTimeline.sort((a, b) => a.date.getTime() - b.date.getTime());
     } else {
       // SYNTHESIZE timeline (fallback for candidates without stage_timestamps)
+      // STRICT TIMESTAMP POLICY: Only synthesize if we have at least one real anchor date
+      const startDate = candidate.applied_at || candidate.current_stage_entered_at;
+      const endDate = candidate.current_stage_entered_at || candidate.hired_at;
+
+      // If no real dates exist, skip synthesis entirely - don't fabricate
+      if (!startDate) {
+        // No anchor date available, cannot synthesize events without fabricating
+        stats.skippedCandidates = (stats.skippedCandidates || 0) + 1;
+        continue;
+      }
+
       const currentStageIndex = STAGE_ORDER.indexOf(candidate.current_stage as CanonicalStage);
       const targetStageIndex = currentStageIndex >= 0 ? currentStageIndex : 0;
 
-      const startDate = candidate.applied_at || candidate.current_stage_entered_at || new Date();
-      const endDate = candidate.current_stage_entered_at || candidate.hired_at || new Date();
-      const totalMs = Math.max(endDate.getTime() - startDate.getTime(), 24 * 60 * 60 * 1000); // Min 1 day
+      const effectiveEndDate = endDate || startDate;  // Use startDate as fallback
+      const totalMs = Math.max(effectiveEndDate.getTime() - startDate.getTime(), 24 * 60 * 60 * 1000); // Min 1 day
 
       // Weighted stage durations
       const STAGE_WEIGHTS: Record<CanonicalStage, number> = {

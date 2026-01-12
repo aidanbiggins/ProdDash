@@ -117,10 +117,10 @@ export function MultiSelect({
         left: position.left,
         width: position.width,
         zIndex: 99999,
-        backgroundColor: 'white',
-        border: '1px solid #e2e8f0',
-        borderRadius: '0.375rem',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+        backgroundColor: '#141414',
+        border: '1px solid #27272a',
+        borderRadius: '2px',
+        boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
         maxHeight: '280px',
         overflowY: 'auto'
       }}
@@ -128,7 +128,7 @@ export function MultiSelect({
       {/* Quick actions */}
       <div
         className="d-flex justify-content-between px-3 py-2"
-        style={{ borderBottom: '1px solid #f1f5f9', backgroundColor: '#f8fafc' }}
+        style={{ borderBottom: '1px solid #27272a', backgroundColor: '#0a0a0a' }}
       >
         <button
           type="button"
@@ -163,16 +163,17 @@ export function MultiSelect({
               style={{
                 cursor: isDisabled ? 'not-allowed' : 'pointer',
                 opacity: isDisabled ? 0.5 : 1,
-                backgroundColor: isSelected ? '#f0fdf4' : undefined,
-                margin: 0
+                backgroundColor: isSelected ? 'rgba(45, 212, 191, 0.15)' : undefined,
+                margin: 0,
+                color: '#94A3B8'
               }}
               onMouseEnter={(e) => {
                 if (!isDisabled && !isSelected) {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = '#f8fafc';
+                  (e.currentTarget as HTMLElement).style.backgroundColor = '#27272a';
                 }
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = isSelected ? '#f0fdf4' : '';
+                (e.currentTarget as HTMLElement).style.backgroundColor = isSelected ? 'rgba(45, 212, 191, 0.15)' : '';
               }}
             >
               <input
@@ -208,9 +209,9 @@ export function MultiSelect({
         style={{
           textAlign: 'left',
           paddingRight: hasSelection ? '2rem' : '1.5rem',
-          backgroundColor: hasSelection ? '#f0fdf4' : undefined,
-          borderColor: hasSelection ? '#0f766e' : undefined,
-          color: hasSelection ? '#0f766e' : undefined,
+          backgroundColor: hasSelection ? 'rgba(45, 212, 191, 0.15)' : undefined,
+          borderColor: hasSelection ? '#2dd4bf' : undefined,
+          color: hasSelection ? '#2dd4bf' : undefined,
           width: '100%'
         }}
       >
@@ -229,7 +230,7 @@ export function MultiSelect({
               cursor: 'pointer',
               fontSize: '1rem',
               fontWeight: 'bold',
-              color: '#0f766e',
+              color: '#2dd4bf',
               lineHeight: 1
             }}
           >

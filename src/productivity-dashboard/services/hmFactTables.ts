@@ -71,11 +71,11 @@ function buildReqFacts(
 ): ReqFact[] {
     return requisitions.map(req => {
         const isOpen = !req.closed_at && req.status === 'Open';
-        const reqAgeDays = isOpen
+        const reqAgeDays = !req.opened_at ? 0 : (isOpen
             ? differenceInDays(asOfDate, req.opened_at)
             : (req.closed_at
                 ? differenceInDays(req.closed_at, req.opened_at)
-                : 0);
+                : 0));
 
         const hm = userMap.get(req.hiring_manager_id ?? '');
         const recruiter = userMap.get(req.recruiter_id);

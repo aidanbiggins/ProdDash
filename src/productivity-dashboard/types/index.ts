@@ -8,6 +8,8 @@ export * from './velocityTypes';
 export * from './forecastingTypes';
 export * from './loadingTypes';
 export * from './pipelineTypes';
+export * from './dataHygieneTypes';
+export * from './canonicalTypes';
 
 // ===== DATA STORE STATE =====
 

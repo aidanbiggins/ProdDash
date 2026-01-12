@@ -206,13 +206,13 @@ export function FilterBar({
             </div>
             <div className="d-flex justify-content-between align-items-center">
               <div className="d-flex gap-3">
-                <label className="d-flex align-items-center gap-1 small">
+                <label className="d-flex align-items-center gap-1 small" style={{ cursor: 'pointer' }}>
                   <input type="checkbox" className="form-check-input m-0" checked={filters.useWeighted} onChange={(e) => onChange({ useWeighted: e.target.checked })} />
-                  <span className="text-muted">Wtd</span>
+                  <span style={{ color: '#F8FAFC' }}>Wtd</span>
                 </label>
-                <label className="d-flex align-items-center gap-1 small">
+                <label className="d-flex align-items-center gap-1 small" style={{ cursor: 'pointer' }}>
                   <input type="checkbox" className="form-check-input m-0" checked={filters.normalizeByLoad} onChange={(e) => onChange({ normalizeByLoad: e.target.checked })} />
-                  <span className="text-muted">Norm</span>
+                  <span style={{ color: '#F8FAFC' }}>Norm</span>
                 </label>
               </div>
               <button className="btn btn-bespoke-primary btn-sm" onClick={onRefresh}>Apply</button>
@@ -259,7 +259,7 @@ export function FilterBar({
                 checked={filters.useWeighted}
                 onChange={(e) => onChange({ useWeighted: e.target.checked })}
               />
-              <span className="text-muted">Weighted</span>
+              <span style={{ color: '#F8FAFC' }}>Weighted</span>
             </label>
             <label className="d-flex align-items-center gap-2 small" style={{ cursor: 'pointer' }}>
               <input
@@ -268,7 +268,7 @@ export function FilterBar({
                 checked={filters.normalizeByLoad}
                 onChange={(e) => onChange({ normalizeByLoad: e.target.checked })}
               />
-              <span className="text-muted">Normalize</span>
+              <span style={{ color: '#F8FAFC' }}>Normalize</span>
             </label>
           </div>
           <button

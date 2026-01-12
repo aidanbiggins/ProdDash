@@ -475,11 +475,11 @@ export function ICIMSImportGuide({ onClose }: ICIMSImportGuideProps) {
                   </tbody>
                 </table>
 
-                <h6 className="mt-4">Supported Event Types:</h6>
+                <h6 className="mt-4" style={{ color: '#F8FAFC' }}>Supported Event Types:</h6>
                 <div className="d-flex flex-wrap gap-2">
                   {['STAGE_CHANGE', 'INTERVIEW_SCHEDULED', 'INTERVIEW_COMPLETED', 'FEEDBACK_SUBMITTED',
                     'OFFER_EXTENDED', 'OFFER_ACCEPTED', 'OFFER_DECLINED', 'OUTREACH_SENT', 'SCREEN_COMPLETED'].map(type => (
-                      <span key={type} className="badge bg-light text-dark border">{type}</span>
+                      <span key={type} className="badge" style={{ background: 'rgba(30, 41, 59, 0.7)', color: '#F8FAFC', border: '1px solid rgba(255,255,255,0.2)' }}>{type}</span>
                     ))}
                 </div>
               </div>

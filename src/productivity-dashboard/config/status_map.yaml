@@ -1,0 +1,378 @@
+# Canonical Status Mapping Configuration
+# Maps iCIMS status values to canonical stages and terminal states
+# Format: source_status -> { canonical_stage, is_terminal, disposition }
+
+version: "1.0"
+
+# === CANONICAL STAGES ===
+# These are the normalized pipeline stages we map to
+canonical_stages:
+  - LEAD          # Pre-application, incomplete
+  - APPLIED       # Application submitted
+  - SCREEN        # Recruiter screen
+  - HM_SCREEN     # Hiring manager phone screen
+  - ONSITE        # Onsite/panel interview
+  - FINAL         # Final round/decision pending
+  - OFFER         # Offer extended
+  - HIRED         # Offer accepted, hired
+  - REJECTED      # Rejected at any stage
+  - WITHDREW      # Candidate withdrew
+
+# === TERMINAL DISPOSITIONS ===
+terminal_dispositions:
+  - Hired
+  - Rejected
+  - Withdrawn
+  - Declined
+
+# === iCIMS STATUS MAPPINGS ===
+# Map raw iCIMS statuses to canonical stages
+status_mappings:
+  # Lead/Incomplete statuses
+  "Incomplete":
+    canonical_stage: LEAD
+    is_terminal: false
+    disposition: Active
+
+  "Initial DNQ":
+    canonical_stage: LEAD
+    is_terminal: false
+    disposition: Active
+
+  # Application statuses
+  "New Submission":
+    canonical_stage: APPLIED
+    is_terminal: false
+    disposition: Active
+
+  "Application Received":
+    canonical_stage: APPLIED
+    is_terminal: false
+    disposition: Active
+
+  "Resume Received":
+    canonical_stage: APPLIED
+    is_terminal: false
+    disposition: Active
+
+  "Under Review":
+    canonical_stage: APPLIED
+    is_terminal: false
+    disposition: Active
+
+  # Recruiter Screen statuses
+  "Phone Screen Scheduled":
+    canonical_stage: SCREEN
+    is_terminal: false
+    disposition: Active
+
+  "Phone Screen Staffing":
+    canonical_stage: SCREEN
+    is_terminal: false
+    disposition: Active
+
+  "Recruiter Screen":
+    canonical_stage: SCREEN
+    is_terminal: false
+    disposition: Active
+
+  "Phone Screen - Not Qualified":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Phone Screen Staffing; Not Selected":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  # HM Screen statuses
+  "Phone Screen Hiring Manager":
+    canonical_stage: HM_SCREEN
+    is_terminal: false
+    disposition: Active
+
+  "Phone Screen Hiring Manager; Not Selected":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "1st Round Interview":
+    canonical_stage: HM_SCREEN
+    is_terminal: false
+    disposition: Active
+
+  "Hiring Manager Review":
+    canonical_stage: HM_SCREEN
+    is_terminal: false
+    disposition: Active
+
+  "HM Interview Scheduled":
+    canonical_stage: HM_SCREEN
+    is_terminal: false
+    disposition: Active
+
+  # Onsite statuses
+  "2nd Round Interview":
+    canonical_stage: ONSITE
+    is_terminal: false
+    disposition: Active
+
+  "Onsite Interview":
+    canonical_stage: ONSITE
+    is_terminal: false
+    disposition: Active
+
+  "Panel Interview":
+    canonical_stage: ONSITE
+    is_terminal: false
+    disposition: Active
+
+  "Technical Interview":
+    canonical_stage: ONSITE
+    is_terminal: false
+    disposition: Active
+
+  # Final round statuses
+  "Final Interview":
+    canonical_stage: FINAL
+    is_terminal: false
+    disposition: Active
+
+  "Decision Pending":
+    canonical_stage: FINAL
+    is_terminal: false
+    disposition: Active
+
+  "Executive Interview":
+    canonical_stage: FINAL
+    is_terminal: false
+    disposition: Active
+
+  # Offer statuses
+  "Offer":
+    canonical_stage: OFFER
+    is_terminal: false
+    disposition: Active
+
+  "Offer Extended":
+    canonical_stage: OFFER
+    is_terminal: false
+    disposition: Active
+
+  "Offer Pending":
+    canonical_stage: OFFER
+    is_terminal: false
+    disposition: Active
+
+  "Offer Accepted":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Offer Declined":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Offer Declined/Rejected":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Offer Rescinded":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  # Hired statuses
+  "Hired":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Begin Onboarding":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Begin Onboarding - U.S. (Portal)":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Begin Onboarding - International":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Begin Onboarding - India (Portal)":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Begin Onboarding - EMEA (Portal)":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Onboarding Completed":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  "Closed Requisition":
+    canonical_stage: HIRED
+    is_terminal: true
+    disposition: Hired
+
+  # Rejected statuses
+  "Rejected":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Not Selected":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Interviewed; Not Selected":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Not Qualified":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Position Filled":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  "Position Cancelled":
+    canonical_stage: REJECTED
+    is_terminal: true
+    disposition: Rejected
+
+  # Withdrawn statuses
+  "Candidate Withdrew":
+    canonical_stage: WITHDREW
+    is_terminal: true
+    disposition: Withdrawn
+
+  "Withdrew":
+    canonical_stage: WITHDREW
+    is_terminal: true
+    disposition: Withdrawn
+
+  "No Show":
+    canonical_stage: WITHDREW
+    is_terminal: true
+    disposition: Withdrawn
+
+  "Unresponsive":
+    canonical_stage: WITHDREW
+    is_terminal: true
+    disposition: Withdrawn
+
+# === SOURCE MAPPINGS ===
+# Normalize source values to canonical categories
+source_mappings:
+  # LinkedIn variants
+  "linkedin": LinkedIn
+  "linkedin recruiter": LinkedIn
+  "linkedin jobs": LinkedIn
+  "linkedin (apply)": LinkedIn
+
+  # Indeed variants
+  "indeed": Indeed
+  "indeed.com": Indeed
+  "indeed apply": Indeed
+
+  # Referral variants
+  "referral": Referral
+  "employee referral": Referral
+  "internal referral": Referral
+  "referred": Referral
+
+  # Sourced variants
+  "sourced": Sourced
+  "recruiter": Sourced
+  "recruiter sourced": Sourced
+  "direct source": Sourced
+  "proactive": Sourced
+
+  # Agency variants
+  "agency": Agency
+  "staffing agency": Agency
+  "vendor": Agency
+  "vendor portal": Agency
+  "search firm": Agency
+  "recruiting agency": Agency
+
+  # Internal variants
+  "internal": Internal
+  "internal portal": Internal
+  "internal mobility": Internal
+  "internal transfer": Internal
+
+  # Inbound/Career site variants
+  "career site": Inbound
+  "careers page": Inbound
+  "company website": Inbound
+  "external portal": Inbound
+  "inbound": Inbound
+  "direct application": Inbound
+  "applied directly": Inbound
+
+  # Job boards
+  "glassdoor": Glassdoor
+  "ziprecruiter": ZipRecruiter
+  "monster": Monster
+  "dice": Dice
+  "hired": Hired.com
+  "angellist": AngelList
+  "wellfound": AngelList
+
+  # Campus
+  "campus": Campus
+  "university": Campus
+  "college": Campus
+  "campus recruiting": Campus
+
+  # Event
+  "event": Event
+  "career fair": Event
+  "job fair": Event
+  "meetup": Event
+  "conference": Event
+
+# === FALLBACK RULES ===
+fallback:
+  unknown_status:
+    canonical_stage: APPLIED
+    is_terminal: false
+    disposition: Active
+    confidence: low
+    log_warning: true
+
+  unknown_source:
+    canonical_source: Unknown
+    confidence: low
+    log_warning: true
+
+# === STAGE ORDER (for detecting regressions) ===
+stage_order:
+  LEAD: 1
+  APPLIED: 2
+  SCREEN: 3
+  HM_SCREEN: 4
+  ONSITE: 5
+  FINAL: 6
+  OFFER: 7
+  HIRED: 8
+  REJECTED: 99
+  WITHDREW: 99

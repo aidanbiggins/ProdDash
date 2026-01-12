@@ -117,7 +117,7 @@ export interface Requisition {
   location_city: string | null;
   comp_band_min: number | null;
   comp_band_max: number | null;
-  opened_at: Date;
+  opened_at: Date | null;  // STRICT: null if missing from source data
   closed_at: Date | null;
   status: RequisitionStatus;
   hiring_manager_id: string;
@@ -152,7 +152,7 @@ export interface Candidate {
   applied_at: Date | null;
   first_contacted_at: Date | null;
   current_stage: string;
-  current_stage_entered_at: Date;
+  current_stage_entered_at: Date | null;  // STRICT: null if missing from source data
   disposition: CandidateDisposition;
   hired_at: Date | null;
   offer_extended_at: Date | null;

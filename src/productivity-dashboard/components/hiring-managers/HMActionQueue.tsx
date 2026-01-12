@@ -14,21 +14,24 @@ type SortField = 'actionType' | 'daysOverdue' | 'reqTitle' | 'hmName' | 'daysWai
 type SortDirection = 'asc' | 'desc';
 
 // Metadata for action types - MUST match HMActionType enum in hmTypes.ts
-const ACTION_TYPE_META: Record<HMActionType, { label: string; icon: string; color: string }> = {
+const ACTION_TYPE_META: Record<HMActionType, { label: string; icon: string; color: string; hex: string }> = {
     [HMActionType.FEEDBACK_DUE]: {
         label: 'Feedback Due',
         icon: '💬',
-        color: 'danger'
+        color: 'danger',
+        hex: '#EF4444'
     },
     [HMActionType.REVIEW_DUE]: {
         label: 'Resume Review',
         icon: '👀',
-        color: 'warning'
+        color: 'warning',
+        hex: '#F59E0B'
     },
     [HMActionType.DECISION_DUE]: {
         label: 'Decision Needed',
         icon: '⚖️',
-        color: 'primary'
+        color: 'primary',
+        hex: '#3B82F6'
     }
 };
 
@@ -145,7 +148,9 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                 header: 'Trigger',
                 width: '80px',
                 cellClass: 'cell-muted',
-                render: (a) => a.triggerDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                render: (a) => a.triggerDate
+                    ? a.triggerDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    : <span className="text-muted">--</span>  // STRICT: Show '--' for null dates
             },
             {
                 key: 'daysWaiting',
@@ -179,7 +184,7 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
     return (
         <div className="animate-fade-in">
             {/* Summary Cards */}
-            <div className="row g-4 mb-4">
+            <div className="row g-3 mb-4">
                 {Object.entries(ACTION_TYPE_META).map(([type, meta]) => {
                     const count = countByType[type as HMActionType] || 0;
                     const isActive = filterType === type;
@@ -187,19 +192,31 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                     return (
                         <div className="col-md-4" key={type}>
                             <div
-                                className={`glass-panel p-3 text-center cursor-pointer transition-base h-100 d-flex flex-column justify-content-center`}
+                                className="p-3 text-center cursor-pointer h-100 d-flex flex-column justify-content-center"
                                 onClick={() => setFilterType(filterType === type as HMActionType ? 'ALL' : type as HMActionType)}
                                 style={{
-                                    borderColor: isActive ? `var(--color-${meta.color})` : undefined,
-                                    backgroundColor: isActive ? 'white' : undefined,
-                                    boxShadow: isActive ? 'var(--shadow-md)' : undefined,
-                                    border: isActive ? `2px solid var(--color-${meta.color})` : undefined
+                                    background: isActive ? '#2a2a2a' : '#141414',
+                                    border: isActive ? `2px solid ${meta.hex}` : '1px solid #27272a',
+                                    borderRadius: '2px',
+                                    transition: 'all 0.15s ease'
                                 }}
                             >
-                                <div className="fs-3 mb-2">{meta.icon}</div>
-                                <h3 className={`mb-0 text-${meta.color}`}>{count}</h3>
-                                <div className="text-muted small fw-medium text-uppercase tracking-wide mt-1">{meta.label}</div>
-                                {isActive && <div className="mt-2 badge-bespoke badge-neutral-soft">Active Filter</div>}
+                                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{meta.icon}</div>
+                                <h3 style={{
+                                    fontFamily: "'JetBrains Mono', monospace",
+                                    fontWeight: 600,
+                                    fontSize: '1.75rem',
+                                    color: meta.hex,
+                                    marginBottom: 0
+                                }}>{count}</h3>
+                                <div style={{
+                                    color: '#94A3B8',
+                                    fontSize: '0.65rem',
+                                    fontWeight: 600,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    marginTop: '0.25rem'
+                                }}>{meta.label}</div>
                             </div>
                         </div>
                     );

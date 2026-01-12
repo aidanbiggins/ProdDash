@@ -675,7 +675,7 @@ export function parseICIMSSingleFile(csvContent: string, options: ICIMSParserOpt
         candidate_slate_required: false,
         search_firm_used: false,
         status: extracted.hireDate ? RequisitionStatus.Closed : RequisitionStatus.Open,
-        opened_at: extracted.earliestDate || new Date(),
+        opened_at: extracted.earliestDate || null,  // STRICT: null if missing, never fabricate
         closed_at: extracted.hireDate
       });
 
@@ -719,7 +719,7 @@ export function parseICIMSSingleFile(csvContent: string, options: ICIMSParserOpt
       name: row['Person : Full Name: First Last']?.trim() || 'Unknown',
       source: extracted.source,
       current_stage: extracted.canonicalStage,
-      current_stage_entered_at: extracted.latestActivityAt || extracted.appliedAt || new Date(),
+      current_stage_entered_at: extracted.latestActivityAt || extracted.appliedAt || null,  // STRICT: null if missing
       disposition: extracted.disposition,
       applied_at: extracted.appliedAt || null,
       // First contacted = earliest screen/interview date (first real touch after application)

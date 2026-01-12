@@ -50,11 +50,13 @@ CSV Upload → csvParser.ts → DashboardState → metricsEngine.ts → Componen
 - `stageNormalization.ts` - Maps custom stage names to canonical stages
 - `complexityScoring.ts` - Hire complexity scoring algorithm
 - `dbService.ts` - Supabase persistence
+- `reqHealthService.ts` - Data hygiene: Zombie req detection, Ghost candidate identification, True TTF calculation
 
 **Types** (`/types/`):
 - `entities.ts` - Core domain models: `Requisition`, `Candidate`, `Event`, `User`
 - `hmTypes.ts` - HM-specific types: `HMRollup`, `HMLatencyMetrics`
 - `metrics.ts` - Filter and metric types
+- `dataHygieneTypes.ts` - Data health types: `ReqHealthStatus`, `GhostCandidateStatus`, `DataHygieneSummary`
 
 **Tab Components** (`/components/`):
 - `OverviewTab` - KPIs and high-level metrics
@@ -63,6 +65,7 @@ CSV Upload → csvParser.ts → DashboardState → metricsEngine.ts → Componen
 - `HiringManagersTab` - HM scorecard and action queue
 - `QualityTab` - Candidate quality metrics
 - `SourceEffectivenessTab` - Source ROI analysis
+- `DataHealthTab` - Data hygiene: Zombie reqs, Ghost candidates, True TTF vs Raw TTF comparison
 
 ### Key Patterns
 
@@ -78,4 +81,93 @@ Supabase auth with dev bypass: set `localStorage.setItem('dev-auth-bypass', JSON
 
 ### Styling
 
-Swiss Modern design system in `dashboard-theme.css`. Uses Bootstrap 5.3 as base with custom overrides. Fonts: Outfit (display), Plus Jakarta Sans (UI), Inter (body).
+Technical Editorial dark theme in `dashboard-theme.css`. Uses Bootstrap 5.3 as base with dark mode overrides.
+- Base: #1a1a1a (Deep Charcoal), Surface: #242424
+- Primary accent: #d4a373 (Muted Copper), Secondary: #2dd4bf (Electric Teal)
+- Fonts: Cormorant Garamond (headers), Space Mono (data/metrics), Inter (UI)
+
+### Data Hygiene Engine
+
+The `reqHealthService.ts` provides data quality filtering to get accurate metrics from noisy legacy data:
+
+**Req Health Status:**
+- `ACTIVE` - Normal, healthy requisition
+- `STALLED` - No candidate activity in 14-30 days (Yellow)
+- `ZOMBIE` - No activity in 30+ days (Red) - excluded from TTF by default
+- `AT_RISK` - Open 120+ days with fewer than 5 candidates
+
+**Ghost Candidates:** Candidates stuck in a stage for 10+ days without action (STAGNANT) or 30+ days (ABANDONED)
+
+**True TTF:** Time-to-fill calculated excluding zombie reqs, giving accurate performance metrics.
+
+### Canonical Data Layer
+
+The `canonicalDataLayer.ts` provides decision-grade data ingestion with full traceability:
+
+**Config Files** (`/config/`):
+- `column_map.yaml` - Maps source columns to canonical fields with synonyms
+- `status_map.yaml` - Maps iCIMS status values to canonical stages and terminal states
+
+**Canonical Tables:**
+- `reqs_canonical` - Requisitions with source tracing and confidence metadata
+- `candidates_canonical` - Candidates with normalized sources
+- `applications_canonical` - Candidate+Req combinations (primary fact table)
+- `events_canonical` - Stage changes (actual or synthetic from timestamps)
+
+**Source Tracing:** Every record includes `source_trace` with `source_file`, `source_row_id`, `ingested_at`
+
+**Confidence Grading:** Records have `confidence` metadata with `grade` (high/medium/low/inferred), `reasons`, and `inferred_fields`
+
+**Data Quality Report (`data_quality_report.json`):**
+- Missingness stats per field
+- Duplicate detection and resolution
+- Orphan rates (applications without reqs)
+- Unmapped statuses with sample traces
+- Overall quality score (0-100)
+
+**Metric Inspector:** `getMetric(metric_name, filters)` returns:
+- `value` - Calculated metric value
+- `definition` - Formula and aggregation method
+- `exclusions` - What was excluded and why
+- `confidence_grade` - How reliable the metric is
+- `sample_source_traces` - Traceable back to source rows
+
+**Report Type Detection:** Auto-detects `icims_submittal`, `icims_requisition`, `icims_activity`, or `generic_ats` formats
+
+**Audit Log:** Captures rows in/out per step, dropped rows with reason codes, merges, and inferred values
+
+**Terminal Timestamps:** Terminal event timestamps (`hired_at`, `rejected_at`, `withdrawn_at`) are NEVER fabricated:
+- `hired_at` - Only populated from explicit "Hire/Rehire Date" column in CSV
+- `rejected_at` - Only populated from "Rejection Date" / "Date Rejected" columns
+- `withdrawn_at` - Only populated from "Withdrawn Date" / "Withdrawal Date" columns
+- When terminal disposition exists but no timestamp column found, `MISSING_TERMINAL_TIMESTAMP` is logged to audit and confidence is downgraded to 'medium'
+
+### Strict Timestamp Policy
+
+**CRITICAL: Data cannot lie. All timestamps are STRICT - never fabricated.**
+
+**Core Principles:**
+1. **No Fallback Dates** - If a timestamp is missing in the source CSV, the value MUST be `null`. Never use `new Date()` as a default.
+2. **Null Propagation** - When a required date is null, derived metrics must also be null (not 0, not inferred).
+3. **UI Graceful Handling** - Display "N/A" or "--" for null dates, never crash or show misleading values.
+
+**`explainTimeToOffer` Function:**
+- **Math Invariant**: `(applied_to_first_interview) + (first_interview_to_offer)` MUST equal `total_days`
+- Tolerance: 1 day deviation (due to rounding)
+- If sum deviates by >1 day, flagged as `math_invariant_error`
+- Returns `null` if intermediate steps (`first_contacted_at`) are missing - cannot compute breakdown without interview date
+
+**Timestamp Fields That Must Never Be Fabricated:**
+- `applied_at` - From "Applied Date" / source submission columns
+- `first_contacted_at` - From "Date First Interviewed: *" columns
+- `offer_sent_at` - From "Date First Interviewed: Offer Letter"
+- `hired_at` - From "Hire/Rehire Date" only
+- `rejected_at` - From "Rejection Date" / "Date Rejected"
+- `withdrawn_at` - From "Withdrawn Date" / "Withdrawal Date"
+- `opened_at` - From "Date Opened" / "Open Date"
+- `current_stage_entered_at` - From stage event timestamps
+
+**Edge Cases:**
+- Candidate with Offer but no Interview date: Returns `null` metrics, not 0 days
+- Negative duration (offer before application): Excluded from metrics, flagged as data error
+- Missing terminal timestamp: Confidence downgraded, `MISSING_TERMINAL_TIMESTAMP` in audit log

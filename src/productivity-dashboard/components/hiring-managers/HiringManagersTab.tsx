@@ -55,6 +55,8 @@ export function HiringManagersTab({
 
         return requisitions.filter(req => {
             // Date Range: Req must be active during the window
+            // STRICT: skip reqs without opened_at
+            if (!req.opened_at) return false;
             const openedAt = new Date(req.opened_at);
             const closedAt = req.closed_at ? new Date(req.closed_at) : null;
 
@@ -213,9 +215,9 @@ export function HiringManagersTab({
                 <div className="d-flex align-items-center gap-3">
                     {/* Selected HMs Indicator (Multi-select) */}
                     {selectedHmUserIds.size > 0 && (
-                        <div className="d-flex align-items-center bg-white border px-3 py-1 rounded-pill shadow-sm">
-                            <span className="small text-muted me-2">Comparing:</span>
-                            <span className="fw-bold text-dark me-2">
+                        <div className="d-flex align-items-center px-3 py-1 rounded-pill" style={{ background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <span className="small me-2" style={{ color: '#94A3B8' }}>Comparing:</span>
+                            <span className="fw-bold me-2" style={{ color: '#F8FAFC' }}>
                                 {selectedHmUserIds.size === 1
                                     ? selectedHmNames[0]
                                     : `${selectedHmUserIds.size} HMs`}

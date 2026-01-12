@@ -106,7 +106,7 @@ export function DateRangePicker({ dateRange, onChange }: DateRangePickerProps) {
           value={format(dateRange.startDate, 'yyyy-MM-dd')}
           onChange={handleStartDateChange}
         />
-        <span className="text-muted small">to</span>
+        <span style={{ color: '#94A3B8', fontSize: '0.85rem' }}>to</span>
         <input
           type="date"
           className="form-control form-control-sm"

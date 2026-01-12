@@ -56,7 +56,7 @@ export function HMForecastsTab({ reqRollups }: HMForecastsTabProps) {
                     <div className="card-bespoke h-100">
                         <div className="card-body">
                             <div className="d-flex align-items-center mb-3">
-                                <div className="rounded-circle d-flex align-items-center justify-content-center me-3" style={{ width: '48px', height: '48px', background: '#e0e7ff', color: '#4338ca' }}>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center me-3" style={{ width: '48px', height: '48px', background: 'rgba(212, 163, 115, 0.15)', color: '#f59e0b' }}>
                                     <i className="bi bi-rocket-takeoff fs-4"></i>
                                 </div>
                                 <div>
@@ -101,7 +101,7 @@ export function HMForecastsTab({ reqRollups }: HMForecastsTabProps) {
 
                                     {/* Req Info */}
                                     <div className="flex-grow-1">
-                                        <h6 className="mb-0 fw-bold text-dark">{req.reqTitle}</h6>
+                                        <h6 className="mb-0 fw-bold" style={{ color: '#F8FAFC' }}>{req.reqTitle}</h6>
                                         <div className="text-muted small d-flex gap-2 mt-1">
                                             <span>{req.function}</span>
                                             <span>•</span>
@@ -110,20 +110,22 @@ export function HMForecastsTab({ reqRollups }: HMForecastsTabProps) {
                                         </div>
                                     </div>
 
-                                    {/* Confidence Visual */}
-                                    <div className="d-none d-md-block ms-4 text-end" style={{ minWidth: '200px' }}>
-                                        <div className="small text-muted mb-1" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confidence Window</div>
-                                        <div className="d-flex align-items-center justify-content-end gap-2">
-                                            <span className="small fw-medium text-slate-700">{new Date(forecast.earliestDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                                            <div className="rounded-pill" style={{
-                                                height: '6px',
-                                                width: '80px',
-                                                background: 'linear-gradient(90deg, var(--color-slate-300) 0%, var(--color-accent) 50%, var(--color-slate-300) 100%)',
-                                                opacity: 0.8
-                                            }}></div>
-                                            <span className="small fw-medium text-slate-700">{new Date(forecast.lateDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                    {/* Confidence Visual - only show if we have date range */}
+                                    {forecast.earliestDate && forecast.lateDate && (
+                                        <div className="d-none d-md-block ms-4 text-end" style={{ minWidth: '200px' }}>
+                                            <div className="small text-muted mb-1" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confidence Window</div>
+                                            <div className="d-flex align-items-center justify-content-end gap-2">
+                                                <span className="small fw-medium text-slate-700">{new Date(forecast.earliestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                <div className="rounded-pill" style={{
+                                                    height: '6px',
+                                                    width: '80px',
+                                                    background: 'linear-gradient(90deg, var(--color-slate-300) 0%, var(--color-accent) 50%, var(--color-slate-300) 100%)',
+                                                    opacity: 0.8
+                                                }}></div>
+                                                <span className="small fw-medium text-slate-700">{new Date(forecast.lateDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             );
                         })}

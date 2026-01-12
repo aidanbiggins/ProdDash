@@ -208,8 +208,8 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
               <form onSubmit={handleSubmit}>
                 {/* Unified Drop Zone */}
                 <div
-                  className="border rounded p-5 text-center mb-4 bg-light"
-                  style={{ borderStyle: 'dashed', borderWidth: '2px', borderColor: '#ccc' }}
+                  className="border rounded p-5 text-center mb-4"
+                  style={{ borderStyle: 'dashed', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.2)', background: 'rgba(30, 41, 59, 0.5)' }}
                 >
                   <p className="lead mb-2">Drag & Drop CSS Files Here</p>
                   <p className="small text-muted">Supports "Universal Report" or individual files</p>
@@ -244,26 +244,26 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                 </div>
 
                 {/* Manual File Selection Check (Hidden mostly, but good for debug) */}
-                <div className="mb-3 p-3 border rounded bg-white">
-                  <h6 className="mb-3">Selected Files:</h6>
+                <div className="mb-3 p-3 border rounded" style={{ background: 'rgba(30, 41, 59, 0.6)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                  <h6 className="mb-3" style={{ color: '#F8FAFC' }}>Selected Files:</h6>
                   <div className="row g-2">
                     <div className="col-md-6">
-                      <div className={`p-2 border rounded ${files.requisitions ? 'bg-success bg-opacity-10 border-success' : 'bg-light'}`}>
+                      <div className="p-2 border rounded" style={{ background: files.requisitions ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.requisitions ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
                         <strong>Requisitions / Universal:</strong> {files.requisitions?.name || 'Missing'}
                       </div>
                     </div>
                     <div className="col-md-6">
-                      <div className={`p-2 border rounded ${files.candidates ? 'bg-success bg-opacity-10 border-success' : 'bg-light'}`}>
+                      <div className="p-2 border rounded" style={{ background: files.candidates ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.candidates ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
                         <strong>Candidates:</strong> {files.candidates?.name || 'Optional'}
                       </div>
                     </div>
                     <div className="col-md-6">
-                      <div className={`p-2 border rounded ${files.events ? 'bg-success bg-opacity-10 border-success' : 'bg-light'}`}>
+                      <div className="p-2 border rounded" style={{ background: files.events ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.events ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
                         <strong>Events:</strong> {files.events?.name || 'Optional'}
                       </div>
                     </div>
                     <div className="col-md-6">
-                      <div className={`p-2 border rounded ${files.users ? 'bg-success bg-opacity-10 border-success' : 'bg-light'}`}>
+                      <div className="p-2 border rounded" style={{ background: files.users ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.users ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
                         <strong>Users:</strong> {files.users?.name || 'Optional'}
                       </div>
                     </div>

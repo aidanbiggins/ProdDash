@@ -150,33 +150,33 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
             )}
 
             {/* Summary Cards */}
-            <div className="row g-4 mb-4">
+            <div className="row g-3 mb-4">
                 <div className="col-md-3">
-                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
-                        <div className="stat-label mb-2">Hiring Managers {summary.isFiltered && <span className="badge bg-primary ms-1" style={{ fontSize: '0.6rem' }}>Filtered</span>}</div>
-                        <div className="stat-value">{summary.totalHMs}</div>
-                        <div className="text-muted small mt-1">{summary.isFiltered ? 'Selected' : 'Active users'}</div>
+                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #94A3B8' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Hiring Managers</div>
+                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#94A3B8' }}>{summary.totalHMs}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>{summary.isFiltered ? 'Selected' : 'Active users'}</div>
                     </div>
                 </div>
                 <div className="col-md-3">
-                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
-                        <div className="stat-label mb-2">Open Requisitions</div>
-                        <div className="stat-value text-primary">{summary.totalOpenReqs}</div>
-                        <div className="text-muted small mt-1">Active positions</div>
+                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #f59e0b' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Open Requisitions</div>
+                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#f59e0b' }}>{summary.totalOpenReqs}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>Active positions</div>
                     </div>
                 </div>
                 <div className="col-md-3">
-                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
-                        <div className="stat-label mb-2">Pending Actions</div>
-                        <div className="stat-value text-warning">{summary.totalPendingActions}</div>
-                        <div className="text-muted small mt-1">Requiring attention</div>
+                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #F59E0B' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Pending Actions</div>
+                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#F59E0B' }}>{summary.totalPendingActions}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>Requiring attention</div>
                     </div>
                 </div>
                 <div className="col-md-3">
-                    <div className={`glass-panel p-3 h-100 d-flex flex-column justify-content-center ${summary.isFiltered ? 'border-primary border-opacity-25' : ''}`}>
-                        <div className="stat-label mb-2">Active Candidates</div>
-                        <div className="stat-value text-success">{summary.totalActiveCandidates}</div>
-                        <div className="text-muted small mt-1">In pipeline</div>
+                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #2dd4bf' }}>
+                        <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Active Candidates</div>
+                        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#2dd4bf' }}>{summary.totalActiveCandidates}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>In pipeline</div>
                     </div>
                 </div>
             </div>
@@ -299,7 +299,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                     <div className="table-responsive">
                         <table className="table table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
                             <thead>
-                                <tr style={{ background: 'var(--color-slate-50, #f8fafc)' }}>
+                                <tr style={{ background: '#0a0a0a' }}>
                                     <th style={{ width: '40px', ...thStyle }}>
                                         <input
                                             type="checkbox"

@@ -91,7 +91,7 @@ export function DataHealthPanel({ health, onConfigureStages }: DataHealthPanelPr
                 <div
                   key={i}
                   className="d-flex justify-content-between align-items-center py-2 px-3 rounded"
-                  style={{ background: 'var(--color-slate-50, #f8fafc)' }}
+                  style={{ background: '#0a0a0a' }}
                 >
                   <span className="small text-muted">{issue.label}</span>
                   <span className={`badge-bespoke ${issue.percentage > issue.threshold ? 'badge-warning-soft' : 'badge-neutral-soft'}`}>

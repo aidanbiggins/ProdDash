@@ -41,18 +41,18 @@ export function MetricDrillDown({
             {/* Current Value */}
             <div className="row mb-4">
               <div className="col-md-6">
-                <div className="card bg-light">
+                <div className="card" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <div className="card-body text-center">
-                    <h6 className="text-muted mb-1">Current Value</h6>
-                    <h2 className="mb-0">{value}</h2>
+                    <h6 className="mb-1" style={{ color: '#94A3B8' }}>Current Value</h6>
+                    <h2 className="mb-0" style={{ color: '#F8FAFC' }}>{value}</h2>
                   </div>
                 </div>
               </div>
               <div className="col-md-6">
-                <div className="card bg-light">
+                <div className="card" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <div className="card-body text-center">
-                    <h6 className="text-muted mb-1">Records Included</h6>
-                    <h2 className="mb-0">{recordCount}</h2>
+                    <h6 className="mb-1" style={{ color: '#94A3B8' }}>Records Included</h6>
+                    <h2 className="mb-0" style={{ color: '#F8FAFC' }}>{recordCount}</h2>
                   </div>
                 </div>
               </div>
@@ -60,8 +60,8 @@ export function MetricDrillDown({
 
             {/* Formula */}
             <div className="mb-4">
-              <h6>Formula</h6>
-              <div className="bg-light p-3 rounded font-monospace">
+              <h6 style={{ color: '#F8FAFC' }}>Formula</h6>
+              <div className="p-3 rounded font-monospace" style={{ background: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
                 {formula}
               </div>
             </div>
@@ -86,8 +86,8 @@ export function MetricDrillDown({
             {/* Record IDs */}
             {recordIds.length > 0 && recordIds.length <= 100 && (
               <div className="mb-4">
-                <h6>Included Record IDs</h6>
-                <div className="bg-light p-3 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                <h6 style={{ color: '#F8FAFC' }}>Included Record IDs</h6>
+                <div className="p-3 rounded" style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <div className="d-flex flex-wrap gap-1">
                     {recordIds.map(id => (
                       <span key={id} className="badge bg-secondary">{id}</span>

@@ -116,15 +116,17 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
             top: 'calc(100% + 8px)',
             right: 0,
             width: '280px',
-            backgroundColor: 'white',
+            background: 'rgba(30, 41, 59, 0.95)',
+            backdropFilter: 'blur(12px)',
             borderRadius: '12px',
-            border: '1px solid var(--color-slate-200)',
+            border: '1px solid rgba(255,255,255,0.1)',
             zIndex: 1050,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
           }}
         >
           {/* Header */}
-          <div className="px-3 py-2 border-bottom" style={{ background: 'var(--color-slate-50)' }}>
+          <div className="px-3 py-2" style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
             <div className="d-flex justify-content-between align-items-center">
               <span className="fw-semibold" style={{ fontSize: '0.85rem' }}>Data Health</span>
               <span className="fw-bold" style={{ color: `var(--color-${healthColor})`, fontSize: '0.9rem' }}>

@@ -59,7 +59,7 @@ export interface HMPendingAction {
     reqTitle: string;
     candidateId: string;
     candidateName: string;
-    triggerDate: Date;
+    triggerDate: Date | null;  // STRICT: null if date is missing from source data
     daysWaiting: number;
     daysOverdue: number; // Negative if not overdue yet
     suggestedAction: string;

@@ -168,26 +168,26 @@ export function PipelineHealthCard({
           <h6 className="small text-muted mb-3">Stage Duration: Target vs Actual</h6>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} layout="vertical" margin={{ left: 80, right: 20, top: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis type="number" fontSize={11} unit="d" />
-              <YAxis dataKey="name" type="category" fontSize={11} width={75} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
+              <XAxis type="number" fontSize={11} unit="d" stroke="#94A3B8" tick={{ fill: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }} />
+              <YAxis dataKey="name" type="category" fontSize={11} width={75} stroke="#94A3B8" tick={{ fill: '#94A3B8' }} />
               <Tooltip
                 content={({ active, payload }) => {
                   if (!active || !payload?.[0]) return null;
                   const d = payload[0].payload as typeof chartData[0];
                   return (
-                    <div className="bg-white border rounded p-2 shadow-sm">
-                      <div className="fw-bold">{d.name}</div>
-                      <div className="small">Target: {d.target}d</div>
-                      <div className="small">Actual: {d.actual.toFixed(1)}d</div>
-                      <div className="small" style={{ color: STATUS_COLORS[d.status] }}>
+                    <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
+                      <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.name}</div>
+                      <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Target: {d.target}d</div>
+                      <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Actual: {d.actual.toFixed(1)}d</div>
+                      <div style={{ fontSize: '0.85rem', color: STATUS_COLORS[d.status] }}>
                         {d.variance > 0 ? `+${d.variance.toFixed(1)}d behind` : `${Math.abs(d.variance).toFixed(1)}d ahead`}
                       </div>
                     </div>
                   );
                 }}
               />
-              <Bar dataKey="target" fill="#e2e8f0" name="Target" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="target" fill="#3f3f46" name="Target" radius={[0, 4, 4, 0]} />
               <Bar dataKey="actual" name="Actual" radius={[0, 4, 4, 0]}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status]} />
@@ -315,10 +315,10 @@ function StageHealthMini({ stage }: { stage: StagePerformance }) {
   const worstStatus = stage.durationStatus === 'critical' || stage.passRateStatus === 'critical'
     ? 'critical'
     : stage.durationStatus === 'behind' || stage.passRateStatus === 'behind'
-    ? 'behind'
-    : stage.durationStatus === 'on-track' || stage.passRateStatus === 'on-track'
-    ? 'on-track'
-    : 'ahead';
+      ? 'behind'
+      : stage.durationStatus === 'on-track' || stage.passRateStatus === 'on-track'
+        ? 'on-track'
+        : 'ahead';
 
   return (
     <div

@@ -9,15 +9,16 @@ interface StallReasonBadgeProps {
     showEvidence?: boolean;
 }
 
+// Dark mode palette - translucent backgrounds, vibrant text
 const STALL_COLORS: Record<StallReasonCode, { bg: string; text: string }> = {
-    [StallReasonCode.AWAITING_HM_FEEDBACK]: { bg: '#dc3545', text: 'white' },
-    [StallReasonCode.AWAITING_HM_REVIEW]: { bg: '#fd7e14', text: 'white' },
-    [StallReasonCode.PIPELINE_THIN]: { bg: '#6f42c1', text: 'white' },
-    [StallReasonCode.NO_ACTIVITY]: { bg: '#6c757d', text: 'white' },
-    [StallReasonCode.OFFER_STALL]: { bg: '#0d6efd', text: 'white' },
-    [StallReasonCode.LATE_STAGE_EMPTY]: { bg: '#6610f2', text: 'white' },
-    [StallReasonCode.PROCESS_STALL_UNKNOWN]: { bg: '#adb5bd', text: 'dark' },
-    [StallReasonCode.NONE]: { bg: '#198754', text: 'white' }
+    [StallReasonCode.AWAITING_HM_FEEDBACK]: { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171' },   // Red
+    [StallReasonCode.AWAITING_HM_REVIEW]: { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24' },     // Amber
+    [StallReasonCode.PIPELINE_THIN]: { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171' },           // Red
+    [StallReasonCode.NO_ACTIVITY]: { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8' },           // Slate
+    [StallReasonCode.OFFER_STALL]: { bg: 'rgba(96, 165, 250, 0.15)', text: '#60a5fa' },            // Blue
+    [StallReasonCode.LATE_STAGE_EMPTY]: { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24' },       // Amber
+    [StallReasonCode.PROCESS_STALL_UNKNOWN]: { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8' }, // Slate
+    [StallReasonCode.NONE]: { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399' }                    // Emerald
 };
 
 const STALL_LABELS: Record<StallReasonCode, string> = {

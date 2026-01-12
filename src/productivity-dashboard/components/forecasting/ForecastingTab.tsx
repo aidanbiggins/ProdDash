@@ -258,15 +258,15 @@ export function ForecastingTab({
           {/* Wizard Progress */}
           <div className="d-flex justify-content-center mb-4">
             <div className="d-flex align-items-center gap-3">
-              <div className={`rounded-circle d-flex align-items-center justify-content-center ${wizardStep === 'profile' ? 'bg-primary text-white' : 'bg-light'}`} style={{ width: 36, height: 36 }}>
+              <div className={`rounded-circle d-flex align-items-center justify-content-center ${wizardStep === 'profile' ? 'text-white' : ''}`} style={{ width: 36, height: 36, background: wizardStep === 'profile' ? '#f59e0b' : '#27272a', color: wizardStep === 'profile' ? 'white' : '#94A3B8' }}>
                 1
               </div>
-              <div className="border-top" style={{ width: 40 }}></div>
-              <div className={`rounded-circle d-flex align-items-center justify-content-center ${wizardStep === 'hm' ? 'bg-primary text-white' : wizardStep === 'results' ? 'bg-success text-white' : 'bg-light'}`} style={{ width: 36, height: 36 }}>
+              <div style={{ width: 40, height: 1, background: '#3f3f46' }}></div>
+              <div className={`rounded-circle d-flex align-items-center justify-content-center`} style={{ width: 36, height: 36, background: wizardStep === 'hm' ? '#f59e0b' : wizardStep === 'results' ? '#10b981' : '#27272a', color: wizardStep === 'hm' || wizardStep === 'results' ? 'white' : '#94A3B8' }}>
                 2
               </div>
-              <div className="border-top" style={{ width: 40 }}></div>
-              <div className={`rounded-circle d-flex align-items-center justify-content-center ${wizardStep === 'results' ? 'bg-success text-white' : 'bg-light'}`} style={{ width: 36, height: 36 }}>
+              <div style={{ width: 40, height: 1, background: '#3f3f46' }}></div>
+              <div className={`rounded-circle d-flex align-items-center justify-content-center`} style={{ width: 36, height: 36, background: wizardStep === 'results' ? '#10b981' : '#27272a', color: wizardStep === 'results' ? 'white' : '#94A3B8' }}>
                 3
               </div>
             </div>
@@ -277,7 +277,7 @@ export function ForecastingTab({
             <div className="card-bespoke">
               <div className="card-header">
                 <h5 className="mb-0">Step 1: Define Role Profile</h5>
-                <small className="text-muted">Select the characteristics of the role you're planning to hire</small>
+                <small style={{ color: '#94A3B8' }}>Select the characteristics of the role you're planning to hire</small>
               </div>
               <div className="card-body">
                 <div className="row g-3">
@@ -352,7 +352,7 @@ export function ForecastingTab({
             <div className="card-bespoke">
               <div className="card-header">
                 <h5 className="mb-0">Step 2: Select Hiring Manager (Optional)</h5>
-                <small className="text-muted">HM selection affects time predictions based on their historical latency</small>
+                <small style={{ color: '#94A3B8' }}>HM selection affects time predictions based on their historical latency</small>
               </div>
               <div className="card-body">
                 <div className="row">
@@ -371,9 +371,9 @@ export function ForecastingTab({
                   </div>
                   <div className="col-md-6">
                     {selectedHMMetrics && (
-                      <div className="card bg-light border-0">
+                      <div style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px' }}>
                         <div className="card-body">
-                          <h6 className="mb-3">HM Insights</h6>
+                          <h6 className="mb-3" style={{ color: '#f5f5f5' }}>HM Insights</h6>
                           <div className="d-flex justify-content-between mb-2">
                             <span className="text-muted">Avg Feedback Latency:</span>
                             <strong className={selectedHMMetrics.feedbackLatencyMedian && selectedHMMetrics.feedbackLatencyMedian > 48 ? 'text-warning' : ''}>
@@ -402,7 +402,7 @@ export function ForecastingTab({
                       </div>
                     )}
                     {!selectedHMMetrics && roleProfile.hiringManagerId && (
-                      <div className="alert alert-info mb-0">
+                      <div style={{ background: 'rgba(45, 212, 191, 0.1)', border: '1px solid #2dd4bf', borderRadius: '2px', padding: '0.75rem', color: '#2dd4bf' }}>
                         No historical data available for this HM
                       </div>
                     )}
@@ -477,30 +477,34 @@ export function ForecastingTab({
                     <AreaChart data={milestoneChartData} margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
                       <defs>
                         <linearGradient id="volumeGradient" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.6} />
-                          <stop offset="100%" stopColor="#22c55e" stopOpacity={0.4} />
+                          <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="#2dd4bf" stopOpacity={0.4} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
                       <XAxis
                         dataKey="day"
                         fontSize={11}
-                        label={{ value: 'Days from Start', position: 'bottom', fontSize: 11, dy: 10 }}
+                        stroke="#94A3B8"
+                        tick={{ fontFamily: "'JetBrains Mono', monospace", fill: '#94A3B8' }}
+                        label={{ value: 'Days from Start', position: 'bottom', fontSize: 11, dy: 10, fill: '#94A3B8' }}
                         tickFormatter={(val) => `Day ${val}`}
                       />
                       <YAxis
                         fontSize={11}
-                        label={{ value: 'Candidates', angle: -90, position: 'insideLeft', fontSize: 11, dx: -5 }}
+                        stroke="#94A3B8"
+                        tick={{ fontFamily: "'JetBrains Mono', monospace", fill: '#94A3B8' }}
+                        label={{ value: 'Candidates', angle: -90, position: 'insideLeft', fontSize: 11, dx: -5, fill: '#94A3B8' }}
                       />
                       <Tooltip
                         content={({ active, payload }) => {
                           if (!active || !payload?.[0]) return null;
                           const d = payload[0].payload;
                           return (
-                            <div className="bg-white border rounded p-2 shadow-sm">
-                              <div className="fw-bold">{d.milestone}</div>
-                              <div className="small">Day {d.day} (range: {d.dayMin}-{d.dayMax})</div>
-                              <div className="small text-primary fw-medium">{d.volume} candidates remaining</div>
+                            <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
+                              <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.milestone}</div>
+                              <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Day {d.day} (range: {d.dayMin}-{d.dayMax})</div>
+                              <div style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: 500 }}>{d.volume} candidates remaining</div>
                             </div>
                           );
                         }}
@@ -508,7 +512,7 @@ export function ForecastingTab({
                       <Area
                         type="stepAfter"
                         dataKey="volume"
-                        stroke="#3b82f6"
+                        stroke="#f59e0b"
                         strokeWidth={2}
                         fill="url(#volumeGradient)"
                       />
@@ -536,23 +540,23 @@ export function ForecastingTab({
                     <div className="card-body">
                       <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={pipelineChartData} layout="vertical">
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                          <XAxis type="number" fontSize={11} />
-                          <YAxis dataKey="stage" type="category" width={80} fontSize={11} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
+                          <XAxis type="number" fontSize={11} stroke="#94A3B8" tick={{ fontFamily: "'JetBrains Mono', monospace", fill: '#94A3B8' }} />
+                          <YAxis dataKey="stage" type="category" width={80} fontSize={11} stroke="#94A3B8" tick={{ fill: '#94A3B8' }} />
                           <Tooltip
                             content={({ active, payload }) => {
                               if (!active || !payload?.[0]) return null;
                               const d = payload[0].payload;
                               return (
-                                <div className="bg-white border rounded p-2 shadow-sm">
-                                  <div className="fw-bold">{d.stage}</div>
-                                  <div className="small">Need {d.needed} candidates</div>
-                                  <div className="small text-muted">{d.rate}% conversion rate</div>
+                                <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
+                                  <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.stage}</div>
+                                  <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Need {d.needed} candidates</div>
+                                  <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>{d.rate}% conversion rate</div>
                                 </div>
                               );
                             }}
                           />
-                          <Bar dataKey="needed" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                          <Bar dataKey="needed" fill="#f59e0b" radius={[0, 4, 4, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -831,11 +835,10 @@ export function ForecastingTab({
                     </div>
                     <div className="d-flex justify-content-between">
                       <span className="text-muted">Velocity Trend:</span>
-                      <span className={`badge-bespoke ${
-                        selectedHealthDetails.velocityTrend === 'improving' ? 'badge-success-soft' :
+                      <span className={`badge-bespoke ${selectedHealthDetails.velocityTrend === 'improving' ? 'badge-success-soft' :
                         selectedHealthDetails.velocityTrend === 'stalled' ? 'badge-danger-soft' :
-                        selectedHealthDetails.velocityTrend === 'declining' ? 'badge-warning-soft' : 'badge-neutral-soft'
-                      }`}>
+                          selectedHealthDetails.velocityTrend === 'declining' ? 'badge-warning-soft' : 'badge-neutral-soft'
+                        }`}>
                         {selectedHealthDetails.velocityTrend}
                       </span>
                     </div>
@@ -849,10 +852,9 @@ export function ForecastingTab({
                         {selectedHealthDetails.actionRecommendations.map((action, i) => (
                           <div key={i} className="list-group-item px-0">
                             <div className="d-flex align-items-start">
-                              <span className={`badge-bespoke me-2 ${
-                                action.priority === 'urgent' ? 'badge-danger-soft' :
+                              <span className={`badge-bespoke me-2 ${action.priority === 'urgent' ? 'badge-danger-soft' :
                                 action.priority === 'important' ? 'badge-warning-soft' : 'badge-neutral-soft'
-                              }`}>
+                                }`}>
                                 {action.priority}
                               </span>
                               <div>

@@ -63,12 +63,12 @@ export function OverviewTab({
   type FunnelMetricKey = 'applicants' | 'screens' | 'hmReview' | 'onsites' | 'offers' | 'hires';
 
   const funnelMetrics: { key: FunnelMetricKey; label: string; dataKey: string; color: string }[] = [
-    { key: 'applicants', label: 'Applicants', dataKey: 'applicants', color: '#64748b' },
-    { key: 'screens', label: 'Screens', dataKey: 'screens', color: '#0f766e' },
-    { key: 'hmReview', label: 'HM Review', dataKey: 'submissions', color: '#7c3aed' },
-    { key: 'onsites', label: 'Onsites', dataKey: 'onsites', color: '#d97706' },
-    { key: 'offers', label: 'Offers', dataKey: 'offers', color: '#6366f1' },
-    { key: 'hires', label: 'Hires', dataKey: 'hires', color: '#059669' }
+    { key: 'applicants', label: 'Applicants', dataKey: 'applicants', color: '#71717a' },  // Gray-500
+    { key: 'screens', label: 'Screens', dataKey: 'screens', color: '#f59e0b' },          // Copper
+    { key: 'hmReview', label: 'HM Review', dataKey: 'submissions', color: '#a78bfa' },   // Purple
+    { key: 'onsites', label: 'Onsites', dataKey: 'onsites', color: '#f59e0b' },          // Amber
+    { key: 'offers', label: 'Offers', dataKey: 'offers', color: '#2dd4bf' },             // Teal
+    { key: 'hires', label: 'Hires', dataKey: 'hires', color: '#10b981' }                 // Emerald
   ];
 
   // Default to showing Offers and Hires
@@ -157,16 +157,16 @@ export function OverviewTab({
 
     return (
       <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #e2e8f0',
-        borderRadius: '8px',
+        backgroundColor: '#0a0a0a',
+        border: '1px solid #3f3f46',
+        borderRadius: '4px',
         padding: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
         minWidth: '180px',
         zIndex: 9999,
         position: 'relative'
       }}>
-        <div style={{ fontWeight: 600, marginBottom: '8px', color: '#1e293b' }}>{label}</div>
+        <div style={{ fontWeight: 600, marginBottom: '8px', color: '#f5f5f5' }}>{label}</div>
 
         {/* Values */}
         {activeMetrics.map(metric => {
@@ -180,7 +180,7 @@ export function OverviewTab({
               fontSize: '0.85rem'
             }}>
               <span style={{ color: metric.color, fontWeight: 500 }}>{metric.label}</span>
-              <span style={{ fontWeight: 600 }}>{value}</span>
+              <span style={{ fontWeight: 600, color: '#94A3B8' }}>{value}</span>
             </div>
           );
         })}
@@ -189,11 +189,11 @@ export function OverviewTab({
         {ratios.length > 0 && (
           <>
             <div style={{
-              borderTop: '1px solid #e2e8f0',
+              borderTop: '1px solid #3f3f46',
               marginTop: '8px',
               paddingTop: '8px',
               fontSize: '0.75rem',
-              color: '#64748b'
+              color: '#94A3B8'
             }}>
               <div style={{ fontWeight: 500, marginBottom: '4px' }}>Conversion Rates</div>
               {ratios.map((r, idx) => (
@@ -203,7 +203,7 @@ export function OverviewTab({
                   padding: '1px 0'
                 }}>
                   <span>{r.from} → {r.to}</span>
-                  <span style={{ fontWeight: 600, color: r.ratio !== null && r.ratio >= 50 ? '#059669' : '#64748b' }}>
+                  <span style={{ fontWeight: 600, color: r.ratio !== null && r.ratio >= 50 ? '#10b981' : '#94A3B8' }}>
                     {r.ratio !== null ? `${r.ratio.toFixed(0)}%` : '—'}
                   </span>
                 </div>
@@ -534,7 +534,7 @@ export function OverviewTab({
             value={filteredStats ? filteredStats.hires : overview.totalHires}
             contextTotal={
               filteredStats ? overview.totalHires :
-              (hasTopFilters && unfilteredTotals) ? unfilteredTotals.hires : undefined
+                (hasTopFilters && unfilteredTotals) ? unfilteredTotals.hires : undefined
             }
             priorPeriod={!filteredStats && !hasTopFilters && overview.priorPeriod ? {
               value: overview.priorPeriod.hires,
@@ -549,7 +549,7 @@ export function OverviewTab({
             value={filteredStats ? parseFloat(filteredStats.weightedHires.toFixed(1)) : parseFloat(overview.totalWeightedHires.toFixed(1))}
             contextTotal={
               filteredStats ? parseFloat(overview.totalWeightedHires.toFixed(1)) :
-              (hasTopFilters && unfilteredTotals) ? unfilteredTotals.weightedHires : undefined
+                (hasTopFilters && unfilteredTotals) ? unfilteredTotals.weightedHires : undefined
             }
             priorPeriod={!filteredStats && !hasTopFilters && overview.priorPeriod ? {
               value: parseFloat(overview.priorPeriod.weightedHires.toFixed(1)),
@@ -565,7 +565,7 @@ export function OverviewTab({
             value={filteredStats ? filteredStats.offers : overview.totalOffers}
             contextTotal={
               filteredStats ? overview.totalOffers :
-              (hasTopFilters && unfilteredTotals) ? unfilteredTotals.offers : undefined
+                (hasTopFilters && unfilteredTotals) ? unfilteredTotals.offers : undefined
             }
             priorPeriod={!filteredStats && !hasTopFilters && overview.priorPeriod ? {
               value: overview.priorPeriod.offers,
@@ -628,37 +628,55 @@ export function OverviewTab({
             <div className="card-header">
               <div className="d-flex justify-content-between align-items-center">
                 <h6 className="mb-0">Productivity Trend</h6>
-                <small className="text-muted">Weighted Hires ÷ Open Reqs per Week</small>
+                <small style={{ color: '#94A3B8' }}>Weighted Hires ÷ Open Reqs per Week</small>
               </div>
             </div>
             <div className="card-body">
               <ResponsiveContainer width="100%" height={180}>
-                <ComposedChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="week" fontSize={11} stroke="#64748b" />
-              <YAxis
-                fontSize={11}
-                stroke="#64748b"
-                domain={[0, 'auto']}
-                tickFormatter={(v) => v.toFixed(2)}
-              />
-              <Tooltip
-                formatter={(value: number | undefined) => [value != null ? value.toFixed(3) : '—', 'Productivity']}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
-              />
-              <Area
-                type="monotone"
-                dataKey="productivityIndex"
-                fill="#8b5cf6"
-                fillOpacity={0.15}
-                stroke="#8b5cf6"
-                strokeWidth={2.5}
-                name="Productivity Index"
-                dot={{ fill: '#8b5cf6', strokeWidth: 0, r: 3 }}
-                connectNulls
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+                <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#3f3f46"
+                  />
+                  <XAxis
+                    dataKey="week"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#94A3B8', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#94A3B8', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                    domain={[0, 'auto']}
+                    tickFormatter={(v) => v.toFixed(2)}
+                  />
+                  <Tooltip
+                    formatter={(value: number | undefined) => [value != null ? value.toFixed(3) : '—', 'Productivity']}
+                    contentStyle={{
+                      backgroundColor: '#0a0a0a',
+                      border: '1px solid #3f3f46',
+                      color: '#94A3B8',
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '12px',
+                      padding: '8px 12px'
+                    }}
+                    labelStyle={{ color: '#94A3B8' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="productivityIndex"
+                    fill="#f59e0b"
+                    fillOpacity={0.15}
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    name="Productivity Index"
+                    dot={{ fill: '#f59e0b', strokeWidth: 0, r: 2 }}
+                    connectNulls
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
@@ -724,12 +742,28 @@ export function OverviewTab({
         </div>
         <div className="card-body">
           <ResponsiveContainer width="100%" height={chartHeight + 30}>
-            <ComposedChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="week" fontSize={12} stroke="#64748b" />
-              <YAxis fontSize={12} stroke="#64748b" />
+            <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="#3f3f46"
+              />
+              <XAxis
+                dataKey="week"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}
+                dy={8}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}
+              />
               <Tooltip content={<FunnelTooltip />} />
-              <Legend />
+              <Legend
+                wrapperStyle={{ fontSize: '12px', fontFamily: "'Inter', sans-serif" }}
+              />
               {/* Render selected metrics */}
               {funnelMetrics.filter(m => selectedFunnelMetrics.has(m.key)).map(metric => {
                 const selectedKey = `selected${metric.dataKey.charAt(0).toUpperCase() + metric.dataKey.slice(1)}`;
@@ -741,9 +775,9 @@ export function OverviewTab({
                       type="monotone"
                       dataKey={metric.dataKey}
                       fill={metric.color}
-                      fillOpacity={isFiltered ? 0.1 : 0.2}
+                      fillOpacity={isFiltered ? 0.08 : 0.15}
                       stroke={metric.color}
-                      strokeWidth={isFiltered ? 1 : 2.5}
+                      strokeWidth={isFiltered ? 1 : 2}
                       strokeOpacity={isFiltered ? 0.3 : 1}
                       name={isFiltered ? `Team ${metric.label}` : metric.label}
                     />
@@ -753,7 +787,7 @@ export function OverviewTab({
                         type="monotone"
                         dataKey={selectedKey}
                         stroke={metric.color}
-                        strokeWidth={3}
+                        strokeWidth={2.5}
                         name={`Selected ${metric.label}`}
                         dot={{ fill: metric.color, strokeWidth: 0, r: 3 }}
                       />

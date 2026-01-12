@@ -519,7 +519,7 @@ export function parseCandidates(csvContent: string): ParseResult<Candidate> {
       applied_at: appliedAtResult.date,
       first_contacted_at: firstContactResult.date,
       current_stage: raw.current_stage?.trim() || 'Unknown',
-      current_stage_entered_at: stageEnteredDate || appliedAtResult.date || new Date(),
+      current_stage_entered_at: stageEnteredDate || appliedAtResult.date || null,  // STRICT: null if no date, never fabricate
       disposition: dispResult.value as CandidateDisposition,
       hired_at: hiredAtResult.date,
       offer_extended_at: offerExtResult.date,
@@ -774,10 +774,10 @@ export function parseUniversalCsv(csvContent: string): CsvImportResult {
 
       // 2. Parse Requisition (if new)
       if (!requisitionsMap.has(reqId)) {
-        // Dates
+        // Dates - STRICT: no fabrication, use null if missing
         const openedAtResult = parseDate(fuzzyGet(raw, 'opened_at'), 'opened_at', row);
-        // Fallback: Use applied_at of first candidate if opened_at missing
-        const fallbackDate = parseDate(fuzzyGet(raw, 'applied_at'), 'applied_at', row).date || new Date();
+        // Fallback: Use applied_at of first candidate if opened_at missing, but never fabricate
+        const fallbackDate = parseDate(fuzzyGet(raw, 'applied_at'), 'applied_at', row).date;
 
         // Users
         const recruiterId = getOrCreateUser(fuzzyGet(raw, 'recruiter_id') || fuzzyGet(raw, 'recruiter'), UserRole.Recruiter);
@@ -799,7 +799,7 @@ export function parseUniversalCsv(csvContent: string): CsvImportResult {
           location_city: fuzzyGet(raw, 'location_city') || null,
           comp_band_min: parseNumber(fuzzyGet(raw, 'comp_band_min')),
           comp_band_max: parseNumber(fuzzyGet(raw, 'comp_band_max')),
-          opened_at: openedAtResult.date || fallbackDate, // Infer date if missing
+          opened_at: openedAtResult.date || fallbackDate || null, // STRICT: null if missing, never fabricate
           closed_at: parseDate(fuzzyGet(raw, 'closed_at'), 'closed_at', row).date,
           status: statusRes.value as RequisitionStatus,
           hiring_manager_id: hmId,
@@ -838,10 +838,11 @@ export function parseUniversalCsv(csvContent: string): CsvImportResult {
         }
 
         // Fallback to applied_at column if no source columns had data
+        // STRICT: null if missing, never fabricate dates
         if (!appliedDate) {
           const appliedAtValue = fuzzyGet(raw, 'applied_at');
           const appliedAtRes = parseDate(appliedAtValue, 'applied_at', row);
-          appliedDate = appliedAtRes.date || new Date();
+          appliedDate = appliedAtRes.date || null;
         }
 
         // If explicit source column exists, use that
@@ -877,12 +878,12 @@ export function parseUniversalCsv(csvContent: string): CsvImportResult {
           from_stage: null,
           to_stage: 'Application',
           actor_user_id: 'system',
-          event_at: appliedDate,
+          event_at: appliedDate!,  // appliedDate checked above in if block
           metadata_json: null
         });
 
         // Event 2: Current Stage (if different from application)
-        if (currentStage.toLowerCase() !== 'application' && currentStage.toLowerCase() !== 'applied') {
+        if (currentStage.toLowerCase() !== 'application' && currentStage.toLowerCase() !== 'applied' && enterStageDate) {
           events.push({
             event_id: `evt_stage_${candidateId}_curr`,
             candidate_id: candidateId,
@@ -933,7 +934,7 @@ export function parseUniversalCsv(csvContent: string): CsvImportResult {
         if (stageEvents.length > 0) {
           const latestStage = stageEvents[stageEvents.length - 1];
           const candidate = candidatesMap.get(candidateId);
-          if (candidate && latestStage.date > candidate.current_stage_entered_at) {
+          if (candidate && (!candidate.current_stage_entered_at || latestStage.date > candidate.current_stage_entered_at)) {
             candidate.current_stage = latestStage.stage;
             candidate.current_stage_entered_at = latestStage.date;
           }

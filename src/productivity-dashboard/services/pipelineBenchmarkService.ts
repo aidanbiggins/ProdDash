@@ -602,10 +602,10 @@ export function generateHistoricalBenchmarks(
 ): HistoricalBenchmarkResult {
   const notes: string[] = [];
 
-  // Get closed reqs for TTF
+  // Get closed reqs for TTF (must have both dates)
   const closedReqs = requisitions.filter(r => r.closed_at && r.opened_at);
   const ttfValues = closedReqs
-    .map(r => differenceInDays(r.closed_at!, r.opened_at))
+    .map(r => differenceInDays(r.closed_at!, r.opened_at!)) // Both guaranteed by filter above
     .filter(t => t > 0 && t < 365);
 
   const medianTTF = median(ttfValues) || 45;
@@ -681,11 +681,11 @@ export function generateHistoricalBenchmarks(
     notes.push('Limited data - consider using defaults until more data is available');
   }
 
-  // Get date range
-  const allDates = [
-    ...closedReqs.map(r => r.opened_at),
-    ...closedReqs.filter(r => r.closed_at).map(r => r.closed_at!)
-  ].filter(Boolean);
+  // Get date range (closedReqs already guaranteed to have opened_at and closed_at)
+  const allDates: Date[] = [
+    ...closedReqs.map(r => r.opened_at!),
+    ...closedReqs.map(r => r.closed_at!)
+  ];
 
   const dataRange = {
     start: allDates.length > 0 ? new Date(Math.min(...allDates.map(d => d.getTime()))) : new Date(),

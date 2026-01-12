@@ -1,20 +1,23 @@
+/* Technical Editorial - Dark Mode */
 body {
-  background-color: #f8f9fa;
+  background-color: #1a1a1a;
 }
 
 header {
-  background-color: #6f42c1;
-  color: white;
+  background-color: #242424;
+  color: #e5e5e5;
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 2px;
 }
 
 .btn-primary {
-  background-color: #6f42c1;
-  border-color: #6f42c1;
+  background-color: #d4a373;
+  border-color: #d4a373;
+  color: #1a1a1a;
 }
 
 .btn-primary:hover {
-  background-color: #5a379f;
-  border-color: #52347d;
+  background-color: #b8956a;
+  border-color: #b8956a;
+  color: #1a1a1a;
 }

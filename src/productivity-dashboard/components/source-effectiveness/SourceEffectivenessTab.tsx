@@ -20,20 +20,20 @@ interface SourceEffectivenessTabProps {
     data: SourceEffectivenessMetrics;
 }
 
-// Color palette for sources
+// Color palette for sources - Modern Tailwind
 const SOURCE_COLORS: Record<string, string> = {
-    Referral: '#059669',
-    Sourced: '#0f766e',
-    Inbound: '#6366f1',
-    Internal: '#8b5cf6',
-    Agency: '#d97706',
-    Other: '#64748b'
+    Referral: '#10B981',  // Emerald-500
+    Sourced: '#3B82F6',   // Blue-500
+    Inbound: '#8B5CF6',   // Violet-500
+    Internal: '#06B6D4',  // Cyan-500
+    Agency: '#F59E0B',    // Amber-500
+    Other: '#64748B'      // Slate-500
 };
 
 const STATUS_COLORS = {
-    danger: '#dc2626',
-    success: '#059669',
-    neutral: '#64748b'
+    danger: '#EF4444',    // Red-500 (softer)
+    success: '#10B981',   // Emerald-500
+    neutral: '#64748B'    // Slate-500
 } as const;
 
 function getSourceColor(source: string): string {
@@ -83,7 +83,7 @@ function ChannelCard({ title, subtitle, channels, variant }: ChannelCardProps): 
         <div className="card-bespoke h-100" style={{ borderLeft: `4px solid ${color}` }}>
             <div className="card-header" style={{ background: bgAlpha }}>
                 <h6 style={{ color }}>{title}</h6>
-                <small className="text-muted">{subtitle}</small>
+                <small style={{ color: '#94A3B8' }}>{subtitle}</small>
             </div>
             <div className="card-body">
                 {channels.map(ch => (
@@ -341,26 +341,49 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                         </div>
                         <div className="card-body">
                             <ResponsiveContainer width="100%" height={280}>
-                                <BarChart data={hireRateData} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis type="number" domain={[0, 'auto']} unit="%" stroke="#64748b" fontSize={12} />
-                                    <YAxis type="category" dataKey="source" width={80} stroke="#64748b" fontSize={12} />
+                                <BarChart data={hireRateData} layout="vertical" barSize={18} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#3f3f46" />
+                                    <XAxis
+                                        type="number"
+                                        domain={[0, 'auto']}
+                                        unit="%"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94A3B8', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}
+                                    />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="source"
+                                        width={80}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94A3B8', fontSize: 12 }}
+                                    />
                                     <Tooltip
+                                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                        contentStyle={{
+                                            background: '#0a0a0a',
+                                            border: '1px solid #3f3f46',
+                                            padding: '8px 12px',
+                                            fontFamily: "'JetBrains Mono', monospace",
+                                            fontSize: '12px'
+                                        }}
+                                        labelStyle={{ color: '#94A3B8', marginBottom: '4px' }}
                                         content={({ active, payload }) => {
                                             if (active && payload && payload.length) {
                                                 const data = payload[0].payload;
                                                 return (
-                                                    <div style={{ background: 'white', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                                                    <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px', color: '#94A3B8', fontFamily: "'JetBrains Mono', monospace", fontSize: '12px' }}>
                                                         <div style={{ fontWeight: 600, marginBottom: 4 }}>{data.source}</div>
-                                                        <div style={{ color: getSourceColor(data.source) }}>{data.hireRate}% hire rate</div>
-                                                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{data.hires} hires / {data.total} candidates</div>
+                                                        <div style={{ color: '#f59e0b' }}>{data.hireRate}% hire rate</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{data.hires} hires / {data.total} candidates</div>
                                                     </div>
                                                 );
                                             }
                                             return null;
                                         }}
                                     />
-                                    <Bar dataKey="hireRate" radius={[0, 4, 4, 0]}>
+                                    <Bar dataKey="hireRate" radius={[0, 3, 3, 0]}>
                                         {hireRateData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={getSourceColor(entry.source)} />
                                         ))}
@@ -411,8 +434,8 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                                 <g>
                                                     <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={getSourceColor(safeName)} fill="none" />
                                                     <circle cx={sx} cy={sy} r={2} fill={getSourceColor(safeName)} stroke="none" />
-                                                    <text x={ex + (cos >= 0 ? 1 : -1) * 8} y={ey} textAnchor={textAnchor} fill="#333" fontSize={11} fontWeight={500} dy={4}>{safeName}</text>
-                                                    <text x={ex + (cos >= 0 ? 1 : -1) * 8} y={ey} dy={16} textAnchor={textAnchor} fill="#64748b" fontSize={10}>{`${value}%`}</text>
+                                                    <text x={ex + (cos >= 0 ? 1 : -1) * 8} y={ey} textAnchor={textAnchor} fill="#94A3B8" fontSize={11} fontWeight={500} dy={4}>{safeName}</text>
+                                                    <text x={ex + (cos >= 0 ? 1 : -1) * 8} y={ey} dy={16} textAnchor={textAnchor} fill="#94A3B8" fontSize={10}>{`${value}%`}</text>
                                                 </g>
                                             );
                                         }}
@@ -458,7 +481,7 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                         <div className="card-bespoke">
                             <div className="card-header">
                                 <h6>Source Efficiency Comparison</h6>
-                                <small className="text-muted">
+                                <small style={{ color: '#94A3B8' }}>
                                     Average: {avgCandidatesPerHire.toFixed(1)} candidates per hire
                                 </small>
                             </div>
@@ -514,7 +537,7 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
             <div className="card-bespoke mb-4">
                 <div className="card-header">
                     <h6>Funnel Pass-Through Rates by Source</h6>
-                    <small className="text-muted">See where candidates from each source drop off</small>
+                    <small style={{ color: '#94A3B8' }}>See where candidates from each source drop off</small>
                 </div>
                 <div className="card-body p-0">
                     <div className="table-responsive">
@@ -562,10 +585,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                             </tbody>
                         </table>
                     </div>
-                    <div className="mt-3 p-2 rounded d-flex gap-4 justify-content-center" style={{ background: 'var(--color-slate-50)', fontSize: '0.75rem' }}>
-                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(5, 150, 105, 0.3)' }}></span> ≥70% pass rate</span>
-                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(217, 119, 6, 0.3)' }}></span> 40-70%</span>
-                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(220, 38, 38, 0.3)' }}></span> &lt;40%</span>
+                    <div className="mt-3 p-2 rounded d-flex gap-4 justify-content-center" style={{ background: '#141414', fontSize: '0.75rem', color: '#94A3B8' }}>
+                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(16, 185, 129, 0.4)' }}></span> ≥70% pass rate</span>
+                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(245, 158, 11, 0.4)' }}></span> 40-70%</span>
+                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(239, 68, 68, 0.4)' }}></span> &lt;40%</span>
                     </div>
                 </div>
             </div>
@@ -623,11 +646,11 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
             </div>
 
             {/* Insight Box */}
-            <div className="mt-4 p-3 rounded" style={{ background: 'var(--color-slate-50)', border: '1px solid var(--color-slate-200)' }}>
+            <div className="mt-4 p-3 rounded" style={{ background: '#141414', border: '1px solid #27272a' }}>
                 <div className="d-flex gap-2">
                     <span>💡</span>
-                    <div className="small" style={{ color: 'var(--color-slate-600)' }}>
-                        <strong>Key Insight:</strong> Compare hire rates and time-to-hire across sources.
+                    <div className="small" style={{ color: '#94A3B8' }}>
+                        <strong style={{ color: '#94A3B8' }}>Key Insight:</strong> Compare hire rates and time-to-hire across sources.
                         High-volume sources with low hire rates may be costing recruiter time.
                         Consider investing more in sources with higher conversion rates.
                     </div>

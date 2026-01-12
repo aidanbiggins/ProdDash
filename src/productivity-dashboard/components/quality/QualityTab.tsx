@@ -67,7 +67,7 @@ export function QualityTab({ quality }: QualityTabProps) {
                   ? `${Math.round(quality.candidateExperience.applicationToFirstTouchMedian)} hrs`
                   : 'N/A'}
               </div>
-              <small className="text-muted">Median time for candidates to hear back</small>
+              <small style={{ color: '#94A3B8' }}>Median time for candidates to hear back</small>
             </div>
           </div>
         </div>
@@ -80,7 +80,7 @@ export function QualityTab({ quality }: QualityTabProps) {
                   ? `${Math.round(quality.candidateExperience.timeBetweenStepsMedian)} hrs`
                   : 'N/A'}
               </div>
-              <small className="text-muted">Median wait between stage changes</small>
+              <small style={{ color: '#94A3B8' }}>Median wait between stage changes</small>
             </div>
           </div>
         </div>
@@ -95,18 +95,28 @@ export function QualityTab({ quality }: QualityTabProps) {
           <div className="row">
             <div className="col-md-8">
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={falloutData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" fontSize={12} stroke="#64748b" />
-                  <YAxis unit="%" fontSize={12} stroke="#64748b" />
+                <BarChart data={falloutData} barSize={24}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" />
+                  <XAxis dataKey="name" fontSize={12} stroke="#94A3B8" tickLine={false} axisLine={{ stroke: '#3f3f46' }} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                  <YAxis unit="%" fontSize={12} stroke="#94A3B8" tickLine={false} axisLine={false} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
                   <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                    contentStyle={{
+                      background: '#0a0a0a',
+                      border: '1px solid #3f3f46',
+                      padding: '8px 12px',
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: '12px'
+                    }}
+                    labelStyle={{ color: '#94A3B8', marginBottom: '4px' }}
+                    itemStyle={{ color: '#94A3B8' }}
                     formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Fallout Rate']}
                   />
                   <Bar dataKey="rate" radius={[4, 4, 0, 0]}>
                     {falloutData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={entry.rate > 30 ? '#dc2626' : entry.rate > 15 ? '#d97706' : '#059669'}
+                        fill={entry.rate > 30 ? '#F43F5E' : entry.rate > 15 ? '#F59E0B' : '#10B981'}
                       />
                     ))}
                   </Bar>
@@ -114,14 +124,14 @@ export function QualityTab({ quality }: QualityTabProps) {
               </ResponsiveContainer>
             </div>
             <div className="col-md-4">
-              <div className="small" style={{ color: 'var(--color-slate-600)' }}>
+              <div className="small" style={{ color: '#94A3B8' }}>
                 <p className="fw-semibold mb-2">What these metrics show:</p>
                 <ul className="ps-3 mb-3">
                   <li className="mb-1"><strong>Onsite → Reject:</strong> Candidates rejected after onsite</li>
                   <li className="mb-1"><strong>Offer → Decline:</strong> Offers declined by candidates</li>
                   <li><strong>Offer → Withdraw:</strong> Candidates withdrew after offer</li>
                 </ul>
-                <p className="mb-0 small text-muted">High rates may indicate calibration issues or poor candidate experience.</p>
+                <p className="mb-0 small" style={{ color: '#94A3B8' }}>High rates may indicate calibration issues or poor candidate experience.</p>
               </div>
             </div>
           </div>
@@ -135,18 +145,28 @@ export function QualityTab({ quality }: QualityTabProps) {
         </div>
         <div className="card-body">
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={functionData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis type="number" domain={[0, 100]} unit="%" fontSize={12} stroke="#64748b" />
-              <YAxis type="category" dataKey="name" width={100} fontSize={12} stroke="#64748b" />
+            <BarChart data={functionData} layout="vertical" barSize={20}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#3f3f46" />
+              <XAxis type="number" domain={[0, 100]} unit="%" fontSize={12} stroke="#94A3B8" tickLine={false} axisLine={{ stroke: '#3f3f46' }} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+              <YAxis type="category" dataKey="name" width={100} fontSize={12} stroke="#94A3B8" tickLine={false} axisLine={false} />
               <Tooltip
+                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                contentStyle={{
+                  background: '#0a0a0a',
+                  border: '1px solid #3f3f46',
+                  padding: '8px 12px',
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: '12px'
+                }}
+                labelStyle={{ color: '#94A3B8', marginBottom: '4px' }}
+                itemStyle={{ color: '#94A3B8' }}
                 formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Accept Rate']}
               />
               <Bar dataKey="rate" radius={[0, 4, 4, 0]}>
                 {functionData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.rate >= 80 ? '#059669' : entry.rate >= 60 ? '#d97706' : '#dc2626'}
+                    fill={entry.rate >= 80 ? '#10B981' : entry.rate >= 60 ? '#F59E0B' : '#F43F5E'}
                   />
                 ))}
               </Bar>
@@ -227,38 +247,44 @@ export function QualityTab({ quality }: QualityTabProps) {
       </div>
 
       {/* Interpretation Guide */}
-      <div className="card">
+      <div className="card-bespoke">
         <div className="card-header">
-          <h6 className="mb-0">Quality Guardrails: What to Watch For</h6>
+          <h6 className="mb-0" style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8' }}>Quality Guardrails: What to Watch For</h6>
         </div>
         <div className="card-body">
-          <div className="row">
+          <div className="row g-3">
             <div className="col-md-4">
-              <h6 className="text-danger">Red Flags</h6>
-              <ul className="small ps-3">
-                <li>Offer acceptance rate below 60%</li>
-                <li>High onsite-to-reject rate (&gt;40%)</li>
-                <li>Application to first touch &gt;72 hours</li>
-                <li>Significant variance between recruiters</li>
-              </ul>
+              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #EF4444' }}>
+                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Red Flags</h6>
+                <ul style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.6, paddingLeft: '1rem', marginBottom: 0 }}>
+                  <li>Offer acceptance rate below 60%</li>
+                  <li>High onsite-to-reject rate (&gt;40%)</li>
+                  <li>Application to first touch &gt;72 hours</li>
+                  <li>Significant variance between recruiters</li>
+                </ul>
+              </div>
             </div>
             <div className="col-md-4">
-              <h6 className="text-warning">Areas to Monitor</h6>
-              <ul className="small ps-3">
-                <li>Offer acceptance between 60-80%</li>
-                <li>Functions with lower acceptance rates</li>
-                <li>Candidate withdrawals at offer stage</li>
-                <li>Long waits between interview stages</li>
-              </ul>
+              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #F59E0B' }}>
+                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Areas to Monitor</h6>
+                <ul style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.6, paddingLeft: '1rem', marginBottom: 0 }}>
+                  <li>Offer acceptance between 60-80%</li>
+                  <li>Functions with lower acceptance rates</li>
+                  <li>Candidate withdrawals at offer stage</li>
+                  <li>Long waits between interview stages</li>
+                </ul>
+              </div>
             </div>
             <div className="col-md-4">
-              <h6 className="text-success">Good Health Indicators</h6>
-              <ul className="small ps-3">
-                <li>Offer acceptance rate above 80%</li>
-                <li>Consistent performance across recruiters</li>
-                <li>Fast response times to candidates</li>
-                <li>Low late-stage fallout</li>
-              </ul>
+              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #10B981' }}>
+                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Good Health Indicators</h6>
+                <ul style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.6, paddingLeft: '1rem', marginBottom: 0 }}>
+                  <li>Offer acceptance rate above 80%</li>
+                  <li>Consistent performance across recruiters</li>
+                  <li>Fast response times to candidates</li>
+                  <li>Low late-stage fallout</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

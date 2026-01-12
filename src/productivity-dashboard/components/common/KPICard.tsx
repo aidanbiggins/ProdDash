@@ -68,17 +68,17 @@ export function KPICard({
           )}
         </div>
 
-        {/* Subtle accent bar - teal when filtered */}
+        {/* Subtle accent bar - uses Davos tokens */}
         <div
           className={`stat-accent-line ${isMobile ? 'mb-1' : 'mb-3'}`}
           style={{
             background: hasContext
-              ? 'var(--color-primary)'
+              ? 'var(--accent)'
               : percentChange !== null
-                ? (percentChange >= 0 ? 'var(--color-success)' : 'var(--color-danger)')
+                ? (percentChange >= 0 ? 'var(--success)' : 'var(--danger)')
                 : showNewComparison
-                  ? 'var(--color-success)'
-                  : 'var(--color-slate-200)'
+                  ? 'var(--success)'
+                  : 'var(--glass-border)'
           }}
         ></div>
 
@@ -86,11 +86,11 @@ export function KPICard({
           {/* Value display - shows "filtered / total" when context is provided */}
           {hasContext ? (
             <div className={isMobile ? 'mb-1' : 'mb-2'}>
-              <span className="stat-value text-primary">{value}</span>
-              <span className="stat-value text-muted opacity-50" style={{ fontSize: isMobile ? '1rem' : '1.25rem' }}> / {contextTotal}</span>
+              <span className="stat-value text-primary" style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{value}</span>
+              <span style={{ fontSize: isMobile ? '1rem' : '1.25rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}> / {contextTotal}</span>
             </div>
           ) : (
-            <h3 className={`stat-value ${isMobile ? 'mb-1' : 'mb-2'}`}>{value}</h3>
+            <h3 className={`stat-value ${isMobile ? 'mb-1' : 'mb-2'}`} style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{value}</h3>
           )}
 
           <div className="d-flex flex-column mt-auto" style={{ fontSize: isMobile ? '0.65rem' : '0.75rem' }}>
@@ -106,7 +106,7 @@ export function KPICard({
                   {Math.abs(percentChange).toFixed(0)}%
                 </span>
                 {priorPeriod && (
-                  <span className="text-muted" style={{ fontSize: isMobile ? '0.6rem' : '0.7rem' }}>
+                  <span style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: 'var(--text-secondary)' }}>
                     vs {priorPeriod.value} {priorPeriod.label || 'prior period'}
                   </span>
                 )}
@@ -118,7 +118,7 @@ export function KPICard({
                   {value}
                 </span>
                 {priorPeriod && (
-                  <span className="text-muted" style={{ fontSize: isMobile ? '0.6rem' : '0.7rem' }}>
+                  <span style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: 'var(--text-secondary)' }}>
                     vs 0 {priorPeriod.label || 'prior period'}
                   </span>
                 )}
@@ -129,11 +129,11 @@ export function KPICard({
                 {Math.abs(trend.value).toFixed(1)}%
               </span>
             ) : (
-              <span className="text-muted opacity-50">–</span>
+              <span style={{ color: 'var(--text-secondary)' }}>–</span>
             )}
           </div>
 
-          {subtitle && <div className="text-muted small mt-1 opacity-75">{subtitle}</div>}
+          {subtitle && <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{subtitle}</div>}
         </div>
       </div>
     </div>
