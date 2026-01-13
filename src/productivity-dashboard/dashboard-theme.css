@@ -495,6 +495,60 @@ td[class*="numeric"] {
     margin-bottom: 1.5rem;
 }
 
+/* Stat Value Size Variants */
+.stat-value-sm {
+    font-size: 1.5rem !important;
+}
+
+.stat-value-lg {
+    font-size: 3rem !important;
+}
+
+/* ========================================
+   INLINE HELP STYLES
+   ======================================== */
+.inline-help {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.375rem;
+}
+
+.inline-help-tooltip {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    cursor: help;
+    transition: color var(--transition-fast);
+}
+
+.inline-help-tooltip:hover {
+    color: var(--color-text-secondary);
+}
+
+.inline-help-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.inline-help-toggle:hover {
+    color: var(--color-text-secondary);
+}
+
+.inline-help-content {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.25rem;
+    padding: 0.5rem;
+    background: var(--color-bg-overlay);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-subtle);
+}
+
 /* ========================================
    TABLE STYLES - Glass Theme High Contrast
    ======================================== */
@@ -701,6 +755,61 @@ small, .small {
 }
 
 /* ========================================
+   PAGE HEADER STYLES
+   ======================================== */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.page-header-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.page-header-title {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-heading);
+    margin: 0 0 0.25rem 0;
+    letter-spacing: -0.02em;
+}
+
+.page-header-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.page-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-header-title {
+        font-size: 1.5rem;
+    }
+
+    .page-header-actions {
+        justify-content: flex-start;
+    }
+}
+
+/* ========================================
    SECTION HEADER STYLES
    ======================================== */
 .section-header {
@@ -719,6 +828,20 @@ small, .small {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.section-header-subtitle {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin: 0.25rem 0 0 0;
+}
+
+.section-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
 }
 
 /* ========================================

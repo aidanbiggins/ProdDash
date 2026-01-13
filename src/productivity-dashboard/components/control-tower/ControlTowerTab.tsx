@@ -23,6 +23,7 @@ import { runPreMortemBatch } from '../../services/preMortemService';
 import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../types/preMortemTypes';
 import { PreMortemDrawer } from '../common/PreMortemDrawer';
 import { AnimatedStat } from '../common/AnimatedNumber';
+import { SectionHeader } from '../common/SectionHeader';
 
 interface ControlTowerTabProps {
   requisitions: Requisition[];
@@ -615,15 +616,17 @@ export function ControlTowerTab({
 
       {/* Section 1: Health KPIs */}
       <div className="mb-4">
-        <div className="section-header">
-          <h3 className="section-header-title">Health</h3>
-          <button
-            className="btn btn-sm btn-bespoke-secondary"
-            onClick={() => onNavigateToTab('overview')}
-          >
-            View Details <i className="bi bi-arrow-right ms-1"></i>
-          </button>
-        </div>
+        <SectionHeader
+          title="Health"
+          actions={
+            <button
+              className="btn btn-sm btn-bespoke-secondary"
+              onClick={() => onNavigateToTab('overview')}
+            >
+              View Details <i className="bi bi-arrow-right ms-1"></i>
+            </button>
+          }
+        />
         <div className="row g-3">
           <div className="col-6 col-md">
             <HealthIndicator
@@ -678,25 +681,25 @@ export function ControlTowerTab({
         {/* Section 2: Pre-Mortem (Risks) */}
         <div className="col-lg-6">
           <div className="glass-panel p-3 h-100">
-            <div className="section-header">
-              <h3 className="section-header-title">
-                Risks
-                {highRiskCount > 0 && (
-                  <span
-                    className="badge ms-2"
-                    style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', fontSize: '0.7rem' }}
-                  >
-                    {highRiskCount} HIGH
-                  </span>
-                )}
-              </h3>
-              <button
-                className="btn btn-sm btn-bespoke-secondary"
-                onClick={() => onNavigateToTab('data-health')}
-              >
-                View All
-              </button>
-            </div>
+            <SectionHeader
+              title="Risks"
+              badge={highRiskCount > 0 ? (
+                <span
+                  className="badge badge-danger-soft"
+                  style={{ fontSize: '0.7rem' }}
+                >
+                  {highRiskCount} HIGH
+                </span>
+              ) : undefined}
+              actions={
+                <button
+                  className="btn btn-sm btn-bespoke-secondary"
+                  onClick={() => onNavigateToTab('data-health')}
+                >
+                  View All
+                </button>
+              }
+            />
 
             {atRiskPreMortems.length === 0 ? (
               <div className="text-center py-4" style={{ color: 'var(--text-secondary)' }}>
@@ -763,25 +766,25 @@ export function ControlTowerTab({
         {/* Section 3: Unified Actions */}
         <div className="col-lg-6">
           <div className="glass-panel p-3 h-100">
-            <div className="section-header">
-              <h3 className="section-header-title">
-                Unified Actions
-                {getOpenActions(actionQueue).length > 0 && (
-                  <span
-                    className="badge ms-2"
-                    style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', fontSize: '0.7rem' }}
-                  >
-                    {getOpenActions(actionQueue).length}
-                  </span>
-                )}
-              </h3>
-              <button
-                className="btn btn-sm btn-bespoke-secondary"
-                onClick={() => onNavigateToTab('hiring-managers')}
-              >
-                HM Queue
-              </button>
-            </div>
+            <SectionHeader
+              title="Unified Actions"
+              badge={getOpenActions(actionQueue).length > 0 ? (
+                <span
+                  className="badge badge-warning-soft"
+                  style={{ fontSize: '0.7rem' }}
+                >
+                  {getOpenActions(actionQueue).length}
+                </span>
+              ) : undefined}
+              actions={
+                <button
+                  className="btn btn-sm btn-bespoke-secondary"
+                  onClick={() => onNavigateToTab('hiring-managers')}
+                >
+                  HM Queue
+                </button>
+              }
+            />
 
             <UnifiedActionQueue
               actions={enrichedActionQueue}
@@ -794,15 +797,17 @@ export function ControlTowerTab({
 
       {/* Section 4: Forecast */}
       <div className="glass-panel p-3">
-        <div className="section-header">
-          <h3 className="section-header-title">Forecast</h3>
-          <button
-            className="btn btn-sm btn-bespoke-secondary"
-            onClick={() => onNavigateToTab('forecasting')}
-          >
-            View Details <i className="bi bi-arrow-right ms-1"></i>
-          </button>
-        </div>
+        <SectionHeader
+          title="Forecast"
+          actions={
+            <button
+              className="btn btn-sm btn-bespoke-secondary"
+              onClick={() => onNavigateToTab('forecasting')}
+            >
+              View Details <i className="bi bi-arrow-right ms-1"></i>
+            </button>
+          }
+        />
 
         <div className="row g-4">
           <div className="col-md-4">

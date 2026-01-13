@@ -9,10 +9,11 @@ ProdDash is a React + TypeScript Recruiter Productivity Dashboard for recruitmen
 ## Commands
 
 ```bash
-npm start          # Development server (localhost:3000)
-npm run build      # Production build
-npm test           # Run Jest tests
+npm start              # Development server (localhost:3000)
+npm run build          # Production build
+npm test               # Run Jest tests
 npm test -- --watchAll=false  # Single test run (CI mode)
+npm run ui:style-audit # Check for UI styling violations
 ```
 
 ## Architecture
@@ -159,6 +160,35 @@ Technical Editorial dark theme in `dashboard-theme.css`. Uses Bootstrap 5.3 as b
 - Base: #1a1a1a (Deep Charcoal), Surface: #242424
 - Primary accent: #d4a373 (Muted Copper), Secondary: #2dd4bf (Electric Teal)
 - Fonts: Cormorant Garamond (headers), Space Mono (data/metrics), Inter (UI)
+
+### UI Primitives & Design System
+
+Centralized UI components live in `/components/common/`. Use these instead of inline styling:
+
+**Typography Primitives:**
+- `StatLabel` - KPI labels (uppercase, secondary color, 0.6875rem)
+- `StatValue` - KPI values (monospace, bold, 2.25rem), supports `size` and `color` props
+
+**Layout Primitives:**
+- `PageHeader` - Page-level title + subtitle + actions
+- `SectionHeader` - Section title + optional badge + actions (use instead of raw `<h3>`)
+- `GlassPanel` - Glass container with blur, supports `elevated` and `padding` props
+
+**Interactive Primitives:**
+- `InlineHelp` - Info icon with tooltip or collapsible text
+- `KPICard` - Full KPI card with trend, prior period comparison
+
+**UI Style Audit:**
+```bash
+npm run ui:style-audit  # Check for styling violations
+```
+
+The audit script (`scripts/ui-style-audit.js`) scans for:
+1. Inline `style={{...}}` with typography props (`fontSize`, `fontWeight`, `letterSpacing`, `lineHeight`) outside allowed components
+2. Raw `<h1>/<h2>/<h3>` usage outside `PageHeader`/`SectionHeader`
+3. `.stat-label`/`.stat-value` class definitions outside `dashboard-theme.css`
+
+Run `npm run ui:style-audit` alongside tests to catch styling drift early.
 
 ### Data Hygiene Engine
 

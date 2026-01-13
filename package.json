@@ -32,7 +32,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "ui:audit": "node scripts/ui-audit.js"
+    "ui:style-audit": "node scripts/ui-style-audit.js"
   },
   "browserslist": {
     "production": [
