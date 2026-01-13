@@ -13,6 +13,7 @@ export * from './canonicalTypes';
 export * from './explainTypes';
 export * from './actionTypes';
 export * from './preMortemTypes';
+export * from './aiTypes';
 
 // ===== DATA STORE STATE =====
 

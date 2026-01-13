@@ -33,11 +33,12 @@ import { OrgSwitcher, CreateOrgModal } from './OrgSwitcher';
 import { OrgSettings } from './OrgSettings';
 import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
+import { AiProviderSettings } from './settings/AiProviderSettings';
 
 type TabType = 'control-tower' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
 
 export function ProductivityDashboard() {
-  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations } = useDashboard();
+  const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
   const [showProgressPanel, setShowProgressPanel] = useState(false);
   const { isMasked, toggleMasking } = useDataMasking();
   const { currentOrg, user, refreshMemberships, supabaseUser } = useAuth();
@@ -49,6 +50,7 @@ export function ProductivityDashboard() {
   const [clearProgress, setClearProgress] = useState<ClearProgress | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+  const [showAiSettings, setShowAiSettings] = useState(false);
   const [demoDismissed, setDemoDismissed] = useState(false);
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [showOrgSettings, setShowOrgSettings] = useState(false);
@@ -512,14 +514,7 @@ export function ProductivityDashboard() {
                 )}
               </div>
             </div>
-            <div className="dashboard-header-actions">
-              <button
-                className={`btn ${isMasked ? 'btn-bespoke-primary' : 'btn-bespoke-secondary'}`}
-                onClick={toggleMasking}
-                title={isMasked ? 'Click to show real names' : 'Click to mask PII'}
-              >
-                {isMasked ? '🔒 PII Masked' : '🔓 Show PII'}
-              </button>
+            <div className="dashboard-header-actions" style={{ gap: '0.5rem' }}>
               {/* Progress indicator pill */}
               {state.loadingState.operations.length > 0 && (
                 <ProgressPill
@@ -527,19 +522,65 @@ export function ProductivityDashboard() {
                   onClick={() => setShowProgressPanel(true)}
                 />
               )}
-              <button
-                className="btn btn-bespoke-primary d-inline-flex align-items-center justify-content-center"
-                onClick={refetchData}
-                disabled={state.isLoading}
-                title={state.isLoading ? 'Syncing data...' : 'Refresh data from database'}
-                style={{ width: '42px', height: '42px', padding: 0 }}
-              >
-                {state.isLoading ? (
-                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                ) : (
-                  <i className="bi bi-arrow-clockwise" style={{ fontSize: '1.1rem' }}></i>
-                )}
-              </button>
+              {/* Compact action button group */}
+              <div className="d-flex" style={{ gap: '2px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '2px' }}>
+                {/* PII Toggle */}
+                <button
+                  className="btn d-flex align-items-center justify-content-center"
+                  onClick={toggleMasking}
+                  title={isMasked ? 'Click to show real names' : 'Click to mask PII'}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    padding: 0,
+                    background: isMasked ? 'rgba(45, 212, 191, 0.15)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: isMasked ? '#2dd4bf' : '#94a3b8',
+                  }}
+                >
+                  <i className={`bi bi-${isMasked ? 'eye-slash' : 'eye'}`} style={{ fontSize: '1rem' }}></i>
+                </button>
+                {/* AI Settings */}
+                <button
+                  className="btn d-flex align-items-center justify-content-center"
+                  onClick={() => setShowAiSettings(true)}
+                  title={isAiEnabled ? 'AI enabled - click to configure' : 'Configure AI provider'}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    padding: 0,
+                    background: isAiEnabled ? 'rgba(45, 212, 191, 0.15)' : 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: isAiEnabled ? '#2dd4bf' : '#94a3b8',
+                  }}
+                >
+                  <i className="bi bi-robot" style={{ fontSize: '1rem' }}></i>
+                </button>
+                {/* Refresh */}
+                <button
+                  className="btn d-flex align-items-center justify-content-center"
+                  onClick={refetchData}
+                  disabled={state.isLoading}
+                  title={state.isLoading ? 'Syncing data...' : 'Refresh data from database'}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    padding: 0,
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#94a3b8',
+                  }}
+                >
+                  {state.isLoading ? (
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  ) : (
+                    <i className="bi bi-arrow-clockwise" style={{ fontSize: '1rem' }}></i>
+                  )}
+                </button>
+              </div>
               <DataHealthBadge
                 health={state.dataStore.dataHealth}
                 onConfigureStages={() => setShowStageMapping(true)}
@@ -963,6 +1004,15 @@ export function ProductivityDashboard() {
         <SuperAdminPanel
           isOpen={showSuperAdminPanel}
           onClose={() => setShowSuperAdminPanel(false)}
+        />
+
+        {/* AI Provider Settings Modal */}
+        <AiProviderSettings
+          isOpen={showAiSettings}
+          onClose={() => setShowAiSettings(false)}
+          currentConfig={aiConfig}
+          onSave={setAiConfig}
+          onClear={() => setAiConfig(null)}
         />
 
         {/* Progress Indicator Panel */}

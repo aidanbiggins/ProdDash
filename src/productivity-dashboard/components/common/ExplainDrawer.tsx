@@ -1,9 +1,12 @@
 // ExplainDrawer Component
 // Renders an Explanation object in a slide-over drawer
+// Includes optional AI Summary feature (requires AI provider to be configured)
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Explanation, RecommendedAction } from '../../types/explainTypes';
+import { useDashboard } from '../../hooks/useDashboardContext';
+import { useAiSummary, AiSummaryResult } from '../../services/aiCopilotService';
 
 interface ExplainDrawerProps {
   isOpen: boolean;
@@ -12,6 +15,24 @@ interface ExplainDrawerProps {
 }
 
 export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerProps) {
+  const { aiConfig, isAiEnabled } = useDashboard();
+  const aiSummary = useAiSummary();
+
+  // Generate AI summary handler
+  const generateSummary = aiSummary.generate;
+  const handleGenerateSummary = useCallback(async () => {
+    if (!aiConfig || !explanation) return;
+    await generateSummary(aiConfig, explanation);
+  }, [aiConfig, explanation, generateSummary]);
+
+  // Reset AI summary when drawer closes
+  const resetSummary = aiSummary.reset;
+  React.useEffect(() => {
+    if (!isOpen) {
+      resetSummary();
+    }
+  }, [isOpen, resetSummary]);
+
   // Don't render anything if we've never had an explanation
   if (!explanation) return null;
 
@@ -73,6 +94,16 @@ export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerPro
 
         {/* Content */}
         <div className="flex-grow-1 overflow-auto p-3">
+          {/* AI Summary Section */}
+          {isAiEnabled && (
+            <AiSummarySection
+              isLoading={aiSummary.isLoading}
+              result={aiSummary.result}
+              error={aiSummary.error}
+              onGenerate={handleGenerateSummary}
+            />
+          )}
+
           {isBlocked ? (
             <BlockedContent explanation={explanation} />
           ) : (
@@ -431,6 +462,102 @@ function ActionItem({ action }: { action: RecommendedAction }) {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// AI Summary Section Component
+interface AiSummarySectionProps {
+  isLoading: boolean;
+  result: AiSummaryResult | null;
+  error: string | null;
+  onGenerate: () => void;
+}
+
+function AiSummarySection({ isLoading, result, error, onGenerate }: AiSummarySectionProps) {
+  return (
+    <div
+      className="mb-4 p-3 rounded"
+      style={{
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        border: '1px solid rgba(139, 92, 246, 0.3)',
+      }}
+    >
+      <div className="d-flex align-items-center justify-content-between mb-2">
+        <div className="d-flex align-items-center gap-2">
+          <i className="bi bi-stars" style={{ color: '#a78bfa' }}></i>
+          <span className="small fw-bold" style={{ color: '#a78bfa' }}>AI Summary</span>
+        </div>
+        {!result && !isLoading && (
+          <button
+            className="btn btn-sm"
+            onClick={onGenerate}
+            style={{
+              backgroundColor: 'rgba(139, 92, 246, 0.2)',
+              border: '1px solid rgba(139, 92, 246, 0.4)',
+              color: '#a78bfa',
+              fontSize: '0.75rem',
+            }}
+          >
+            <i className="bi bi-lightning-charge me-1"></i>
+            Generate
+          </button>
+        )}
+      </div>
+
+      {/* Loading State */}
+      {isLoading && (
+        <div className="d-flex align-items-center gap-2 py-2">
+          <div
+            className="spinner-border spinner-border-sm"
+            role="status"
+            style={{ color: '#a78bfa' }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <span className="small" style={{ color: 'var(--text-secondary)' }}>
+            Generating summary...
+          </span>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div
+          className="p-2 rounded small"
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: '#ef4444',
+          }}
+        >
+          <i className="bi bi-exclamation-circle me-1"></i>
+          {error}
+        </div>
+      )}
+
+      {/* Result */}
+      {result && !error && (
+        <div>
+          <p className="mb-2 small" style={{ color: 'var(--text-primary)' }}>
+            {result.summary}
+          </p>
+          {result.bullets.length > 0 && (
+            <ul className="mb-0 ps-3 small" style={{ color: 'var(--text-secondary)' }}>
+              {result.bullets.map((bullet, idx) => (
+                <li key={idx}>{bullet}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* Placeholder when not generated */}
+      {!result && !isLoading && !error && (
+        <p className="mb-0 small" style={{ color: 'var(--text-secondary)' }}>
+          Click Generate to create an AI-powered summary of this metric explanation.
+        </p>
+      )}
     </div>
   );
 }

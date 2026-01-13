@@ -20,7 +20,8 @@ import {
   BackgroundOperation,
   OperationPhase,
   createInitialLoadingState,
-  calculateOverallProgress
+  calculateOverallProgress,
+  AiProviderConfig
 } from '../types';
 import { DEFAULT_CONFIG, DashboardConfig } from '../types/config';
 import {
@@ -366,6 +367,10 @@ interface DashboardContextType {
   failOperation: (id: string, error: string) => void;
   clearOperations: () => void;
   setDataReady: (flags: Partial<LoadingState>) => void;
+  // AI Provider config (in-memory only, never persisted)
+  aiConfig: AiProviderConfig | null;
+  setAiConfig: (config: AiProviderConfig | null) => void;
+  isAiEnabled: boolean;
 }
 
 const DashboardContext = createContext<DashboardContextType | null>(null);
@@ -375,6 +380,11 @@ const DashboardContext = createContext<DashboardContextType | null>(null);
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
   const { currentOrg, canImportData } = useAuth();
+
+  // AI Provider config - stored in memory only, never persisted
+  // This ensures API keys are cleared on page refresh/close
+  const [aiConfig, setAiConfig] = React.useState<AiProviderConfig | null>(null);
+  const isAiEnabled = aiConfig !== null && aiConfig.apiKey.length > 0;
 
   // Helper to get/set import source from localStorage
   const getStoredImportSource = (orgId: string): 'demo' | 'csv' | null => {
@@ -990,7 +1000,11 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     completeOperation,
     failOperation,
     clearOperations,
-    setDataReady
+    setDataReady,
+    // AI Provider config (in-memory only)
+    aiConfig,
+    setAiConfig,
+    isAiEnabled
   };
 
   return (

@@ -245,3 +245,59 @@ The `canonicalDataLayer.ts` provides decision-grade data ingestion with full tra
 - Candidate with Offer but no Interview date: Returns `null` metrics, not 0 days
 - Negative duration (offer before application): Excluded from metrics, flagged as data error
 - Missing terminal timestamp: Confidence downgraded, `MISSING_TERMINAL_TIMESTAMP` in audit log
+
+### AI BYOK Integration
+
+The AI Copilot feature provides AI-powered summaries and draft messages using a BYOK (Bring Your Own Key) architecture.
+
+**Services:**
+- `aiService.ts` - Routes AI requests through Supabase Edge Function (LLM proxy)
+- `aiCopilotService.ts` - AI-powered features (Explain Summary, Draft Message) with PII redaction
+- `vaultCrypto.ts` - Zero-knowledge encryption for API keys (PBKDF2 + AES-GCM)
+- `userAiVaultService.ts` - Supabase CRUD for encrypted key vault
+
+**Key Types** (`types/aiTypes.ts`):
+- `AiProvider`: 'openai' | 'anthropic' | 'gemini' | 'openai_compatible'
+- `AiProviderConfig`: Provider, model, API key, and settings
+- `AiKeyStorageMode`: 'memory' (default) | 'vault' (cross-device sync)
+
+**AI Key Vault (Zero-Knowledge):**
+```
+User enters API key → Client encrypts with passphrase (PBKDF2 + AES-GCM)
+    → Encrypted blob stored in Supabase (user_ai_vault table)
+    → Server NEVER sees plaintext keys
+    → User unlocks vault with passphrase on any device → Keys decrypted in memory
+```
+
+**Vault Table:** `user_ai_vault`
+- `user_id`, `provider`, `encrypted_blob`, `updated_at`
+- RLS: Users can only access their own rows
+- Unique constraint: (user_id, provider)
+
+**Encrypted Blob Structure:**
+```json
+{
+  "ciphertext": "<base64>",
+  "iv": "<base64>",
+  "salt": "<base64>",
+  "kdf": { "alg": "pbkdf2", "iterations": 100000, "hash": "SHA-256" },
+  "alg": { "name": "aes-gcm" }
+}
+```
+
+**Important Security Properties:**
+- Passphrase is NEVER stored (not even hashed) - user must remember it
+- If passphrase is forgotten, user must re-enter API keys (no recovery)
+- Decrypted keys live in React state memory only - cleared on page close
+- PII is redacted before sending to AI providers (names replaced with placeholders)
+
+**Mobile Workflow:**
+1. Configure AI keys on desktop, save to vault with passphrase
+2. Log in on mobile device
+3. Open AI Settings, enter passphrase to unlock vault
+4. Keys are decrypted in memory, AI features work
+
+**Components:**
+- `AiProviderSettings.tsx` - Modal with storage mode toggle, vault lock/unlock UI
+- `VaultLockedBanner` - Banner shown when vault has keys but is locked
+- `useAiVault` hook - Manages vault state and operations
