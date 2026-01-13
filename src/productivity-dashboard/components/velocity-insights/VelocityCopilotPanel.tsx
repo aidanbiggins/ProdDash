@@ -15,6 +15,7 @@ import {
 import { VelocityMetrics, Requisition, Candidate, Event, MetricFilters, VelocityInsight } from '../../types';
 import { AiProviderConfig } from '../../types/aiTypes';
 import { ActionItem } from '../../types/actionTypes';
+import { SectionHeader } from '../common/SectionHeader';
 import {
   buildVelocityFactPack,
   generateAIInsights,
@@ -187,19 +188,19 @@ function DraftMessageModal({
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0">
-            <i className="bi bi-chat-text me-2"></i>
-            Draft Message
-          </h5>
-          <button
-            className="btn btn-sm"
-            onClick={onClose}
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            <i className="bi bi-x-lg"></i>
-          </button>
-        </div>
+        <SectionHeader
+          title={<><i className="bi bi-chat-text me-2"></i>Draft Message</>}
+          actions={
+            <button
+              className="btn btn-sm"
+              onClick={onClose}
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              <i className="bi bi-x-lg"></i>
+            </button>
+          }
+          className="mb-3"
+        />
 
         {isLoading ? (
           <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>

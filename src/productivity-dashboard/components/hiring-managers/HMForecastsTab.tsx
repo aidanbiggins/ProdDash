@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { HMReqRollup } from '../../types/hmTypes';
+import { SectionHeader } from '../common/SectionHeader';
 
 interface HMForecastsTabProps {
     reqRollups: HMReqRollup[];
@@ -72,8 +73,10 @@ export function HMForecastsTab({ reqRollups }: HMForecastsTabProps) {
             {/* Timeline List */}
             <div className="card-bespoke mb-4">
                 <div className="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <h5 className="mb-0 fw-bold">Upcoming Hiring Timeline</h5>
-                    <p className="text-muted small mt-1">Projected fill dates based on current pipeline velocity</p>
+                    <SectionHeader
+                        title="Upcoming Hiring Timeline"
+                        subtitle="Projected fill dates based on current pipeline velocity"
+                    />
                 </div>
                 <div className="card-body p-4">
                     <div className="timeline-container d-flex flex-column gap-3">

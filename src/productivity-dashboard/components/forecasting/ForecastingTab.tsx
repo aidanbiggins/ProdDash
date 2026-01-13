@@ -32,6 +32,7 @@ import {
 import { HMPendingAction } from '../../types/hmTypes';
 import { runPreMortemBatch, convertToActionItems } from '../../services/preMortemService';
 import { PreMortemDrawer } from '../common/PreMortemDrawer';
+import { SectionHeader } from '../common/SectionHeader';
 import { ActionItem } from '../../types/actionTypes';
 
 interface ForecastingTabProps {
@@ -358,8 +359,10 @@ export function ForecastingTab({
           {wizardStep === 'profile' && (
             <div className="card-bespoke">
               <div className="card-header">
-                <h5 className="mb-0">Step 1: Define Role Profile</h5>
-                <small style={{ color: '#94A3B8' }}>Select the characteristics of the role you're planning to hire</small>
+                <SectionHeader
+                  title="Step 1: Define Role Profile"
+                  subtitle="Select the characteristics of the role you're planning to hire"
+                />
               </div>
               <div className="card-body">
                 <div className="row g-3">
@@ -433,8 +436,10 @@ export function ForecastingTab({
           {wizardStep === 'hm' && (
             <div className="card-bespoke">
               <div className="card-header">
-                <h5 className="mb-0">Step 2: Select Hiring Manager (Optional)</h5>
-                <small style={{ color: '#94A3B8' }}>HM selection affects time predictions based on their historical latency</small>
+                <SectionHeader
+                  title="Step 2: Select Hiring Manager (Optional)"
+                  subtitle="HM selection affects time predictions based on their historical latency"
+                />
               </div>
               <div className="card-body">
                 <div className="row">

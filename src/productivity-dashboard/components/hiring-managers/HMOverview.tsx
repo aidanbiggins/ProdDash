@@ -3,6 +3,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { HMRollup } from '../../types/hmTypes';
+import { SectionHeader } from '../common/SectionHeader';
 
 interface HMOverviewProps {
     hmRollups: HMRollup[];
@@ -279,21 +280,21 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
 
             {/* HM Leaderboard */}
             <div className="card-bespoke">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                    <h6 className="mb-0">Hiring Manager Leaderboard</h6>
-                    <div className="d-flex align-items-center gap-2">
-                        {selectedHmUserIds.size > 0 && (
+                <div className="card-header">
+                    <SectionHeader
+                        title="Hiring Manager Leaderboard"
+                        badge={selectedHmUserIds.size > 0 ? (
                             <span className="badge bg-primary">{selectedHmUserIds.size} selected</span>
-                        )}
-                        {selectedHmUserIds.size > 0 && (
+                        ) : undefined}
+                        actions={selectedHmUserIds.size > 0 ? (
                             <button
                                 className="btn btn-sm btn-outline-secondary"
                                 onClick={onClearSelection}
                             >
                                 Clear Selection
                             </button>
-                        )}
-                    </div>
+                        ) : undefined}
+                    />
                 </div>
                 <div className="card-body p-0">
                     <div className="table-responsive">
