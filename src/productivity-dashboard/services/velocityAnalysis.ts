@@ -20,6 +20,16 @@ import {
   HireCohortStats,
   SuccessFactorComparison
 } from '../types';
+import {
+  MIN_OFFERS_FOR_DECAY,
+  MIN_HIRES_FOR_FAST_VS_SLOW,
+  MIN_REQS_FOR_REQ_DECAY,
+  MIN_BUCKET_SIZE_FOR_CHART,
+  MIN_DENOM_FOR_PASS_RATE,
+  safeRate,
+  calculateConfidence,
+  DataConfidence
+} from './velocityThresholds';
 
 // Day buckets for decay analysis
 const CANDIDATE_DECAY_BUCKETS = [
@@ -81,13 +91,16 @@ function calculateCandidateDecay(
     return { candidate: c, daysToOffer, accepted };
   }).filter(c => c.daysToOffer !== null && c.daysToOffer >= 0);
 
-  // Group into buckets
+  // Group into buckets - using safe rate calculation
   const dataPoints: DecayDataPoint[] = CANDIDATE_DECAY_BUCKETS.map(bucket => {
     const inBucket = candidatesWithTime.filter(
       c => c.daysToOffer! >= bucket.min && c.daysToOffer! <= bucket.max
     );
     const accepted = inBucket.filter(c => c.accepted).length;
-    const rate = inBucket.length > 0 ? accepted / inBucket.length : 0;
+
+    // Use safe rate calculation - handles 0/0 case
+    const rateResult = safeRate(accepted, inBucket.length);
+    const rate = rateResult.value ?? 0; // Default to 0 for calculations, but track validity
 
     return {
       bucket: bucket.label,
@@ -108,10 +121,11 @@ function calculateCandidateDecay(
     dp.cumulativeRate = cumulativeTotal > 0 ? cumulativeAccepted / cumulativeTotal : 0;
   });
 
-  // Calculate overall stats
+  // Calculate overall stats using safe rate
   const totalOffers = candidatesWithTime.length;
   const totalAccepted = candidatesWithTime.filter(c => c.accepted).length;
-  const overallAcceptanceRate = totalOffers > 0 ? totalAccepted / totalOffers : 0;
+  const acceptRateResult = safeRate(totalAccepted, totalOffers);
+  const overallAcceptanceRate = acceptRateResult.value ?? 0;
 
   // Calculate median days to decision
   const acceptedDays = candidatesWithTime
@@ -182,13 +196,16 @@ function calculateReqDecay(
     return { req: r, daysOpen, filled };
   });
 
-  // Group into buckets
+  // Group into buckets - using safe rate calculation
   const dataPoints: DecayDataPoint[] = REQ_DECAY_BUCKETS.map(bucket => {
     const inBucket = reqsWithTime.filter(
       r => r.daysOpen >= bucket.min && r.daysOpen <= bucket.max
     );
     const filled = inBucket.filter(r => r.filled).length;
-    const rate = inBucket.length > 0 ? filled / inBucket.length : 0;
+
+    // Use safe rate calculation - handles 0/0 case
+    const rateResult = safeRate(filled, inBucket.length);
+    const rate = rateResult.value ?? 0;
 
     return {
       bucket: bucket.label,
@@ -209,10 +226,11 @@ function calculateReqDecay(
     dp.cumulativeRate = cumulativeTotal > 0 ? cumulativeFilled / cumulativeTotal : 0;
   });
 
-  // Calculate overall stats
+  // Calculate overall stats using safe rate
   const totalReqs = reqsWithTime.length;
   const totalFilled = reqsWithTime.filter(r => r.filled).length;
-  const overallFillRate = totalReqs > 0 ? totalFilled / totalReqs : 0;
+  const fillRateResult = safeRate(totalFilled, totalReqs);
+  const overallFillRate = fillRateResult.value ?? 0;
 
   // Calculate median days to fill
   const filledDays = reqsWithTime
@@ -271,8 +289,9 @@ function calculateCohortComparison(
     r.status === RequisitionStatus.Closed && r.closed_at !== null && r.opened_at !== null
   );
 
-  if (filledReqs.length < 6) {
-    // Need at least 6 hires to split into meaningful cohorts
+  // Use threshold constant for minimum hires
+  if (filledReqs.length < MIN_HIRES_FOR_FAST_VS_SLOW) {
+    // Need enough hires to split into meaningful cohorts
     return null;
   }
 
@@ -297,13 +316,12 @@ function calculateCohortComparison(
     const cohortCandidates = candidates.filter(c => reqIds.has(c.req_id));
     const hiredCandidates = cohortCandidates.filter(c => c.disposition === CandidateDisposition.Hired);
 
-    // Calculate referral percentage
+    // Calculate referral percentage using safe rate
     const referralCount = hiredCandidates.filter(c =>
       c.source === 'Referral' || c.source === 'referral'
     ).length;
-    const referralPercent = hiredCandidates.length > 0
-      ? (referralCount / hiredCandidates.length) * 100
-      : 0;
+    const referralRateResult = safeRate(referralCount, hiredCandidates.length, false);
+    const referralPercent = (referralRateResult.value ?? 0) * 100;
 
     // Calculate average pipeline depth (candidates per req)
     const avgPipelineDepth = reqs.length > 0
@@ -482,7 +500,19 @@ function calculateCohortComparison(
 }
 
 /**
+ * Get confidence level based on sample size
+ */
+function getInsightConfidence(sampleSize: number, threshold: number): 'HIGH' | 'MED' | 'LOW' | 'INSUFFICIENT' {
+  if (sampleSize < threshold) return 'INSUFFICIENT';
+  if (sampleSize >= threshold * 2) return 'HIGH';
+  if (sampleSize >= threshold * 1.5) return 'MED';
+  return 'LOW';
+}
+
+/**
  * Generate insights from decay analysis and cohort comparison
+ * Each insight includes: sample size (n), evidence string, conditional language,
+ * soWhat, nextStep, confidence, and contributing items for evidence drilldown
  */
 function generateInsights(
   candidateDecay: CandidateDecayAnalysis,
@@ -491,105 +521,181 @@ function generateInsights(
 ): VelocityInsight[] {
   const insights: VelocityInsight[] = [];
 
-  // Candidate decay insights
-  if (candidateDecay.decayRatePerDay && candidateDecay.decayStartDay) {
+  // Only generate decay insights if we have sufficient data
+  const hasEnoughOffers = candidateDecay.totalOffers >= MIN_OFFERS_FOR_DECAY;
+  const hasEnoughReqs = reqDecay.totalReqs >= MIN_REQS_FOR_REQ_DECAY;
+  const offerConfidence = getInsightConfidence(candidateDecay.totalOffers, MIN_OFFERS_FOR_DECAY);
+  const reqConfidence = getInsightConfidence(reqDecay.totalReqs, MIN_REQS_FOR_REQ_DECAY);
+
+  // Candidate decay insights - only if we have enough offers
+  if (hasEnoughOffers && candidateDecay.decayRatePerDay && candidateDecay.decayStartDay) {
     const dailyDropPercent = (candidateDecay.decayRatePerDay * 100).toFixed(1);
+    // Use conditional language for LOW confidence
+    const decayVerb = offerConfidence === 'LOW' ? 'may drop' : 'drops';
     insights.push({
       type: 'warning',
-      title: 'Candidate Interest Decays Over Time',
-      description: `Offer acceptance rate drops ~${dailyDropPercent}% per day after day ${candidateDecay.decayStartDay}. Speed matters.`,
+      title: 'Candidate Interest May Decay Over Time',
+      description: `Based on ${candidateDecay.totalOffers} offers, acceptance rate ${decayVerb} ~${dailyDropPercent}% per day after day ${candidateDecay.decayStartDay}.`,
       metric: `${dailyDropPercent}%/day decay`,
-      action: 'Prioritize candidates who have been in process longest'
+      action: 'Prioritize candidates who have been in process longest',
+      evidence: `n=${candidateDecay.totalOffers} offers, decay starts day ${candidateDecay.decayStartDay}`,
+      sampleSize: candidateDecay.totalOffers,
+      soWhat: 'Candidates lose interest over time, reducing your offer acceptance rate.',
+      nextStep: 'Move candidates to offer within the decay window to maximize acceptance.',
+      confidence: offerConfidence
     });
   }
 
-  if (candidateDecay.medianDaysToDecision) {
+  if (hasEnoughOffers && candidateDecay.medianDaysToDecision) {
     const fastBucket = candidateDecay.dataPoints.find(dp => dp.minDays === 0);
-    if (fastBucket && fastBucket.rate > candidateDecay.overallAcceptanceRate * 1.2) {
+    if (fastBucket && fastBucket.count >= MIN_BUCKET_SIZE_FOR_CHART && fastBucket.rate > candidateDecay.overallAcceptanceRate * 1.2) {
+      const bucketConfidence = getInsightConfidence(fastBucket.count, MIN_BUCKET_SIZE_FOR_CHART);
+      const winVerb = bucketConfidence === 'LOW' ? 'tend to win' : 'win';
       insights.push({
         type: 'success',
-        title: 'Fast Processes Win',
-        description: `Candidates who receive offers within 14 days accept at ${Math.round(fastBucket.rate * 100)}% vs ${Math.round(candidateDecay.overallAcceptanceRate * 100)}% overall.`,
+        title: `Fast Processes ${bucketConfidence === 'LOW' ? 'Tend to' : ''} Win`,
+        description: `Candidates receiving offers within 14 days accept at ${Math.round(fastBucket.rate * 100)}% (n=${fastBucket.count}) vs ${Math.round(candidateDecay.overallAcceptanceRate * 100)}% overall.`,
         metric: `+${Math.round((fastBucket.rate - candidateDecay.overallAcceptanceRate) * 100)}% acceptance`,
-        action: 'Target 14-day offer timeline'
+        action: 'Target 14-day offer timeline',
+        evidence: `Fast bucket: ${fastBucket.count} offers at ${Math.round(fastBucket.rate * 100)}%`,
+        sampleSize: fastBucket.count,
+        soWhat: 'Speed is a competitive advantage in hiring top talent.',
+        nextStep: 'Set a goal to extend offers within 14 days of first contact.',
+        confidence: bucketConfidence
       });
     }
   }
 
-  // Req decay insights
-  if (reqDecay.decayRatePerDay && reqDecay.decayStartDay) {
+  // Req decay insights - only if we have enough reqs
+  if (hasEnoughReqs && reqDecay.decayRatePerDay && reqDecay.decayStartDay) {
     const dailyDropPercent = (reqDecay.decayRatePerDay * 100).toFixed(1);
+    const decayVerb = reqConfidence === 'LOW' ? 'may decline' : 'declines';
     insights.push({
       type: 'warning',
-      title: 'Req Fill Probability Declines',
-      description: `After day ${reqDecay.decayStartDay}, fill probability drops ~${dailyDropPercent}% per day. Stale reqs are harder to close.`,
+      title: 'Req Fill Probability May Decline',
+      description: `Based on ${reqDecay.totalReqs} reqs, fill probability ${decayVerb} ~${dailyDropPercent}% per day after day ${reqDecay.decayStartDay}.`,
       metric: `${dailyDropPercent}%/day decay`,
-      action: 'Reassess strategy on reqs open >60 days'
+      action: 'Reassess strategy on reqs open >60 days',
+      evidence: `n=${reqDecay.totalReqs} reqs, decay starts day ${reqDecay.decayStartDay}`,
+      sampleSize: reqDecay.totalReqs,
+      soWhat: 'Stale reqs are harder to fill and may indicate misaligned requirements.',
+      nextStep: 'Review reqs older than 60 days for scope, comp, or HM engagement issues.',
+      confidence: reqConfidence
     });
   }
 
-  // Compare fast vs slow buckets for reqs
+  // Compare fast vs slow buckets for reqs - only with sufficient bucket sizes
   const fastReqBucket = reqDecay.dataPoints.find(dp => dp.minDays === 0);
   const slowReqBucket = reqDecay.dataPoints.find(dp => dp.minDays === 91);
-  if (fastReqBucket && slowReqBucket && fastReqBucket.count >= 3 && slowReqBucket.count >= 3) {
+  if (fastReqBucket && slowReqBucket &&
+    fastReqBucket.count >= MIN_BUCKET_SIZE_FOR_CHART &&
+    slowReqBucket.count >= MIN_BUCKET_SIZE_FOR_CHART) {
     if (fastReqBucket.rate > slowReqBucket.rate * 1.5) {
+      const combinedCount = fastReqBucket.count + slowReqBucket.count;
+      const combinedConfidence = getInsightConfidence(combinedCount, MIN_BUCKET_SIZE_FOR_CHART * 2);
+      const correlateVerb = combinedConfidence === 'LOW' ? 'may correlate' : 'correlates';
       insights.push({
         type: 'info',
-        title: 'First 30 Days Are Critical',
-        description: `Reqs filled within 30 days have ${Math.round(fastReqBucket.rate * 100)}% success vs ${Math.round(slowReqBucket.rate * 100)}% for 90+ day reqs.`,
-        metric: `${Math.round(fastReqBucket.rate * 100)}% vs ${Math.round(slowReqBucket.rate * 100)}%`
+        title: 'Early Closure May Correlate with Success',
+        description: `Reqs closed within 30 days show ${Math.round(fastReqBucket.rate * 100)}% fill rate (n=${fastReqBucket.count}) vs ${Math.round(slowReqBucket.rate * 100)}% for 90+ day reqs (n=${slowReqBucket.count}).`,
+        metric: `${Math.round(fastReqBucket.rate * 100)}% vs ${Math.round(slowReqBucket.rate * 100)}%`,
+        evidence: `Fast: n=${fastReqBucket.count}, Slow: n=${slowReqBucket.count}`,
+        sampleSize: combinedCount,
+        soWhat: 'Quick closures indicate strong alignment between job specs and candidate market.',
+        nextStep: 'Identify patterns in fast-closing reqs to replicate success.',
+        confidence: combinedConfidence
       });
     }
   }
 
-  // Cohort comparison insights
+  // Cohort comparison insights - only if cohort exists (already gated by MIN_HIRES_FOR_FAST_VS_SLOW)
   if (cohortComparison) {
     const { fastHires, slowHires, factors } = cohortComparison;
     const ttfDiff = slowHires.avgTimeToFill - fastHires.avgTimeToFill;
+    const totalCohortSize = fastHires.count + slowHires.count;
+    const cohortConfidence = getInsightConfidence(totalCohortSize, MIN_HIRES_FOR_FAST_VS_SLOW);
 
     // Overall speed difference
     insights.push({
       type: 'info',
       title: 'Speed Gap Between Cohorts',
-      description: `Your fastest 25% of hires close in ${Math.round(fastHires.avgTimeToFill)} days vs ${Math.round(slowHires.avgTimeToFill)} days for the slowest 25% — a ${Math.round(ttfDiff)} day difference.`,
-      metric: `${Math.round(ttfDiff)} day gap`
+      description: `Fastest 25% close in ${Math.round(fastHires.avgTimeToFill)} days (n=${fastHires.count}) vs ${Math.round(slowHires.avgTimeToFill)} days for slowest 25% (n=${slowHires.count}) — ${Math.round(ttfDiff)} day difference.`,
+      metric: `${Math.round(ttfDiff)} day gap`,
+      evidence: `Fast cohort: n=${fastHires.count}, Slow cohort: n=${slowHires.count}`,
+      sampleSize: totalCohortSize,
+      soWhat: 'Understanding what makes fast hires different can improve overall velocity.',
+      nextStep: 'Review the factors below to identify actionable improvements.',
+      confidence: cohortConfidence
     });
 
     // Find the most impactful differentiating factor
     const highImpactFactors = factors.filter(f => f.impactLevel === 'high' && f.factor !== 'Avg Time to Fill');
     if (highImpactFactors.length > 0) {
       const topFactor = highImpactFactors[0];
+      const potentialQualifier = cohortConfidence === 'LOW' ? 'Potential ' : '';
       insights.push({
         type: 'success',
-        title: `Key Differentiator: ${topFactor.factor}`,
-        description: `Fast hires: ${topFactor.fastHiresValue} ${topFactor.unit} vs slow hires: ${topFactor.slowHiresValue} ${topFactor.unit}. This factor shows a ${topFactor.delta} ${topFactor.unit} difference.`,
+        title: `${potentialQualifier}Differentiator: ${topFactor.factor}`,
+        description: `Fast hires: ${topFactor.fastHiresValue} ${topFactor.unit} vs slow hires: ${topFactor.slowHiresValue} ${topFactor.unit}. Delta: ${topFactor.delta} ${topFactor.unit}.`,
         metric: `${topFactor.delta} ${topFactor.unit}`,
         action: topFactor.factor.includes('Referral') ? 'Increase referral pipeline' :
           topFactor.factor.includes('HM') ? 'Coach HMs on faster feedback' :
             topFactor.factor.includes('Interview') ? 'Streamline interview process' :
-              'Focus on this metric'
+              'Monitor this metric',
+        evidence: `Fast: ${topFactor.fastHiresValue}, Slow: ${topFactor.slowHiresValue}`,
+        sampleSize: totalCohortSize,
+        soWhat: `This factor shows a meaningful difference between fast and slow hires.`,
+        nextStep: topFactor.factor.includes('Referral') ? 'Launch a referral campaign for hard-to-fill roles.' :
+          topFactor.factor.includes('HM') ? 'Set SLA expectations with HMs for feedback turnaround.' :
+            topFactor.factor.includes('Interview') ? 'Audit interview loops for unnecessary stages.' :
+              'Track this metric over time to validate correlation.',
+        confidence: cohortConfidence
       });
     }
 
     // Referral insight if significant
     const referralDiff = fastHires.referralPercent - slowHires.referralPercent;
     if (referralDiff > 15) {
+      const correlateVerb = cohortConfidence === 'LOW' ? 'may correlate' : 'correlates';
       insights.push({
         type: 'success',
-        title: 'Referrals Drive Speed',
-        description: `Fast hires have ${Math.round(fastHires.referralPercent)}% referrals vs ${Math.round(slowHires.referralPercent)}% for slow hires. Referral candidates close faster.`,
+        title: `Referrals ${cohortConfidence === 'LOW' ? 'May Correlate' : 'Correlate'} with Speed`,
+        description: `Fast hires: ${Math.round(fastHires.referralPercent)}% referrals vs ${Math.round(slowHires.referralPercent)}% for slow hires.`,
         metric: `+${Math.round(referralDiff)}% referrals`,
-        action: 'Push for referrals on stalled reqs'
+        action: 'Push for referrals on stalled reqs',
+        evidence: `Referral delta: ${Math.round(referralDiff)}%`,
+        sampleSize: totalCohortSize,
+        soWhat: 'Referrals often have faster hire cycles due to pre-existing trust.',
+        nextStep: 'Prioritize referral outreach for roles that have been open >30 days.',
+        confidence: cohortConfidence
       });
     }
   }
 
-  // Sample size warning
-  if (candidateDecay.totalOffers < 20) {
+  // Sample size warning - use threshold constant
+  if (candidateDecay.totalOffers < MIN_OFFERS_FOR_DECAY) {
     insights.push({
       type: 'info',
-      title: 'Limited Data',
-      description: `Analysis based on ${candidateDecay.totalOffers} offers. Trends may not be statistically significant.`,
+      title: 'Limited Offer Data',
+      description: `Analysis based on ${candidateDecay.totalOffers} offers. Need ${MIN_OFFERS_FOR_DECAY} for full analysis.`,
+      evidence: `n=${candidateDecay.totalOffers} offers`,
+      sampleSize: candidateDecay.totalOffers,
+      soWhat: 'Some decay insights are unavailable due to limited sample size.',
+      nextStep: 'Continue collecting data to unlock additional analysis.',
+      confidence: 'INSUFFICIENT'
+    });
+  }
+
+  if (reqDecay.totalReqs < MIN_REQS_FOR_REQ_DECAY) {
+    insights.push({
+      type: 'info',
+      title: 'Limited Req Data',
+      description: `Analysis based on ${reqDecay.totalReqs} reqs. Need ${MIN_REQS_FOR_REQ_DECAY} for full analysis.`,
+      evidence: `n=${reqDecay.totalReqs} reqs`,
+      sampleSize: reqDecay.totalReqs,
+      soWhat: 'Some req decay insights are unavailable due to limited sample size.',
+      nextStep: 'Continue collecting data to unlock additional analysis.',
+      confidence: 'INSUFFICIENT'
     });
   }
 

@@ -246,6 +246,38 @@ The `canonicalDataLayer.ts` provides decision-grade data ingestion with full tra
 - Negative duration (offer before application): Excluded from metrics, flagged as data error
 - Missing terminal timestamp: Confidence downgraded, `MISSING_TERMINAL_TIMESTAMP` in audit log
 
+### Velocity Insights Thresholds
+
+The Velocity Insights tab (`/components/velocity-insights/`) uses explicit minimum sample thresholds to prevent misleading metrics from insufficient data. The `velocityThresholds.ts` service provides:
+
+**Minimum Sample Thresholds:**
+- `MIN_OFFERS_FOR_DECAY = 10` - Candidate offer decay curve requires 10+ offers
+- `MIN_HIRES_FOR_FAST_VS_SLOW = 10` - Fast vs slow cohort comparison requires 10+ hires
+- `MIN_DENOM_FOR_PASS_RATE = 5` - Any percentage calculation requires 5+ in denominator
+- `MIN_REQS_FOR_REQ_DECAY = 10` - Req decay analysis requires 10+ reqs
+- `MIN_BUCKET_SIZE_FOR_CHART = 3` - Decay chart data points require 3+ per bucket
+
+**0/0 Handling:**
+- `safeRate(0, 0)` returns `null` value and `'—'` display (never 0% or 100%)
+- `safeRate(n, 0)` where n > 0 returns `'Invalid data'` with console warning
+- `formatRate()` returns `'Insufficient data'` when below threshold
+
+**Confidence Levels:** `calculateConfidence(sampleSize, threshold, context)` returns:
+- `INSUFFICIENT` - Below threshold (metric not shown)
+- `LOW` - Meets threshold but barely
+- `MED` - 1.5x threshold
+- `HIGH` - 2x threshold or more
+
+**Stage Timing Capability:** `detectStageTimingCapability()` determines if stage duration charts can be shown:
+- `SNAPSHOT_DIFF` - Can show stage durations (has from/to stage events)
+- `TIMESTAMP_ONLY` - Cannot show durations (only current_stage_entered_at)
+- `NONE` - No stage timing data available
+
+**UI Components:**
+- `LimitedDataBanner` - Shows at top when sections have insufficient data
+- `ChartFooter` - Shows data window, sample size (n), and confidence badge
+- `ConfidenceBadge` - Color-coded badge (HIGH=green, MED=yellow, LOW=gray)
+
 ### AI BYOK Integration
 
 The AI Copilot feature provides AI-powered summaries and draft messages using a BYOK (Bring Your Own Key) architecture.

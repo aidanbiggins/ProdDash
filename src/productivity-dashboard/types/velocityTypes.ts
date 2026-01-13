@@ -79,6 +79,27 @@ export interface VelocityInsight {
   description: string;
   metric?: string;
   action?: string;
+  /** Evidence string showing metric + value for transparency */
+  evidence?: string;
+  /** Sample size this insight is based on */
+  sampleSize?: number;
+  /** Optional link target for drilling down */
+  linkTarget?: { tab: string; filter?: Record<string, unknown> };
+  /** So what - why this matters (1 sentence) */
+  soWhat?: string;
+  /** Next step - recommended action (1 sentence) */
+  nextStep?: string;
+  /** Confidence level for this insight */
+  confidence?: 'HIGH' | 'MED' | 'LOW' | 'INSUFFICIENT';
+  /** Top contributing items for evidence drilldown */
+  contributingItems?: Array<{
+    id: string;
+    title?: string;
+    value?: string | number;
+    type: 'req' | 'candidate' | 'application';
+  }>;
+  /** Cohort filters used to generate this insight */
+  cohortFilters?: Record<string, unknown>;
 }
 
 // ===== RECRUITER-SPECIFIC VELOCITY =====

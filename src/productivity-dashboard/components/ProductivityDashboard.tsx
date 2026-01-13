@@ -931,6 +931,7 @@ export function ProductivityDashboard() {
                     config={state.dataStore.config}
                     filters={state.filters}
                     onUpdateConfig={updateConfig}
+                    aiConfig={aiConfig}
                   />
                 ) : (
                   <TabSkeleton showKPIs showChart showTable={false} kpiCount={4} chartType="line" />
