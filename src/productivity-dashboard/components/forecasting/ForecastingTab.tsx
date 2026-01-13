@@ -1,4 +1,4 @@
-// Forecasting Tab - Role Planning and Health Tracking
+// Forecasting Tab - Role Planning and Health Tracking with Pre-Mortem Risk Analysis
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { format, addDays } from 'date-fns';
@@ -23,6 +23,16 @@ import {
   calculateActiveRoleHealth
 } from '../../services/forecastingService';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import {
+  PreMortemResult,
+  RiskBand,
+  getRiskBandColor,
+  getFailureModeLabel,
+} from '../../types/preMortemTypes';
+import { HMPendingAction } from '../../types/hmTypes';
+import { runPreMortemBatch, convertToActionItems } from '../../services/preMortemService';
+import { PreMortemDrawer } from '../common/PreMortemDrawer';
+import { ActionItem } from '../../types/actionTypes';
 
 interface ForecastingTabProps {
   requisitions: Requisition[];
@@ -31,6 +41,10 @@ interface ForecastingTabProps {
   users: User[];
   hmFriction: HiringManagerFriction[];
   config: DashboardConfig;
+  /** HM pending actions for pre-mortem analysis */
+  hmActions?: HMPendingAction[];
+  /** Callback to add actions to the unified action queue */
+  onAddToActionQueue?: (actions: ActionItem[]) => void;
 }
 
 type SubTab = 'planner' | 'health';
@@ -42,7 +56,9 @@ export function ForecastingTab({
   events,
   users,
   hmFriction,
-  config
+  config,
+  hmActions = [],
+  onAddToActionQueue,
 }: ForecastingTabProps) {
   const isMobile = useIsMobile();
 
@@ -65,6 +81,10 @@ export function ForecastingTab({
   const [healthFilter, setHealthFilter] = useState<HealthStatus | 'all'>('all');
   const [healthPage, setHealthPage] = useState(0);
   const HEALTH_PAGE_SIZE = 25; // Show 25 rows at a time for performance
+
+  // Pre-mortem drawer state
+  const [preMortemDrawerOpen, setPreMortemDrawerOpen] = useState(false);
+  const [selectedPreMortem, setSelectedPreMortem] = useState<PreMortemResult | null>(null);
 
   // Get unique values for dropdowns
   const functions = useMemo(() =>
@@ -93,6 +113,40 @@ export function ForecastingTab({
     calculateActiveRoleHealth(requisitions, candidates, events, users, hmFriction, config),
     [requisitions, candidates, events, users, hmFriction, config]
   );
+
+  // Compute pre-mortems for all open reqs (memoized by dataset)
+  // Uses deterministic preMortemService - no LLM
+  const preMortemResults = useMemo(() => {
+    // Build benchmark TTF map from role health metrics
+    const benchmarkTTFMap = new Map<string, number>();
+    roleHealthMetrics.forEach(r => {
+      if (r.benchmarkTTF) {
+        benchmarkTTFMap.set(r.reqId, r.benchmarkTTF);
+      }
+    });
+
+    return runPreMortemBatch(
+      requisitions,
+      candidates,
+      events,
+      hmActions,
+      benchmarkTTFMap
+    );
+  }, [requisitions, candidates, events, hmActions, roleHealthMetrics]);
+
+  // Create a map for quick lookup of pre-mortem by req_id
+  const preMortemByReqId = useMemo(() => {
+    const map = new Map<string, PreMortemResult>();
+    preMortemResults.forEach(pm => map.set(pm.req_id, pm));
+    return map;
+  }, [preMortemResults]);
+
+  // Risk summary counts
+  const riskSummary = useMemo(() => ({
+    high: preMortemResults.filter(r => r.risk_band === 'HIGH').length,
+    med: preMortemResults.filter(r => r.risk_band === 'MED').length,
+    low: preMortemResults.filter(r => r.risk_band === 'LOW').length,
+  }), [preMortemResults]);
 
   // Filter health metrics
   const filteredHealthMetrics = useMemo(() => {
@@ -155,6 +209,34 @@ export function ForecastingTab({
     if (!selectedHealthReq) return null;
     return roleHealthMetrics.find(r => r.reqId === selectedHealthReq);
   }, [selectedHealthReq, roleHealthMetrics]);
+
+  // Open pre-mortem drawer for a req
+  const handleViewPreMortem = useCallback((reqId: string) => {
+    const pm = preMortemByReqId.get(reqId);
+    if (pm) {
+      setSelectedPreMortem(pm);
+      setPreMortemDrawerOpen(true);
+    }
+  }, [preMortemByReqId]);
+
+  // Handle adding interventions to action queue
+  const handleAddToQueue = useCallback((actions: ActionItem[]) => {
+    if (onAddToActionQueue) {
+      onAddToActionQueue(actions);
+    }
+    setPreMortemDrawerOpen(false);
+    setSelectedPreMortem(null);
+  }, [onAddToActionQueue]);
+
+  // Get risk badge style
+  const getRiskBadgeStyle = (band: RiskBand) => {
+    const color = getRiskBandColor(band);
+    return {
+      background: `${color}20`,
+      color: color,
+      border: `1px solid ${color}40`,
+    };
+  };
 
   // Milestone chart data - shows candidate volume decreasing over time (funnel)
   const milestoneChartData = useMemo(() => {
@@ -698,10 +780,49 @@ export function ForecastingTab({
             </div>
           </div>
 
+          {/* Pre-Mortem Risk Summary */}
+          <div className="d-flex gap-2 mb-4 flex-wrap align-items-center">
+            <span className="text-muted small me-2">Pre-Mortem Risk:</span>
+            <span
+              className="badge rounded-pill d-flex align-items-center gap-1"
+              style={{
+                ...getRiskBadgeStyle('HIGH'),
+                padding: '0.4rem 0.75rem',
+                fontSize: '0.8rem',
+              }}
+            >
+              <i className="bi bi-exclamation-triangle-fill"></i>
+              {riskSummary.high} High
+            </span>
+            <span
+              className="badge rounded-pill d-flex align-items-center gap-1"
+              style={{
+                ...getRiskBadgeStyle('MED'),
+                padding: '0.4rem 0.75rem',
+                fontSize: '0.8rem',
+              }}
+            >
+              <i className="bi bi-exclamation-circle"></i>
+              {riskSummary.med} Medium
+            </span>
+            <span
+              className="badge rounded-pill d-flex align-items-center gap-1"
+              style={{
+                ...getRiskBadgeStyle('LOW'),
+                padding: '0.4rem 0.75rem',
+                fontSize: '0.8rem',
+              }}
+            >
+              <i className="bi bi-check-circle"></i>
+              {riskSummary.low} Low
+            </span>
+          </div>
+
           {/* Health Table */}
           <div className="card-bespoke mb-4">
-            <div className="card-header">
+            <div className="card-header d-flex justify-content-between align-items-center">
               <h6 className="mb-0">Open Requisitions</h6>
+              <span className="small text-muted">Click row for details, or "View" for pre-mortem analysis</span>
             </div>
             <div className="card-body p-0">
               <div className="table-responsive">
@@ -712,15 +833,28 @@ export function ForecastingTab({
                       <th className="text-end">Days Open</th>
                       <th className="text-end">Pipeline</th>
                       <th className="text-center">Status</th>
+                      <th className="text-center">Risk</th>
+                      <th>Failure Mode</th>
                       <th className="text-end">Predicted Fill</th>
                       <th>Primary Issue</th>
+                      <th className="text-center" style={{ width: '60px' }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredHealthMetrics
-                      .sort((a, b) => a.healthScore - b.healthScore)
+                      .sort((a, b) => {
+                        // Sort by pre-mortem risk score (highest first) then health score
+                        const pmA = preMortemByReqId.get(a.reqId);
+                        const pmB = preMortemByReqId.get(b.reqId);
+                        const riskA = pmA?.risk_score ?? 0;
+                        const riskB = pmB?.risk_score ?? 0;
+                        if (riskB !== riskA) return riskB - riskA;
+                        return a.healthScore - b.healthScore;
+                      })
                       .slice(healthPage * HEALTH_PAGE_SIZE, (healthPage + 1) * HEALTH_PAGE_SIZE)
-                      .map(req => (
+                      .map(req => {
+                        const preMortem = preMortemByReqId.get(req.reqId);
+                        return (
                         <tr
                           key={req.reqId}
                           className={selectedHealthReq === req.reqId ? 'bg-soft-primary' : ''}
@@ -748,6 +882,37 @@ export function ForecastingTab({
                               {req.healthScore}
                             </span>
                           </td>
+                          {/* Risk Score + Band */}
+                          <td className="text-center">
+                            {preMortem ? (
+                              <span
+                                className="badge rounded-pill font-monospace"
+                                style={{
+                                  ...getRiskBadgeStyle(preMortem.risk_band),
+                                  padding: '0.35rem 0.6rem',
+                                  fontSize: '0.75rem',
+                                }}
+                                title={`Risk Score: ${preMortem.risk_score}/100`}
+                              >
+                                {preMortem.risk_band} {preMortem.risk_score}
+                              </span>
+                            ) : (
+                              <span className="text-muted small">-</span>
+                            )}
+                          </td>
+                          {/* Failure Mode */}
+                          <td>
+                            {preMortem ? (
+                              <span
+                                className="small"
+                                style={{ color: getRiskBandColor(preMortem.risk_band) }}
+                              >
+                                {getFailureModeLabel(preMortem.failure_mode)}
+                              </span>
+                            ) : (
+                              <span className="text-muted small">-</span>
+                            )}
+                          </td>
                           <td className="text-end">
                             {req.predictedFillDate ? (
                               <span>{format(req.predictedFillDate, 'MMM d')}</span>
@@ -758,8 +923,26 @@ export function ForecastingTab({
                           <td>
                             <span className="small text-muted">{req.primaryIssue || '-'}</span>
                           </td>
+                          {/* View Pre-Mortem Button */}
+                          <td className="text-center">
+                            {preMortem && (
+                              <button
+                                type="button"
+                                className="btn btn-sm btn-bespoke-secondary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewPreMortem(req.reqId);
+                                }}
+                                title="View Pre-Mortem Analysis"
+                                style={{ padding: '0.25rem 0.5rem' }}
+                              >
+                                <i className="bi bi-eye"></i>
+                              </button>
+                            )}
+                          </td>
                         </tr>
-                      ))}
+                      );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -877,6 +1060,17 @@ export function ForecastingTab({
           )}
         </div>
       )}
+
+      {/* Pre-Mortem Detail Drawer */}
+      <PreMortemDrawer
+        isOpen={preMortemDrawerOpen}
+        onClose={() => {
+          setPreMortemDrawerOpen(false);
+          setSelectedPreMortem(null);
+        }}
+        result={selectedPreMortem}
+        onAddToQueue={onAddToActionQueue ? handleAddToQueue : undefined}
+      />
     </div>
   );
 }

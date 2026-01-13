@@ -1044,6 +1044,39 @@ button {
     opacity: 0.85 !important;
 }
 
+/* Input group text - Dark mode */
+.input-group-text {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #94A3B8 !important;
+    font-size: 0.8rem;
+}
+
+/* Modal form inputs - boxed variant for modal contexts */
+.modal-body .form-control,
+.modal-body .form-select {
+    background: rgba(30, 41, 59, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    color: #F8FAFC !important;
+}
+
+.modal-body .form-control:focus,
+.modal-body .form-select:focus {
+    border-color: #f59e0b !important;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15) !important;
+}
+
+.modal-body .input-group .form-control {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.modal-body .input-group .input-group-text {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
 /* Date inputs - Dark mode specific */
 input[type="date"],
 input[type="datetime-local"],

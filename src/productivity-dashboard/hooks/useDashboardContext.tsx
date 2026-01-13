@@ -44,6 +44,7 @@ import {
 } from '../services';
 import { anonymizeCandidatesWithSummary } from '../services/piiService';
 import { fetchDashboardData, persistDashboardData, clearAllData, ClearProgress, ImportProgress } from '../services/dbService';
+import { loadOrgConfig, saveOrgConfig, migrateLocalStorageConfig } from '../services/configService';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Utility to yield to browser and allow UI updates
@@ -415,6 +416,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
       dispatch({ type: 'SET_LOADING', payload: true });
       try {
+        // Try to migrate any legacy localStorage config first
+        await migrateLocalStorageConfig(currentOrg.id);
+
+        // Load config from Supabase (or fallback to defaults)
+        const config = await loadOrgConfig(currentOrg.id);
+        if (config) {
+          console.log('[Dashboard] Loaded org config from Supabase');
+          dispatch({ type: 'SET_CONFIG', payload: config });
+        }
+
         const data = await fetchDashboardData(currentOrg.id);
         if (data.requisitions.length > 0) {
           // Check if this org's data was originally demo data
@@ -609,7 +620,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const updateConfig = useCallback((config: DashboardConfig) => {
     dispatch({ type: 'SET_CONFIG', payload: config });
-  }, []);
+
+    // Persist config to Supabase (async, non-blocking)
+    if (currentOrg?.id) {
+      saveOrgConfig(currentOrg.id, config).then(saved => {
+        if (saved) {
+          console.log('[Dashboard] Config saved to Supabase');
+        } else {
+          console.warn('[Dashboard] Failed to save config to Supabase');
+        }
+      });
+    }
+  }, [currentOrg?.id]);
 
   const updateFilters = useCallback((filters: Partial<MetricFilters>) => {
     dispatch({ type: 'SET_FILTERS', payload: filters });

@@ -946,6 +946,18 @@ export function ProductivityDashboard() {
                   users={state.dataStore.users}
                   config={state.dataStore.config}
                   hmFriction={state.hmFriction}
+                  hmActions={(() => {
+                    // Calculate HM pending actions for pre-mortem analysis
+                    const factTables = buildHMFactTables(
+                      state.dataStore.requisitions,
+                      state.dataStore.candidates,
+                      state.dataStore.events,
+                      state.dataStore.users,
+                      state.dataStore.config.stageMapping,
+                      state.dataStore.lastImportAt || new Date()
+                    );
+                    return calculatePendingActions(factTables, state.dataStore.users, DEFAULT_HM_RULES);
+                  })()}
                 />
               )}
 

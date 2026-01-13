@@ -231,25 +231,25 @@ export function BenchmarkConfigModal({
 
             {/* Stage Configuration */}
             <div className="table-responsive">
-              <table className="table table-bordered">
-                <thead className="table-light">
+              <table className="table table-bespoke">
+                <thead>
                   <tr>
                     <th>Stage</th>
                     <th className="text-center" style={{ width: 120 }}>
                       Target Days
-                      <div className="small fw-normal text-muted">SLA target</div>
+                      <div className="small fw-normal">SLA target</div>
                     </th>
                     <th className="text-center" style={{ width: 120 }}>
                       Max Days
-                      <div className="small fw-normal text-muted">Red flag</div>
+                      <div className="small fw-normal">Red flag</div>
                     </th>
                     <th className="text-center" style={{ width: 120 }}>
                       Target Pass %
-                      <div className="small fw-normal text-muted">Conversion</div>
+                      <div className="small fw-normal">Conversion</div>
                     </th>
                     <th className="text-center" style={{ width: 120 }}>
                       Min Pass %
-                      <div className="small fw-normal text-muted">Red flag</div>
+                      <div className="small fw-normal">Red flag</div>
                     </th>
                   </tr>
                 </thead>
@@ -313,12 +313,12 @@ export function BenchmarkConfigModal({
             </div>
 
             {/* Info Box */}
-            <div className="alert alert-light small mb-0">
-              <i className="bi bi-info-circle me-1"></i>
-              <strong>How benchmarks work:</strong>
-              <ul className="mb-0 mt-1">
-                <li><strong>Target</strong>: Your ideal SLA - performance at or better than this is "On Track"</li>
-                <li><strong>Max/Min</strong>: Red flag thresholds - exceeding these marks performance as "Critical"</li>
+            <div className="small mb-0 p-3" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px' }}>
+              <i className="bi bi-info-circle me-1" style={{ color: '#94A3B8' }}></i>
+              <strong style={{ color: '#F8FAFC' }}>How benchmarks work:</strong>
+              <ul className="mb-0 mt-2" style={{ color: '#94A3B8' }}>
+                <li><strong style={{ color: '#F8FAFC' }}>Target</strong>: Your ideal SLA - performance at or better than this is "On Track"</li>
+                <li><strong style={{ color: '#F8FAFC' }}>Max/Min</strong>: Red flag thresholds - exceeding these marks performance as "Critical"</li>
                 <li>Benchmarks can be filtered by function/level when viewing reports</li>
               </ul>
             </div>
