@@ -20,6 +20,7 @@ import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
 import { ForecastingTab } from './forecasting';
 import { DataHealthTab } from './data-health';
 import { ControlTowerTab } from './control-tower';
+import { CapacityTab } from './capacity/CapacityTab';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { ClearProgress } from '../services/dbService';
 import { calculatePendingActions } from '../services/hmMetricsEngine';
@@ -35,7 +36,7 @@ import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
 import { AiProviderSettings } from './settings/AiProviderSettings';
 
-type TabType = 'control-tower' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
+type TabType = 'control-tower' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'capacity' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
@@ -685,6 +686,12 @@ export function ProductivityDashboard() {
               HMs
             </button>
             <button
+              className={`nav-link ${activeTab === 'capacity' ? 'active' : ''}`}
+              onClick={() => setActiveTab('capacity')}
+            >
+              Capacity
+            </button>
+            <button
               className={`nav-link ${activeTab === 'velocity' ? 'active' : ''}`}
               onClick={() => setActiveTab('velocity')}
             >
@@ -764,6 +771,12 @@ export function ProductivityDashboard() {
                   onClick={() => setActiveTab('hiring-managers')}
                 >
                   Hiring Managers
+                </button>
+                <button
+                  className={`nav-link ${activeTab === 'capacity' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('capacity')}
+                >
+                  Capacity
                 </button>
                 <button
                   className={`nav-link ${activeTab === 'velocity' ? 'active' : ''}`}
@@ -917,6 +930,11 @@ export function ProductivityDashboard() {
                   lastImportAt={state.dataStore.lastImportAt}
                   filters={state.filters}
                 />
+              )}
+
+              {/* Capacity Tab */}
+              {activeTab === 'capacity' && (
+                <CapacityTab />
               )}
 
               {/* Velocity Tab */}
