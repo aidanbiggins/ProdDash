@@ -9,6 +9,7 @@ import { HiringManagerFriction, Requisition, Event, User, MetricFilters } from '
 import { exportHMFrictionCSV } from '../../services';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { FilterActiveIndicator, StatLabel, StatValue } from '../common';
+import { PageHeader } from '../layout';
 
 // Helper to truncate long names
 const truncateName = (name: string, maxLen: number) =>
@@ -283,6 +284,16 @@ export function HMFrictionTab({
 
   return (
     <div>
+      {/* Page Header */}
+      <PageHeader
+        title="HM Latency"
+        description="Analyze hiring manager response times and bottlenecks"
+        breadcrumbs={[
+          { label: 'Diagnose' },
+          { label: 'HM Latency' }
+        ]}
+      />
+
       {/* Filter Active Indicator */}
       {filters && (
         <FilterActiveIndicator
@@ -1007,3 +1018,5 @@ export function HMFrictionTab({
     </div>
   );
 }
+
+export default HMFrictionTab;

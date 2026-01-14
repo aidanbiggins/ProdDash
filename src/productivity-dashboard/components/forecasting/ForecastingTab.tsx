@@ -34,6 +34,7 @@ import { runPreMortemBatch, convertToActionItems } from '../../services/preMorte
 import { PreMortemDrawer } from '../common/PreMortemDrawer';
 import { SectionHeader, StatLabel, StatValue } from '../common';
 import { ActionItem } from '../../types/actionTypes';
+import { PageHeader } from '../layout';
 
 interface ForecastingTabProps {
   requisitions: Requisition[];
@@ -314,6 +315,16 @@ export function ForecastingTab({
 
   return (
     <div>
+      {/* Page Header */}
+      <PageHeader
+        title="Hiring Forecast"
+        description="Track role health, plan hiring capacity, and identify risks"
+        breadcrumbs={[
+          { label: 'Plan' },
+          { label: 'Hiring Forecast' }
+        ]}
+      />
+
       {/* Sub-tab Navigation */}
       <div className="d-flex gap-2 mb-4">
         <button
@@ -1079,3 +1090,5 @@ export function ForecastingTab({
     </div>
   );
 }
+
+export default ForecastingTab;

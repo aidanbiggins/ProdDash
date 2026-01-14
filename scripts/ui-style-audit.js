@@ -69,6 +69,12 @@ const ALLOWED_TYPOGRAPHY_FILES = [
   'HMScorecard.tsx',
   'HMForecastsTab.tsx',
   'PipelineHealthCard.tsx',
+  // Capacity module (data visualization with dynamic styling)
+  'CapacityTab.tsx',
+  'FitMatrix.tsx',
+  'OverloadExplainDrawer.tsx',
+  'RebalanceRecommendations.tsx',
+  'RecruiterLoadTable.tsx',
   // Layout and settings
   'ProductivityDashboard.tsx',
   'CSVUpload.tsx',
@@ -85,7 +91,9 @@ const ALLOWED_HEADER_FILES = [
   'SectionHeader.tsx',
   'MetricDrillDown.tsx',  // Uses h2 for metric values - acceptable in data display
   'DataDrillDownModal.tsx',
-  'ProductivityDashboard.tsx'  // Main layout component with complex header
+  'ProductivityDashboard.tsx',  // Main layout component with complex header
+  'EmptyState.tsx',  // Uses h3 for empty state title - part of UI primitive
+  'AiSettingsTab.tsx'  // Uses h3 for section headers within page
 ];
 const ALLOWED_STAT_CLASS_FILES = [
   'dashboard-theme.css'

@@ -18,6 +18,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { PipelineHealthCard, BenchmarkConfigModal } from '../pipeline-health';
 import { PipelineBenchmarkConfig, HistoricalBenchmarkResult } from '../../types/pipelineTypes';
 import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
+import { PageHeader } from '../layout';
 
 interface OverviewTabProps {
   overview: OverviewMetrics;
@@ -527,6 +528,16 @@ export function OverviewTab({
 
   return (
     <div>
+      {/* Page Header */}
+      <PageHeader
+        title="Overview"
+        description="High-level KPIs, trends, and recruiter performance summary"
+        breadcrumbs={[
+          { label: 'Diagnose' },
+          { label: 'Overview' }
+        ]}
+      />
+
       {/* Filter Active Indicator */}
       <FilterActiveIndicator
         filters={filters}
@@ -914,3 +925,5 @@ export function OverviewTab({
     </div>
   );
 }
+
+export default OverviewTab;

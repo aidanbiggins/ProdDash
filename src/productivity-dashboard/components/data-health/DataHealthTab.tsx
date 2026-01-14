@@ -23,6 +23,7 @@ import {
   calculateDataHygieneSummary
 } from '../../services/reqHealthService';
 import { StatLabel, StatValue } from '../common';
+import { PageHeader, GlassPanel } from '../layout';
 
 interface DataHealthTabProps {
   requisitions: Requisition[];
@@ -114,6 +115,16 @@ export function DataHealthTab({
 
   return (
     <div className="animate-fade-in">
+      {/* Page Header */}
+      <PageHeader
+        title="Data Health"
+        description="Monitor data hygiene: zombie reqs, ghost candidates, and TTF accuracy"
+        breadcrumbs={[
+          { label: 'Settings' },
+          { label: 'Data Health' }
+        ]}
+      />
+
       {/* Summary Cards */}
       <div className="row g-3 mb-4">
         {/* Hygiene Score */}

@@ -10,6 +10,7 @@ import { exportReqListCSV, normalizeStage } from '../../services';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
 import { METRIC_FORMULAS } from '../common/MetricDrillDown';
+import { PageHeader } from '../layout';
 
 export interface RecruiterDetailTabProps {
   recruiterSummaries: RecruiterSummary[];
@@ -541,6 +542,16 @@ export function RecruiterDetailTab({
 
   return (
     <div>
+      {/* Page Header */}
+      <PageHeader
+        title="Recruiter Performance"
+        description="Analyze individual recruiter metrics and pipeline health"
+        breadcrumbs={[
+          { label: 'Diagnose' },
+          { label: 'Recruiter Performance' }
+        ]}
+      />
+
       {/* KPI Cards - 7 cards using flex for equal width */}
       <div className="d-flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
         <div style={{ flex: '1 1 0', minWidth: '120px' }}>
@@ -899,3 +910,5 @@ export function RecruiterDetailTab({
     </div>
   );
 }
+
+export default RecruiterDetailTab;

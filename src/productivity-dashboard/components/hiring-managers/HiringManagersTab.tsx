@@ -20,6 +20,7 @@ import { HMActionQueue } from './HMActionQueue';
 import { HMForecastsTab } from './HMForecastsTab';
 import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
 import { hasActiveDimensionalFilters } from '../../services/filterUtils';
+import { PageHeader } from '../layout';
 
 interface HiringManagersTabProps {
     requisitions: Requisition[];
@@ -178,6 +179,16 @@ export function HiringManagersTab({
 
     return (
         <div className="animate-fade-in">
+            {/* Page Header */}
+            <PageHeader
+                title="HM Scorecard"
+                description="Track hiring manager performance and manage action queues"
+                breadcrumbs={[
+                    { label: 'Diagnose' },
+                    { label: 'HM Scorecard' }
+                ]}
+            />
+
             {/* Filter Active Indicator */}
             {filters && (
                 <FilterActiveIndicator
@@ -288,3 +299,5 @@ export function HiringManagersTab({
         </div>
     );
 }
+
+export default HiringManagersTab;

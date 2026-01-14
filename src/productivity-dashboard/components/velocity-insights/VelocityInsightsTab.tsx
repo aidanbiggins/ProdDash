@@ -26,6 +26,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { PipelineHealthCard, BenchmarkConfigModal } from '../pipeline-health';
 import { VelocityCopilotPanel } from './VelocityCopilotPanel';
 import { WhatIfSimulatorPanel } from './WhatIfSimulatorPanel';
+import { PageHeader } from '../layout';
 import { calculatePipelineHealth, generateHistoricalBenchmarks } from '../../services';
 import {
   MIN_OFFERS_FOR_DECAY,
@@ -899,6 +900,16 @@ export function VelocityInsightsTab({
 
   return (
     <div>
+      {/* Page Header */}
+      <PageHeader
+        title="Pipeline Velocity"
+        description="Analyze pipeline timing, decay patterns, and success factors"
+        breadcrumbs={[
+          { label: 'Diagnose' },
+          { label: 'Pipeline Velocity' }
+        ]}
+      />
+
       {/* AI Copilot Panel - shown at top */}
       {requisitions && candidates && events && filters && (
         <VelocityCopilotPanel
@@ -1199,3 +1210,5 @@ export function VelocityInsightsTab({
     </div>
   );
 }
+
+export default VelocityInsightsTab;

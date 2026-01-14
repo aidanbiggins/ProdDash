@@ -1,0 +1,257 @@
+/* Layout Primitives CSS */
+
+/* CSS Variables for Layout */
+:root {
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Layout */
+  --page-max-width: 1600px;
+  --header-height: 56px;
+  --mobile-drawer-width: 280px;
+
+  /* Z-index layers */
+  --z-dropdown: 100;
+  --z-drawer: 200;
+  --z-modal: 300;
+  --z-quickfind: 400;
+}
+
+/* PageShell */
+.page-shell {
+  padding: var(--space-4);
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  min-height: calc(100vh - var(--header-height) - 2rem);
+}
+
+@media (max-width: 768px) {
+  .page-shell {
+    padding: var(--space-2);
+  }
+}
+
+/* PageHeader */
+.page-header {
+  margin-bottom: var(--space-6);
+}
+
+.page-header-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-muted, #6c757d);
+}
+
+.breadcrumb-link {
+  color: var(--primary, #d4a373);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: var(--primary-light, #e6c9a8);
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted, #6c757d);
+  opacity: 0.5;
+}
+
+.breadcrumb-current {
+  color: var(--text-muted, #6c757d);
+}
+
+.page-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.page-header-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.page-header-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-primary, #f8f9fa);
+  margin: 0 0 var(--space-2) 0;
+  line-height: 1.2;
+}
+
+.page-header-description {
+  color: var(--text-muted, #6c757d);
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+  .page-header-title {
+    font-size: 1.5rem;
+  }
+
+  .page-header-actions {
+    width: 100%;
+  }
+}
+
+/* SectionHeader */
+.section-wrapper {
+  margin-bottom: var(--space-6);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.section-header-collapsible {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  padding: var(--space-2);
+  margin: calc(-1 * var(--space-2));
+  border-radius: var(--radius-sm);
+}
+
+.section-header-collapsible:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.section-header-collapsible:focus {
+  outline: 2px solid var(--primary, #d4a373);
+  outline-offset: 2px;
+}
+
+.section-header-text {
+  flex: 1;
+}
+
+.section-header-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #f8f9fa);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section-collapse-icon {
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+.section-header-subtitle {
+  color: var(--text-muted, #6c757d);
+  margin: var(--space-1) 0 0 0;
+  font-size: 0.875rem;
+}
+
+.section-header-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.section-content {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* GlassPanel */
+.glass-panel {
+  background: rgba(36, 36, 36, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+}
+
+.glass-panel-sm {
+  padding: var(--space-3);
+}
+
+.glass-panel-md {
+  padding: var(--space-4);
+}
+
+.glass-panel-lg {
+  padding: var(--space-6);
+}
+
+/* EmptyState */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8);
+  min-height: 200px;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  color: var(--text-muted, #6c757d);
+  margin-bottom: var(--space-4);
+  opacity: 0.6;
+}
+
+.empty-state-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #f8f9fa);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.empty-state-description {
+  color: var(--text-muted, #6c757d);
+  margin: 0 0 var(--space-4) 0;
+  max-width: 300px;
+  line-height: 1.5;
+}
+
+.empty-state-action {
+  margin-top: var(--space-2);
+}

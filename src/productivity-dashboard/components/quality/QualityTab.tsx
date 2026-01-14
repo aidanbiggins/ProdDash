@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { QualityMetrics } from '../../types';
 import { StatLabel, StatValue } from '../common';
+import { PageHeader } from '../layout';
 
 interface QualityTabProps {
   quality: QualityMetrics;
@@ -57,6 +58,16 @@ export function QualityTab({ quality }: QualityTabProps) {
 
   return (
     <div>
+      {/* Page Header */}
+      <PageHeader
+        title="Quality Guardrails"
+        description="Monitor candidate quality metrics and offer outcomes"
+        breadcrumbs={[
+          { label: 'Diagnose' },
+          { label: 'Quality Guardrails' }
+        ]}
+      />
+
       {/* Candidate Experience Stats */}
       <div className="row g-4 mb-4">
         <div className="col-md-6">
@@ -293,3 +304,5 @@ export function QualityTab({ quality }: QualityTabProps) {
     </div>
   );
 }
+
+export default QualityTab;

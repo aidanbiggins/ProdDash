@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { SourceEffectivenessMetrics } from '../../types';
 import { StatLabel, StatValue } from '../common';
+import { PageHeader } from '../layout';
 
 interface SourceEffectivenessTabProps {
     data: SourceEffectivenessMetrics;
@@ -275,6 +276,16 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
 
     return (
         <div>
+            {/* Page Header */}
+            <PageHeader
+                title="Source Effectiveness"
+                description="Analyze recruiting channel performance and ROI"
+                breadcrumbs={[
+                    { label: 'Diagnose' },
+                    { label: 'Source Effectiveness' }
+                ]}
+            />
+
             {/* Summary Cards */}
             <div className="row g-4 mb-4">
                 {data.bestSource && (
@@ -660,3 +671,5 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
         </div>
     );
 }
+
+export default SourceEffectivenessTab;

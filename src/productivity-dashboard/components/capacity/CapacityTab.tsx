@@ -11,6 +11,7 @@ import { RebalanceRecommendations } from './RebalanceRecommendations';
 import { OverloadExplainDrawer } from './OverloadExplainDrawer';
 import { FitExplainDrawer } from './FitExplainDrawer';
 import { RecruiterLoadRow, FitMatrixCell, RebalanceRecommendation } from '../../types/capacityTypes';
+import { PageHeader } from '../layout';
 
 export function CapacityTab() {
   const { state } = useDashboard();
@@ -97,15 +98,15 @@ export function CapacityTab() {
 
   return (
     <div className="container-fluid py-4">
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="mb-1">Capacity Planning</h4>
-          <p className="text-muted mb-0 small">
-            Analyze team workload distribution and recruiter fit by segment
-          </p>
-        </div>
-      </div>
+      {/* Page Header */}
+      <PageHeader
+        title="Capacity Planning"
+        description="Analyze team workload distribution and recruiter fit by segment"
+        breadcrumbs={[
+          { label: 'Plan' },
+          { label: 'Capacity Planning' }
+        ]}
+      />
 
       <div className="row g-4">
         {/* Left Column: Summary + Load Table */}

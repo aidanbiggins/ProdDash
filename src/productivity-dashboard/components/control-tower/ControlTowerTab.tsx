@@ -893,3 +893,5 @@ export function ControlTowerTab({
     </div>
   );
 }
+
+export default ControlTowerTab;

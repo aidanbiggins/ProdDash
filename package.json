@@ -32,7 +32,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "ui:style-audit": "node scripts/ui-style-audit.js"
+    "ui:style-audit": "node scripts/ui-style-audit.js",
+    "route:smoke": "node scripts/route-smoke.js",
+    "qa:all": "npm test -- --watchAll=false && npm run build && npm run ui:style-audit && npm run route:smoke"
   },
   "browserslist": {
     "production": [

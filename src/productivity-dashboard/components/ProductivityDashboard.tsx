@@ -35,8 +35,13 @@ import { OrgSettings } from './OrgSettings';
 import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
 import { AiProviderSettings } from './settings/AiProviderSettings';
-
-type TabType = 'control-tower' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'capacity' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health';
+import { TopNav } from './navigation';
+import { useNewNavigation } from '../hooks/useNewNavigation';
+import { getPathFromTab, getTabFromPath, TabType } from '../routes';
+import '../components/layout/layout.css';
+import '../components/navigation/navigation.css';
+import { AiSettingsTab } from './settings/AiSettingsTab';
+import { OrgSettingsTab } from './settings/OrgSettingsTab';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
@@ -44,6 +49,7 @@ export function ProductivityDashboard() {
   const { isMasked, toggleMasking } = useDataMasking();
   const { currentOrg, user, refreshMemberships, supabaseUser, session } = useAuth();
   const isMobile = useIsMobile();
+  const { showNewNav, useLegacyNav, toggleLegacyNav } = useNewNavigation();
   const [activeTab, setActiveTab] = useState<TabType>('control-tower');
   const [showStageMapping, setShowStageMapping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -114,6 +120,27 @@ export function ProductivityDashboard() {
   };
 
   const isSuperAdmin = user?.isSuperAdmin || false;
+
+  // Sync URL to tab state when new navigation is enabled
+  useEffect(() => {
+    if (!showNewNav) return;
+
+    // Set initial tab from URL on mount
+    const initialTab = getTabFromPath(window.location.pathname);
+    if (initialTab !== activeTab) {
+      setActiveTab(initialTab);
+    }
+
+    // Handle browser back/forward navigation
+    const handlePopState = () => {
+      const tab = getTabFromPath(window.location.pathname);
+      setActiveTab(tab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+    // Only run on showNewNav change, not on activeTab change (to avoid loops)
+  }, [showNewNav]);
 
   const hasData = state.dataStore.requisitions.length > 0;
   const isDemo = state.dataStore.importSource === 'demo';
@@ -305,10 +332,28 @@ export function ProductivityDashboard() {
   );
 
   return (
-    <div className={`container-fluid ${isMobile ? 'py-2 px-2' : 'py-4'}`} style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
+    <>
+      {/* New Navigation - shown when feature flag enabled and not using legacy */}
+      {showNewNav && (
+        <TopNav
+          useLegacyNav={useLegacyNav}
+          onToggleLegacy={toggleLegacyNav}
+          activeTab={activeTab}
+          onNavigate={(tab) => {
+            if (tab === 'recruiter') {
+              // Don't clear selection when navigating to recruiter tab
+            } else {
+              selectRecruiter(null);
+            }
+            setActiveTab(tab);
+          }}
+        />
+      )}
+
+      <div className={`container-fluid ${isMobile ? 'py-2 px-2' : 'py-4'}`} style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
       <div className={isMobile ? '' : 'container-xxl'}>
-        {/* Mobile Menu Overlay */}
-        {isMobile && <MobileMenu />}
+        {/* Mobile Menu Overlay - only show with legacy nav */}
+        {isMobile && !showNewNav && <MobileMenu />}
 
         {/* Demo Mode Banner - compact on mobile */}
         {isDemo && !demoDismissed && (
@@ -640,8 +685,8 @@ export function ProductivityDashboard() {
           </div>
         )}
 
-        {/* Mobile: Tabs FIRST so user can see what's available */}
-        {isMobile && (
+        {/* Mobile: Tabs FIRST so user can see what's available - hidden when new nav is active */}
+        {isMobile && !showNewNav && (
           <div className="nav-pills-bespoke mb-2" style={{ overflowX: 'auto', whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
             <button
               className={`nav-link ${activeTab === 'control-tower' ? 'active' : ''}`}
@@ -727,8 +772,8 @@ export function ProductivityDashboard() {
         <div className="row g-4">
           {/* Main Area - Full width now that sidebar is removed */}
           <div className="col-12">
-            {/* Desktop Tabs */}
-            {!isMobile && (
+            {/* Desktop Tabs - hidden when new nav is active */}
+            {!isMobile && !showNewNav && (
               <div className="nav-pills-bespoke mb-4">
                 <button
                   className={`nav-link ${activeTab === 'control-tower' ? 'active' : ''}`}
@@ -992,6 +1037,16 @@ export function ProductivityDashboard() {
                   onToggleExclusion={handleToggleExclusion}
                 />
               )}
+
+              {/* AI Settings Tab */}
+              {activeTab === 'ai-settings' && (
+                <AiSettingsTab />
+              )}
+
+              {/* Organization Settings Tab */}
+              {activeTab === 'org-settings' && (
+                <OrgSettingsTab />
+              )}
             </>
           </div>
 
@@ -1061,5 +1116,6 @@ export function ProductivityDashboard() {
         )}
       </div>
     </div>
+    </>
   );
 }

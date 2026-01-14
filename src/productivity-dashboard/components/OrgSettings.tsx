@@ -477,3 +477,5 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
     </div>
   );
 }
+
+export default OrgSettings;
