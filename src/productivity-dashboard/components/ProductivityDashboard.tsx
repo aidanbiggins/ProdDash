@@ -41,7 +41,7 @@ export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
   const [showProgressPanel, setShowProgressPanel] = useState(false);
   const { isMasked, toggleMasking } = useDataMasking();
-  const { currentOrg, user, refreshMemberships, supabaseUser } = useAuth();
+  const { currentOrg, user, refreshMemberships, supabaseUser, session } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<TabType>('control-tower');
   const [showStageMapping, setShowStageMapping] = useState(false);
@@ -170,6 +170,7 @@ export function ProductivityDashboard() {
 
   const handleCreateOrg = async (name: string) => {
     if (!supabaseUser?.id) throw new Error('Not authenticated');
+    if (!session) throw new Error('Session expired. Please log in again.');
     await createOrganization({ name }, supabaseUser.id);
     // Don't await - let the modal close immediately while memberships refresh
     refreshMemberships().catch(err => {

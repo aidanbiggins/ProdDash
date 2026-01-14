@@ -36,7 +36,7 @@ interface FileState {
 
 export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const { clearPersistedData, canImportData } = useDashboard();
-  const { currentOrg, user, refreshMemberships, supabaseUser, userRole } = useAuth();
+  const { currentOrg, user, refreshMemberships, supabaseUser, userRole, session } = useAuth();
   const [files, setFiles] = useState<FileState>({
     requisitions: null,
     candidates: null,
@@ -61,6 +61,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
   const handleCreateOrg = async (name: string) => {
     if (!supabaseUser?.id) throw new Error('Not authenticated');
+    if (!session) throw new Error('Session expired. Please log in again.');
     await createOrganization({ name }, supabaseUser.id);
     await refreshMemberships();
   };
