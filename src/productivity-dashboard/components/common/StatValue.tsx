@@ -9,19 +9,21 @@ interface StatValueProps {
   className?: string;
   color?: StatusColor;
   size?: 'sm' | 'md' | 'lg';
+  style?: React.CSSProperties;
 }
 
 export function StatValue({
   children,
   className = '',
   color = 'default',
-  size = 'md'
+  size = 'md',
+  style
 }: StatValueProps) {
   const colorClass = color !== 'default' ? `text-${color}` : '';
   const sizeClass = size === 'sm' ? 'stat-value-sm' : size === 'lg' ? 'stat-value-lg' : '';
 
   return (
-    <span className={`stat-value ${colorClass} ${sizeClass} ${className}`.trim()}>
+    <span className={`stat-value ${colorClass} ${sizeClass} ${className}`.trim()} style={style}>
       {children}
     </span>
   );

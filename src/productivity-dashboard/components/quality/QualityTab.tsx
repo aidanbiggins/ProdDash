@@ -6,6 +6,7 @@ import {
   PieChart, Pie
 } from 'recharts';
 import { QualityMetrics } from '../../types';
+import { StatLabel, StatValue } from '../common';
 
 interface QualityTabProps {
   quality: QualityMetrics;
@@ -61,12 +62,12 @@ export function QualityTab({ quality }: QualityTabProps) {
         <div className="col-md-6">
           <div className="card-bespoke h-100">
             <div className="card-body text-center py-4">
-              <div className="stat-label mb-2">Application to First Touch</div>
-              <div className="stat-value" style={{ color: 'var(--color-accent)' }}>
+              <StatLabel className="mb-2">Application to First Touch</StatLabel>
+              <StatValue color="primary">
                 {quality.candidateExperience.applicationToFirstTouchMedian !== null
                   ? `${Math.round(quality.candidateExperience.applicationToFirstTouchMedian)} hrs`
                   : 'N/A'}
-              </div>
+              </StatValue>
               <small style={{ color: '#94A3B8' }}>Median time for candidates to hear back</small>
             </div>
           </div>
@@ -74,12 +75,12 @@ export function QualityTab({ quality }: QualityTabProps) {
         <div className="col-md-6">
           <div className="card-bespoke h-100">
             <div className="card-body text-center py-4">
-              <div className="stat-label mb-2">Time Between Steps</div>
-              <div className="stat-value" style={{ color: 'var(--color-accent)' }}>
+              <StatLabel className="mb-2">Time Between Steps</StatLabel>
+              <StatValue color="primary">
                 {quality.candidateExperience.timeBetweenStepsMedian !== null
                   ? `${Math.round(quality.candidateExperience.timeBetweenStepsMedian)} hrs`
                   : 'N/A'}
-              </div>
+              </StatValue>
               <small style={{ color: '#94A3B8' }}>Median wait between stage changes</small>
             </div>
           </div>

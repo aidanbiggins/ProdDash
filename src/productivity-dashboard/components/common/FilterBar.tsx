@@ -1,7 +1,7 @@
 // Filter Bar Component
 
 import React, { useState, useMemo } from 'react';
-import { MetricFilters, User, Requisition } from '../../types';
+import { MetricFilters, User, Requisition, UserRole } from '../../types';
 import { DateRangePicker } from './DateRangePicker';
 import { MultiSelect } from './MultiSelect';
 import { useIsMobile } from '../../hooks/useIsMobile';
@@ -31,8 +31,49 @@ export function FilterBar({
   const allLevels = useMemo(() => Array.from(new Set(requisitions.map(r => r.level))).filter(Boolean).sort(), [requisitions]);
   const allRegions = useMemo(() => Array.from(new Set(requisitions.map(r => r.location_region))).sort(), [requisitions]);
 
-  const recruiters = useMemo(() => users.filter(u => u.role === 'Recruiter'), [users]);
-  const hiringManagers = useMemo(() => users.filter(u => u.role === 'HiringManager'), [users]);
+  // Get recruiters from users table, with fallback to extracting from requisitions
+  const recruiters = useMemo(() => {
+    const fromUsers = users.filter(u => u.role === 'Recruiter');
+    if (fromUsers.length > 0) return fromUsers;
+
+    // Fallback: extract unique recruiters from requisitions if users table is empty
+    const recruiterMap = new Map<string, User>();
+    requisitions.forEach(r => {
+      if (r.recruiter_id && !recruiterMap.has(r.recruiter_id)) {
+        recruiterMap.set(r.recruiter_id, {
+          user_id: r.recruiter_id,
+          name: r.recruiter_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          role: UserRole.Recruiter,
+          team: null,
+          manager_user_id: null,
+          email: null
+        });
+      }
+    });
+    return Array.from(recruiterMap.values());
+  }, [users, requisitions]);
+
+  // Get hiring managers from users table, with fallback to extracting from requisitions
+  const hiringManagers = useMemo(() => {
+    const fromUsers = users.filter(u => u.role === 'HiringManager');
+    if (fromUsers.length > 0) return fromUsers;
+
+    // Fallback: extract unique HMs from requisitions if users table is empty
+    const hmMap = new Map<string, User>();
+    requisitions.forEach(r => {
+      if (r.hiring_manager_id && !hmMap.has(r.hiring_manager_id)) {
+        hmMap.set(r.hiring_manager_id, {
+          user_id: r.hiring_manager_id,
+          name: r.hiring_manager_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          role: UserRole.HiringManager,
+          team: null,
+          manager_user_id: null,
+          email: null
+        });
+      }
+    });
+    return Array.from(hmMap.values());
+  }, [users, requisitions]);
 
   // Compute available options based on current filter selections
   // Each dropdown shows what's available given ALL OTHER current selections

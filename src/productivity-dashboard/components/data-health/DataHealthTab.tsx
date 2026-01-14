@@ -22,6 +22,7 @@ import {
   detectGhostCandidates,
   calculateDataHygieneSummary
 } from '../../services/reqHealthService';
+import { StatLabel, StatValue } from '../common';
 
 interface DataHealthTabProps {
   requisitions: Requisition[];
@@ -119,17 +120,13 @@ export function DataHealthTab({
         <div className="col-md-3">
           <div className="card-bespoke h-100">
             <div className="card-body text-center py-4">
-              <div className="stat-label mb-2">Data Hygiene Score</div>
-              <div
-                className="stat-value"
-                style={{
-                  color: summary.hygieneScore >= 80 ? '#34d399' :
-                    summary.hygieneScore >= 60 ? '#fbbf24' : '#f87171',
-                  fontFamily: "'JetBrains Mono', monospace"
-                }}
+              <StatLabel className="mb-2">Data Hygiene Score</StatLabel>
+              <StatValue
+                color={summary.hygieneScore >= 80 ? 'success' :
+                  summary.hygieneScore >= 60 ? 'warning' : 'danger'}
               >
                 {summary.hygieneScore}
-              </div>
+              </StatValue>
               <div className="small text-muted mt-1">out of 100</div>
             </div>
           </div>
@@ -139,23 +136,18 @@ export function DataHealthTab({
         <div className="col-md-3">
           <div className="card-bespoke h-100">
             <div className="card-body text-center py-4">
-              <div className="stat-label mb-2">True TTF vs Raw</div>
+              <StatLabel className="mb-2">True TTF vs Raw</StatLabel>
               <div className="d-flex justify-content-center align-items-baseline gap-2">
-                <span
-                  className="stat-value"
-                  style={{ color: '#2dd4bf', fontFamily: "'JetBrains Mono', monospace", fontSize: '1.5rem' }}
-                >
+                <StatValue size="sm" className="text-info">
                   {summary.trueMedianTTF !== null ? `${summary.trueMedianTTF}d` : '—'}
-                </span>
+                </StatValue>
                 <span style={{ color: '#71717a' }}>/</span>
-                <span
-                  style={{ color: '#94A3B8', fontFamily: "'JetBrains Mono', monospace", fontSize: '1.25rem' }}
-                >
+                <span className="stat-value stat-value-sm" style={{ color: '#94A3B8' }}>
                   {summary.rawMedianTTF !== null ? `${summary.rawMedianTTF}d` : '—'}
                 </span>
               </div>
               {summary.ttfDifferencePercent !== null && (
-                <div className="small mt-1" style={{ color: '#34d399' }}>
+                <div className="small mt-1 text-success">
                   {summary.ttfDifferencePercent.toFixed(0)}% faster when clean
                 </div>
               )}
@@ -173,13 +165,8 @@ export function DataHealthTab({
             }}
           >
             <div className="card-body text-center py-4">
-              <div className="stat-label mb-2">Zombie Reqs</div>
-              <div
-                className="stat-value"
-                style={{ color: '#f87171', fontFamily: "'JetBrains Mono', monospace" }}
-              >
-                {summary.zombieReqCount}
-              </div>
+              <StatLabel className="mb-2">Zombie Reqs</StatLabel>
+              <StatValue color="danger">{summary.zombieReqCount}</StatValue>
               <div className="small text-muted mt-1">30+ days inactive</div>
             </div>
           </div>
@@ -195,13 +182,10 @@ export function DataHealthTab({
             }}
           >
             <div className="card-body text-center py-4">
-              <div className="stat-label mb-2">Ghost Candidates</div>
-              <div
-                className="stat-value"
-                style={{ color: '#c084fc', fontFamily: "'JetBrains Mono', monospace" }}
-              >
+              <StatLabel className="mb-2">Ghost Candidates</StatLabel>
+              <span className="stat-value" style={{ color: '#c084fc' }}>
                 {summary.stagnantCandidateCount + summary.abandonedCandidateCount}
-              </div>
+              </span>
               <div className="small text-muted mt-1">10+ days stuck</div>
             </div>
           </div>

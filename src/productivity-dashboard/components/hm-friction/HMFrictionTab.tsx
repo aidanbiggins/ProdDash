@@ -8,7 +8,7 @@ import {
 import { HiringManagerFriction, Requisition, Event, User, MetricFilters } from '../../types';
 import { exportHMFrictionCSV } from '../../services';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
+import { FilterActiveIndicator, StatLabel, StatValue } from '../common';
 
 // Helper to truncate long names
 const truncateName = (name: string, maxLen: number) =>
@@ -302,8 +302,8 @@ export function HMFrictionTab({
             style={{ cursor: 'pointer' }}
           >
             <div className="card-body text-center">
-              <div className="stat-label mb-2">Total Hiring Managers</div>
-              <div className="stat-value">{filteredFriction.length}</div>
+              <StatLabel className="mb-2">Total Hiring Managers</StatLabel>
+              <StatValue>{filteredFriction.length}</StatValue>
               <div className="text-muted small mt-1"><i className="bi bi-chevron-down"></i> Click for details</div>
             </div>
           </div>
@@ -315,8 +315,8 @@ export function HMFrictionTab({
             style={{ cursor: 'pointer' }}
           >
             <div className="card-body text-center">
-              <div className="stat-label mb-2">Avg Time Tax</div>
-              <div className="stat-value text-danger">{avgTimeTax}%</div>
+              <StatLabel className="mb-2">Avg Time Tax</StatLabel>
+              <StatValue color="danger">{avgTimeTax}%</StatValue>
               <div className="text-muted small">of cycle spent waiting</div>
             </div>
           </div>
@@ -328,10 +328,8 @@ export function HMFrictionTab({
             style={{ cursor: 'pointer' }}
           >
             <div className="card-body text-center">
-              <div className="stat-label mb-2">Latency Impact</div>
-              <div className="stat-value" style={{ color: 'var(--color-warning)' }}>
-                {totalLatencyImpactDays}d
-              </div>
+              <StatLabel className="mb-2">Latency Impact</StatLabel>
+              <StatValue color="warning">{totalLatencyImpactDays}d</StatValue>
               <div className="text-muted small">total time lost waiting</div>
             </div>
           </div>
@@ -343,10 +341,8 @@ export function HMFrictionTab({
             style={{ cursor: 'pointer' }}
           >
             <div className="card-body text-center">
-              <div className="stat-label mb-2 text-success">Fast HMs</div>
-              <div className="stat-value" style={{ color: 'var(--color-success)' }}>
-                {fastHMs.length}
-              </div>
+              <StatLabel className="mb-2 text-success">Fast HMs</StatLabel>
+              <StatValue color="success">{fastHMs.length}</StatValue>
               <div className="text-muted small mt-1"><i className="bi bi-chevron-down"></i> Click for details</div>
             </div>
           </div>

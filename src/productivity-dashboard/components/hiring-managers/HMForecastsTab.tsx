@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { HMReqRollup } from '../../types/hmTypes';
-import { SectionHeader } from '../common/SectionHeader';
+import { SectionHeader, StatLabel, StatValue } from '../common';
 
 interface HMForecastsTabProps {
     reqRollups: HMReqRollup[];
@@ -46,8 +46,8 @@ export function HMForecastsTab({ reqRollups }: HMForecastsTabProps) {
                                     <i className="bi bi-bullseye fs-4"></i>
                                 </div>
                                 <div>
-                                    <div className="stat-label">Total Expected Hires</div>
-                                    <div className="stat-value">{stats.totalForecasted}</div>
+                                    <StatLabel>Total Expected Hires</StatLabel>
+                                    <StatValue>{stats.totalForecasted}</StatValue>
                                 </div>
                             </div>
                         </div>
@@ -61,8 +61,8 @@ export function HMForecastsTab({ reqRollups }: HMForecastsTabProps) {
                                     <i className="bi bi-rocket-takeoff fs-4"></i>
                                 </div>
                                 <div>
-                                    <div className="stat-label">Expected in Next 30 Days</div>
-                                    <div className="stat-value text-primary">{stats.next30Days}</div>
+                                    <StatLabel>Expected in Next 30 Days</StatLabel>
+                                    <StatValue color="primary">{stats.next30Days}</StatValue>
                                 </div>
                             </div>
                         </div>

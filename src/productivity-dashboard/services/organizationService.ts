@@ -16,6 +16,22 @@ import {
 // ============================================
 
 /**
+ * Generate URL-safe slug from name (client-side fallback)
+ */
+function generateSlugClientSide(name: string): string {
+  let slug = name.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  if (!slug) slug = 'org';
+
+  // Add timestamp suffix for uniqueness (simple approach for fallback)
+  return `${slug}-${Date.now().toString(36)}`;
+}
+
+/**
  * Create a new organization
  * The creating user is automatically added as admin via database trigger
  */
@@ -23,26 +39,82 @@ export async function createOrganization(
   input: CreateOrganizationInput,
   userId: string
 ): Promise<Organization> {
-  if (!supabase) throw new Error('Supabase not configured');
+  console.log('[OrgService] createOrganization called:', { name: input.name, userId });
 
-  // Generate slug from name
-  const { data: slugData, error: slugError } = await supabase
-    .rpc('generate_org_slug', { org_name: input.name });
+  if (!supabase) {
+    console.error('[OrgService] Supabase not configured');
+    throw new Error('Supabase not configured');
+  }
 
-  if (slugError) throw slugError;
+  try {
+    // Try to generate slug via RPC, fall back to client-side if RPC fails
+    let slug: string;
 
-  const { data, error } = await supabase
-    .from('organizations')
-    .insert({
-      name: input.name,
-      slug: slugData,
-      created_by: userId
-    })
-    .select()
-    .single();
+    console.log('[OrgService] Generating slug for:', input.name);
+    const { data: slugData, error: slugError } = await supabase
+      .rpc('generate_org_slug', { org_name: input.name });
 
-  if (error) throw error;
-  return data as Organization;
+    if (slugError) {
+      console.warn('[OrgService] RPC slug generation failed, using client-side fallback:', slugError);
+      slug = generateSlugClientSide(input.name);
+    } else {
+      slug = slugData;
+    }
+    console.log('[OrgService] Generated slug:', slug);
+
+    // Insert organization
+    console.log('[OrgService] Inserting organization...');
+    const { data, error } = await supabase
+      .from('organizations')
+      .insert({
+        name: input.name,
+        slug: slug,
+        created_by: userId
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[OrgService] Organization insert failed:', error);
+      throw new Error(`Failed to create organization: ${error.message}`);
+    }
+
+    console.log('[OrgService] Organization created successfully:', data);
+
+    // Verify the user was added as a member (should happen via trigger)
+    // If not, add them manually as a fallback
+    const { data: membership, error: memberError } = await supabase
+      .from('organization_members')
+      .select('id')
+      .eq('organization_id', data.id)
+      .eq('user_id', userId)
+      .single();
+
+    if (memberError || !membership) {
+      console.warn('[OrgService] Trigger did not create membership, adding manually...');
+      const { error: insertMemberError } = await supabase
+        .from('organization_members')
+        .insert({
+          organization_id: data.id,
+          user_id: userId,
+          role: 'admin'
+        });
+
+      if (insertMemberError) {
+        console.error('[OrgService] Failed to add creator as admin:', insertMemberError);
+        // Don't throw - the org was created, membership can be fixed manually
+      } else {
+        console.log('[OrgService] Manually added creator as admin');
+      }
+    } else {
+      console.log('[OrgService] Creator membership confirmed');
+    }
+
+    return data as Organization;
+  } catch (err: any) {
+    console.error('[OrgService] createOrganization error:', err);
+    throw err;
+  }
 }
 
 /**

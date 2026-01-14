@@ -15,6 +15,7 @@ import {
     Pie
 } from 'recharts';
 import { SourceEffectivenessMetrics } from '../../types';
+import { StatLabel, StatValue } from '../common';
 
 interface SourceEffectivenessTabProps {
     data: SourceEffectivenessMetrics;
@@ -280,10 +281,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                     <div className="col-md-4">
                         <div className="card-bespoke h-100">
                             <div className="card-body text-center py-4">
-                                <div className="stat-label mb-2">Top Hiring Source</div>
-                                <div className="stat-value" style={{ color: getSourceColor(data.bestSource.name) }}>
+                                <StatLabel className="mb-2">Top Hiring Source</StatLabel>
+                                <StatValue className="d-block" style={{ color: getSourceColor(data.bestSource.name) }}>
                                     {data.bestSource.name}
-                                </div>
+                                </StatValue>
                                 <div className="mt-2">
                                     <span className="badge-bespoke badge-success-soft">
                                         {Math.round(data.bestSource.hireRate * 100)}% of hires
@@ -300,10 +301,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                 <div className="col-md-4">
                     <div className="card-bespoke h-100">
                         <div className="card-body text-center py-4">
-                            <div className="stat-label mb-2">Total Candidates</div>
-                            <div className="stat-value" style={{ color: 'var(--color-accent)' }}>
+                            <StatLabel className="mb-2">Total Candidates</StatLabel>
+                            <StatValue color="primary">
                                 {data.totalCandidates.toLocaleString()}
-                            </div>
+                            </StatValue>
                             <small className="text-muted">in selected period</small>
                         </div>
                     </div>
@@ -313,10 +314,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                     <div className="col-md-4">
                         <div className="card-bespoke h-100">
                             <div className="card-body text-center py-4">
-                                <div className="stat-label mb-2">Lowest Conversion Rate</div>
-                                <div className="stat-value" style={{ color: getSourceColor(data.worstSource.name) }}>
+                                <StatLabel className="mb-2">Lowest Conversion Rate</StatLabel>
+                                <StatValue className="d-block" style={{ color: getSourceColor(data.worstSource.name) }}>
                                     {data.worstSource.name}
-                                </div>
+                                </StatValue>
                                 <div className="mt-2">
                                     <span className="badge-bespoke badge-warning-soft">
                                         {Math.round(data.worstSource.hireRate * 100)}% conversion

@@ -32,7 +32,7 @@ import {
 import { HMPendingAction } from '../../types/hmTypes';
 import { runPreMortemBatch, convertToActionItems } from '../../services/preMortemService';
 import { PreMortemDrawer } from '../common/PreMortemDrawer';
-import { SectionHeader } from '../common/SectionHeader';
+import { SectionHeader, StatLabel, StatValue } from '../common';
 import { ActionItem } from '../../types/actionTypes';
 
 interface ForecastingTabProps {
@@ -521,8 +521,8 @@ export function ForecastingTab({
                 <div className="col-md-4">
                   <div className="card-bespoke text-center">
                     <div className="card-body">
-                      <div className="stat-label mb-2">Expected Time-to-Fill</div>
-                      <div className="stat-value text-primary">{forecast.ttfPrediction.medianDays} days</div>
+                      <StatLabel className="mb-2">Expected Time-to-Fill</StatLabel>
+                      <StatValue color="primary">{forecast.ttfPrediction.medianDays} days</StatValue>
                       <div className="text-muted small">
                         Range: {forecast.ttfPrediction.p25Days}-{forecast.ttfPrediction.p75Days} days
                       </div>
@@ -535,8 +535,8 @@ export function ForecastingTab({
                 <div className="col-md-4">
                   <div className="card-bespoke text-center">
                     <div className="card-body">
-                      <div className="stat-label mb-2">Candidates Needed</div>
-                      <div className="stat-value">{forecast.pipelineRequirements.totalCandidatesNeeded}</div>
+                      <StatLabel className="mb-2">Candidates Needed</StatLabel>
+                      <StatValue>{forecast.pipelineRequirements.totalCandidatesNeeded}</StatValue>
                       <div className="text-muted small">top of funnel</div>
                     </div>
                   </div>
@@ -544,10 +544,10 @@ export function ForecastingTab({
                 <div className="col-md-4">
                   <div className="card-bespoke text-center">
                     <div className="card-body">
-                      <div className="stat-label mb-2">Complexity Score</div>
-                      <div className={`stat-value ${forecast.complexityScore > 1.5 ? 'text-warning' : ''}`}>
+                      <StatLabel className="mb-2">Complexity Score</StatLabel>
+                      <StatValue color={forecast.complexityScore > 1.5 ? 'warning' : 'default'}>
                         {forecast.complexityScore.toFixed(1)}x
-                      </div>
+                      </StatValue>
                       <div className="text-muted small">vs baseline role</div>
                     </div>
                   </div>
@@ -742,8 +742,8 @@ export function ForecastingTab({
                 style={{ cursor: 'pointer' }}
               >
                 <div className="card-body">
-                  <div className="stat-label mb-2">Total Open</div>
-                  <div className="stat-value">{healthSummary.total}</div>
+                  <StatLabel className="mb-2">Total Open</StatLabel>
+                  <StatValue>{healthSummary.total}</StatValue>
                 </div>
               </div>
             </div>
@@ -754,8 +754,8 @@ export function ForecastingTab({
                 style={{ cursor: 'pointer' }}
               >
                 <div className="card-body">
-                  <div className="stat-label mb-2 text-success">On Track</div>
-                  <div className="stat-value text-success">{healthSummary.onTrack}</div>
+                  <StatLabel className="mb-2 text-success">On Track</StatLabel>
+                  <StatValue color="success">{healthSummary.onTrack}</StatValue>
                 </div>
               </div>
             </div>
@@ -766,8 +766,8 @@ export function ForecastingTab({
                 style={{ cursor: 'pointer' }}
               >
                 <div className="card-body">
-                  <div className="stat-label mb-2 text-warning">At Risk</div>
-                  <div className="stat-value text-warning">{healthSummary.atRisk}</div>
+                  <StatLabel className="mb-2 text-warning">At Risk</StatLabel>
+                  <StatValue color="warning">{healthSummary.atRisk}</StatValue>
                 </div>
               </div>
             </div>
@@ -778,8 +778,8 @@ export function ForecastingTab({
                 style={{ cursor: 'pointer' }}
               >
                 <div className="card-body">
-                  <div className="stat-label mb-2 text-danger">Off Track</div>
-                  <div className="stat-value text-danger">{healthSummary.offTrack}</div>
+                  <StatLabel className="mb-2 text-danger">Off Track</StatLabel>
+                  <StatValue color="danger">{healthSummary.offTrack}</StatValue>
                 </div>
               </div>
             </div>
