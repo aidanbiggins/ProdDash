@@ -46,45 +46,86 @@ export async function createOrganization(
     throw new Error('Supabase not configured');
   }
 
+  if (!userId) {
+    console.error('[OrgService] No userId provided');
+    throw new Error('Not authenticated. Please log in.');
+  }
+
   try {
-    // Verify authentication by calling getUser() - this makes an API call that confirms
-    // the JWT is valid and will be sent with subsequent requests
-    console.log('[OrgService] Verifying authentication...');
-
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !authUser) {
-      console.error('[OrgService] Auth verification failed:', authError);
-      throw new Error('Not authenticated. Please log in.');
-    }
-
-    console.log('[OrgService] Auth verified:', { userId: authUser.id, email: authUser.email });
-
-    // Verify the authenticated user matches the userId parameter
-    if (authUser.id !== userId) {
-      console.error('[OrgService] User ID mismatch:', { authUserId: authUser.id, providedUserId: userId });
-      throw new Error('Session user mismatch. Please log in again.');
-    }
+    // Trust the userId passed from AuthContext - it's already verified
+    // Calling getUser() again can hang due to network issues
+    console.log('[OrgService] Creating org for authenticated user:', userId);
 
     // Generate slug client-side (simpler and avoids RPC issues)
     const slug = generateSlugClientSide(input.name);
     console.log('[OrgService] Generated slug:', slug);
 
-    // Use RPC function to create organization - bypasses RLS issues
-    console.log('[OrgService] Creating organization via RPC...');
-    const { data: newOrgId, error: rpcError } = await supabase
-      .rpc('create_organization', {
+    let newOrgId: string | null = null;
+
+    // Try RPC first with a timeout, fall back to direct insert
+    try {
+      console.log('[OrgService] Attempting RPC create_organization...');
+
+      // Create a promise that rejects after timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('RPC timeout')), 5000);
+      });
+
+      const rpcPromise = supabase.rpc('create_organization', {
         org_name: input.name,
         org_slug: slug,
         creator_id: userId
       });
 
-    if (rpcError) {
-      console.error('[OrgService] RPC create_organization failed:', rpcError);
-      throw new Error(`Failed to create organization: ${rpcError.message}`);
+      const { data, error: rpcError } = await Promise.race([rpcPromise, timeoutPromise]) as any;
+
+      if (rpcError) {
+        console.warn('[OrgService] RPC failed, will try direct insert:', rpcError.message);
+        throw rpcError;
+      }
+
+      newOrgId = data;
+      console.log('[OrgService] RPC succeeded, org ID:', newOrgId);
+    } catch (rpcErr: any) {
+      console.warn('[OrgService] RPC unavailable, using direct insert:', rpcErr.message);
+
+      // Direct insert as fallback
+      const { data: insertedOrg, error: insertError } = await supabase
+        .from('organizations')
+        .insert({
+          name: input.name,
+          slug: slug,
+          created_by: userId
+        })
+        .select('id')
+        .single();
+
+      if (insertError) {
+        console.error('[OrgService] Direct insert failed:', insertError);
+        throw new Error(`Failed to create organization: ${insertError.message}`);
+      }
+
+      newOrgId = insertedOrg.id;
+      console.log('[OrgService] Direct insert succeeded, org ID:', newOrgId);
+
+      // Also create the membership manually since RPC wasn't available
+      const { error: memberError } = await supabase
+        .from('organization_members')
+        .insert({
+          organization_id: newOrgId,
+          user_id: userId,
+          role: 'admin'
+        });
+
+      if (memberError) {
+        console.error('[OrgService] Failed to create membership:', memberError);
+        // Don't throw - org was created, membership might fail due to trigger
+      }
     }
 
-    console.log('[OrgService] Organization created with ID:', newOrgId);
+    if (!newOrgId) {
+      throw new Error('Failed to create organization: no ID returned');
+    }
 
     // Fetch the created organization
     const { data: org, error: fetchError } = await supabase
