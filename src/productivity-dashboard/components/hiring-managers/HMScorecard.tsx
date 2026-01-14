@@ -83,14 +83,6 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
         setSortDirection(direction);
     };
 
-    // Get bucket columns to show
-    const bucketColumns: HMDecisionBucket[] = [
-        HMDecisionBucket.HM_REVIEW,
-        HMDecisionBucket.HM_INTERVIEW_DECISION,
-        HMDecisionBucket.HM_FINAL_DECISION,
-        HMDecisionBucket.OFFER_DECISION
-    ];
-
     // Determine if we should show the HM column
     const showHmColumn = !selectedHmUserIds || selectedHmUserIds.size === 0 || selectedHmUserIds.size > 1;
 
@@ -163,18 +155,18 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
             }
         ];
 
-        // Add bucket columns
-        const buckets: HMDecisionBucket[] = [
-            HMDecisionBucket.HM_REVIEW,
-            HMDecisionBucket.HM_INTERVIEW_DECISION,
-            HMDecisionBucket.HM_FINAL_DECISION,
-            HMDecisionBucket.OFFER_DECISION
+        // Add bucket columns with abbreviated headers
+        const bucketConfigs: Array<{ bucket: HMDecisionBucket; abbrev: string }> = [
+            { bucket: HMDecisionBucket.HM_REVIEW, abbrev: 'Rev' },
+            { bucket: HMDecisionBucket.HM_INTERVIEW_DECISION, abbrev: 'Int' },
+            { bucket: HMDecisionBucket.HM_FINAL_DECISION, abbrev: 'Dec' },
+            { bucket: HMDecisionBucket.OFFER_DECISION, abbrev: 'Off' }
         ];
-        buckets.forEach(bucket => {
+        bucketConfigs.forEach(({ bucket, abbrev }) => {
             cols.push({
                 key: `bucket_${bucket}`,
-                header: BUCKET_METADATA[bucket].shortLabel,
-                width: '45px',
+                header: abbrev,
+                width: '40px',
                 align: 'center',
                 headerClass: 'border-start',
                 cellClass: 'border-start',
@@ -199,15 +191,16 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
             {
                 key: 'riskFlags',
                 header: 'Risk',
-                width: '100px',
+                width: '90px',
                 headerClass: 'border-start',
                 cellClass: 'border-start',
-                render: (r) => <RiskFlagBadges flags={r.riskFlags} />
+                render: (r) => <RiskFlagBadges flags={r.riskFlags} compact />
             },
             {
                 key: 'stallReason',
                 header: 'Reason',
-                render: (r) => <StallReasonBadge stallReason={r.primaryStallReason} showEvidence={r.primaryStallReason.code !== StallReasonCode.NONE} />
+                width: '120px',
+                render: (r) => <StallReasonBadge stallReason={r.primaryStallReason} />
             }
         );
 

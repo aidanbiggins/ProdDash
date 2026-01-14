@@ -137,14 +137,15 @@ export function generateSampleData(config: {
   const recruiterNames: { id: string; name: string }[] = [];
   const hmNames: { id: string; name: string }[] = [];
 
-  // Generate recruiter names
-  const managerId = `manager_${sessionId}`;
-  const execId = `exec_${sessionId}`;
+  // Generate recruiter names - use name-based IDs for readability even if users table fails to load
+  const managerId = `ta_manager_${sessionId}`;
+  const execId = `vp_eng_${sessionId}`;
 
   for (let i = 1; i <= recruiterCount; i++) {
     const name = generateName();
     const emailName = `${name.first.toLowerCase()}.${name.last.toLowerCase()}`;
-    const id = `recruiter_${sessionId}_${i}`;
+    // Use name-based ID so it's readable even if users table doesn't load
+    const id = `${name.first.toLowerCase()}_${name.last.toLowerCase()}_${sessionId.substring(0, 4)}`;
     recruiterNames.push({ id, name: name.full });
     users.push(`${id},${name.full},Recruiter,TA Team,${managerId},${emailName}@company.com`);
   }
@@ -154,7 +155,8 @@ export function generateSampleData(config: {
     const name = generateName();
     const emailName = `${name.first.toLowerCase()}.${name.last.toLowerCase()}`;
     const func = randomItem(FUNCTIONS);
-    const id = `hm_${sessionId}_${i}`;
+    // Use name-based ID for readability
+    const id = `${name.first.toLowerCase()}_${name.last.toLowerCase()}_${sessionId.substring(0, 4)}`;
     hmNames.push({ id, name: name.full });
     users.push(`${id},${name.full},HiringManager,${func},${execId},${emailName}@company.com`);
   }

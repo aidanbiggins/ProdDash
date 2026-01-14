@@ -160,16 +160,19 @@ td[class*="numeric"] {
 
 /* Force large numbers to be BOLD MONO */
 .stat-value {
+    display: block;
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 2.25rem !important;
     font-weight: 600 !important;
     color: #ffffff !important;
     line-height: 1 !important;
     letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
 }
 
 /* Stat labels - Secondary color */
 .stat-label {
+    display: block;
     font-family: 'Inter', system-ui, sans-serif !important;
     font-size: 0.75rem !important;
     font-weight: 600 !important;
@@ -271,32 +274,56 @@ td[class*="numeric"] {
 }
 
 /* Alert dark mode */
+/* ============================================
+   BOOTSTRAP ALERT OVERRIDES - Dark Glass Theme
+   All alerts must use dark backgrounds
+   ============================================ */
 .alert {
-    border-width: 1px;
+    border-width: 1px !important;
+    border-radius: 6px !important;
 }
 
 .alert-info {
-    background-color: rgba(45, 212, 191, 0.15);
-    border-color: rgba(45, 212, 191, 0.3);
-    color: #2dd4bf;
+    background-color: rgba(45, 212, 191, 0.15) !important;
+    border-color: rgba(45, 212, 191, 0.3) !important;
+    color: #5eead4 !important;
 }
 
 .alert-warning {
-    background-color: rgba(245, 158, 11, 0.15);
-    border-color: rgba(245, 158, 11, 0.3);
-    color: #fbbf24;
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    color: #fcd34d !important;
 }
 
 .alert-danger {
-    background-color: rgba(239, 68, 68, 0.15);
-    border-color: rgba(239, 68, 68, 0.3);
-    color: #f87171;
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    color: #fca5a5 !important;
 }
 
 .alert-success {
-    background-color: rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.3);
-    color: #10B981;
+    background-color: rgba(34, 197, 94, 0.15) !important;
+    border-color: rgba(34, 197, 94, 0.3) !important;
+    color: #86efac !important;
+}
+
+.alert-light,
+.alert-secondary {
+    background-color: rgba(30, 41, 59, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #94a3b8 !important;
+}
+
+.alert-primary {
+    background-color: rgba(45, 212, 191, 0.15) !important;
+    border-color: rgba(45, 212, 191, 0.3) !important;
+    color: #5eead4 !important;
+}
+
+.alert-dark {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #e2e8f0 !important;
 }
 
 /* Ensure borders are visible */
@@ -450,6 +477,7 @@ td[class*="numeric"] {
    STATS / KPI STYLES - Glass Theme
    ======================================== */
 .stat-label {
+    display: block;
     font-family: var(--font-body);
     text-transform: uppercase;
     font-size: 0.6875rem;
@@ -460,12 +488,14 @@ td[class*="numeric"] {
 }
 
 .stat-value {
+    display: block;
     font-family: 'JetBrains Mono', monospace;
     font-size: 2.25rem;
     font-weight: 600;
     color: #F8FAFC;
     line-height: 1;
     letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
 }
 
 .trend-indicator {
@@ -863,35 +893,42 @@ small, .small {
 
 /* ============================================
    UNIFIED STATUS BADGES - Dark Mode Professional
+   High-contrast text colors for visibility on dark backgrounds
    ============================================ */
 .badge-success-soft {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac; /* Bright green for contrast */
+    font-weight: 600;
 }
 
 .badge-warning-soft {
-    background: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d; /* Brighter yellow for contrast */
+    font-weight: 600;
 }
 
 .badge-danger-soft {
-    background: rgba(239, 68, 68, 0.15);
-    color: #f87171;
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5; /* Lighter red for contrast */
+    font-weight: 600;
 }
 
 .badge-neutral-soft {
-    background: rgba(115, 115, 115, 0.15);
+    background: rgba(115, 115, 115, 0.2);
     color: #e4e4e7;
+    font-weight: 600;
 }
 
 .badge-accent-soft {
-    background: rgba(212, 163, 115, 0.15);
-    color: #f59e0b;
+    background: rgba(212, 163, 115, 0.2);
+    color: #fcd34d; /* Brighter amber for contrast */
+    font-weight: 600;
 }
 
 .badge-primary-soft {
-    background: rgba(45, 212, 191, 0.15);
-    color: #2dd4bf;
+    background: rgba(45, 212, 191, 0.2);
+    color: #5eead4; /* Brighter teal for contrast */
+    font-weight: 600;
 }
 
 /* Simple status dot pattern: ● Status */
@@ -1329,9 +1366,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 /* ========================================
    DEMO MODE BANNER
    ======================================== */
+/* Demo Banner - Dark glass theme (matches UI aesthetic) */
 .demo-banner {
-    background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%);
-    border: 1px solid #fbbf24;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
     border-radius: var(--radius-md);
     padding: 0.875rem 1rem;
     display: flex;
@@ -1346,11 +1384,38 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .demo-banner-text {
     flex-grow: 1;
     font-size: 0.875rem;
-    color: #92400e;
+    color: #fcd34d;
 }
 
 .demo-banner-text strong {
-    color: #78350f;
+    color: #fbbf24;
+}
+
+/* Demo banner buttons - glass style */
+.demo-banner .btn,
+.demo-banner .btn-bespoke-secondary {
+    color: #fcd34d !important;
+    border-color: rgba(245, 158, 11, 0.4) !important;
+    background: rgba(245, 158, 11, 0.15) !important;
+}
+
+.demo-banner .btn:hover,
+.demo-banner .btn-bespoke-secondary:hover {
+    color: #fef3c7 !important;
+    background: rgba(245, 158, 11, 0.25) !important;
+    border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+.demo-banner .btn-outline-danger {
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.demo-banner .btn-outline-danger:hover {
+    color: #fecaca !important;
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: rgba(239, 68, 68, 0.5) !important;
 }
 
 /* ========================================
@@ -1632,14 +1697,15 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     }
 }
 
-/* Mobile Demo Banner - compact dismissible version */
+/* Mobile Demo Banner - compact dismissible version (dark glass) */
 .demo-banner-mobile {
     display: flex;
     align-items: center;
     padding: 0.5rem 0.75rem;
-    background: #fef3c7;
+    background: rgba(245, 158, 11, 0.1);
     border-radius: 0.5rem;
     font-size: 0.75rem;
+    color: #fcd34d;
 }
 
 /* Mobile Menu Overlay */
@@ -2253,20 +2319,20 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     padding: 0.2em 0.5em !important;
 }
 
-/* Clean up Bootstrap badge colors - Dark mode */
+/* Clean up Bootstrap badge colors - Dark mode with high-contrast text */
 .badge.bg-success {
-    background-color: rgba(16, 185, 129, 0.2) !important;
-    color: #10B981 !important;
+    background-color: rgba(34, 197, 94, 0.2) !important;
+    color: #86efac !important; /* Bright green for contrast */
 }
 
 .badge.bg-danger {
     background-color: rgba(239, 68, 68, 0.2) !important;
-    color: #f87171 !important;
+    color: #fca5a5 !important; /* Lighter red for contrast */
 }
 
 .badge.bg-warning {
     background-color: rgba(245, 158, 11, 0.2) !important;
-    color: #fbbf24 !important;
+    color: #fcd34d !important; /* Brighter yellow for contrast */
 }
 
 .badge.bg-secondary {
@@ -2276,7 +2342,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 .badge.bg-primary {
     background-color: rgba(212, 163, 115, 0.2) !important;
-    color: #f59e0b !important;
+    color: #fcd34d !important; /* Brighter amber for contrast */
 }
 
 /* Fix number colors in tables - Dark mode */

@@ -71,9 +71,19 @@ export function StallReasonBadge({ stallReason, showEvidence = false }: StallRea
 // Risk Flag Badges
 interface RiskFlagBadgesProps {
     flags: Array<{ code: string; label: string; severity: 'warning' | 'danger' | 'info' }>;
+    compact?: boolean;
 }
 
-export function RiskFlagBadges({ flags }: RiskFlagBadgesProps) {
+// Compact labels for tight table columns
+const COMPACT_LABELS: Record<string, string> = {
+    'NO_MOVEMENT': 'Stalled',
+    'LOW_PIPELINE': 'Low Pipe',
+    'FEEDBACK_BACKLOG': 'FB Due',
+    'HM_REVIEW_BACKLOG': 'Review',
+    'OFFER_PENDING': 'Offer'
+};
+
+export function RiskFlagBadges({ flags, compact = false }: RiskFlagBadgesProps) {
     if (flags.length === 0) {
         return <span className="text-muted small">—</span>;
     }
@@ -84,9 +94,10 @@ export function RiskFlagBadges({ flags }: RiskFlagBadgesProps) {
                 <span
                     key={flag.code}
                     className={`badge bg-${flag.severity}`}
-                    style={{ fontSize: '0.7rem' }}
+                    style={{ fontSize: '0.65rem' }}
+                    title={flag.label}
                 >
-                    {flag.label}
+                    {compact ? (COMPACT_LABELS[flag.code] || flag.label) : flag.label}
                 </span>
             ))}
         </div>

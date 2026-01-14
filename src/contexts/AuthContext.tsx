@@ -177,7 +177,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         // Use onAuthStateChange as the primary auth mechanism
-        // This avoids AbortError issues with getSession()
         console.log('[Auth] Setting up auth listener');
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -202,13 +201,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
         });
 
-        // Fallback: if no auth event fires within 3 seconds, force loading complete
+        // Explicitly get session from localStorage to ensure the client is initialized
+        // This is critical for RLS - without this, auth.uid() returns NULL
+        const initSession = async () => {
+            if (!supabase) return; // Already checked above, but TypeScript needs this
+
+            try {
+                console.log('[Auth] Getting initial session from storage');
+                const { data: { session: initialSession }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error('[Auth] getSession error:', error);
+                    if (isMounted) setLoading(false);
+                    return;
+                }
+
+                if (initialSession && isMounted) {
+                    console.log('[Auth] Initial session found:', initialSession.user?.email);
+                    setSession(initialSession);
+                    setUser(initialSession.user ?? null);
+
+                    if (initialSession.user) {
+                        try {
+                            await loadMemberships(initialSession.user.id);
+                        } catch (err) {
+                            console.error('[Auth] Failed to load memberships:', err);
+                        }
+                    }
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error('[Auth] initSession error:', err);
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        initSession();
+
+        // Fallback: if no auth event fires within 5 seconds, force loading complete
         const fallbackTimeout = setTimeout(() => {
             if (isMounted && loading) {
                 console.log('[Auth] No auth event received, completing loading');
                 setLoading(false);
             }
-        }, 3000);
+        }, 5000);
 
         return () => {
             isMounted = false;

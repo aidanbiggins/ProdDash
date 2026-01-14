@@ -737,9 +737,22 @@ export function calculateRecruiterSummary(
   // Productivity index
   const productivityIndex = (weightedHires + weightedOffers * 0.5) / (activeReqLoad + 1);
 
+  // Convert ID to display name if user not found (e.g., "emma_smith_abc1" -> "Emma Smith")
+  const formatIdAsName = (id: string): string => {
+    // Remove session suffix (last underscore segment if it looks like a hash)
+    const parts = id.split('_');
+    if (parts.length >= 2 && parts[parts.length - 1].length <= 6) {
+      parts.pop(); // Remove session hash
+    }
+    // Capitalize each word
+    return parts
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+      .join(' ');
+  };
+
   return {
     recruiterId,
-    recruiterName: recruiter?.name || recruiterId,
+    recruiterName: recruiter?.name || formatIdAsName(recruiterId),
     team: recruiter?.team || null,
     outcomes,
     executionVolume,

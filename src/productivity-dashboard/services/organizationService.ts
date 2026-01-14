@@ -47,70 +47,59 @@ export async function createOrganization(
   }
 
   try {
-    // Try to generate slug via RPC, fall back to client-side if RPC fails
-    let slug: string;
+    // Verify authentication by calling getUser() - this makes an API call that confirms
+    // the JWT is valid and will be sent with subsequent requests
+    console.log('[OrgService] Verifying authentication...');
 
-    console.log('[OrgService] Generating slug for:', input.name);
-    const { data: slugData, error: slugError } = await supabase
-      .rpc('generate_org_slug', { org_name: input.name });
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
-    if (slugError) {
-      console.warn('[OrgService] RPC slug generation failed, using client-side fallback:', slugError);
-      slug = generateSlugClientSide(input.name);
-    } else {
-      slug = slugData;
+    if (authError || !authUser) {
+      console.error('[OrgService] Auth verification failed:', authError);
+      throw new Error('Not authenticated. Please log in.');
     }
+
+    console.log('[OrgService] Auth verified:', { userId: authUser.id, email: authUser.email });
+
+    // Verify the authenticated user matches the userId parameter
+    if (authUser.id !== userId) {
+      console.error('[OrgService] User ID mismatch:', { authUserId: authUser.id, providedUserId: userId });
+      throw new Error('Session user mismatch. Please log in again.');
+    }
+
+    // Generate slug client-side (simpler and avoids RPC issues)
+    const slug = generateSlugClientSide(input.name);
     console.log('[OrgService] Generated slug:', slug);
 
-    // Insert organization
-    console.log('[OrgService] Inserting organization...');
-    const { data, error } = await supabase
+    // Use RPC function to create organization - bypasses RLS issues
+    console.log('[OrgService] Creating organization via RPC...');
+    const { data: newOrgId, error: rpcError } = await supabase
+      .rpc('create_organization', {
+        org_name: input.name,
+        org_slug: slug,
+        creator_id: userId
+      });
+
+    if (rpcError) {
+      console.error('[OrgService] RPC create_organization failed:', rpcError);
+      throw new Error(`Failed to create organization: ${rpcError.message}`);
+    }
+
+    console.log('[OrgService] Organization created with ID:', newOrgId);
+
+    // Fetch the created organization
+    const { data: org, error: fetchError } = await supabase
       .from('organizations')
-      .insert({
-        name: input.name,
-        slug: slug,
-        created_by: userId
-      })
-      .select()
+      .select('*')
+      .eq('id', newOrgId)
       .single();
 
-    if (error) {
-      console.error('[OrgService] Organization insert failed:', error);
-      throw new Error(`Failed to create organization: ${error.message}`);
+    if (fetchError || !org) {
+      console.error('[OrgService] Failed to fetch created org:', fetchError);
+      throw new Error('Organization created but failed to fetch details');
     }
 
-    console.log('[OrgService] Organization created successfully:', data);
-
-    // Verify the user was added as a member (should happen via trigger)
-    // If not, add them manually as a fallback
-    const { data: membership, error: memberError } = await supabase
-      .from('organization_members')
-      .select('id')
-      .eq('organization_id', data.id)
-      .eq('user_id', userId)
-      .single();
-
-    if (memberError || !membership) {
-      console.warn('[OrgService] Trigger did not create membership, adding manually...');
-      const { error: insertMemberError } = await supabase
-        .from('organization_members')
-        .insert({
-          organization_id: data.id,
-          user_id: userId,
-          role: 'admin'
-        });
-
-      if (insertMemberError) {
-        console.error('[OrgService] Failed to add creator as admin:', insertMemberError);
-        // Don't throw - the org was created, membership can be fixed manually
-      } else {
-        console.log('[OrgService] Manually added creator as admin');
-      }
-    } else {
-      console.log('[OrgService] Creator membership confirmed');
-    }
-
-    return data as Organization;
+    console.log('[OrgService] Organization created successfully:', org);
+    return org as Organization;
   } catch (err: any) {
     console.error('[OrgService] createOrganization error:', err);
     throw err;
