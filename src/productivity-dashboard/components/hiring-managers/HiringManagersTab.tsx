@@ -256,7 +256,21 @@ export function HiringManagersTab({
                     )}
 
                     {/* As-of Date */}
-                    <div className={`px-3 py-1 rounded-pill border ${daysSinceImport !== null && daysSinceImport > 3 ? 'bg-warning-subtle border-warning' : 'bg-success-subtle border-success'} text-end d-flex flex-column justify-content-center`} style={{ height: '38px' }}>
+                    <div
+                        className="px-3 py-1 rounded-pill text-end d-flex flex-column justify-content-center"
+                        style={{
+                            height: '38px',
+                            background: daysSinceImport !== null && daysSinceImport > 3
+                                ? 'rgba(251, 191, 36, 0.15)'
+                                : 'rgba(45, 212, 191, 0.15)',
+                            border: `1px solid ${daysSinceImport !== null && daysSinceImport > 3
+                                ? 'rgba(251, 191, 36, 0.3)'
+                                : 'rgba(45, 212, 191, 0.3)'}`,
+                            color: daysSinceImport !== null && daysSinceImport > 3
+                                ? '#fbbf24'
+                                : '#2dd4bf'
+                        }}
+                    >
                         <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, lineHeight: 1, marginBottom: '2px', opacity: 0.8 }}>Data Refresh</div>
                         <div className="fw-bold small d-flex align-items-center justify-content-end gap-1" style={{ lineHeight: 1 }}>
                             {lastImportAt ? lastImportAt.toLocaleDateString() : 'Unknown'}

@@ -47,7 +47,7 @@ export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
   const [showProgressPanel, setShowProgressPanel] = useState(false);
   const { isMasked, toggleMasking } = useDataMasking();
-  const { currentOrg, user, refreshMemberships, supabaseUser, session, canManageMembers } = useAuth();
+  const { currentOrg, user, refreshMemberships, supabaseUser, session, canManageMembers, signOut } = useAuth();
   const isMobile = useIsMobile();
   const { showNewNav, useLegacyNav, toggleLegacyNav } = useNewNavigation();
   const [activeTab, setActiveTab] = useState<TabType>('control-tower');
@@ -347,6 +347,8 @@ export function ProductivityDashboard() {
             }
             setActiveTab(tab);
           }}
+          userEmail={user?.email || supabaseUser?.email}
+          onSignOut={signOut}
         />
       )}
 
@@ -501,28 +503,30 @@ export function ProductivityDashboard() {
 
         {/* Header */}
         {isMobile ? (
-          // Mobile Header - compact with hamburger
+          // Mobile Header - compact (hamburger only shown with legacy nav)
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div>
               <h1 className="fs-5 fw-bold mb-0">Recruiting Insights</h1>
               <small className="text-muted">{state.dataStore.requisitions.length} Reqs · {state.dataStore.candidates.length} Candidates</small>
             </div>
-            <button
-              className="btn"
-              onClick={() => setShowMobileMenu(true)}
-              style={{
-                padding: '0.5rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: 'var(--text-primary, #F8FAFC)'
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </button>
+            {!showNewNav && (
+              <button
+                className="btn"
+                onClick={() => setShowMobileMenu(true)}
+                style={{
+                  padding: '0.5rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'var(--text-primary, #F8FAFC)'
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
+            )}
           </div>
         ) : (
           // Desktop Header

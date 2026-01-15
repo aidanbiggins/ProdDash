@@ -11,6 +11,8 @@ export interface MobileDrawerProps {
   useLegacyNav: boolean;
   onToggleLegacy: () => void;
   onNavigate?: (route: string) => void;
+  userEmail?: string;
+  onSignOut?: () => void;
 }
 
 export function MobileDrawer({
@@ -20,7 +22,9 @@ export function MobileDrawer({
   activeItem,
   useLegacyNav,
   onToggleLegacy,
-  onNavigate
+  onNavigate,
+  userEmail,
+  onSignOut
 }: MobileDrawerProps) {
   const [expandedBuckets, setExpandedBuckets] = useState<Set<string>>(new Set(['diagnose', 'plan', 'settings']));
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -137,8 +141,26 @@ export function MobileDrawer({
           ))}
         </nav>
 
-        {/* Footer with legacy toggle */}
+        {/* Footer with user info and sign out */}
         <div className="mobile-drawer-footer">
+          {userEmail && (
+            <div className="mobile-drawer-user">
+              <i className="bi bi-person-circle" />
+              <span>{userEmail}</span>
+            </div>
+          )}
+          {onSignOut && (
+            <button
+              className="mobile-drawer-signout"
+              onClick={() => {
+                onClose();
+                onSignOut();
+              }}
+            >
+              <i className="bi bi-box-arrow-right" />
+              <span>Sign Out</span>
+            </button>
+          )}
           <label className="legacy-toggle">
             <input
               type="checkbox"

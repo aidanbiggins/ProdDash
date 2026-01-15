@@ -12,11 +12,14 @@ export interface TopNavProps {
   onToggleLegacy: () => void;
   activeTab?: TabType;
   onNavigate?: (tab: TabType) => void;
+  userEmail?: string;
+  onSignOut?: () => void;
 }
 
-export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate }: TopNavProps) {
+export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, userEmail, onSignOut }: TopNavProps) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [quickFindOpen, setQuickFindOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   // Update currentPath when URL changes (for back/forward navigation)
@@ -37,15 +40,29 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate }: 
         e.preventDefault();
         setQuickFindOpen(true);
       }
-      // Escape to close QuickFind
-      if (e.key === 'Escape' && quickFindOpen) {
-        setQuickFindOpen(false);
+      // Escape to close QuickFind or user menu
+      if (e.key === 'Escape') {
+        if (quickFindOpen) setQuickFindOpen(false);
+        if (userMenuOpen) setUserMenuOpen(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [quickFindOpen]);
+  }, [quickFindOpen, userMenuOpen]);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.nav-dropdown')) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [userMenuOpen]);
 
   const handleNavigation = (route: string) => {
     // Update URL without full page reload
@@ -123,6 +140,41 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate }: 
               <i className="bi bi-search" />
               <span className="quick-find-hint">Cmd+K</span>
             </button>
+
+            {/* User Menu */}
+            {onSignOut && (
+              <div className="nav-dropdown">
+                <button
+                  className={`nav-dropdown-trigger ${userMenuOpen ? 'open' : ''}`}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
+                >
+                  <i className="bi bi-person-circle" />
+                  <i className="bi bi-chevron-down dropdown-chevron" />
+                </button>
+                {userMenuOpen && (
+                  <div className="nav-dropdown-menu" style={{ right: 0, left: 'auto' }}>
+                    {userEmail && (
+                      <div className="nav-dropdown-item" style={{ cursor: 'default', opacity: 0.7 }}>
+                        <i className="bi bi-envelope" />
+                        <span style={{ fontSize: '0.8rem' }}>{userEmail}</span>
+                      </div>
+                    )}
+                    <button
+                      className="nav-dropdown-item"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        onSignOut();
+                      }}
+                    >
+                      <i className="bi bi-box-arrow-right" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -136,6 +188,8 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate }: 
         useLegacyNav={useLegacyNav}
         onToggleLegacy={onToggleLegacy}
         onNavigate={handleNavigation}
+        userEmail={userEmail}
+        onSignOut={onSignOut}
       />
 
       {/* Quick Find Command Palette */}
