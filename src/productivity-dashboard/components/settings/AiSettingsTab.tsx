@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { PageShell, PageHeader, GlassPanel, SectionHeader } from '../layout';
 import { AiProviderSettings } from './AiProviderSettings';
 import { AiProviderConfig, AiProvider, DEFAULT_AI_CONFIG } from '../../types/aiTypes';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export function AiSettingsTab() {
+  const { user, currentOrg, canManageMembers } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [aiConfigs, setAiConfigs] = useState<Map<AiProvider, AiProviderConfig>>(new Map());
   const [currentProvider, setCurrentProvider] = useState<AiProvider>('openai');
@@ -89,7 +91,9 @@ export function AiSettingsTab() {
         currentConfig={currentConfig}
         onSave={handleSave}
         onClear={handleClear}
-        allConfigs={aiConfigs}
+        orgId={currentOrg?.id}
+        userId={user?.id}
+        canSetOrgKey={canManageMembers}
       />
 
       <style>{`

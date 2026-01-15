@@ -10,8 +10,12 @@ import {
 } from '../productivity-dashboard/types/auth';
 import {
     getUserMemberships,
-    checkIsSuperAdmin
+    checkIsSuperAdmin,
+    addSuperAdmin
 } from '../productivity-dashboard/services/organizationService';
+
+// Super admin email - always seeded as super admin on sign-in
+const SUPER_ADMIN_EMAIL = 'aidanbiggins@gmail.com';
 
 const CURRENT_ORG_KEY = 'current_org_id';
 
@@ -85,10 +89,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isSuperAdmin
     } : null;
 
+    // Ensure super admin status for designated email
+    const ensureSuperAdmin = useCallback(async (userId: string, email: string) => {
+        if (email.toLowerCase() !== SUPER_ADMIN_EMAIL) return;
+
+        console.log('[Auth] Checking super admin status for:', email);
+        try {
+            const isAlreadySuperAdmin = await checkIsSuperAdmin(userId);
+            if (!isAlreadySuperAdmin) {
+                console.log('[Auth] Auto-seeding super admin for:', email);
+                await addSuperAdmin(userId);
+            }
+        } catch (err) {
+            console.error('[Auth] Failed to ensure super admin status:', err);
+            // Don't throw - this is a best-effort operation
+        }
+    }, []);
+
     // Load memberships for a user
-    const loadMemberships = useCallback(async (userId: string) => {
+    const loadMemberships = useCallback(async (userId: string, email?: string) => {
         console.log('[Auth] Loading memberships for user:', userId);
         try {
+            // Auto-seed super admin if this is the designated email
+            if (email) {
+                await ensureSuperAdmin(userId, email);
+            }
+
             const [userMemberships, superAdminStatus] = await Promise.all([
                 getUserMemberships(userId),
                 checkIsSuperAdmin(userId)
@@ -110,14 +136,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setMemberships([]);
             setIsSuperAdmin(false);
         }
-    }, []);
+    }, [ensureSuperAdmin]);
 
     // Refresh memberships (called after joining/leaving orgs)
     const refreshMemberships = useCallback(async () => {
-        if (user?.id) {
-            await loadMemberships(user.id);
+        if (user?.id && user?.email) {
+            await loadMemberships(user.id, user.email);
         }
-    }, [user?.id, loadMemberships]);
+    }, [user?.id, user?.email, loadMemberships]);
 
     // Switch current organization
     const switchOrganization = useCallback((orgId: string) => {
@@ -188,7 +214,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             if (session?.user) {
                 try {
-                    await loadMemberships(session.user.id);
+                    await loadMemberships(session.user.id, session.user.email ?? undefined);
                 } catch (err) {
                     console.error('[Auth] Failed to load memberships:', err);
                 }
@@ -223,7 +249,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                     if (initialSession.user) {
                         try {
-                            await loadMemberships(initialSession.user.id);
+                            await loadMemberships(initialSession.user.id, initialSession.user.email ?? undefined);
                         } catch (err) {
                             console.error('[Auth] Failed to load memberships:', err);
                         }

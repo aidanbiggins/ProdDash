@@ -248,3 +248,207 @@ export async function getStoredProviders(): Promise<VaultProvider[]> {
     return [];
   }
 }
+
+// ============================================
+// NEW: Direct Key Storage (no encryption)
+// ============================================
+
+import { AiProvider, StoredAiKey } from '../types/aiTypes';
+
+interface DirectKeyRow {
+  provider: AiProvider;
+  api_key: string | null;
+  model: string | null;
+  base_url: string | null;
+  updated_at: string;
+}
+
+/**
+ * Fetch all user AI keys (direct storage, no encryption)
+ */
+export async function fetchUserAiKeys(): Promise<Map<AiProvider, StoredAiKey>> {
+  const result = new Map<AiProvider, StoredAiKey>();
+
+  if (!supabase) {
+    return result;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_ai_vault')
+      .select('provider, api_key, model, base_url, updated_at');
+
+    if (error) {
+      if (error.code === '42P01') {
+        return result;
+      }
+      console.error('[UserAiKey] Error fetching keys:', error.message);
+      return result;
+    }
+
+    for (const row of (data || []) as DirectKeyRow[]) {
+      // Only include entries with direct api_key (not legacy encrypted_blob)
+      if (row.api_key) {
+        result.set(row.provider, {
+          provider: row.provider,
+          apiKey: row.api_key,
+          model: row.model ?? undefined,
+          baseUrl: row.base_url ?? undefined,
+          scope: 'user',
+          updatedAt: new Date(row.updated_at),
+        });
+      }
+    }
+
+    return result;
+  } catch (err) {
+    console.error('[UserAiKey] Unexpected error:', err);
+    return result;
+  }
+}
+
+/**
+ * Check if user has any stored AI keys (direct storage)
+ */
+export async function hasUserAiKeys(): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { count, error } = await supabase
+      .from('user_ai_vault')
+      .select('id', { count: 'exact', head: true })
+      .not('api_key', 'is', null);
+
+    if (error) {
+      if (error.code === '42P01') return false;
+      return false;
+    }
+
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Save a user AI key (direct storage, no encryption)
+ */
+export async function saveUserAiKey(
+  provider: AiProvider,
+  apiKey: string,
+  options?: { model?: string; baseUrl?: string }
+): Promise<boolean> {
+  if (!supabase) {
+    console.warn('[UserAiKey] Supabase not configured');
+    return false;
+  }
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('[UserAiKey] No authenticated user');
+      return false;
+    }
+
+    const { error } = await supabase
+      .from('user_ai_vault')
+      .upsert(
+        {
+          user_id: user.id,
+          provider,
+          api_key: apiKey,
+          model: options?.model ?? null,
+          base_url: options?.baseUrl ?? null,
+          encrypted_blob: null, // Clear legacy blob if any
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'user_id,provider',
+        }
+      );
+
+    if (error) {
+      console.error('[UserAiKey] Error saving key:', error.message);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('[UserAiKey] Unexpected error saving key:', err);
+    return false;
+  }
+}
+
+/**
+ * Delete a user AI key
+ */
+export async function deleteUserAiKey(provider: AiProvider): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from('user_ai_vault')
+      .delete()
+      .eq('provider', provider);
+
+    if (error) {
+      console.error('[UserAiKey] Error deleting key:', error.message);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('[UserAiKey] Unexpected error deleting key:', err);
+    return false;
+  }
+}
+
+/**
+ * Delete all user AI keys
+ */
+export async function deleteAllUserAiKeys(): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { error } = await supabase
+      .from('user_ai_vault')
+      .delete()
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('[UserAiKey] Error deleting all keys:', error.message);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('[UserAiKey] Unexpected error deleting all keys:', err);
+    return false;
+  }
+}
+
+/**
+ * Get list of providers with stored user keys (direct storage)
+ */
+export async function getUserStoredProviders(): Promise<AiProvider[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('user_ai_vault')
+      .select('provider')
+      .not('api_key', 'is', null);
+
+    if (error) {
+      if (error.code === '42P01') return [];
+      return [];
+    }
+
+    return (data || []).map(row => row.provider as AiProvider);
+  } catch {
+    return [];
+  }
+}

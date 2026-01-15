@@ -340,3 +340,275 @@ function getDefaultModelForProvider(provider: AiProvider): string {
     default: return 'gpt-4o';
   }
 }
+
+// ============================================
+// NEW: useAiKeys hook (no passphrase required)
+// ============================================
+
+import {
+  AiKeyScope,
+  AiKeyState,
+  StoredAiKey,
+  INITIAL_KEY_STATE,
+} from '../types/aiTypes';
+import {
+  fetchUserAiKeys,
+  saveUserAiKey,
+  deleteUserAiKey,
+  deleteAllUserAiKeys,
+  getUserStoredProviders,
+} from '../services/userAiVaultService';
+import {
+  fetchOrgAiKeys,
+  upsertOrgAiKey,
+  deleteOrgAiKey,
+  deleteAllOrgAiKeys,
+  getOrgStoredProviders,
+} from '../services/orgAiKeyService';
+
+export interface UseAiKeysReturn {
+  /** Current key state */
+  keyState: AiKeyState;
+
+  /** Load all keys (user + org) */
+  loadKeys: (orgId: string | null) => Promise<void>;
+
+  /**
+   * Save an API key
+   * @param provider - AI provider
+   * @param apiKey - The API key to save
+   * @param scope - 'user' for user-only, 'org' for organization-wide
+   * @param orgId - Required if scope is 'org'
+   * @param userId - Required if scope is 'org' (for audit trail)
+   * @param options - Optional model and baseUrl
+   */
+  saveKey: (
+    provider: AiProvider,
+    apiKey: string,
+    scope: AiKeyScope,
+    orgId?: string | null,
+    userId?: string,
+    options?: { model?: string; baseUrl?: string }
+  ) => Promise<boolean>;
+
+  /**
+   * Delete a stored key
+   * @param provider - AI provider
+   * @param scope - Which scope to delete from
+   * @param orgId - Required if scope is 'org'
+   */
+  deleteKey: (provider: AiProvider, scope: AiKeyScope, orgId?: string | null) => Promise<boolean>;
+
+  /**
+   * Get the effective key for a provider (user key takes precedence over org key)
+   */
+  getEffectiveKey: (provider: AiProvider) => StoredAiKey | null;
+
+  /**
+   * Get all effective keys (user keys take precedence)
+   */
+  getEffectiveKeys: () => Map<AiProvider, StoredAiKey>;
+
+  /** Clear error state */
+  clearError: () => void;
+}
+
+export function useAiKeys(): UseAiKeysReturn {
+  const [keyState, setKeyState] = useState<AiKeyState>(INITIAL_KEY_STATE);
+
+  const loadKeys = useCallback(async (orgId: string | null) => {
+    setKeyState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const [userKeys, orgKeys] = await Promise.all([
+        fetchUserAiKeys(),
+        orgId ? fetchOrgAiKeys(orgId) : Promise.resolve(new Map<AiProvider, StoredAiKey>()),
+      ]);
+
+      setKeyState({
+        isLoading: false,
+        error: null,
+        userKeys,
+        orgKeys,
+        userProviders: Array.from(userKeys.keys()),
+        orgProviders: Array.from(orgKeys.keys()),
+      });
+    } catch (err: any) {
+      console.error('[useAiKeys] loadKeys error:', err);
+      setKeyState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: err.message || 'Failed to load AI keys',
+      }));
+    }
+  }, []);
+
+  const saveKey = useCallback(async (
+    provider: AiProvider,
+    apiKey: string,
+    scope: AiKeyScope,
+    orgId?: string | null,
+    userId?: string,
+    options?: { model?: string; baseUrl?: string }
+  ): Promise<boolean> => {
+    setKeyState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      if (scope === 'user') {
+        const success = await saveUserAiKey(provider, apiKey, options);
+        if (!success) {
+          throw new Error('Failed to save user key');
+        }
+
+        // Update local state
+        setKeyState(prev => {
+          const newUserKeys = new Map(prev.userKeys);
+          newUserKeys.set(provider, {
+            provider,
+            apiKey,
+            model: options?.model,
+            baseUrl: options?.baseUrl,
+            scope: 'user',
+            updatedAt: new Date(),
+          });
+          return {
+            ...prev,
+            isLoading: false,
+            userKeys: newUserKeys,
+            userProviders: Array.from(newUserKeys.keys()),
+          };
+        });
+      } else {
+        // scope === 'org'
+        if (!orgId || !userId) {
+          throw new Error('Organization ID and user ID required for org-level keys');
+        }
+
+        await upsertOrgAiKey(orgId, provider, apiKey, userId, options);
+
+        // Update local state
+        setKeyState(prev => {
+          const newOrgKeys = new Map(prev.orgKeys);
+          newOrgKeys.set(provider, {
+            provider,
+            apiKey,
+            model: options?.model,
+            baseUrl: options?.baseUrl,
+            scope: 'org',
+            setBy: userId,
+            updatedAt: new Date(),
+          });
+          return {
+            ...prev,
+            isLoading: false,
+            orgKeys: newOrgKeys,
+            orgProviders: Array.from(newOrgKeys.keys()),
+          };
+        });
+      }
+
+      return true;
+    } catch (err: any) {
+      console.error('[useAiKeys] saveKey error:', err);
+      setKeyState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: err.message || 'Failed to save key',
+      }));
+      return false;
+    }
+  }, []);
+
+  const deleteKey = useCallback(async (
+    provider: AiProvider,
+    scope: AiKeyScope,
+    orgId?: string | null
+  ): Promise<boolean> => {
+    setKeyState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      if (scope === 'user') {
+        const success = await deleteUserAiKey(provider);
+        if (!success) {
+          throw new Error('Failed to delete user key');
+        }
+
+        // Update local state
+        setKeyState(prev => {
+          const newUserKeys = new Map(prev.userKeys);
+          newUserKeys.delete(provider);
+          return {
+            ...prev,
+            isLoading: false,
+            userKeys: newUserKeys,
+            userProviders: Array.from(newUserKeys.keys()),
+          };
+        });
+      } else {
+        // scope === 'org'
+        if (!orgId) {
+          throw new Error('Organization ID required for org-level keys');
+        }
+
+        await deleteOrgAiKey(orgId, provider);
+
+        // Update local state
+        setKeyState(prev => {
+          const newOrgKeys = new Map(prev.orgKeys);
+          newOrgKeys.delete(provider);
+          return {
+            ...prev,
+            isLoading: false,
+            orgKeys: newOrgKeys,
+            orgProviders: Array.from(newOrgKeys.keys()),
+          };
+        });
+      }
+
+      return true;
+    } catch (err: any) {
+      console.error('[useAiKeys] deleteKey error:', err);
+      setKeyState(prev => ({
+        ...prev,
+        isLoading: false,
+        error: err.message || 'Failed to delete key',
+      }));
+      return false;
+    }
+  }, []);
+
+  const getEffectiveKey = useCallback((provider: AiProvider): StoredAiKey | null => {
+    // User key takes precedence over org key
+    return keyState.userKeys.get(provider) || keyState.orgKeys.get(provider) || null;
+  }, [keyState.userKeys, keyState.orgKeys]);
+
+  const getEffectiveKeys = useCallback((): Map<AiProvider, StoredAiKey> => {
+    const effective = new Map<AiProvider, StoredAiKey>();
+
+    // Start with org keys
+    for (const [provider, key] of keyState.orgKeys) {
+      effective.set(provider, key);
+    }
+
+    // Override with user keys (user takes precedence)
+    for (const [provider, key] of keyState.userKeys) {
+      effective.set(provider, key);
+    }
+
+    return effective;
+  }, [keyState.userKeys, keyState.orgKeys]);
+
+  const clearError = useCallback(() => {
+    setKeyState(prev => ({ ...prev, error: null }));
+  }, []);
+
+  return {
+    keyState,
+    loadKeys,
+    saveKey,
+    deleteKey,
+    getEffectiveKey,
+    getEffectiveKeys,
+    clearError,
+  };
+}

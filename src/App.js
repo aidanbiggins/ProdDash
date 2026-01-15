@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard'; // Legacy dashboard
 import ComparisonView from './components/ComparisonView'; // Legacy
 import { RecruiterProductivityDashboard } from './productivity-dashboard';
 import { InviteAcceptPage } from './components/InviteAcceptPage';
+import OnboardingPage from './components/OnboardingPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Login route that redirects logged-in users to returnUrl or home
@@ -43,6 +44,13 @@ function AppRoutes() {
 
       {/* Invite Accept Page - accessible without login but requires login to accept */}
       <Route path="/invite/:token" element={<InviteAcceptPage />} />
+
+      {/* Onboarding - Post sign-in org selection/creation */}
+      <Route path="/onboarding" element={
+        <ProtectedRoute>
+          <OnboardingPage />
+        </ProtectedRoute>
+      } />
 
       {/* Main Dashboard - Protected */}
       <Route path="/" element={

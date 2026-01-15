@@ -101,17 +101,69 @@ export const DEFAULT_AI_CONFIG: Omit<AiProviderConfig, 'apiKey'> = {
   maxTokens: 1024,
 };
 
-// ===== VAULT TYPES =====
+// ===== KEY STORAGE TYPES =====
 
 /**
- * Storage mode for AI provider keys
+ * Scope for AI API key storage
+ * - 'user': Key saved for the current user only
+ * - 'org': Key shared with all members of the organization (admin only)
+ */
+export type AiKeyScope = 'user' | 'org';
+
+/**
+ * Storage mode for AI provider keys (legacy, kept for backwards compatibility)
  * - 'memory': Keys stored in memory only (default, cleared on page refresh)
  * - 'vault': Keys encrypted and stored in Supabase, unlocked with passphrase
+ * @deprecated Use 'persisted' mode with AiKeyScope instead
  */
-export type AiKeyStorageMode = 'memory' | 'vault';
+export type AiKeyStorageMode = 'memory' | 'vault' | 'persisted';
 
 /**
- * Vault state for UI
+ * Stored AI key record (from database)
+ */
+export interface StoredAiKey {
+  provider: AiProvider;
+  apiKey: string;
+  model?: string;
+  baseUrl?: string;
+  scope: AiKeyScope;
+  setBy?: string; // user_id who set the key (for org keys)
+  updatedAt: Date;
+}
+
+/**
+ * AI key state for UI
+ */
+export interface AiKeyState {
+  /** Whether keys are being loaded */
+  isLoading: boolean;
+  /** Error from last operation */
+  error: string | null;
+  /** User's own stored keys (by provider) */
+  userKeys: Map<AiProvider, StoredAiKey>;
+  /** Organization's shared keys (by provider) */
+  orgKeys: Map<AiProvider, StoredAiKey>;
+  /** List of providers with user keys */
+  userProviders: AiProvider[];
+  /** List of providers with org keys */
+  orgProviders: AiProvider[];
+}
+
+/**
+ * Initial key state
+ */
+export const INITIAL_KEY_STATE: AiKeyState = {
+  isLoading: false,
+  error: null,
+  userKeys: new Map(),
+  orgKeys: new Map(),
+  userProviders: [],
+  orgProviders: [],
+};
+
+/**
+ * Vault state for UI (legacy, kept for backwards compatibility)
+ * @deprecated Use AiKeyState instead
  */
 export interface AiVaultState {
   /** Current storage mode */

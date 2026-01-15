@@ -47,7 +47,7 @@ export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
   const [showProgressPanel, setShowProgressPanel] = useState(false);
   const { isMasked, toggleMasking } = useDataMasking();
-  const { currentOrg, user, refreshMemberships, supabaseUser, session } = useAuth();
+  const { currentOrg, user, refreshMemberships, supabaseUser, session, canManageMembers } = useAuth();
   const isMobile = useIsMobile();
   const { showNewNav, useLegacyNav, toggleLegacyNav } = useNewNavigation();
   const [activeTab, setActiveTab] = useState<TabType>('control-tower');
@@ -1100,6 +1100,9 @@ export function ProductivityDashboard() {
           currentConfig={aiConfig}
           onSave={setAiConfig}
           onClear={() => setAiConfig(null)}
+          orgId={currentOrg?.id}
+          userId={user?.id}
+          canSetOrgKey={canManageMembers}
         />
 
         {/* Progress Indicator Panel */}
