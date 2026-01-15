@@ -12,9 +12,26 @@ interface ExplainDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   explanation: Explanation | null;
+  // Navigation props for back/forward between explain cards
+  canGoBack?: boolean;
+  canGoForward?: boolean;
+  onGoBack?: () => void;
+  onGoForward?: () => void;
+  currentIndex?: number;
+  totalCount?: number;
 }
 
-export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerProps) {
+export function ExplainDrawer({
+  isOpen,
+  onClose,
+  explanation,
+  canGoBack = false,
+  canGoForward = false,
+  onGoBack,
+  onGoForward,
+  currentIndex,
+  totalCount
+}: ExplainDrawerProps) {
   const { aiConfig, isAiEnabled } = useDashboard();
   const aiSummary = useAiSummary();
 
@@ -91,13 +108,57 @@ export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerPro
             backgroundColor: 'rgba(0,0,0,0.2)',
           }}
         >
-          <div>
-            <div className="small text-uppercase" style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
-              Explain
+          <div className="d-flex align-items-center gap-3">
+            {/* Back/Forward Navigation */}
+            {(canGoBack || canGoForward) && (
+              <div className="d-flex align-items-center gap-1">
+                <button
+                  className="btn btn-sm p-1"
+                  onClick={onGoBack}
+                  disabled={!canGoBack}
+                  style={{
+                    color: canGoBack ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    opacity: canGoBack ? 1 : 0.4,
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '4px',
+                    backgroundColor: canGoBack ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  }}
+                  title="Previous metric"
+                >
+                  <i className="bi bi-chevron-left"></i>
+                </button>
+                <button
+                  className="btn btn-sm p-1"
+                  onClick={onGoForward}
+                  disabled={!canGoForward}
+                  style={{
+                    color: canGoForward ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    opacity: canGoForward ? 1 : 0.4,
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '4px',
+                    backgroundColor: canGoForward ? 'rgba(255,255,255,0.1)' : 'transparent',
+                  }}
+                  title="Next metric"
+                >
+                  <i className="bi bi-chevron-right"></i>
+                </button>
+                {currentIndex !== undefined && totalCount !== undefined && totalCount > 1 && (
+                  <span className="small ms-1" style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
+                    {currentIndex + 1}/{totalCount}
+                  </span>
+                )}
+              </div>
+            )}
+            <div>
+              <div className="small text-uppercase" style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+                Explain
+              </div>
+              <h5 className="mb-0" style={{ color: 'var(--text-primary)' }}>
+                {explanation.metricLabel}
+              </h5>
             </div>
-            <h5 className="mb-0" style={{ color: 'var(--text-primary)' }}>
-              {explanation.metricLabel}
-            </h5>
           </div>
           <button
             className="btn btn-sm"
@@ -233,10 +294,7 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
               color: 'var(--text-primary)',
             }}
           >
-            {explanation.value !== null ? explanation.value : '--'}
-            <span className="ms-1" style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>
-              {explanation.unit}
-            </span>
+            {explanation.value !== null ? formatValueWithUnit(explanation.value, explanation.unit) : '--'}
           </div>
         </div>
 
@@ -396,6 +454,36 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
         </div>
       )}
     </div>
+  );
+}
+
+// Helper function to format value with unit, avoiding redundancy like "3d days"
+function formatValueWithUnit(value: number | string, unit: string): React.ReactNode {
+  const valueStr = String(value);
+
+  // Check if value already has a unit suffix
+  const hasDaySuffix = /\d+d$/.test(valueStr);
+  const hasHourSuffix = /\d+h$/.test(valueStr);
+  const hasPercentSuffix = /%$/.test(valueStr);
+
+  // If value already includes a unit indicator, just show the value
+  if (hasDaySuffix || hasHourSuffix || hasPercentSuffix) {
+    // Extract number and show with proper formatting
+    const num = parseFloat(valueStr);
+    if (!isNaN(num)) {
+      if (hasDaySuffix) return <>{num}<span style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginLeft: '4px' }}>days</span></>;
+      if (hasHourSuffix) return <>{num}<span style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginLeft: '4px' }}>hours</span></>;
+      if (hasPercentSuffix) return <>{num}<span style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginLeft: '4px' }}>%</span></>;
+    }
+    return valueStr;
+  }
+
+  // Otherwise show value + unit
+  return (
+    <>
+      {valueStr}
+      {unit && <span style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginLeft: '4px' }}>{unit}</span>}
+    </>
   );
 }
 

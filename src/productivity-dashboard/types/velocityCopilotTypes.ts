@@ -152,6 +152,12 @@ export interface AICopilotInsight {
     metric_key?: string;
     filter?: Record<string, unknown>;
     sample_size?: number;
+    contributing_items?: Array<{
+      id: string;
+      title?: string;
+      type: string;
+      value?: string;
+    }>;
   };
 }
 

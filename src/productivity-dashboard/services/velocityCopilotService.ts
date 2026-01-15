@@ -307,6 +307,165 @@ function calculateBottleneckStages(
   return bottlenecks;
 }
 
+// ===== EVIDENCE HELPERS =====
+
+/**
+ * Map a citation path to its corresponding sample size from the factPack
+ */
+function getSampleSizeForCitation(citation: string, factPack: VelocityFactPack): number | undefined {
+  const citationToSampleSize: Record<string, number> = {
+    // KPI-related citations
+    'kpis.median_ttf_days': factPack.sample_sizes.total_filled,
+    'kpis.offer_accept_rate': factPack.sample_sizes.total_offers,
+    'kpis.overall_fill_rate': factPack.sample_sizes.total_reqs,
+    'kpis.decay_rate_per_day': factPack.sample_sizes.total_offers,
+    'kpis.req_decay_rate_per_day': factPack.sample_sizes.total_reqs,
+    'kpis.decay_start_day': factPack.sample_sizes.total_offers,
+
+    // Sample size direct references
+    'sample_sizes.total_offers': factPack.sample_sizes.total_offers,
+    'sample_sizes.total_accepted': factPack.sample_sizes.total_accepted,
+    'sample_sizes.total_reqs': factPack.sample_sizes.total_reqs,
+    'sample_sizes.total_filled': factPack.sample_sizes.total_filled,
+    'sample_sizes.total_hires': factPack.sample_sizes.total_hires,
+    'sample_sizes.fast_hires_cohort': factPack.sample_sizes.fast_hires_cohort,
+    'sample_sizes.slow_hires_cohort': factPack.sample_sizes.slow_hires_cohort,
+
+    // Cohort comparison
+    'cohort_comparison.fast_hires': factPack.sample_sizes.fast_hires_cohort,
+    'cohort_comparison.slow_hires': factPack.sample_sizes.slow_hires_cohort,
+    'cohort_comparison.factors': factPack.sample_sizes.fast_hires_cohort + factPack.sample_sizes.slow_hires_cohort,
+
+    // Decay analysis
+    'candidate_decay.available': factPack.sample_sizes.total_offers,
+    'candidate_decay.buckets': factPack.sample_sizes.total_offers,
+    'req_decay.available': factPack.sample_sizes.total_reqs,
+    'req_decay.buckets': factPack.sample_sizes.total_reqs,
+
+    // Contributing reqs
+    'contributing_reqs.zombie_req_ids': factPack.contributing_reqs.zombie_req_ids.length,
+    'contributing_reqs.stalled_req_ids': factPack.contributing_reqs.stalled_req_ids.length,
+    'contributing_reqs.slow_fill_req_ids': factPack.contributing_reqs.slow_fill_req_ids.length,
+    'contributing_reqs.fast_fill_req_ids': factPack.contributing_reqs.fast_fill_req_ids.length,
+
+    // Bottleneck stages
+    'bottleneck_stages': factPack.bottleneck_stages?.reduce((sum, b) => sum + b.count, 0) ?? 0,
+
+    // Stage timing
+    'stage_timing.capability': factPack.sample_sizes.total_hires,
+    'stage_timing.reason': factPack.sample_sizes.total_hires,
+  };
+
+  // Direct match
+  if (citationToSampleSize[citation] !== undefined) {
+    return citationToSampleSize[citation];
+  }
+
+  // Partial match for nested paths (e.g., "cohort_comparison.fast_hires.count")
+  for (const [key, value] of Object.entries(citationToSampleSize)) {
+    if (citation.startsWith(key)) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Get contributing items for an AI insight based on its citations and claim
+ */
+function getContributingItemsForInsight(
+  citations: string[],
+  claim: string,
+  factPack: VelocityFactPack
+): Array<{ id: string; title?: string; type: string; value?: string }> {
+  const items: Array<{ id: string; title?: string; type: string; value?: string }> = [];
+
+  // Check if insight is about zombie reqs
+  if (citations.includes('contributing_reqs.zombie_req_ids') || claim.toLowerCase().includes('zombie')) {
+    factPack.contributing_reqs.zombie_req_ids.forEach(reqId => {
+      items.push({ id: reqId, type: 'zombie_req', value: '30+ days inactive' });
+    });
+    return items;
+  }
+
+  // Check if insight is about stalled reqs
+  if (citations.includes('contributing_reqs.stalled_req_ids') || claim.toLowerCase().includes('stalled')) {
+    factPack.contributing_reqs.stalled_req_ids.forEach(reqId => {
+      items.push({ id: reqId, type: 'stalled_req', value: '14-30 days inactive' });
+    });
+    return items;
+  }
+
+  // Check if insight is about slow fill reqs
+  if (citations.includes('contributing_reqs.slow_fill_req_ids') || claim.toLowerCase().includes('slow')) {
+    factPack.contributing_reqs.slow_fill_req_ids.forEach(reqId => {
+      items.push({ id: reqId, type: 'slow_fill', value: '>60 days to fill' });
+    });
+    return items;
+  }
+
+  // Check if insight is about fast fill reqs (success patterns)
+  if (citations.includes('contributing_reqs.fast_fill_req_ids') || claim.toLowerCase().includes('fast')) {
+    factPack.contributing_reqs.fast_fill_req_ids.forEach(reqId => {
+      items.push({ id: reqId, type: 'fast_fill', value: '≤30 days to fill' });
+    });
+    return items;
+  }
+
+  // Check if insight is about bottleneck stages
+  if (citations.some(c => c.includes('bottleneck')) || claim.toLowerCase().includes('bottleneck')) {
+    factPack.bottleneck_stages?.forEach(stage => {
+      items.push({
+        id: stage.stage,
+        type: 'bottleneck_stage',
+        value: `${stage.avg_days}d avg (n=${stage.count})`
+      });
+    });
+    return items;
+  }
+
+  // Check if insight is about candidate decay - show bucket breakdown
+  if (citations.some(c => c.includes('candidate_decay') || c.includes('decay_start_day') || c.includes('offer_accept'))) {
+    factPack.candidate_decay.buckets?.slice(0, 5).forEach(bucket => {
+      items.push({
+        id: bucket.label,
+        type: 'decay_bucket',
+        value: `${Math.round(bucket.rate * 100)}% accept (n=${bucket.count})`
+      });
+    });
+    return items;
+  }
+
+  // Check if insight is about req decay
+  if (citations.some(c => c.includes('req_decay') || c.includes('fill_rate'))) {
+    factPack.req_decay.buckets?.slice(0, 5).forEach(bucket => {
+      items.push({
+        id: bucket.label,
+        type: 'fill_bucket',
+        value: `${Math.round(bucket.rate * 100)}% fill (n=${bucket.count})`
+      });
+    });
+    return items;
+  }
+
+  // Check if insight is about cohort comparison
+  if (citations.some(c => c.includes('cohort_comparison'))) {
+    if (factPack.cohort_comparison.factors) {
+      factPack.cohort_comparison.factors.slice(0, 5).forEach(factor => {
+        items.push({
+          id: factor.name,
+          type: 'cohort_factor',
+          value: `Fast: ${factor.fast_value} | Slow: ${factor.slow_value}`
+        });
+      });
+    }
+    return items;
+  }
+
+  return items;
+}
+
 // ===== AI INSIGHT GENERATION =====
 
 /**
@@ -447,6 +606,22 @@ function parseAIResponse(
         allInvalidCitations.push(...validation.invalid_citations);
       }
 
+      // Get sample size from citations
+      let sampleSize: number | undefined;
+      for (const citation of insight.citations) {
+        const size = getSampleSizeForCitation(citation, factPack);
+        if (size !== undefined && (sampleSize === undefined || size > sampleSize)) {
+          sampleSize = size;
+        }
+      }
+
+      // Get contributing items based on insight content
+      const contributingItems = getContributingItemsForInsight(
+        insight.citations,
+        insight.claim,
+        factPack
+      );
+
       validatedInsights.push({
         id: `ai_insight_${Date.now()}_${i}`,
         title: insight.title,
@@ -457,7 +632,9 @@ function parseAIResponse(
         citations: insight.citations,
         deep_link_params: {
           insight_type: 'ai_generated',
-          metric_key: insight.citations[0] || undefined
+          metric_key: insight.citations[0] || undefined,
+          sample_size: sampleSize,
+          contributing_items: contributingItems.length > 0 ? contributingItems : undefined
         }
       });
     }

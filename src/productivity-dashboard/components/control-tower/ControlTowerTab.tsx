@@ -204,6 +204,9 @@ export function ControlTowerTab({
   // ===== EXPLAIN DRAWER STATE =====
   const [explainDrawerOpen, setExplainDrawerOpen] = useState(false);
   const [currentExplanation, setCurrentExplanation] = useState<Explanation | null>(null);
+  // History for back/forward navigation
+  const [explainHistory, setExplainHistory] = useState<Explanation[]>([]);
+  const [explainHistoryIndex, setExplainHistoryIndex] = useState(-1);
 
   // ===== ACTION DETAIL DRAWER STATE =====
   const [actionDrawerOpen, setActionDrawerOpen] = useState(false);
@@ -232,8 +235,36 @@ export function ControlTowerTab({
     };
     const explanation = getExplanation(providerId, context);
     setCurrentExplanation(explanation);
+
+    // Add to history (truncate forward history if navigating from middle)
+    setExplainHistory(prev => {
+      const newHistory = [...prev.slice(0, explainHistoryIndex + 1), explanation];
+      return newHistory;
+    });
+    setExplainHistoryIndex(prev => prev + 1);
+
     setExplainDrawerOpen(true);
-  }, [requisitions, candidates, events, users, filters, config, overview, hmFriction]);
+  }, [requisitions, candidates, events, users, filters, config, overview, hmFriction, explainHistoryIndex]);
+
+  // Navigation handlers for explain history
+  const handleExplainGoBack = useCallback(() => {
+    if (explainHistoryIndex > 0) {
+      const newIndex = explainHistoryIndex - 1;
+      setExplainHistoryIndex(newIndex);
+      setCurrentExplanation(explainHistory[newIndex]);
+    }
+  }, [explainHistoryIndex, explainHistory]);
+
+  const handleExplainGoForward = useCallback(() => {
+    if (explainHistoryIndex < explainHistory.length - 1) {
+      const newIndex = explainHistoryIndex + 1;
+      setExplainHistoryIndex(newIndex);
+      setCurrentExplanation(explainHistory[newIndex]);
+    }
+  }, [explainHistoryIndex, explainHistory]);
+
+  const canGoBack = explainHistoryIndex > 0;
+  const canGoForward = explainHistoryIndex < explainHistory.length - 1;
 
   // ===== GENERATE ALL EXPLANATIONS =====
   const allExplanations = useMemo(() => {
@@ -871,6 +902,12 @@ export function ControlTowerTab({
         isOpen={explainDrawerOpen}
         onClose={() => setExplainDrawerOpen(false)}
         explanation={currentExplanation}
+        canGoBack={canGoBack}
+        canGoForward={canGoForward}
+        onGoBack={handleExplainGoBack}
+        onGoForward={handleExplainGoForward}
+        currentIndex={explainHistoryIndex}
+        totalCount={explainHistory.length}
       />
 
       {/* Action Detail Drawer */}

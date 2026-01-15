@@ -96,7 +96,7 @@ export interface VelocityInsight {
     id: string;
     title?: string;
     value?: string | number;
-    type: 'req' | 'candidate' | 'application';
+    type: string;  // e.g., 'req', 'candidate', 'zombie_req', 'decay_bucket', 'cohort_factor', etc.
   }>;
   /** Cohort filters used to generate this insight */
   cohortFilters?: Record<string, unknown>;

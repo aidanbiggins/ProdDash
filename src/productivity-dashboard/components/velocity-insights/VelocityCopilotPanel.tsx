@@ -410,6 +410,16 @@ export function VelocityCopilotPanel({
       ?.replace(/_/g, ' ')
       ?.replace(/\b\w/g, c => c.toUpperCase()) || insight.title;
 
+    // Extract contributing items from deep_link_params
+    const rawItems = insight.deep_link_params?.contributing_items as
+      Array<{ id: string; title?: string; type: string; value?: string }> | undefined;
+    const contributingItems = rawItems?.map(item => ({
+      id: item.id,
+      title: item.title,
+      type: item.type,
+      value: item.value
+    }));
+
     const velocityInsight: VelocityInsight = {
       type: insight.severity === 'P0' ? 'warning' : insight.severity === 'P1' ? 'warning' : 'info',
       title: insight.title,
@@ -419,7 +429,8 @@ export function VelocityCopilotPanel({
       sampleSize: insight.deep_link_params?.sample_size as number | undefined,
       soWhat: insight.why_now,
       nextStep: insight.recommended_actions[0],
-      confidence: insight.severity === 'P0' ? 'HIGH' : insight.severity === 'P1' ? 'MED' : 'LOW'
+      confidence: insight.severity === 'P0' ? 'HIGH' : insight.severity === 'P1' ? 'MED' : 'LOW',
+      contributingItems: contributingItems
     };
 
     onViewEvidence(velocityInsight);

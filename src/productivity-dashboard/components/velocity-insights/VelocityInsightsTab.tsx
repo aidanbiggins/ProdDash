@@ -204,23 +204,53 @@ function StageTimingEmptyState({ reason }: { reason: string }) {
   );
 }
 
-// Evidence Drawer component - shows drilldown details for an insight
+// Rich Evidence Drawer component - shows contextual, actionable evidence for an insight
 function EvidenceDrawer({
   insight,
+  metrics,
   isOpen,
   onClose
 }: {
   insight: VelocityInsight | null;
+  metrics: VelocityMetrics;
   isOpen: boolean;
   onClose: () => void;
 }) {
   if (!isOpen || !insight) return null;
 
+  const { candidateDecay, reqDecay, cohortComparison } = metrics;
+
+  // Detect insight type from evidence/citations
+  const evidence = insight.evidence?.toLowerCase() || '';
+  const title = insight.title?.toLowerCase() || '';
+
+  const isTTFInsight = evidence.includes('ttf') || evidence.includes('median') || title.includes('time-to-fill');
+  const isFillRateInsight = evidence.includes('fill_rate') || title.includes('fill rate');
+  const isAcceptanceInsight = evidence.includes('accept') || evidence.includes('offer') || title.includes('acceptance');
+  const isDecayInsight = evidence.includes('decay') || title.includes('decay');
+  const isCohortInsight = evidence.includes('cohort') || title.includes('fast') || title.includes('slow');
+  const isZombieInsight = evidence.includes('zombie') || title.includes('zombie');
+  const isStalledInsight = evidence.includes('stalled') || title.includes('stalled');
+
+  // Extract the primary metric value from description
+  const extractNumber = (text: string): string | null => {
+    const match = text.match(/(\d+\.?\d*)\s*(days?|%|d\b)/i);
+    return match ? match[1] + (match[2] === '%' ? '%' : 'd') : null;
+  };
+  const primaryValue = extractNumber(insight.description || '');
+
+  // Determine status color based on insight type
+  const getStatusColor = () => {
+    if (insight.type === 'warning') return '#f59e0b';
+    if (insight.type === 'success') return '#10b981';
+    return '#60a5fa';
+  };
+
   return (
     <div
       className="position-fixed top-0 end-0 h-100"
       style={{
-        width: '400px',
+        width: '440px',
         maxWidth: '100vw',
         background: '#1a1a1a',
         borderLeft: '1px solid #3f3f46',
@@ -234,9 +264,19 @@ function EvidenceDrawer({
       {/* Header */}
       <div
         className="d-flex align-items-center justify-content-between p-3"
-        style={{ borderBottom: '1px solid #3f3f46' }}
+        style={{ borderBottom: '1px solid #3f3f46', background: '#141414' }}
       >
-        <h6 className="mb-0" style={{ color: '#f5f5f5', fontSize: '0.85rem' }}>Evidence Details</h6>
+        <div className="d-flex align-items-center gap-2">
+          <span style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: getStatusColor()
+          }} />
+          <h6 className="mb-0" style={{ color: '#f5f5f5', fontSize: '0.85rem', fontWeight: 600 }}>
+            Evidence & Context
+          </h6>
+        </div>
         <button
           className="btn btn-sm"
           onClick={onClose}
@@ -247,151 +287,243 @@ function EvidenceDrawer({
       </div>
 
       {/* Content */}
-      <div className="flex-grow-1 overflow-auto p-3">
-        {/* Insight Summary */}
-        <div className="mb-4">
-          <div className="fw-semibold mb-2" style={{ color: '#f5f5f5', fontSize: '0.9rem' }}>
+      <div className="flex-grow-1 overflow-auto">
+        {/* Hero Section - Big Number */}
+        <div
+          className="p-4 text-center"
+          style={{
+            background: 'linear-gradient(180deg, rgba(39, 39, 42, 0.8) 0%, rgba(26, 26, 26, 1) 100%)',
+            borderBottom: '1px solid #3f3f46'
+          }}
+        >
+          <div style={{ color: '#6b7280', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
             {insight.title}
           </div>
-          <div style={{ color: '#94A3B8', fontSize: '0.8rem', lineHeight: 1.5 }}>
-            {insight.description}
-          </div>
+          {primaryValue ? (
+            <div style={{ color: getStatusColor(), fontSize: '2.5rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+              {primaryValue}
+            </div>
+          ) : (
+            <div style={{ color: '#f5f5f5', fontSize: '1rem', fontWeight: 500 }}>
+              {insight.description}
+            </div>
+          )}
+          {primaryValue && (
+            <div style={{ color: '#94A3B8', fontSize: '0.75rem', marginTop: '4px' }}>
+              {insight.type === 'warning' ? '⚠️ Needs attention' : insight.type === 'success' ? '✓ Performing well' : 'ℹ️ For your awareness'}
+            </div>
+          )}
         </div>
 
-        {/* Metric Used */}
-        <div className="mb-4">
-          <div
-            className="mb-2"
-            style={{ color: '#6b7280', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-          >
-            Metric
-          </div>
-          <div
-            className="p-2 rounded"
-            style={{ background: '#27272a', fontSize: '0.8rem' }}
-          >
-            <div style={{ color: '#f5f5f5', fontWeight: 500 }}>{insight.metric || 'N/A'}</div>
-            {insight.evidence && (
-              <div style={{ color: '#94A3B8', fontSize: '0.75rem', marginTop: '4px' }}>
-                {insight.evidence}
+        <div className="p-3">
+          {/* Why This Matters */}
+          {insight.soWhat && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <i className="bi bi-lightbulb" style={{ color: '#f59e0b', fontSize: '0.85rem' }}></i>
+                <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Why This Matters
+                </span>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sample Size & Confidence */}
-        <div className="mb-4">
-          <div
-            className="mb-2"
-            style={{ color: '#6b7280', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-          >
-            Sample Size & Confidence
-          </div>
-          <div className="d-flex gap-3">
-            <div
-              className="p-2 rounded flex-grow-1"
-              style={{ background: '#27272a', textAlign: 'center' }}
-            >
-              <div style={{ color: '#f5f5f5', fontWeight: 600, fontSize: '1.25rem' }}>
-                {insight.sampleSize ?? '—'}
+              <div style={{ color: '#d1d5db', fontSize: '0.8rem', lineHeight: 1.6, paddingLeft: '22px' }}>
+                {insight.soWhat}
               </div>
-              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Sample (n)</div>
             </div>
-            <div
-              className="p-2 rounded flex-grow-1"
-              style={{ background: '#27272a', textAlign: 'center' }}
-            >
-              <div style={{
-                color: insight.confidence === 'HIGH' ? '#10b981' :
-                  insight.confidence === 'MED' ? '#f59e0b' :
-                    insight.confidence === 'LOW' ? '#ef4444' : '#6b7280',
-                fontWeight: 600,
-                fontSize: '0.9rem'
-              }}>
-                {insight.confidence || 'N/A'}
+          )}
+
+          {/* Recommended Action */}
+          {insight.nextStep && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <i className="bi bi-arrow-right-circle" style={{ color: '#10b981', fontSize: '0.85rem' }}></i>
+                <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Recommended Action
+                </span>
               </div>
-              <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Confidence</div>
+              <div
+                className="p-2 rounded"
+                style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', paddingLeft: '22px' }}
+              >
+                <span style={{ color: '#10b981', fontSize: '0.8rem' }}>{insight.nextStep}</span>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* Cohort Filters */}
-        {insight.cohortFilters && Object.keys(insight.cohortFilters).length > 0 && (
-          <div className="mb-4">
-            <div
-              className="mb-2"
-              style={{ color: '#6b7280', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-            >
-              Cohort Filters
+          {/* TTF Insight - Show Req Decay Breakdown */}
+          {(isTTFInsight || isFillRateInsight) && reqDecay.dataPoints.length > 0 && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <i className="bi bi-bar-chart" style={{ color: '#60a5fa', fontSize: '0.85rem' }}></i>
+                <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Fill Rate by Days Open
+                </span>
+              </div>
+              <div className="d-flex flex-column gap-1">
+                {reqDecay.dataPoints.slice(0, 6).map((dp, idx) => {
+                  const fillPct = Math.round(dp.rate * 100);
+                  const barColor = fillPct >= 60 ? '#10b981' : fillPct >= 40 ? '#f59e0b' : '#ef4444';
+                  return (
+                    <div key={idx} className="d-flex align-items-center gap-2">
+                      <div style={{ width: '80px', fontSize: '0.7rem', color: '#94A3B8', textAlign: 'right' }}>
+                        {dp.bucket}
+                      </div>
+                      <div style={{ flex: 1, height: '16px', background: '#27272a', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${fillPct}%`, height: '100%', background: barColor, transition: 'width 0.3s' }} />
+                      </div>
+                      <div style={{ width: '50px', fontSize: '0.7rem', color: '#f5f5f5', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {fillPct}%
+                      </div>
+                      <div style={{ width: '30px', fontSize: '0.65rem', color: '#6b7280' }}>
+                        n={dp.count}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '8px', fontStyle: 'italic' }}>
+                Fill rate drops as reqs stay open longer. Target: close within 45 days.
+              </div>
             </div>
-            <div
-              className="p-2 rounded"
-              style={{ background: '#27272a', fontSize: '0.75rem', color: '#94A3B8' }}
-            >
-              {Object.entries(insight.cohortFilters).map(([key, value]) => (
-                <div key={key}>
-                  <span style={{ color: '#6b7280' }}>{key}:</span> {String(value)}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Contributing Items */}
-        {insight.contributingItems && insight.contributingItems.length > 0 && (
-          <div className="mb-4">
-            <div
-              className="mb-2"
-              style={{ color: '#6b7280', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-            >
-              Top Contributing Items ({insight.contributingItems.length})
-            </div>
-            <div className="d-flex flex-column gap-2">
-              {insight.contributingItems.slice(0, 10).map((item, idx) => (
+          {/* Acceptance Rate Insight - Show Candidate Decay */}
+          {(isAcceptanceInsight || isDecayInsight) && candidateDecay.dataPoints.length > 0 && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <i className="bi bi-graph-down" style={{ color: '#f59e0b', fontSize: '0.85rem' }}></i>
+                <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Acceptance Rate by Time in Process
+                </span>
+              </div>
+              <div className="d-flex flex-column gap-1">
+                {candidateDecay.dataPoints.slice(0, 6).map((dp, idx) => {
+                  const acceptPct = Math.round(dp.rate * 100);
+                  const barColor = acceptPct >= 80 ? '#10b981' : acceptPct >= 60 ? '#f59e0b' : '#ef4444';
+                  const isDecayPoint = candidateDecay.decayStartDay && dp.minDays >= candidateDecay.decayStartDay;
+                  return (
+                    <div key={idx} className="d-flex align-items-center gap-2">
+                      <div style={{ width: '80px', fontSize: '0.7rem', color: isDecayPoint ? '#f59e0b' : '#94A3B8', textAlign: 'right' }}>
+                        {dp.bucket} {isDecayPoint && '⚠️'}
+                      </div>
+                      <div style={{ flex: 1, height: '16px', background: '#27272a', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${acceptPct}%`, height: '100%', background: barColor, transition: 'width 0.3s' }} />
+                      </div>
+                      <div style={{ width: '50px', fontSize: '0.7rem', color: '#f5f5f5', fontFamily: "'JetBrains Mono', monospace" }}>
+                        {acceptPct}%
+                      </div>
+                      <div style={{ width: '30px', fontSize: '0.65rem', color: '#6b7280' }}>
+                        n={dp.count}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {candidateDecay.decayStartDay && (
                 <div
-                  key={item.id}
-                  className="p-2 rounded d-flex justify-content-between align-items-center"
-                  style={{ background: '#27272a', fontSize: '0.75rem' }}
-                  data-testid="evidence-item"
+                  className="p-2 mt-2 rounded"
+                  style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)' }}
                 >
-                  <div>
-                    <span style={{ color: '#6b7280', marginRight: '8px' }}>{idx + 1}.</span>
-                    <span style={{ color: '#f5f5f5' }}>{item.title || item.id}</span>
-                    <span
-                      className="ms-2"
-                      style={{
-                        background: 'rgba(96, 165, 250, 0.1)',
-                        color: '#60a5fa',
-                        padding: '1px 4px',
-                        borderRadius: '2px',
-                        fontSize: '0.6rem'
-                      }}
-                    >
-                      {item.type}
+                  <span style={{ color: '#f59e0b', fontSize: '0.75rem' }}>
+                    ⚠️ Decay begins after day {candidateDecay.decayStartDay}. Aim to extend offers before this point.
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Cohort Comparison Insight */}
+          {isCohortInsight && cohortComparison && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <i className="bi bi-people" style={{ color: '#8b5cf6', fontSize: '0.85rem' }}></i>
+                <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Fast vs Slow Hire Comparison
+                </span>
+              </div>
+              <div className="d-flex gap-2 mb-2">
+                <div className="flex-grow-1 p-2 rounded text-center" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                  <div style={{ color: '#10b981', fontSize: '1.25rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+                    {Math.round(cohortComparison.fastHires.avgTimeToFill)}d
+                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Fast Hires (n={cohortComparison.fastHires.count})</div>
+                </div>
+                <div className="flex-grow-1 p-2 rounded text-center" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                  <div style={{ color: '#ef4444', fontSize: '1.25rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+                    {Math.round(cohortComparison.slowHires.avgTimeToFill)}d
+                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Slow Hires (n={cohortComparison.slowHires.count})</div>
+                </div>
+              </div>
+              {cohortComparison.factors.slice(0, 4).map((factor, idx) => (
+                <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded mb-1" style={{ background: '#27272a' }}>
+                  <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{factor.factor}</span>
+                  <div className="d-flex align-items-center gap-3">
+                    <span style={{ color: '#10b981', fontSize: '0.75rem', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {factor.fastHiresValue} {factor.unit}
+                    </span>
+                    <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>vs</span>
+                    <span style={{ color: '#ef4444', fontSize: '0.75rem', fontFamily: "'JetBrains Mono', monospace" }}>
+                      {factor.slowHiresValue} {factor.unit}
                     </span>
                   </div>
-                  {item.value !== undefined && (
-                    <span style={{ color: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }}>
-                      {item.value}
-                    </span>
-                  )}
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* No contributing items message */}
-        {(!insight.contributingItems || insight.contributingItems.length === 0) && (
-          <div
-            className="p-3 text-center rounded"
-            style={{ background: '#27272a', color: '#6b7280', fontSize: '0.8rem' }}
-          >
-            No individual items available for this insight.
-            <br />
-            <span style={{ fontSize: '0.7rem' }}>This insight is based on aggregate metrics.</span>
+          {/* Contributing Items (if any) */}
+          {insight.contributingItems && insight.contributingItems.length > 0 && (
+            <div className="mb-4">
+              <div className="d-flex align-items-center gap-2 mb-2">
+                <i className="bi bi-list-check" style={{ color: '#60a5fa', fontSize: '0.85rem' }}></i>
+                <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Contributing Items ({insight.contributingItems.length})
+                </span>
+              </div>
+              <div className="d-flex flex-column gap-1">
+                {insight.contributingItems.slice(0, 8).map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className="p-2 rounded d-flex justify-content-between align-items-center"
+                    style={{ background: '#27272a', fontSize: '0.75rem' }}
+                  >
+                    <div className="d-flex align-items-center gap-2">
+                      <span style={{ color: '#6b7280', width: '16px' }}>{idx + 1}.</span>
+                      <span style={{ color: '#f5f5f5' }}>{item.title || item.id}</span>
+                    </div>
+                    {item.value !== undefined && (
+                      <span style={{ color: '#94A3B8', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.7rem' }}>
+                        {item.value}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Data Source */}
+          <div className="mt-4 pt-3" style={{ borderTop: '1px solid #27272a' }}>
+            <div className="d-flex align-items-center justify-content-between">
+              <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
+                Based on {insight.sampleSize ?? reqDecay.totalReqs} records
+              </span>
+              <span style={{
+                background: insight.confidence === 'HIGH' ? 'rgba(16, 185, 129, 0.15)' :
+                  insight.confidence === 'MED' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(107, 114, 128, 0.15)',
+                color: insight.confidence === 'HIGH' ? '#10b981' :
+                  insight.confidence === 'MED' ? '#f59e0b' : '#6b7280',
+                padding: '2px 8px',
+                borderRadius: '2px',
+                fontSize: '0.6rem',
+                fontWeight: 600,
+                textTransform: 'uppercase'
+              }}>
+                {insight.confidence || 'MED'} confidence
+              </span>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -1204,6 +1336,7 @@ export function VelocityInsightsTab({
       <DrawerBackdrop isOpen={evidenceDrawerOpen} onClose={handleCloseEvidence} />
       <EvidenceDrawer
         insight={selectedInsight}
+        metrics={metrics}
         isOpen={evidenceDrawerOpen}
         onClose={handleCloseEvidence}
       />
