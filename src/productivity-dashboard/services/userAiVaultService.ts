@@ -250,21 +250,27 @@ export async function getStoredProviders(): Promise<VaultProvider[]> {
 }
 
 // ============================================
-// NEW: Direct Key Storage (no encryption)
+// Server-Side Encrypted Key Storage
 // ============================================
 
 import { AiProvider, StoredAiKey } from '../types/aiTypes';
+import {
+  encryptApiKey,
+  decryptApiKey,
+  EncryptedBlob as ServerEncryptedBlob,
+  isValidEncryptedBlob as isValidServerBlob,
+} from './aiVaultCryptoService';
 
-interface DirectKeyRow {
+interface EncryptedKeyRow {
   provider: AiProvider;
-  api_key: string | null;
+  encrypted_key: ServerEncryptedBlob | null;
   model: string | null;
   base_url: string | null;
   updated_at: string;
 }
 
 /**
- * Fetch all user AI keys (direct storage, no encryption)
+ * Fetch all user AI keys (with server-side decryption)
  */
 export async function fetchUserAiKeys(): Promise<Map<AiProvider, StoredAiKey>> {
   const result = new Map<AiProvider, StoredAiKey>();
@@ -276,7 +282,7 @@ export async function fetchUserAiKeys(): Promise<Map<AiProvider, StoredAiKey>> {
   try {
     const { data, error } = await supabase
       .from('user_ai_vault')
-      .select('provider, api_key, model, base_url, updated_at');
+      .select('provider, encrypted_key, model, base_url, updated_at');
 
     if (error) {
       if (error.code === '42P01') {
@@ -286,19 +292,29 @@ export async function fetchUserAiKeys(): Promise<Map<AiProvider, StoredAiKey>> {
       return result;
     }
 
-    for (const row of (data || []) as DirectKeyRow[]) {
-      // Only include entries with direct api_key (not legacy encrypted_blob)
-      if (row.api_key) {
-        result.set(row.provider, {
-          provider: row.provider,
-          apiKey: row.api_key,
-          model: row.model ?? undefined,
-          baseUrl: row.base_url ?? undefined,
-          scope: 'user',
-          updatedAt: new Date(row.updated_at),
-        });
+    // Decrypt keys in parallel
+    const decryptionPromises: Promise<void>[] = [];
+
+    for (const row of (data || []) as EncryptedKeyRow[]) {
+      if (row.encrypted_key && isValidServerBlob(row.encrypted_key)) {
+        const promise = (async () => {
+          const apiKey = await decryptApiKey(row.encrypted_key!);
+          if (apiKey) {
+            result.set(row.provider, {
+              provider: row.provider,
+              apiKey,
+              model: row.model ?? undefined,
+              baseUrl: row.base_url ?? undefined,
+              scope: 'user',
+              updatedAt: new Date(row.updated_at),
+            });
+          }
+        })();
+        decryptionPromises.push(promise);
       }
     }
+
+    await Promise.all(decryptionPromises);
 
     return result;
   } catch (err) {
@@ -308,7 +324,7 @@ export async function fetchUserAiKeys(): Promise<Map<AiProvider, StoredAiKey>> {
 }
 
 /**
- * Check if user has any stored AI keys (direct storage)
+ * Check if user has any stored AI keys
  */
 export async function hasUserAiKeys(): Promise<boolean> {
   if (!supabase) return false;
@@ -317,7 +333,7 @@ export async function hasUserAiKeys(): Promise<boolean> {
     const { count, error } = await supabase
       .from('user_ai_vault')
       .select('id', { count: 'exact', head: true })
-      .not('api_key', 'is', null);
+      .not('encrypted_key', 'is', null);
 
     if (error) {
       if (error.code === '42P01') return false;
@@ -331,7 +347,7 @@ export async function hasUserAiKeys(): Promise<boolean> {
 }
 
 /**
- * Save a user AI key (direct storage, no encryption)
+ * Save a user AI key (with server-side encryption)
  */
 export async function saveUserAiKey(
   provider: AiProvider,
@@ -350,13 +366,20 @@ export async function saveUserAiKey(
       return false;
     }
 
+    // Encrypt the API key server-side
+    const encryptedKey = await encryptApiKey(apiKey);
+    if (!encryptedKey) {
+      console.error('[UserAiKey] Failed to encrypt API key');
+      return false;
+    }
+
     const { error } = await supabase
       .from('user_ai_vault')
       .upsert(
         {
           user_id: user.id,
           provider,
-          api_key: apiKey,
+          encrypted_key: encryptedKey,
           model: options?.model ?? null,
           base_url: options?.baseUrl ?? null,
           encrypted_blob: null, // Clear legacy blob if any
@@ -431,7 +454,7 @@ export async function deleteAllUserAiKeys(): Promise<boolean> {
 }
 
 /**
- * Get list of providers with stored user keys (direct storage)
+ * Get list of providers with stored user keys
  */
 export async function getUserStoredProviders(): Promise<AiProvider[]> {
   if (!supabase) return [];
@@ -440,7 +463,7 @@ export async function getUserStoredProviders(): Promise<AiProvider[]> {
     const { data, error } = await supabase
       .from('user_ai_vault')
       .select('provider')
-      .not('api_key', 'is', null);
+      .not('encrypted_key', 'is', null);
 
     if (error) {
       if (error.code === '42P01') return [];

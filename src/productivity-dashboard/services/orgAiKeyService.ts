@@ -1,15 +1,22 @@
 // Organization AI Key Service
 // Manages organization-level AI API keys that are shared with all org members
 // Only admins and super admins can set org-level keys
+// Keys are encrypted server-side using the ai-vault-crypto Edge Function
 
 import { supabase } from '../../lib/supabase';
 import { AiProvider, StoredAiKey } from '../types/aiTypes';
+import {
+  encryptApiKey,
+  decryptApiKey,
+  EncryptedBlob,
+  isValidEncryptedBlob,
+} from './aiVaultCryptoService';
 
 interface OrgAiKeyRow {
   id: string;
   organization_id: string;
   provider: AiProvider;
-  api_key: string;
+  encrypted_key: EncryptedBlob | null;
   model: string | null;
   base_url: string | null;
   set_by: string | null;
@@ -18,7 +25,7 @@ interface OrgAiKeyRow {
 }
 
 /**
- * Fetch all AI keys for an organization
+ * Fetch all AI keys for an organization (with server-side decryption)
  */
 export async function fetchOrgAiKeys(orgId: string): Promise<Map<AiProvider, StoredAiKey>> {
   if (!supabase || !orgId) {
@@ -41,17 +48,31 @@ export async function fetchOrgAiKeys(orgId: string): Promise<Map<AiProvider, Sto
     }
 
     const keys = new Map<AiProvider, StoredAiKey>();
+
+    // Decrypt keys in parallel
+    const decryptionPromises: Promise<void>[] = [];
+
     for (const row of (data || []) as OrgAiKeyRow[]) {
-      keys.set(row.provider, {
-        provider: row.provider,
-        apiKey: row.api_key,
-        model: row.model ?? undefined,
-        baseUrl: row.base_url ?? undefined,
-        scope: 'org',
-        setBy: row.set_by ?? undefined,
-        updatedAt: new Date(row.updated_at),
-      });
+      if (row.encrypted_key && isValidEncryptedBlob(row.encrypted_key)) {
+        const promise = (async () => {
+          const apiKey = await decryptApiKey(row.encrypted_key!);
+          if (apiKey) {
+            keys.set(row.provider, {
+              provider: row.provider,
+              apiKey,
+              model: row.model ?? undefined,
+              baseUrl: row.base_url ?? undefined,
+              scope: 'org',
+              setBy: row.set_by ?? undefined,
+              updatedAt: new Date(row.updated_at),
+            });
+          }
+        })();
+        decryptionPromises.push(promise);
+      }
     }
+
+    await Promise.all(decryptionPromises);
 
     return keys;
   } catch (err) {
@@ -72,7 +93,8 @@ export async function hasOrgAiKeys(orgId: string): Promise<boolean> {
     const { count, error } = await supabase
       .from('org_ai_keys')
       .select('*', { count: 'exact', head: true })
-      .eq('organization_id', orgId);
+      .eq('organization_id', orgId)
+      .not('encrypted_key', 'is', null);
 
     if (error) {
       if (error.code === '42P01') return false;
@@ -87,7 +109,7 @@ export async function hasOrgAiKeys(orgId: string): Promise<boolean> {
 }
 
 /**
- * Save or update an organization AI key
+ * Save or update an organization AI key (with server-side encryption)
  * Only admins and super admins can do this (enforced by RLS)
  */
 export async function upsertOrgAiKey(
@@ -101,13 +123,19 @@ export async function upsertOrgAiKey(
     throw new Error('Supabase not configured');
   }
 
+  // Encrypt the API key server-side
+  const encryptedKey = await encryptApiKey(apiKey);
+  if (!encryptedKey) {
+    throw new Error('Failed to encrypt API key');
+  }
+
   const { error } = await supabase
     .from('org_ai_keys')
     .upsert(
       {
         organization_id: orgId,
         provider,
-        api_key: apiKey,
+        encrypted_key: encryptedKey,
         model: options?.model ?? null,
         base_url: options?.baseUrl ?? null,
         set_by: userId,
@@ -176,7 +204,8 @@ export async function getOrgStoredProviders(orgId: string): Promise<AiProvider[]
     const { data, error } = await supabase
       .from('org_ai_keys')
       .select('provider')
-      .eq('organization_id', orgId);
+      .eq('organization_id', orgId)
+      .not('encrypted_key', 'is', null);
 
     if (error) {
       if (error.code === '42P01') return [];
