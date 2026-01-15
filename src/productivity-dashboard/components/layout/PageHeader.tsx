@@ -16,19 +16,24 @@ export interface PageHeaderProps {
 }
 
 export function PageHeader({ title, description, actions, breadcrumbs }: PageHeaderProps) {
+  // Only show parent breadcrumbs (exclude the last one since title already shows current page)
+  const parentBreadcrumbs = breadcrumbs && breadcrumbs.length > 1
+    ? breadcrumbs.slice(0, -1)
+    : null;
+
   return (
     <div className="page-header">
-      {breadcrumbs && breadcrumbs.length > 0 && (
+      {parentBreadcrumbs && parentBreadcrumbs.length > 0 && (
         <nav className="page-header-breadcrumbs" aria-label="Breadcrumb">
-          {breadcrumbs.map((crumb, index) => (
+          {parentBreadcrumbs.map((crumb, index) => (
             <React.Fragment key={index}>
-              {index > 0 && <span className="breadcrumb-separator">&gt;</span>}
+              {index > 0 && <span className="breadcrumb-separator">/</span>}
               {crumb.href ? (
                 <Link to={crumb.href} className="breadcrumb-link">
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="breadcrumb-current">{crumb.label}</span>
+                <span className="breadcrumb-link">{crumb.label}</span>
               )}
             </React.Fragment>
           ))}

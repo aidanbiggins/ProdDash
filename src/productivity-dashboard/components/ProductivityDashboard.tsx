@@ -35,6 +35,8 @@ import { OrgSettings } from './OrgSettings';
 import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
 import { AiProviderSettings } from './settings/AiProviderSettings';
+import { useAiKeys } from '../hooks/useAiVault';
+import { AiProvider, DEFAULT_AI_CONFIG } from '../types/aiTypes';
 import { TopNav } from './navigation';
 import { useNewNavigation } from '../hooks/useNewNavigation';
 import { getPathFromTab, getTabFromPath, TabType } from '../routes';
@@ -62,6 +64,40 @@ export function ProductivityDashboard() {
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [showOrgSettings, setShowOrgSettings] = useState(false);
   const [showSuperAdminPanel, setShowSuperAdminPanel] = useState(false);
+
+  // AI Keys - auto-load on sign-in
+  const { keyState, loadKeys, getEffectiveKey } = useAiKeys();
+  const [aiKeysLoaded, setAiKeysLoaded] = useState(false);
+
+  // Auto-load AI keys when user is authenticated
+  useEffect(() => {
+    if (user?.id && !aiKeysLoaded) {
+      loadKeys(currentOrg?.id ?? null).then(() => {
+        setAiKeysLoaded(true);
+      });
+    }
+  }, [user?.id, currentOrg?.id, aiKeysLoaded, loadKeys]);
+
+  // Set aiConfig from loaded keys when keys are loaded
+  useEffect(() => {
+    if (aiKeysLoaded && !keyState.isLoading && !aiConfig) {
+      // Try to get the effective key for default provider (openai)
+      const providers: AiProvider[] = ['openai', 'anthropic', 'gemini', 'openai_compatible'];
+      for (const provider of providers) {
+        const key = getEffectiveKey(provider);
+        if (key) {
+          setAiConfig({
+            ...DEFAULT_AI_CONFIG,
+            provider,
+            apiKey: key.apiKey,
+            model: key.model || DEFAULT_AI_CONFIG.model,
+            baseUrl: key.baseUrl,
+          });
+          break;
+        }
+      }
+    }
+  }, [aiKeysLoaded, keyState.isLoading, aiConfig, getEffectiveKey, setAiConfig]);
 
   // Data hygiene state - req IDs to exclude from metrics
   const [excludedReqIds, setExcludedReqIds] = useState<Set<string>>(new Set());
@@ -594,20 +630,22 @@ export function ProductivityDashboard() {
                 </button>
                 {/* AI Settings */}
                 <button
-                  className="btn d-flex align-items-center justify-content-center"
+                  className={`btn d-flex align-items-center justify-content-center ${isAiEnabled ? 'ai-enabled-glow' : ''}`}
                   onClick={() => setShowAiSettings(true)}
                   title={isAiEnabled ? 'AI enabled - click to configure' : 'Configure AI provider'}
                   style={{
                     width: '36px',
                     height: '36px',
                     padding: 0,
-                    background: isAiEnabled ? 'rgba(45, 212, 191, 0.15)' : 'transparent',
-                    border: 'none',
+                    background: isAiEnabled ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
+                    border: isAiEnabled ? '1px solid rgba(139, 92, 246, 0.4)' : 'none',
                     borderRadius: '6px',
-                    color: isAiEnabled ? '#2dd4bf' : '#94a3b8',
+                    color: isAiEnabled ? '#a78bfa' : '#94a3b8',
+                    boxShadow: isAiEnabled ? '0 0 12px rgba(139, 92, 246, 0.4)' : 'none',
+                    transition: 'all 0.3s ease',
                   }}
                 >
-                  <i className="bi bi-robot" style={{ fontSize: '1rem' }}></i>
+                  <i className={`bi ${isAiEnabled ? 'bi-stars' : 'bi-robot'}`} style={{ fontSize: '1rem' }}></i>
                 </button>
                 {/* Refresh */}
                 <button

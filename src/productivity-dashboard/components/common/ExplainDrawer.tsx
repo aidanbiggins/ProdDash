@@ -2,7 +2,7 @@
 // Renders an Explanation object in a slide-over drawer
 // Includes optional AI Summary feature (requires AI provider to be configured)
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { Explanation, RecommendedAction } from '../../types/explainTypes';
 import { useDashboard } from '../../hooks/useDashboardContext';
@@ -27,11 +27,27 @@ export function ExplainDrawer({ isOpen, onClose, explanation }: ExplainDrawerPro
 
   // Reset AI summary when drawer closes
   const resetSummary = aiSummary.reset;
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) {
       resetSummary();
     }
   }, [isOpen, resetSummary]);
+
+  // Track last explanation to detect when a new one opens
+  const lastExplanationId = useRef<string | null>(null);
+
+  // Auto-generate AI summary when drawer opens with AI enabled
+  useEffect(() => {
+    const explanationId = explanation ? `${explanation.metricId}-${explanation.computedAt.getTime()}` : null;
+
+    if (isOpen && isAiEnabled && explanation && !aiSummary.result && !aiSummary.isLoading && !aiSummary.error) {
+      // Only auto-generate if this is a new explanation (not already processed)
+      if (explanationId !== lastExplanationId.current) {
+        lastExplanationId.current = explanationId;
+        handleGenerateSummary();
+      }
+    }
+  }, [isOpen, isAiEnabled, explanation, aiSummary.result, aiSummary.isLoading, aiSummary.error, handleGenerateSummary]);
 
   // Don't render anything if we've never had an explanation
   if (!explanation) return null;
@@ -552,11 +568,13 @@ function AiSummarySection({ isLoading, result, error, onGenerate }: AiSummarySec
         </div>
       )}
 
-      {/* Placeholder when not generated */}
+      {/* Placeholder when not generated - now auto-generates so this is rarely shown */}
       {!result && !isLoading && !error && (
-        <p className="mb-0 small" style={{ color: 'var(--text-secondary)' }}>
-          Click Generate to create an AI-powered summary of this metric explanation.
-        </p>
+        <div className="d-flex align-items-center gap-2 py-1">
+          <span className="small ai-generating" style={{ color: 'var(--text-secondary)' }}>
+            <i className="bi bi-lightning-charge-fill"></i> Preparing AI analysis...
+          </span>
+        </div>
       )}
     </div>
   );

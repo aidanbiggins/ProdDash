@@ -29,16 +29,17 @@
 }
 
 .top-nav-logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.25rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--primary, #d4a373);
+  letter-spacing: -0.02em;
+  color: var(--text-primary, #f8f9fa);
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .top-nav-logo:hover {
-  opacity: 0.8;
+  color: var(--primary, #d4a373);
 }
 
 .mobile-menu-toggle {
@@ -275,10 +276,11 @@
 }
 
 .mobile-drawer-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.25rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: var(--primary, #d4a373);
+  letter-spacing: -0.02em;
+  color: var(--text-primary, #f8f9fa);
 }
 
 .mobile-drawer-close {
