@@ -51,6 +51,17 @@ const REQ_DECAY_BUCKETS = [
 ];
 
 /**
+ * Proper median calculation matching metricsEngine.ts
+ * For even-length arrays, returns average of two middle values
+ */
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/**
  * Filter requisitions based on metric filters
  */
 function filterRequisitions(requisitions: Requisition[], filters: MetricFilters): Requisition[] {
@@ -132,9 +143,8 @@ function calculateCandidateDecay(
     .filter(c => c.accepted)
     .map(c => c.daysToOffer!)
     .sort((a, b) => a - b);
-  const medianDaysToDecision = acceptedDays.length > 0
-    ? acceptedDays[Math.floor(acceptedDays.length / 2)]
-    : null;
+  // Use proper median function matching metricsEngine.ts
+  const medianDaysToDecision = median(acceptedDays);
 
   // Calculate decay rate (simplified: compare first bucket to last bucket with data)
   const bucketsWithData = dataPoints.filter(dp => dp.count >= 3);
@@ -170,12 +180,18 @@ function calculateCandidateDecay(
 /**
  * Calculate requisition decay analysis
  * Shows how fill probability declines with days open
+ *
+ * IMPORTANT: medianDaysToFill uses candidate.hired_at - req.opened_at
+ * to match the calculation in metricsEngine.ts for consistency across all views.
  */
 function calculateReqDecay(
   requisitions: Requisition[],
+  candidates: Candidate[],
   filters: MetricFilters
 ): ReqDecayAnalysis {
   const filteredReqs = filterRequisitions(requisitions, filters);
+  const filteredReqIds = new Set(filteredReqs.map(r => r.req_id));
+  const reqMap = new Map(filteredReqs.map(r => [r.req_id, r]));
 
   // Only look at reqs that have been open long enough or are closed
   // Exclude reqs that are too new to judge or missing opened_at
@@ -232,14 +248,24 @@ function calculateReqDecay(
   const fillRateResult = safeRate(totalFilled, totalReqs);
   const overallFillRate = fillRateResult.value ?? 0;
 
-  // Calculate median days to fill
-  const filledDays = reqsWithTime
-    .filter(r => r.filled)
-    .map(r => r.daysOpen)
+  // Calculate median days to fill using HIRED CANDIDATES (matches metricsEngine.ts)
+  // This ensures consistency with Overview/Control Tower TTF calculations
+  const ttfValues = candidates
+    .filter(c =>
+      filteredReqIds.has(c.req_id) &&
+      c.disposition === CandidateDisposition.Hired &&
+      c.hired_at !== null
+    )
+    .map(c => {
+      const req = reqMap.get(c.req_id);
+      if (!req?.opened_at || !c.hired_at) return null;
+      return differenceInDays(c.hired_at, req.opened_at);
+    })
+    .filter((ttf): ttf is number => ttf !== null && ttf >= 0)
     .sort((a, b) => a - b);
-  const medianDaysToFill = filledDays.length > 0
-    ? filledDays[Math.floor(filledDays.length / 2)]
-    : null;
+
+  // Use proper median function matching metricsEngine.ts
+  const medianDaysToFill = median(ttfValues);
 
   // Calculate decay rate
   const bucketsWithData = dataPoints.filter(dp => dp.count >= 3);
@@ -391,10 +417,8 @@ function calculateCohortComparison(
     const avgTimeToFill = ttfValues.length > 0
       ? ttfValues.reduce((a, b) => a + b, 0) / ttfValues.length
       : 0;
-    const sortedTTF = [...ttfValues].sort((a, b) => a - b);
-    const medianTimeToFill = sortedTTF.length > 0
-      ? sortedTTF[Math.floor(sortedTTF.length / 2)]
-      : 0;
+    // Use proper median function matching metricsEngine.ts
+    const medianTimeToFill = median(ttfValues) ?? 0;
 
     return {
       count: reqs.length,
@@ -713,7 +737,7 @@ export function calculateVelocityMetrics(
   filters: MetricFilters
 ): VelocityMetrics {
   const candidateDecay = calculateCandidateDecay(candidates, requisitions, filters);
-  const reqDecay = calculateReqDecay(requisitions, filters);
+  const reqDecay = calculateReqDecay(requisitions, candidates, filters);
   const cohortComparison = calculateCohortComparison(candidates, requisitions, events, filters);
   const insights = generateInsights(candidateDecay, reqDecay, cohortComparison);
 

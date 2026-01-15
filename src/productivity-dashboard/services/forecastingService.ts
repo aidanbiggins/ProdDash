@@ -73,14 +73,22 @@ export function buildForecastingBenchmarks(
   const closedReqs = requisitions.filter(r =>
     r.status === RequisitionStatus.Closed && r.closed_at
   );
+  const reqMap = new Map(requisitions.map(r => [r.req_id, r]));
 
-  // Calculate TTF for each closed req (must have both dates)
+  // Calculate TTF for each req using candidate.hired_at - req.opened_at
+  // This matches metricsEngine.ts methodology for consistency across all views
   const reqTTFs = new Map<string, number>();
-  for (const req of closedReqs) {
-    if (req.closed_at && req.opened_at) {
-      const ttf = differenceInDays(req.closed_at, req.opened_at);
-      if (ttf > 0 && ttf < 365) { // Sanity check
-        reqTTFs.set(req.req_id, ttf);
+  for (const cand of candidates) {
+    if (cand.disposition === CandidateDisposition.Hired && cand.hired_at) {
+      const req = reqMap.get(cand.req_id);
+      if (req?.opened_at) {
+        const ttf = differenceInDays(cand.hired_at, req.opened_at);
+        if (ttf > 0 && ttf < 365) { // Sanity check
+          // Use the first hire's TTF for each req (most accurate)
+          if (!reqTTFs.has(cand.req_id)) {
+            reqTTFs.set(cand.req_id, ttf);
+          }
+        }
       }
     }
   }
