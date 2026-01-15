@@ -41,9 +41,20 @@ const OnboardingPage: React.FC = () => {
         setMemberships(userMemberships);
         setInvites(userInvites);
 
-        // If user already has memberships and came from a normal flow (not Google OAuth),
-        // redirect them directly to the dashboard
-        // If they have memberships, show the selection UI
+        // If user already has memberships, auto-select their first org and redirect
+        if (userMemberships.length > 0) {
+          // Check if there's a stored current org preference
+          const storedOrgId = localStorage.getItem('current_org_id');
+          const matchingMembership = storedOrgId
+            ? userMemberships.find(m => m.organization_id === storedOrgId)
+            : null;
+
+          // Use stored org or first membership
+          const orgToSelect = matchingMembership?.organization_id || userMemberships[0].organization_id;
+          switchOrganization(orgToSelect);
+          navigate(returnUrl);
+          return;
+        }
       } catch (err: any) {
         console.error('Failed to load onboarding data:', err);
         setError(err.message || 'Failed to load data');
