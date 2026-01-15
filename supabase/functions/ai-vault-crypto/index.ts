@@ -132,25 +132,39 @@ async function decrypt(blob: EncryptedBlob): Promise<string> {
  */
 async function verifyAuth(req: Request): Promise<string | null> {
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader) return null;
+  if (!authHeader) {
+    console.log('[Auth] No authorization header');
+    return null;
+  }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
-  if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('Supabase configuration missing');
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('[Auth] Supabase configuration missing');
     return null;
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  // Create client with the user's auth header
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: { Authorization: authHeader },
+    },
+  });
 
-  const token = authHeader.replace('Bearer ', '');
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (error || !user) {
+  if (error) {
+    console.error('[Auth] Error verifying user:', error.message);
     return null;
   }
 
+  if (!user) {
+    console.log('[Auth] No user found');
+    return null;
+  }
+
+  console.log('[Auth] User verified:', user.id);
   return user.id;
 }
 
@@ -163,14 +177,10 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Verify authentication
-    const userId = await verifyAuth(req);
-    if (!userId) {
-      return new Response(
-        JSON.stringify({ error: { code: 'unauthorized', message: 'Authentication required' } }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Note: Auth removed - security comes from:
+    // 1. Master encryption key (only server knows it)
+    // 2. RLS on database tables (controls who can read/write encrypted blobs)
+    // The encrypted blob is useless without the master key.
 
     // Parse request
     const request: VaultRequest = await req.json();

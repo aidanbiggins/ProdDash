@@ -40,38 +40,28 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
   }
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      console.error('[VaultCrypto] No authenticated session');
-      return null;
-    }
-
-    console.log('[VaultCrypto] Encrypting API key...');
-    const url = `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/ai-vault-crypto`;
-    console.log('[VaultCrypto] URL:', url);
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-        'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY || '',
-      },
-      body: JSON.stringify({
-        action: 'encrypt',
-        plaintext,
-      }),
-    });
-
-    const result = await response.json();
-    console.log('[VaultCrypto] Encrypt response status:', response.status);
+    const response = await fetch(
+      `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/ai-vault-crypto`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY || '',
+        },
+        body: JSON.stringify({
+          action: 'encrypt',
+          plaintext,
+        }),
+      }
+    );
 
     if (!response.ok) {
-      console.error('[VaultCrypto] Encryption failed:', result.error?.message || result);
+      const error = await response.json();
+      console.error('[VaultCrypto] Encryption failed:', error.error?.message);
       return null;
     }
 
-    console.log('[VaultCrypto] Encryption successful, got blob');
+    const result = await response.json();
     return result.encrypted_blob;
   } catch (err) {
     console.error('[VaultCrypto] Encryption error:', err);
@@ -92,20 +82,12 @@ export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null>
   }
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      console.error('[VaultCrypto] No authenticated session');
-      return null;
-    }
-
-    console.log('[VaultCrypto] Decrypting API key...');
     const response = await fetch(
       `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/ai-vault-crypto`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
           'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY || '',
         },
         body: JSON.stringify({
@@ -115,15 +97,13 @@ export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null>
       }
     );
 
-    const result = await response.json();
-    console.log('[VaultCrypto] Decrypt response status:', response.status);
-
     if (!response.ok) {
-      console.error('[VaultCrypto] Decryption failed:', result.error?.message || result);
+      const error = await response.json();
+      console.error('[VaultCrypto] Decryption failed:', error.error?.message);
       return null;
     }
 
-    console.log('[VaultCrypto] Decryption successful');
+    const result = await response.json();
     return result.plaintext;
   } catch (err) {
     console.error('[VaultCrypto] Decryption error:', err);

@@ -276,38 +276,29 @@ export async function fetchUserAiKeys(): Promise<Map<AiProvider, StoredAiKey>> {
   const result = new Map<AiProvider, StoredAiKey>();
 
   if (!supabase) {
-    console.log('[UserAiKey] Supabase not configured');
     return result;
   }
 
   try {
-    console.log('[UserAiKey] Fetching keys from database...');
     const { data, error } = await supabase
       .from('user_ai_vault')
       .select('provider, encrypted_key, model, base_url, updated_at');
 
     if (error) {
       if (error.code === '42P01') {
-        console.log('[UserAiKey] Table does not exist');
         return result;
       }
       console.error('[UserAiKey] Error fetching keys:', error.message);
       return result;
     }
 
-    console.log('[UserAiKey] Found', data?.length || 0, 'rows');
-    console.log('[UserAiKey] Raw data:', JSON.stringify(data, null, 2));
-
     // Decrypt keys in parallel
     const decryptionPromises: Promise<void>[] = [];
 
     for (const row of (data || []) as EncryptedKeyRow[]) {
-      console.log('[UserAiKey] Processing row:', row.provider, 'has encrypted_key:', !!row.encrypted_key);
       if (row.encrypted_key && isValidServerBlob(row.encrypted_key)) {
-        console.log('[UserAiKey] Valid encrypted blob for', row.provider);
         const promise = (async () => {
           const apiKey = await decryptApiKey(row.encrypted_key!);
-          console.log('[UserAiKey] Decryption result for', row.provider, ':', apiKey ? 'SUCCESS' : 'FAILED');
           if (apiKey) {
             result.set(row.provider, {
               provider: row.provider,
@@ -320,14 +311,10 @@ export async function fetchUserAiKeys(): Promise<Map<AiProvider, StoredAiKey>> {
           }
         })();
         decryptionPromises.push(promise);
-      } else {
-        console.log('[UserAiKey] No valid encrypted_key for', row.provider);
       }
     }
 
     await Promise.all(decryptionPromises);
-    console.log('[UserAiKey] Final result: found', result.size, 'keys');
-
     return result;
   } catch (err) {
     console.error('[UserAiKey] Unexpected error:', err);
