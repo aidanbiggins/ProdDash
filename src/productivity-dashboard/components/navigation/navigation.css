@@ -54,6 +54,8 @@
 @media (max-width: 768px) {
   .mobile-menu-toggle {
     display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
