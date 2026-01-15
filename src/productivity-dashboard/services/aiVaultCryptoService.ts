@@ -46,29 +46,32 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
       return null;
     }
 
-    const response = await fetch(
-      `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/ai-vault-crypto`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY || '',
-        },
-        body: JSON.stringify({
-          action: 'encrypt',
-          plaintext,
-        }),
-      }
-    );
+    console.log('[VaultCrypto] Encrypting API key...');
+    const url = `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/ai-vault-crypto`;
+    console.log('[VaultCrypto] URL:', url);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY || '',
+      },
+      body: JSON.stringify({
+        action: 'encrypt',
+        plaintext,
+      }),
+    });
+
+    const result = await response.json();
+    console.log('[VaultCrypto] Encrypt response status:', response.status);
 
     if (!response.ok) {
-      const error = await response.json();
-      console.error('[VaultCrypto] Encryption failed:', error.error?.message);
+      console.error('[VaultCrypto] Encryption failed:', result.error?.message || result);
       return null;
     }
 
-    const result = await response.json();
+    console.log('[VaultCrypto] Encryption successful, got blob');
     return result.encrypted_blob;
   } catch (err) {
     console.error('[VaultCrypto] Encryption error:', err);
@@ -95,6 +98,7 @@ export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null>
       return null;
     }
 
+    console.log('[VaultCrypto] Decrypting API key...');
     const response = await fetch(
       `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/ai-vault-crypto`,
       {
@@ -111,13 +115,15 @@ export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null>
       }
     );
 
+    const result = await response.json();
+    console.log('[VaultCrypto] Decrypt response status:', response.status);
+
     if (!response.ok) {
-      const error = await response.json();
-      console.error('[VaultCrypto] Decryption failed:', error.error?.message);
+      console.error('[VaultCrypto] Decryption failed:', result.error?.message || result);
       return null;
     }
 
-    const result = await response.json();
+    console.log('[VaultCrypto] Decryption successful');
     return result.plaintext;
   } catch (err) {
     console.error('[VaultCrypto] Decryption error:', err);
