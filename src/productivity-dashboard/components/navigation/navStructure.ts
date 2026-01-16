@@ -26,6 +26,12 @@ export const NAV_STRUCTURE: NavStructure = {
     route: '/',
     submenu: null
   },
+  'ask': {
+    label: 'Ask ProdDash',
+    icon: 'bi-chat-dots',
+    route: '/ask',
+    submenu: null
+  },
   'diagnose': {
     label: 'Diagnose',
     icon: 'bi-search',
@@ -90,6 +96,9 @@ export function getAllNavItems(): NavItem[] {
 export function getActiveBucket(pathname: string): string | null {
   if (pathname === '/' || pathname === '/control-tower') {
     return 'control-tower';
+  }
+  if (pathname === '/ask' || pathname.startsWith('/ask/')) {
+    return 'ask';
   }
   if (pathname.startsWith('/diagnose')) {
     return 'diagnose';

@@ -3,7 +3,7 @@
 import React from 'react';
 
 // Tab type definition (matches ProductivityDashboard)
-export type TabType = 'control-tower' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'capacity' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health' | 'ai-settings' | 'org-settings';
+export type TabType = 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'capacity' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'data-health' | 'ai-settings' | 'org-settings';
 
 // Route to tab mapping
 export interface RouteConfig {
@@ -17,6 +17,9 @@ export const ROUTE_CONFIG: RouteConfig[] = [
   // Control Tower (default)
   { path: '/', tab: 'control-tower', bucket: 'control-tower' },
   { path: '/control-tower', tab: 'control-tower', bucket: 'control-tower' },
+
+  // Ask ProdDash (top-level)
+  { path: '/ask', tab: 'ask', bucket: 'control-tower' },
 
   // Diagnose bucket
   { path: '/diagnose/overview', tab: 'overview', bucket: 'diagnose' },

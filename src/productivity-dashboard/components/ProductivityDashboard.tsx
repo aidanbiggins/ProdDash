@@ -21,6 +21,7 @@ import { ForecastingTab } from './forecasting';
 import { DataHealthTab } from './data-health';
 import { ControlTowerTab } from './control-tower';
 import { CapacityTab } from './capacity/CapacityTab';
+import { AskProdDashTab } from './ask-proddash';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { ClearProgress } from '../services/dbService';
 import { calculatePendingActions } from '../services/hmMetricsEngine';
@@ -927,6 +928,38 @@ export function ProductivityDashboard() {
                   />
                 ) : (
                   <TabSkeleton showKPIs showChart={false} showTable kpiCount={5} tableRows={6} />
+                )
+              )}
+
+              {/* Ask ProdDash Tab */}
+              {activeTab === 'ask' && (
+                state.loadingState.hasOverviewMetrics && state.overview ? (
+                  <AskProdDashTab
+                    requisitions={state.dataStore.requisitions}
+                    candidates={state.dataStore.candidates}
+                    events={state.dataStore.events}
+                    users={state.dataStore.users}
+                    overview={state.overview}
+                    hmFriction={state.hmFriction}
+                    hmActions={(() => {
+                      const factTables = buildHMFactTables(
+                        state.dataStore.requisitions,
+                        state.dataStore.candidates,
+                        state.dataStore.events,
+                        state.dataStore.users,
+                        state.dataStore.config.stageMapping,
+                        state.dataStore.lastImportAt || new Date()
+                      );
+                      return calculatePendingActions(factTables, state.dataStore.users, DEFAULT_HM_RULES);
+                    })()}
+                    config={state.dataStore.config}
+                    filters={state.filters}
+                    dataHealth={state.dataStore.dataHealth}
+                    aiEnabled={isAiEnabled}
+                    onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
+                  />
+                ) : (
+                  <TabSkeleton showKPIs={false} showChart={false} showTable={false} />
                 )
               )}
 
