@@ -7,9 +7,11 @@ import { Requisition, Candidate, Event, User } from '../../types/entities';
 import { DashboardConfig } from '../../types/config';
 import { HiringManagerFriction, MetricFilters, OverviewMetrics } from '../../types';
 import { HMPendingAction } from '../../types/hmTypes';
+import { AiProviderConfig } from '../../types/aiTypes';
 import { AskFactPack, IntentResponse } from '../../types/askTypes';
 import { buildSimpleFactPack } from '../../services/askFactPackService';
 import { handleDeterministicQuery } from '../../services/askIntentService';
+import { sendAskQueryWithRetry } from '../../services/askAiService';
 import { AskLeftRail } from './AskLeftRail';
 import { AskMainPanel } from './AskMainPanel';
 import './ask-proddash.css';
@@ -28,6 +30,7 @@ export interface AskProdDashTabProps {
     overallHealthScore: number;
   };
   aiEnabled: boolean;
+  aiConfig: AiProviderConfig | null;
   onNavigateToTab: (tab: string) => void;
 }
 
@@ -57,6 +60,7 @@ export function AskProdDashTab({
   filters,
   dataHealth,
   aiEnabled,
+  aiConfig,
   onNavigateToTab,
 }: AskProdDashTabProps) {
   const [query, setQuery] = useState('');
@@ -89,8 +93,21 @@ export function AskProdDashTab({
     setError(null);
 
     try {
-      // Try deterministic intent matching first
-      const result = handleDeterministicQuery(submittedQuery, factPack);
+      let result: IntentResponse;
+
+      // Use AI if enabled and configured, otherwise use deterministic
+      if (aiEnabled && aiConfig) {
+        const aiResult = await sendAskQueryWithRetry(submittedQuery, factPack, aiConfig);
+        result = aiResult.response;
+
+        // If AI used fallback, show a subtle indicator
+        if (aiResult.usedFallback && aiResult.error) {
+          console.log('AI used fallback:', aiResult.error);
+        }
+      } else {
+        // Deterministic intent matching
+        result = handleDeterministicQuery(submittedQuery, factPack);
+      }
 
       setResponse(result);
       setConversationHistory(prev => [...prev, {
@@ -104,7 +121,7 @@ export function AskProdDashTab({
     } finally {
       setIsLoading(false);
     }
-  }, [factPack]);
+  }, [factPack, aiEnabled, aiConfig]);
 
   // Handle suggested question click
   const handleSuggestedClick = useCallback((question: string) => {

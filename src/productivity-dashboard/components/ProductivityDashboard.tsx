@@ -956,6 +956,7 @@ export function ProductivityDashboard() {
                     filters={state.filters}
                     dataHealth={state.dataStore.dataHealth}
                     aiEnabled={isAiEnabled}
+                    aiConfig={aiConfig}
                     onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
                   />
                 ) : (
