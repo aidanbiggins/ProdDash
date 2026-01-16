@@ -2,18 +2,23 @@
 // AI OFF: Deterministic intent handlers over pre-computed Fact Pack
 // AI ON: Free-form Q&A with BYOK, citation validation, fallback
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Requisition, Candidate, Event, User } from '../../types/entities';
 import { DashboardConfig } from '../../types/config';
 import { HiringManagerFriction, MetricFilters, OverviewMetrics } from '../../types';
 import { HMPendingAction } from '../../types/hmTypes';
 import { AiProviderConfig } from '../../types/aiTypes';
 import { AskFactPack, IntentResponse } from '../../types/askTypes';
+import { ActionItem } from '../../types/actionTypes';
 import { buildSimpleFactPack } from '../../services/askFactPackService';
 import { handleDeterministicQuery } from '../../services/askIntentService';
 import { sendAskQueryWithRetry } from '../../services/askAiService';
+import { saveAskCache, loadAskCache, loadAskHistory, AskCacheEntry } from '../../services/askCacheService';
+import { checkAskCoverage, CoverageGateResult } from '../../services/askCoverageGateService';
+import { createActionPlanFromResponse } from '../../services/askActionPlanService';
 import { AskLeftRail } from './AskLeftRail';
-import { AskMainPanel } from './AskMainPanel';
+import { AskMainPanel, ActionPlanFeedback } from './AskMainPanel';
+import { AskBlockedState } from './AskBlockedState';
 import './ask-proddash.css';
 
 export interface AskProdDashTabProps {
@@ -32,6 +37,8 @@ export interface AskProdDashTabProps {
   aiEnabled: boolean;
   aiConfig: AiProviderConfig | null;
   onNavigateToTab: (tab: string) => void;
+  existingActions?: ActionItem[];
+  onAddActions?: (actions: ActionItem[]) => void;
 }
 
 // Suggested questions for the left rail
@@ -62,16 +69,44 @@ export function AskProdDashTab({
   aiEnabled,
   aiConfig,
   onNavigateToTab,
+  existingActions = [],
+  onAddActions,
 }: AskProdDashTabProps) {
   const [query, setQuery] = useState('');
+  const [currentQuery, setCurrentQuery] = useState<string>(''); // The query that generated the current response
   const [response, setResponse] = useState<IntentResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [usedFallback, setUsedFallback] = useState(false);
+  const [generatedAt, setGeneratedAt] = useState<string | null>(null); // ISO timestamp
   const [conversationHistory, setConversationHistory] = useState<Array<{
     query: string;
     response: IntentResponse;
     timestamp: Date;
+    usedFallback?: boolean;
   }>>([]);
+
+  // Load cached response on mount
+  useEffect(() => {
+    const cached = loadAskCache();
+    if (cached) {
+      setResponse(cached.response);
+      setCurrentQuery(cached.query);
+      setGeneratedAt(cached.generatedAt);
+      setUsedFallback(cached.usedFallback);
+    }
+
+    // Load conversation history from cache
+    const cachedHistory = loadAskHistory();
+    if (cachedHistory.length > 0) {
+      setConversationHistory(cachedHistory.map(entry => ({
+        query: entry.query,
+        response: entry.response,
+        timestamp: new Date(entry.generatedAt),
+        usedFallback: entry.usedFallback,
+      })));
+    }
+  }, []);
 
   // Build the Fact Pack (memoized for performance)
   const factPack = useMemo<AskFactPack>(() => {
@@ -82,8 +117,19 @@ export function AskProdDashTab({
       users,
       aiEnabled,
       dataHealthScore: dataHealth.overallHealthScore,
+      filters: {
+        recruiterIds: filters.recruiterIds,
+        dateRange: filters.dateRange,
+        functions: filters.functions,
+        regions: filters.regions,
+      },
     });
-  }, [requisitions, candidates, events, users, aiEnabled, dataHealth.overallHealthScore]);
+  }, [requisitions, candidates, events, users, aiEnabled, dataHealth.overallHealthScore, filters]);
+
+  // Check coverage gate
+  const coverageResult = useMemo<CoverageGateResult>(() => {
+    return checkAskCoverage(factPack);
+  }, [factPack]);
 
   // Handle query submission
   const handleSubmit = useCallback(async (submittedQuery: string) => {
@@ -91,16 +137,19 @@ export function AskProdDashTab({
 
     setIsLoading(true);
     setError(null);
+    setUsedFallback(false);
 
     try {
       let result: IntentResponse;
+      let didUseFallback = false;
 
       // Use AI if enabled and configured, otherwise use deterministic
       if (aiEnabled && aiConfig) {
         const aiResult = await sendAskQueryWithRetry(submittedQuery, factPack, aiConfig);
         result = aiResult.response;
+        didUseFallback = aiResult.usedFallback || false;
 
-        // If AI used fallback, show a subtle indicator
+        // Log for debugging (no user-visible error details)
         if (aiResult.usedFallback && aiResult.error) {
           console.log('AI used fallback:', aiResult.error);
         }
@@ -109,15 +158,32 @@ export function AskProdDashTab({
         result = handleDeterministicQuery(submittedQuery, factPack);
       }
 
+      const timestamp = new Date().toISOString();
+
       setResponse(result);
+      setCurrentQuery(submittedQuery);
+      setGeneratedAt(timestamp);
+      setUsedFallback(didUseFallback);
       setConversationHistory(prev => [...prev, {
         query: submittedQuery,
         response: result,
         timestamp: new Date(),
+        usedFallback: didUseFallback,
       }]);
       setQuery('');
+
+      // Save to cache for persistence across navigation
+      saveAskCache({
+        query: submittedQuery,
+        response: result,
+        generatedAt: timestamp,
+        usedFallback: didUseFallback,
+        aiEnabled,
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      // Clean error message, no internal details
+      setError('Something went wrong. Please try again.');
+      console.error('Ask query error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -128,6 +194,13 @@ export function AskProdDashTab({
     setQuery(question);
     handleSubmit(question);
   }, [handleSubmit]);
+
+  // Handle refresh - re-run the current query
+  const handleRefresh = useCallback(() => {
+    if (currentQuery) {
+      handleSubmit(currentQuery);
+    }
+  }, [currentQuery, handleSubmit]);
 
   // Handle deep link navigation
   const handleDeepLink = useCallback((tab: string, params: Record<string, string>) => {
@@ -143,6 +216,39 @@ export function AskProdDashTab({
       navigator.clipboard.writeText(text);
     }
   }, [response]);
+
+  // Handle creating action plan from response
+  const handleCreateActionPlan = useCallback(async (): Promise<ActionPlanFeedback | null> => {
+    if (!response || !onAddActions) return null;
+
+    const result = createActionPlanFromResponse(
+      response,
+      existingActions,
+      currentQuery,
+      5 // Max 5 actions
+    );
+
+    if (result.actions.length > 0) {
+      onAddActions(result.actions);
+    }
+
+    return {
+      actionsCreated: result.actions.length,
+      duplicatesSkipped: result.duplicatesSkipped,
+    };
+  }, [response, existingActions, currentQuery, onAddActions]);
+
+  // If coverage gate fails, show blocked state
+  if (!coverageResult.enabled) {
+    return (
+      <div className="ask-proddash-container">
+        <AskBlockedState
+          issues={coverageResult.issues}
+          onNavigateToTab={onNavigateToTab}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="ask-proddash-container">
@@ -163,6 +269,7 @@ export function AskProdDashTab({
           query={query}
           onQueryChange={setQuery}
           onSubmit={() => handleSubmit(query)}
+          onQuickAsk={handleSuggestedClick}
           response={response}
           isLoading={isLoading}
           error={error}
@@ -170,6 +277,11 @@ export function AskProdDashTab({
           factPack={factPack}
           onDeepLink={handleDeepLink}
           onCopy={handleCopy}
+          usedFallback={usedFallback}
+          currentQuery={currentQuery}
+          generatedAt={generatedAt}
+          onRefresh={handleRefresh}
+          onCreateActionPlan={onAddActions ? handleCreateActionPlan : undefined}
         />
       </div>
     </div>

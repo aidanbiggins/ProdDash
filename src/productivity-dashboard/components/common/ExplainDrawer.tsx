@@ -349,9 +349,9 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
             ))}
           </div>
           {explanation.mathInvariantValid === false && (
-            <div className="mt-2 small" style={{ color: '#f59e0b' }}>
-              <i className="bi bi-exclamation-triangle me-1"></i>
-              Phase breakdown does not sum to total (rounding)
+            <div className="mt-2 small" style={{ color: 'var(--text-secondary)' }}>
+              <i className="bi bi-info-circle me-1"></i>
+              Phase medians may not sum to total — each is calculated independently
             </div>
           )}
         </div>

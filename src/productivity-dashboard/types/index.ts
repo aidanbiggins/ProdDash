@@ -15,6 +15,7 @@ export * from './actionTypes';
 export * from './preMortemTypes';
 export * from './aiTypes';
 export * from './askTypes';
+export * from './snapshotTypes';
 
 // ===== DATA STORE STATE =====
 

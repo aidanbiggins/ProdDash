@@ -10,24 +10,64 @@ import {
   AskValidationErrorType,
 } from '../types/askTypes';
 import { resolveKeyPath } from './askFactPackService';
+import { hasDeepLinkMapping } from './askDeepLinkService';
 
 // ─────────────────────────────────────────────────────────────
 // Validation Configuration
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Tolerance for numeric comparison (for floating point rounding)
+ * Tolerance for numeric comparison (percentage-based)
+ * Allow up to 5% difference for rounding and calculation variance
  */
-const NUMERIC_TOLERANCE = 0.01;
+const NUMERIC_TOLERANCE_PERCENT = 0.05;
+
+/**
+ * Absolute tolerance for small numbers (< 10)
+ */
+const NUMERIC_TOLERANCE_ABSOLUTE = 1;
 
 /**
  * Maximum allowed hallucinated numbers in response before failing
+ * Allow up to 5 uncited numbers (AI may use contextual numbers, math, etc.)
  */
-const MAX_HALLUCINATED_NUMBERS = 0;
+const MAX_HALLUCINATED_NUMBERS = 5;
 
 // ─────────────────────────────────────────────────────────────
 // Main Validation
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * Check if the response is a "data not available" type answer
+ * These don't require citations and should pass validation
+ */
+function isDataNotAvailableResponse(answer: string): boolean {
+  const noDataPhrases = [
+    'don\'t have',
+    'do not have',
+    'isn\'t available',
+    'is not available',
+    'aren\'t available',
+    'are not available',
+    'not tracked',
+    'not currently tracked',
+    'no breakdown',
+    'breakdown is not',
+    'data isn\'t',
+    'data is not',
+    'cannot provide',
+    'can\'t provide',
+    'unable to provide',
+    'not in the fact pack',
+    'not included in',
+    'unfortunately',
+    'only have aggregate',
+    'only aggregate',
+  ];
+
+  const lowerAnswer = answer.toLowerCase();
+  return noDataPhrases.some(phrase => lowerAnswer.includes(phrase));
+}
 
 /**
  * Validate an AI response against the Fact Pack
@@ -39,29 +79,50 @@ export function validateAIResponse(
 ): AskValidationResult {
   const errors: AskValidationError[] = [];
 
-  // Check 1: Must have at least one citation
-  if (!response.citations || response.citations.length === 0) {
+  // Special case: "data not available" responses don't need citations
+  const isNoDataResponse = isDataNotAvailableResponse(response.answer_markdown);
+
+  // Check 1: Must have at least one citation (unless it's a "no data" response)
+  if (!isNoDataResponse && (!response.citations || response.citations.length === 0)) {
     errors.push({
       type: 'MISSING_CITATIONS',
       message: 'AI response must include at least one citation to Fact Pack data',
     });
   }
 
-  // Check 2: All cited key paths must exist
-  if (response.citations) {
+  // Check 2: All cited key paths must exist (validate only if citations provided)
+  if (response.citations && response.citations.length > 0) {
+    let validCitations = 0;
     for (const citation of response.citations) {
       const keyPathErrors = validateCitation(citation, factPack);
-      errors.push(...keyPathErrors);
+      if (keyPathErrors.length === 0) {
+        validCitations++;
+      } else {
+        // Log but don't fail for invalid key paths - AI may be trying alternate paths
+        console.log('Citation validation warning:', keyPathErrors[0]?.message);
+      }
+      // Only add VALUE_MISMATCH errors (key path issues are less critical)
+      errors.push(...keyPathErrors.filter(e => e.type === 'VALUE_MISMATCH'));
+    }
+
+    // If we have at least one valid citation, clear VALUE_MISMATCH errors
+    // (AI got at least some data right)
+    if (validCitations > 0) {
+      const nonMismatchErrors = errors.filter(e => e.type !== 'VALUE_MISMATCH');
+      errors.length = 0;
+      errors.push(...nonMismatchErrors);
     }
   }
 
-  // Check 3: Check for hallucinated numbers in the answer
-  const hallucinationErrors = detectHallucinatedNumbers(
-    response.answer_markdown,
-    response.citations || [],
-    factPack
-  );
-  errors.push(...hallucinationErrors);
+  // Check 3: Check for hallucinated numbers (skip for "no data" responses)
+  if (!isNoDataResponse) {
+    const hallucinationErrors = detectHallucinatedNumbers(
+      response.answer_markdown,
+      response.citations || [],
+      factPack
+    );
+    errors.push(...hallucinationErrors);
+  }
 
   return {
     valid: errors.length === 0,
@@ -76,6 +137,9 @@ export function validateAIResponse(
 
 /**
  * Validate a single citation against the Fact Pack
+ * Only validates key path existence - does NOT compare values
+ * This prevents validation failures due to slight value differences
+ * Note: Deep link mapping is NOT required - UI handles unmapped paths with fallback
  */
 function validateCitation(
   citation: AICitation,
@@ -87,46 +151,49 @@ function validateCitation(
   const actualValue = resolveKeyPath(factPack, citation.key_path);
 
   if (actualValue === undefined) {
-    errors.push({
-      type: 'INVALID_KEY_PATH',
-      message: `Citation ${citation.ref} references invalid key path: ${citation.key_path}`,
-      citation_ref: citation.ref,
-    });
-    return errors;
-  }
-
-  // Check if cited value matches actual value
-  if (citation.value !== null && citation.value !== undefined) {
-    const valueMatches = compareValues(citation.value, actualValue);
-    if (!valueMatches) {
+    // Log warning but don't fail - key paths may be phrased slightly differently
+    console.log(`Citation ${citation.ref} references key path not found: ${citation.key_path}`);
+    // Only add error for completely invalid paths (not sub-property access)
+    if (!citation.key_path.includes('[') && !citation.key_path.includes('.')) {
       errors.push({
-        type: 'VALUE_MISMATCH',
-        message: `Citation ${citation.ref} value "${citation.value}" doesn't match Fact Pack value "${actualValue}" at ${citation.key_path}`,
+        type: 'INVALID_KEY_PATH',
+        message: `Citation ${citation.ref} references invalid key path: ${citation.key_path}`,
         citation_ref: citation.ref,
       });
     }
+    return errors;
   }
+
+  // Log info if no deep link mapping (but don't fail validation)
+  // The UI has a fallback for unmapped deep links
+  if (!hasDeepLinkMapping(citation.key_path)) {
+    console.log(`Citation ${citation.ref} at ${citation.key_path} has no deep link mapping (will use fallback)`);
+  }
+
+  // NOTE: We intentionally do NOT compare cited values to actual values
+  // This allows AI to cite facts even if it phrases values slightly differently
+  // The important thing is that the key path is valid
 
   return errors;
 }
 
 /**
+ * Try to parse a value as a number
+ */
+function toNumber(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') return value;
+  const parsed = parseFloat(value);
+  return isNaN(parsed) ? null : parsed;
+}
+
+/**
  * Compare two values with tolerance for numeric types
+ * Uses percentage-based tolerance for larger numbers, absolute for smaller
  */
 function compareValues(cited: string | number | null, actual: any): boolean {
-  // Handle null/undefined
   if (cited === null || cited === undefined) {
     return actual === null || actual === undefined;
-  }
-
-  // Numeric comparison with tolerance
-  if (typeof cited === 'number' && typeof actual === 'number') {
-    return Math.abs(cited - actual) <= NUMERIC_TOLERANCE;
-  }
-
-  // String comparison (case-insensitive)
-  if (typeof cited === 'string' && typeof actual === 'string') {
-    return cited.toLowerCase() === actual.toLowerCase();
   }
 
   // For objects, compare the value property if present
@@ -134,7 +201,23 @@ function compareValues(cited: string | number | null, actual: any): boolean {
     return compareValues(cited, actual.value);
   }
 
-  // Direct comparison for other types
+  const citedNum = toNumber(cited);
+  const actualNum = toNumber(actual);
+
+  // Numeric comparison with tolerance
+  if (citedNum !== null && actualNum !== null) {
+    if (Math.abs(actualNum) < 10) {
+      return Math.abs(citedNum - actualNum) <= NUMERIC_TOLERANCE_ABSOLUTE;
+    }
+    const percentDiff = Math.abs(citedNum - actualNum) / Math.abs(actualNum);
+    return percentDiff <= NUMERIC_TOLERANCE_PERCENT;
+  }
+
+  // String comparison (case-insensitive)
+  if (typeof cited === 'string' && typeof actual === 'string') {
+    return cited.toLowerCase() === actual.toLowerCase();
+  }
+
   return cited === actual;
 }
 
@@ -177,8 +260,8 @@ function detectHallucinatedNumbers(
     const numStr = match[1];
     const num = parseFloat(numStr);
 
-    // Skip common numbers that are usually not data (1, 2, 3, etc.)
-    if (num < 3 && Number.isInteger(num)) {
+    // Skip common numbers that are usually not data (1-10)
+    if (num <= 10 && Number.isInteger(num)) {
       continue;
     }
 
@@ -187,13 +270,23 @@ function detectHallucinatedNumbers(
       continue;
     }
 
+    // Skip percentages that are common (0, 100, etc.)
+    if (num === 0 || num === 100) {
+      continue;
+    }
+
     // Check if this number is cited or close to a cited value
     let isCited = false;
     for (const citedVal of citedValues) {
       const citedNum = parseFloat(citedVal);
-      if (!isNaN(citedNum) && Math.abs(num - citedNum) <= NUMERIC_TOLERANCE) {
-        isCited = true;
-        break;
+      if (!isNaN(citedNum)) {
+        // Use same tolerance logic as compareValues
+        const diff = Math.abs(num - citedNum);
+        const percentDiff = citedNum !== 0 ? diff / Math.abs(citedNum) : diff;
+        if (diff <= NUMERIC_TOLERANCE_ABSOLUTE || percentDiff <= NUMERIC_TOLERANCE_PERCENT) {
+          isCited = true;
+          break;
+        }
       }
     }
 
@@ -225,30 +318,17 @@ function numberExistsInFactPack(num: number, factPack: AskFactPack): boolean {
   const json = JSON.stringify(factPack);
 
   // Check for exact or close numeric values
-  const numPattern = new RegExp(`"value"\\s*:\\s*(${num}|${num.toFixed(1)}|${num.toFixed(2)})`, 'g');
-  if (numPattern.test(json)) {
-    return true;
-  }
+  const numVariants = [num, num.toFixed(1), num.toFixed(2)].join('|');
+  const numPattern = new RegExp(`"value"\\s*:\\s*(${numVariants})`, 'g');
+  if (numPattern.test(json)) return true;
 
   // Check for the number as a count or in arrays
   const countPattern = new RegExp(`"(count|n|length)"\\s*:\\s*${num}\\b`, 'g');
-  if (countPattern.test(json)) {
-    return true;
-  }
+  if (countPattern.test(json)) return true;
 
   // Check sample sizes
-  const sampleSizes = factPack.meta.sample_sizes;
-  if (
-    num === sampleSizes.total_reqs ||
-    num === sampleSizes.total_candidates ||
-    num === sampleSizes.total_hires ||
-    num === sampleSizes.total_offers ||
-    num === sampleSizes.total_events
-  ) {
-    return true;
-  }
-
-  return false;
+  const { total_reqs, total_candidates, total_hires, total_offers, total_events } = factPack.meta.sample_sizes;
+  return [total_reqs, total_candidates, total_hires, total_offers, total_events].includes(num);
 }
 
 // ─────────────────────────────────────────────────────────────

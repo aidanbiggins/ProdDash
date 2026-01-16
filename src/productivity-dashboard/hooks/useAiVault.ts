@@ -325,6 +325,7 @@ export function keysToConfigs(
       redactPii: existing?.redactPii ?? DEFAULT_AI_CONFIG.redactPii,
       temperature: existing?.temperature ?? DEFAULT_AI_CONFIG.temperature,
       maxTokens: existing?.maxTokens ?? DEFAULT_AI_CONFIG.maxTokens,
+      aiEnabled: existing?.aiEnabled ?? DEFAULT_AI_CONFIG.aiEnabled,
     });
   }
 
@@ -332,13 +333,14 @@ export function keysToConfigs(
 }
 
 function getDefaultModelForProvider(provider: AiProvider): string {
-  switch (provider) {
-    case 'openai': return 'gpt-4o';
-    case 'anthropic': return 'claude-sonnet-4-20250514';
-    case 'gemini': return 'gemini-1.5-pro';
-    case 'openai_compatible': return 'custom';
-    default: return 'gpt-4o';
-  }
+  const defaults: Record<AiProvider, string> = {
+    openai: 'gpt-5.2',
+    anthropic: 'claude-sonnet-4-20250514',
+    gemini: 'gemini-1.5-pro',
+    openai_compatible: 'custom',
+  };
+
+  return defaults[provider] ?? 'gpt-4o';
 }
 
 // ============================================

@@ -151,15 +151,16 @@ describe('MedianTTFProvider', () => {
     it('includes breakdown when first_contacted_at available', () => {
       const now = new Date();
       const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);
+      const fortyDaysAgo = new Date(now.getTime() - 40 * 24 * 60 * 60 * 1000);
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const twentyDaysAgo = new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000);
 
       const { candidate, requisition } = createHire(
         'c1', 'req1',
-        thirtyDaysAgo,  // opened
-        tenDaysAgo,     // hired (20 day TTF)
-        thirtyDaysAgo,  // applied same day
-        twentyDaysAgo   // first contacted 10 days after open
+        fortyDaysAgo,   // opened
+        tenDaysAgo,     // hired (30 day TTF)
+        thirtyDaysAgo,  // applied 10 days after open
+        twentyDaysAgo   // first contacted 10 days after applied
       );
 
       const context = createTestContext({
@@ -171,8 +172,12 @@ describe('MedianTTFProvider', () => {
       const result = provider.explain(context);
 
       expect(result.breakdown).toBeDefined();
-      expect(result.breakdown?.length).toBe(2);
+      // 3 phases: Req Opened to Applied + Applied to First Touch + First Touch to Hire
+      expect(result.breakdown?.length).toBe(3);
 
+      const openedToApplied = result.breakdown?.find(b =>
+        b.label.includes('Req Opened to Applied')
+      );
       const appliedToFirstTouch = result.breakdown?.find(b =>
         b.label.includes('Applied to First Touch')
       );
@@ -180,8 +185,12 @@ describe('MedianTTFProvider', () => {
         b.label.includes('First Touch to Hire')
       );
 
+      expect(openedToApplied).toBeDefined();
+      expect(openedToApplied?.value).toBe(10); // 10 days from open to applied
       expect(appliedToFirstTouch).toBeDefined();
+      expect(appliedToFirstTouch?.value).toBe(10); // 10 days from applied to first touch
       expect(firstTouchToHire).toBeDefined();
+      expect(firstTouchToHire?.value).toBe(10); // 10 days from first touch to hire
     });
 
     it('excludes negative TTF values', () => {

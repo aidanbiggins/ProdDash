@@ -99,6 +99,22 @@ function isAllowedHost(baseUrl: string | null): boolean {
 
 // ===== PROVIDER ADAPTERS =====
 
+// Helper to check if model uses new-style parameters (max_completion_tokens)
+function usesMaxCompletionTokens(model: string): boolean {
+  const lowerModel = model.toLowerCase();
+  // GPT-5.x, o-series reasoning models use max_completion_tokens
+  return lowerModel.startsWith('gpt-5') ||
+         lowerModel.startsWith('o1') ||
+         lowerModel.startsWith('o3') ||
+         lowerModel === 'chatgpt-4o-latest';
+}
+
+// Helper to check if model is a reasoning model (no temperature)
+function isReasoningModel(model: string): boolean {
+  const lowerModel = model.toLowerCase();
+  return lowerModel.startsWith('o1') || lowerModel.startsWith('o3');
+}
+
 async function handleOpenAI(
   request: AiRequest,
   apiKey: string
@@ -111,6 +127,25 @@ async function handleOpenAI(
     messages.unshift({ role: 'system', content: request.system_prompt });
   }
 
+  // Build request body based on model type
+  const maxTokens = request.max_tokens ?? request.max_output_tokens ?? 1024;
+  const requestBody: Record<string, unknown> = {
+    model: request.model,
+    messages: messages.map(m => ({ role: m.role, content: m.content })),
+  };
+
+  // Use the correct parameter name based on model
+  if (usesMaxCompletionTokens(request.model)) {
+    requestBody.max_completion_tokens = maxTokens;
+  } else {
+    requestBody.max_tokens = maxTokens;
+  }
+
+  // Reasoning models don't support temperature
+  if (!isReasoningModel(request.model)) {
+    requestBody.temperature = request.temperature ?? 0.7;
+  }
+
   // Use Chat Completions API (more widely available than Responses API)
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -118,12 +153,7 @@ async function handleOpenAI(
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: request.model,
-      messages: messages.map(m => ({ role: m.role, content: m.content })),
-      max_tokens: request.max_tokens ?? request.max_output_tokens ?? 1024,
-      temperature: request.temperature ?? 0.7,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   const data = await response.json();

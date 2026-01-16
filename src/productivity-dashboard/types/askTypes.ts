@@ -101,6 +101,42 @@ export interface SourceSummary {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Recruiter Performance Types
+// ─────────────────────────────────────────────────────────────
+
+export interface RecruiterPerformanceSummary {
+  anonymized_id: string;               // Stable ID for deep links (hash of user_id)
+  anonymized_label: string;            // "Recruiter 1", "Recruiter 2", etc.
+  open_reqs: number;                   // Current open requisitions
+  hires_in_period: number;             // Hires during data window
+  offers_in_period: number;            // Offers during data window
+  avg_ttf: number | null;              // Average time to fill (days)
+  active_candidates: number;           // Active candidates across all reqs
+  productivity_score: number | null;   // Composite score 0-100 (hires + offers weighted)
+}
+
+// ─────────────────────────────────────────────────────────────
+// Hiring Manager Ownership Types
+// ─────────────────────────────────────────────────────────────
+
+export interface HMOwnershipEntry {
+  anonymized_id: string;               // Stable hash of hm_id for deep links
+  hm_label: string;                    // "Manager 1", "Manager 2", etc.
+  open_req_count: number;              // Number of open reqs owned
+  req_ids: string[];                   // Up to 10 req IDs
+  avg_hm_latency?: number | null;      // Optional: average HM latency in days
+}
+
+export interface HiringManagerOwnershipSummary {
+  available: boolean;                  // Whether HM ownership data is available
+  unavailable_reason?: string;         // Reason if not available
+  total_hiring_managers: number;       // Total unique HMs
+  open_reqs_by_hm: HMOwnershipEntry[]; // Top 10 HMs by open req count
+  n: number;                           // Sample size (HMs with open reqs)
+  confidence: 'high' | 'medium' | 'low';
+}
+
+// ─────────────────────────────────────────────────────────────
 // Glossary Types
 // ─────────────────────────────────────────────────────────────
 
@@ -114,6 +150,16 @@ export interface GlossaryEntry {
 // ─────────────────────────────────────────────────────────────
 // Complete Fact Pack Structure
 // ─────────────────────────────────────────────────────────────
+
+// Active filter context for deep link preservation
+export interface FilterContext {
+  recruiter_ids: string[];
+  date_range_start: string | null;
+  date_range_end: string | null;
+  date_range_preset: string | null;        // '30', '60', '90', etc.
+  functions: string[];
+  regions: string[];
+}
 
 export interface AskFactPack {
   // META: Dataset metadata and capability flags
@@ -133,6 +179,8 @@ export interface AskFactPack {
       total_offers: number;
       total_events: number;
     };
+    // Active filter context for deep link preservation
+    filter_context: FilterContext;
     capability_flags: {
       has_stage_timing: boolean;             // Can show stage durations
       has_source_data: boolean;              // Source effectiveness available
@@ -224,6 +272,22 @@ export interface AskFactPack {
     underloaded_count: number;               // < 5 reqs
   };
 
+  // RECRUITER_PERFORMANCE: Per-recruiter metrics (anonymized)
+  recruiter_performance: {
+    available: boolean;                                // Whether recruiter data is available
+    unavailable_reason?: string;                       // Reason if not available
+    top_by_hires: RecruiterPerformanceSummary[];      // Top 5 by hires
+    top_by_productivity: RecruiterPerformanceSummary[]; // Top 5 by score
+    bottom_by_productivity: RecruiterPerformanceSummary[]; // Bottom 3 (for coaching)
+    team_avg_productivity: number | null;              // Average productivity score
+    total_recruiters: number;                          // Total number of recruiters
+    n: number;                                         // Sample size (recruiters with activity)
+    confidence: 'high' | 'medium' | 'low';            // Confidence in the data
+  };
+
+  // HIRING_MANAGER_OWNERSHIP: HM req ownership metrics (anonymized)
+  hiring_manager_ownership: HiringManagerOwnershipSummary;
+
   // GLOSSARY: Metric definitions for AI context
   glossary: GlossaryEntry[];
 }
@@ -303,7 +367,8 @@ export type AskValidationErrorType =
   | 'MISSING_CITATIONS'
   | 'INVALID_KEY_PATH'
   | 'VALUE_MISMATCH'
-  | 'HALLUCINATED_NUMBER';
+  | 'HALLUCINATED_NUMBER'
+  | 'UNRESOLVABLE_DEEP_LINK';
 
 export interface AskValidationError {
   type: AskValidationErrorType;

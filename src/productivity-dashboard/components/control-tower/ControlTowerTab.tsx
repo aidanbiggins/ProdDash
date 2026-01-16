@@ -44,6 +44,8 @@ interface ControlTowerTabProps {
   onNavigateToReq: (reqId: string) => void;
   onNavigateToHM: (hmUserId: string) => void;
   onNavigateToTab: (tab: string) => void;
+  /** External manual actions from Ask ProdDash or other sources */
+  externalManualActions?: ActionItem[];
 }
 
 
@@ -198,7 +200,8 @@ export function ControlTowerTab({
   lastImportAt,
   onNavigateToReq,
   onNavigateToHM,
-  onNavigateToTab
+  onNavigateToTab,
+  externalManualActions = [],
 }: ControlTowerTabProps) {
 
   // ===== EXPLAIN DRAWER STATE =====
@@ -304,18 +307,20 @@ export function ControlTowerTab({
     });
   }, [hmActions, allExplanations, requisitions, users, datasetId]);
 
-  // Merge generated actions with manually added actions (from PreMortem) and apply statuses
+  // Merge generated actions with manually added actions (from PreMortem and Ask) and apply statuses
   const actionQueue = useMemo(() => {
     const generatedIds = new Set(generatedActions.map(a => a.action_id));
+    // Combine local and external manual actions
+    const allManualActions = [...manualActions, ...externalManualActions];
     // Keep manual actions that don't duplicate generated ones
-    const uniqueManualActions = manualActions.filter(a => !generatedIds.has(a.action_id));
+    const uniqueManualActions = allManualActions.filter(a => !generatedIds.has(a.action_id));
     const allActions = [...generatedActions, ...uniqueManualActions];
     // Apply any status overrides
     return allActions.map(action => {
       const status = actionStatuses.get(action.action_id);
       return status ? { ...action, status } : action;
     });
-  }, [generatedActions, manualActions, actionStatuses]);
+  }, [generatedActions, manualActions, externalManualActions, actionStatuses]);
 
   // Action handlers
   const handleActionClick = useCallback((action: ActionItem) => {

@@ -6,17 +6,27 @@ import ComparisonView from './components/ComparisonView'; // Legacy
 import { RecruiterProductivityDashboard } from './productivity-dashboard';
 import { InviteAcceptPage } from './components/InviteAcceptPage';
 import OnboardingPage from './components/OnboardingPage';
+import { LandingPage } from './components/landing/LandingPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Login route that redirects logged-in users to returnUrl or home
 function LoginRoute() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/';
 
+  console.log('[LoginRoute] Render - loading:', loading, 'user:', !!user);
+
+  // Wait for auth to finish loading before deciding
+  if (loading) {
+    return <div className="d-flex justify-content-center align-items-center vh-100">Loading...</div>;
+  }
+
   if (user) {
+    console.log('[LoginRoute] User found, redirecting to:', returnUrl);
     return <Navigate to={returnUrl} />;
   }
+  console.log('[LoginRoute] No user, showing login');
   return <Login />;
 }
 
@@ -24,15 +34,40 @@ function LoginRoute() {
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
+  console.log('[ProtectedRoute] Render - loading:', loading, 'user:', !!user);
+
   if (loading) {
     return <div className="d-flex justify-content-center align-items-center vh-100">Loading...</div>;
   }
 
   if (!user) {
+    console.log('[ProtectedRoute] No user, redirecting to /login');
     return <Navigate to="/login" />;
   }
 
   return children;
+}
+
+// Home route - shows landing page for unauthenticated users, dashboard for authenticated
+function HomeRoute() {
+  const { user, loading, supabaseUser } = useAuth();
+
+  console.log('[HomeRoute] Render - loading:', loading, 'user:', !!user, 'supabaseUser:', !!supabaseUser);
+
+  if (loading) {
+    return <div className="d-flex justify-content-center align-items-center vh-100">Loading...</div>;
+  }
+
+  // Unauthenticated users see the landing page
+  // Check both user (AuthUser) and supabaseUser to be safe
+  if (!user && !supabaseUser) {
+    console.log('[HomeRoute] No user, showing landing page');
+    return <LandingPage />;
+  }
+
+  // Authenticated users see the dashboard
+  console.log('[HomeRoute] User found, showing dashboard');
+  return <RecruiterProductivityDashboard />;
 }
 
 function AppRoutes() {
@@ -52,12 +87,8 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      {/* Main Dashboard - Protected */}
-      <Route path="/" element={
-        <ProtectedRoute>
-          <RecruiterProductivityDashboard />
-        </ProtectedRoute>
-      } />
+      {/* Main Route - Landing page for unauthenticated, Dashboard for authenticated */}
+      <Route path="/" element={<HomeRoute />} />
 
       {/* Legacy Routes */}
       <Route path="/productivity" element={<Navigate to="/" />} />

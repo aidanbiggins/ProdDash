@@ -385,7 +385,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // AI Provider config - stored in memory only, never persisted
   // This ensures API keys are cleared on page refresh/close
   const [aiConfig, setAiConfig] = React.useState<AiProviderConfig | null>(null);
-  const isAiEnabled = aiConfig !== null && aiConfig.apiKey.length > 0;
+  // AI is enabled only if config exists, has an API key, AND aiEnabled flag is true
+  const isAiEnabled = aiConfig !== null && aiConfig.apiKey.length > 0 && aiConfig.aiEnabled !== false;
 
   // Helper to get/set import source from localStorage
   const getStoredImportSource = (orgId: string): 'demo' | 'csv' | null => {

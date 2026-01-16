@@ -533,16 +533,26 @@ export async function getAllOrganizations(): Promise<Organization[]> {
 }
 
 /**
- * Add a super admin (super admin only)
+ * Add a super admin
+ * Uses seed_super_admin RPC function to bypass RLS for initial seeding
  */
 export async function addSuperAdmin(userId: string): Promise<void> {
   if (!supabase) throw new Error('Supabase not configured');
 
-  const { error } = await supabase
-    .from('super_admins')
-    .insert({ user_id: userId });
+  // Use the SECURITY DEFINER RPC function to bypass RLS
+  // This allows the first super admin to be seeded
+  const { error } = await supabase.rpc('seed_super_admin', {
+    target_user_id: userId
+  });
 
-  if (error) throw error;
+  if (error) {
+    // Fallback to direct insert for backwards compatibility
+    const { error: insertError } = await supabase
+      .from('super_admins')
+      .insert({ user_id: userId });
+
+    if (insertError) throw insertError;
+  }
 }
 
 /**

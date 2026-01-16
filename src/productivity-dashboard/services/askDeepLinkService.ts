@@ -43,6 +43,20 @@ const KEY_PATH_MAPPINGS: KeyPathMapping[] = [
     highlightSelector: () => '[data-kpi="hm-latency"]',
   },
 
+  // Control Tower Risk Summary
+  {
+    pattern: /^control_tower\.risk_summary/,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="risks"]',
+  },
+
+  // Control Tower Action Summary
+  {
+    pattern: /^control_tower\.action_summary/,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="actions"]',
+  },
+
   // Risks
   {
     pattern: /^risks\.top_risks\[(\d+)\]/,
@@ -60,6 +74,11 @@ const KEY_PATH_MAPPINGS: KeyPathMapping[] = [
     tab: 'data-health',
     highlightSelector: () => '[data-section="stalled-reqs"]',
   },
+  {
+    pattern: /^risks\./,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="risks"]',
+  },
 
   // Actions
   {
@@ -69,6 +88,16 @@ const KEY_PATH_MAPPINGS: KeyPathMapping[] = [
   },
   {
     pattern: /^actions\.top_p1/,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="actions"]',
+  },
+  {
+    pattern: /^actions\.by_owner_type/,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="actions"]',
+  },
+  {
+    pattern: /^actions\./,
     tab: 'control-tower',
     highlightSelector: () => '[data-section="actions"]',
   },
@@ -91,6 +120,16 @@ const KEY_PATH_MAPPINGS: KeyPathMapping[] = [
     tab: 'velocity',
     highlightSelector: () => '[data-section="bottleneck"]',
   },
+  {
+    pattern: /^velocity\.avg_days/,
+    tab: 'velocity',
+    highlightSelector: () => '[data-section="velocity-metrics"]',
+  },
+  {
+    pattern: /^velocity\./,
+    tab: 'velocity',
+    highlightSelector: () => '[data-section="velocity"]',
+  },
 
   // Sources
   {
@@ -104,6 +143,76 @@ const KEY_PATH_MAPPINGS: KeyPathMapping[] = [
     pattern: /^capacity\./,
     tab: 'capacity',
     highlightSelector: () => '[data-section="capacity"]',
+  },
+
+  // Meta (sample sizes, data window)
+  {
+    pattern: /^meta\.sample_sizes/,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="dataset-info"]',
+  },
+  {
+    pattern: /^meta\.data_health/,
+    tab: 'data-health',
+    highlightSelector: () => '[data-section="health-overview"]',
+  },
+  {
+    pattern: /^meta\./,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="dataset-info"]',
+  },
+
+  // Hiring Manager Ownership
+  {
+    pattern: /^hiring_manager_ownership\.open_reqs_by_hm\[(\d+)\]/,
+    tab: 'hiring-managers',
+    paramExtractor: (match) => ({ hmIndex: match[1] }),
+    highlightSelector: (match) => `[data-hm-index="${match[1]}"]`,
+  },
+  {
+    pattern: /^hiring_manager_ownership\.total_hiring_managers/,
+    tab: 'hiring-managers',
+    highlightSelector: () => '[data-section="hm-overview"]',
+  },
+  {
+    pattern: /^hiring_manager_ownership\.available/,
+    tab: 'hiring-managers',
+    highlightSelector: () => '[data-section="hm-ownership"]',
+  },
+  {
+    pattern: /^hiring_manager_ownership\./,
+    tab: 'hiring-managers',
+    highlightSelector: () => '[data-section="hm-ownership"]',
+  },
+
+  // Recruiter Performance
+  {
+    pattern: /^recruiter_performance\.top_by_hires\[(\d+)\]/,
+    tab: 'recruiter',
+    paramExtractor: (match) => ({ recruiterIndex: match[1], sortBy: 'hires' }),
+    highlightSelector: (match) => `[data-recruiter-index="${match[1]}"]`,
+  },
+  {
+    pattern: /^recruiter_performance\.top_by_productivity\[(\d+)\]/,
+    tab: 'recruiter',
+    paramExtractor: (match) => ({ recruiterIndex: match[1], sortBy: 'productivity' }),
+    highlightSelector: (match) => `[data-recruiter-index="${match[1]}"]`,
+  },
+  {
+    pattern: /^recruiter_performance\.bottom_by_productivity\[(\d+)\]/,
+    tab: 'recruiter',
+    paramExtractor: (match) => ({ recruiterIndex: match[1], sortBy: 'productivity' }),
+    highlightSelector: (match) => `[data-recruiter-index="${match[1]}"]`,
+  },
+  {
+    pattern: /^recruiter_performance\.team_avg/,
+    tab: 'recruiter',
+    highlightSelector: () => '[data-section="recruiter-overview"]',
+  },
+  {
+    pattern: /^recruiter_performance\./,
+    tab: 'recruiter',
+    highlightSelector: () => '[data-section="recruiter-performance"]',
   },
 
   // Explain summaries
@@ -132,6 +241,11 @@ const KEY_PATH_MAPPINGS: KeyPathMapping[] = [
     tab: 'source-mix',
     highlightSelector: () => '[data-explain="source-effectiveness"]',
   },
+  {
+    pattern: /^explain\./,
+    tab: 'control-tower',
+    highlightSelector: () => '[data-section="explain"]',
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -139,7 +253,21 @@ const KEY_PATH_MAPPINGS: KeyPathMapping[] = [
 // ─────────────────────────────────────────────────────────────
 
 /**
+ * Check if a key path has a specific deep link mapping
+ * Returns true only if there's an explicit mapping (not a fallback)
+ */
+export function hasDeepLinkMapping(keyPath: string): boolean {
+  for (const mapping of KEY_PATH_MAPPINGS) {
+    if (mapping.pattern.test(keyPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Convert a Fact Pack key path to a deep link
+ * Returns null if no specific mapping exists (use hasDeepLinkMapping for strict validation)
  */
 export function keyPathToDeepLink(keyPath: string): DeepLinkResult | null {
   for (const mapping of KEY_PATH_MAPPINGS) {
@@ -160,7 +288,19 @@ export function keyPathToDeepLink(keyPath: string): DeepLinkResult | null {
     }
   }
 
-  // Default: return control tower if no mapping found
+  // Return null if no specific mapping - callers should handle this
+  return null;
+}
+
+/**
+ * Convert a Fact Pack key path to a deep link with fallback
+ * For UI use where a default is acceptable
+ */
+export function keyPathToDeepLinkWithFallback(keyPath: string): DeepLinkResult {
+  const result = keyPathToDeepLink(keyPath);
+  if (result) return result;
+
+  // Default fallback to control tower
   return {
     url: '/control-tower',
     tab: 'control-tower',

@@ -363,3 +363,61 @@ User enters API key → Client encrypts with passphrase (PBKDF2 + AES-GCM)
 - `AiProviderSettings.tsx` - Modal with storage mode toggle, vault lock/unlock UI
 - `VaultLockedBanner` - Banner shown when vault has keys but is locked
 - `useAiVault` hook - Manages vault state and operations
+
+### Ask ProdDash (Conversational Interface)
+
+The Ask ProdDash tab (`/components/ask-proddash/`) provides a conversational interface for querying recruiting data with two modes:
+
+**AI-OFF Mode (Deterministic):**
+- Uses pre-computed Fact Pack with all dashboard metrics
+- 10 intent handlers: `whats_on_fire`, `top_risks`, `top_actions`, `why_time_to_offer`, `why_hm_latency`, `stalled_reqs`, `forecast_gap`, `velocity_summary`, `source_mix_summary`, `capacity_summary`
+- Pattern + keyword matching (40% threshold)
+- All responses include citations to Fact Pack key paths
+
+**AI-ON Mode (BYOK):**
+- Free-form Q&A via existing multi-provider AI
+- Strict JSON response schema with mandatory citations
+- Citation validation against Fact Pack keys
+- Automatic fallback to deterministic mode on validation failure
+
+**Fact Pack** (`types/askTypes.ts`, `services/askFactPackService.ts`):
+```typescript
+interface AskFactPack {
+  meta: { generated_at, org_id, data_window, sample_sizes, capability_flags };
+  control_tower: { kpis, risk_summary, action_summary };
+  explain: { time_to_offer, hm_latency, accept_rate, pipeline_health, source_effectiveness };
+  actions: { top_p0, top_p1, by_owner_type };
+  risks: { top_risks, by_failure_mode };
+  forecast: { expected_hires, pipeline_gap, confidence };
+  velocity: { funnel, bottleneck_stage, avg_days_to_hire };
+  sources: { top_by_volume, top_by_conversion };
+  capacity: { total_recruiters, avg_req_load, overloaded_count };
+  glossary: GlossaryEntry[];
+}
+```
+
+**Hard Constraints:**
+- AI never computes metrics - all numbers from Fact Pack
+- All outputs reference Fact Pack key paths as evidence (dot notation)
+- No candidate PII in Fact Pack or AI payload
+- Recruiter/HM names anonymized: "Recruiter 1", "Manager 2"
+- Req titles redacted: "Engineer for John's Team" → "Engineer"
+
+**Services:**
+- `askFactPackService.ts` - Builds Fact Pack with anonymization
+- `askIntentService.ts` - Intent matching and 10 handlers
+- `askValidationService.ts` - AI response validation, hallucination detection
+- `askAiService.ts` - AI integration with retry and fallback
+- `askDeepLinkService.ts` - Key path → tab navigation mapping
+- `askActionService.ts` - Create actions from citations with deduplication
+
+**UI Components:**
+- `AskProdDashTab.tsx` - Main tab container
+- `AskLeftRail.tsx` - Suggested questions, conversation history
+- `AskMainPanel.tsx` - Input, response display, citations
+
+**Citation Validation Rules:**
+1. Must have at least one citation
+2. All key_paths must resolve to Fact Pack values
+3. Cited values must match Fact Pack values
+4. Numbers in answer must be cited (no hallucination)

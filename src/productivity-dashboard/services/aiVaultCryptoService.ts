@@ -39,21 +39,31 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
     return null;
   }
 
+  const anonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+
   try {
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
     const response = await fetch(
       `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/ai-vault-crypto`,
       {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY || '',
+          'apikey': anonKey,
+          'Authorization': `Bearer ${anonKey}`,
         },
         body: JSON.stringify({
           action: 'encrypt',
           plaintext,
         }),
+        signal: controller.signal,
       }
     );
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const error = await response.json();
@@ -63,8 +73,12 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
 
     const result = await response.json();
     return result.encrypted_blob;
-  } catch (err) {
-    console.error('[VaultCrypto] Encryption error:', err);
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      console.error('[VaultCrypto] Encryption timed out');
+    } else {
+      console.error('[VaultCrypto] Encryption error:', err);
+    }
     return null;
   }
 }

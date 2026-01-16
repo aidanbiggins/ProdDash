@@ -149,10 +149,12 @@ export class TimeToOfferProvider implements ExplainProvider {
       medianPhase1 = this.median(sortedPhase1);
       medianPhase2 = this.median(sortedPhase2);
 
-      // Math invariant check: phase sum should roughly equal total
+      // Math invariant check: phase sum vs total
+      // Note: Medians don't add up (median(A) + median(B) ≠ median(A+B))
+      // We flag any difference so the UI can show an explanatory note
       if (medianPhase1 !== null && medianPhase2 !== null && medianTotal !== null) {
         const phaseSum = medianPhase1 + medianPhase2;
-        mathInvariantValid = Math.abs(phaseSum - medianTotal) <= 1;
+        mathInvariantValid = phaseSum === medianTotal;
       }
     }
 

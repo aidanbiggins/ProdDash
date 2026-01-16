@@ -2,21 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  getUserMemberships,
   getInvitesForEmail,
   acceptInvite,
   createOrganization
 } from '../productivity-dashboard/services/organizationService';
-import { OrganizationMembership, OrganizationInvite } from '../productivity-dashboard/types/auth';
+import { OrganizationInvite } from '../productivity-dashboard/types/auth';
 
 const OnboardingPage: React.FC = () => {
-  const { user, supabaseUser, refreshMemberships, switchOrganization } = useAuth();
+  // Get memberships directly from AuthContext - it already loaded them
+  const { user, supabaseUser, refreshMemberships, switchOrganization, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('returnUrl') || '/';
 
-  const [loading, setLoading] = useState(true);
-  const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(true);
   const [invites, setInvites] = useState<OrganizationInvite[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
@@ -24,47 +23,56 @@ const OnboardingPage: React.FC = () => {
   const [accepting, setAccepting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load memberships and invites
+  // Get memberships from AuthContext (already loaded there)
+  const memberships = user?.memberships || [];
+
+  // Auto-redirect if user has memberships
   useEffect(() => {
-    async function loadData() {
-      if (!supabaseUser?.id || !supabaseUser?.email) {
-        setLoading(false);
+    if (authLoading) return;
+
+    // If user has memberships, auto-select and redirect
+    if (memberships.length > 0) {
+      console.log('[Onboarding] User has memberships, auto-redirecting...');
+      const storedOrgId = localStorage.getItem('current_org_id');
+      const matchingMembership = storedOrgId
+        ? memberships.find(m => m.organization_id === storedOrgId)
+        : null;
+      const orgToSelect = matchingMembership?.organization_id || memberships[0].organization_id;
+      switchOrganization(orgToSelect);
+      navigate(returnUrl);
+    }
+  }, [authLoading, memberships, switchOrganization, navigate, returnUrl]);
+
+  // Only load invites - memberships come from AuthContext
+  useEffect(() => {
+    async function loadInvites() {
+      if (!supabaseUser?.email) {
+        setLoadingInvites(false);
+        return;
+      }
+
+      // If user has memberships, skip loading invites (they'll be redirected)
+      if (memberships.length > 0) {
+        setLoadingInvites(false);
         return;
       }
 
       try {
-        const [userMemberships, userInvites] = await Promise.all([
-          getUserMemberships(supabaseUser.id),
-          getInvitesForEmail(supabaseUser.email)
-        ]);
-
-        setMemberships(userMemberships);
+        console.log('[Onboarding] Loading invites for:', supabaseUser.email);
+        const userInvites = await getInvitesForEmail(supabaseUser.email);
+        console.log('[Onboarding] Invites loaded:', userInvites.length);
         setInvites(userInvites);
-
-        // If user already has memberships, auto-select their first org and redirect
-        if (userMemberships.length > 0) {
-          // Check if there's a stored current org preference
-          const storedOrgId = localStorage.getItem('current_org_id');
-          const matchingMembership = storedOrgId
-            ? userMemberships.find(m => m.organization_id === storedOrgId)
-            : null;
-
-          // Use stored org or first membership
-          const orgToSelect = matchingMembership?.organization_id || userMemberships[0].organization_id;
-          switchOrganization(orgToSelect);
-          navigate(returnUrl);
-          return;
-        }
       } catch (err: any) {
-        console.error('Failed to load onboarding data:', err);
-        setError(err.message || 'Failed to load data');
+        console.error('[Onboarding] Failed to load invites:', err);
+        // Don't show error for invites - just show empty list
+        setInvites([]);
       } finally {
-        setLoading(false);
+        setLoadingInvites(false);
       }
     }
 
-    loadData();
-  }, [supabaseUser?.id, supabaseUser?.email]);
+    loadInvites();
+  }, [supabaseUser?.email, memberships.length]);
 
   // Handle selecting an existing organization
   const handleSelectOrg = (orgId: string) => {
@@ -113,7 +121,8 @@ const OnboardingPage: React.FC = () => {
     }
   };
 
-  if (loading) {
+  // Show loading while auth is initializing or invites are loading
+  if (authLoading || loadingInvites) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-primary" role="status">

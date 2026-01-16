@@ -12,6 +12,7 @@ interface TTFRecord {
   reqTitle: string;
   recruiterName: string;
   totalDays: number;
+  openedToApplied: number | null;
   appliedToFirstTouch: number | null;
   firstTouchToHire: number | null;
   openedAt: Date;
@@ -77,7 +78,16 @@ export class MedianTTFProvider implements ExplainProvider {
     const sortedTTF = validHires.map(h => h.totalDays).sort((a, b) => a - b);
     const medianTTF = this.median(sortedTTF);
 
-    // Calculate phase medians (only from records with complete data)
+    // Calculate phase medians
+    // Phase 1: Opened to Applied (time before candidate applied)
+    const withOpenedToApplied = validHires.filter(h => h.openedToApplied !== null && h.openedToApplied >= 0);
+    let medianOpenedToApplied: number | null = null;
+    if (withOpenedToApplied.length > 0) {
+      const sorted = withOpenedToApplied.map(h => h.openedToApplied!).sort((a, b) => a - b);
+      medianOpenedToApplied = this.median(sorted);
+    }
+
+    // Phase 2 & 3: Applied to First Touch, First Touch to Hire
     const withPhases = validHires.filter(
       h => h.appliedToFirstTouch !== null && h.firstTouchToHire !== null
     );
@@ -103,8 +113,16 @@ export class MedianTTFProvider implements ExplainProvider {
       }
     }
 
-    // Build breakdown
+    // Build breakdown - all 3 phases that add up to total TTF
     const breakdown: BreakdownRow[] = [];
+
+    if (medianOpenedToApplied !== null) {
+      breakdown.push({
+        label: 'Req Opened to Applied',
+        value: medianOpenedToApplied,
+        unit: 'days',
+      });
+    }
 
     if (medianAppliedToFirstTouch !== null) {
       breakdown.push({
@@ -122,11 +140,13 @@ export class MedianTTFProvider implements ExplainProvider {
       });
     }
 
-    // Math invariant check
+    // Math invariant check - phase sum vs total
+    // Note: Medians don't add up (median(A) + median(B) ≠ median(A+B))
+    // We flag any difference so the UI can show an explanatory note
     let mathInvariantValid = true;
-    if (medianAppliedToFirstTouch !== null && medianFirstTouchToHire !== null && medianTTF !== null) {
-      const phaseSum = medianAppliedToFirstTouch + medianFirstTouchToHire;
-      mathInvariantValid = Math.abs(phaseSum - medianTTF) <= 2; // 2 day tolerance for medians
+    if (medianTTF !== null && breakdown.length > 0) {
+      const phaseSum = (medianOpenedToApplied || 0) + (medianAppliedToFirstTouch || 0) + (medianFirstTouchToHire || 0);
+      mathInvariantValid = phaseSum === medianTTF;
     }
 
     // Top contributors (longest TTF)
@@ -252,19 +272,28 @@ export class MedianTTFProvider implements ExplainProvider {
         const hiredAt = c.hired_at!;
         const openedAt = req?.opened_at;
 
-        // Calculate total TTF
+        // Calculate total TTF (from req opened to hire)
         const totalDays = openedAt
           ? Math.floor((hiredAt.getTime() - openedAt.getTime()) / (1000 * 60 * 60 * 24))
           : -1; // Invalid if no opened_at
 
-        // Calculate phase breakdown
+        // Calculate phase breakdown - 3 phases that should sum to totalDays
+        let openedToApplied: number | null = null;
         let appliedToFirstTouch: number | null = null;
         let firstTouchToHire: number | null = null;
 
-        const startDate = c.applied_at || openedAt;
-        if (startDate && c.first_contacted_at) {
+        // Phase 1: Req Opened to Applied
+        if (openedAt && c.applied_at) {
+          openedToApplied = Math.floor(
+            (c.applied_at.getTime() - openedAt.getTime()) / (1000 * 60 * 60 * 24)
+          );
+        }
+
+        // Phase 2 & 3: Applied to First Touch, First Touch to Hire
+        const candidateStartDate = c.applied_at || openedAt;
+        if (candidateStartDate && c.first_contacted_at) {
           appliedToFirstTouch = Math.floor(
-            (c.first_contacted_at.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+            (c.first_contacted_at.getTime() - candidateStartDate.getTime()) / (1000 * 60 * 60 * 24)
           );
           firstTouchToHire = Math.floor(
             (hiredAt.getTime() - c.first_contacted_at.getTime()) / (1000 * 60 * 60 * 24)
@@ -277,6 +306,7 @@ export class MedianTTFProvider implements ExplainProvider {
           reqTitle: req?.req_title || 'Unknown',
           recruiterName: userMap.get(req?.recruiter_id || '') || req?.recruiter_id || 'Unknown',
           totalDays,
+          openedToApplied,
           appliedToFirstTouch,
           firstTouchToHire,
           openedAt: openedAt || new Date(0),

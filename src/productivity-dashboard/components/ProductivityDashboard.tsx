@@ -1,6 +1,6 @@
 // Main Productivity Dashboard Component
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './../dashboard-theme.css'; // Import bespoke theme
 import { useDashboard, PersistenceProgress } from '../hooks/useDashboardContext';
 import { CSVUpload } from './CSVUpload';
@@ -45,6 +45,7 @@ import '../components/layout/layout.css';
 import '../components/navigation/navigation.css';
 import { AiSettingsTab } from './settings/AiSettingsTab';
 import { OrgSettingsTab } from './settings/OrgSettingsTab';
+import { ActionItem } from '../types/actionTypes';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
@@ -70,6 +71,34 @@ export function ProductivityDashboard() {
   const { keyState, loadKeys, getEffectiveKey } = useAiKeys();
   const [aiKeysLoaded, setAiKeysLoaded] = useState(false);
 
+  // Shared manual actions state - persisted to localStorage
+  const [manualActions, setManualActions] = useState<ActionItem[]>(() => {
+    try {
+      const stored = localStorage.getItem('proddash_manual_actions');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Persist manual actions to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('proddash_manual_actions', JSON.stringify(manualActions));
+    } catch (e) {
+      console.warn('Failed to persist manual actions:', e);
+    }
+  }, [manualActions]);
+
+  // Handler to add manual actions (from Ask ProdDash)
+  const handleAddManualActions = useCallback((actions: ActionItem[]) => {
+    setManualActions(prev => {
+      const existingIds = new Set(prev.map(a => a.action_id));
+      const newActions = actions.filter(a => !existingIds.has(a.action_id));
+      return [...prev, ...newActions];
+    });
+  }, []);
+
   // Auto-load AI keys when user is authenticated
   useEffect(() => {
     if (user?.id && !aiKeysLoaded) {
@@ -80,8 +109,13 @@ export function ProductivityDashboard() {
   }, [user?.id, currentOrg?.id, aiKeysLoaded, loadKeys]);
 
   // Set aiConfig from loaded keys when keys are loaded
+  // Respects the user's stored aiEnabled preference
   useEffect(() => {
     if (aiKeysLoaded && !keyState.isLoading && !aiConfig) {
+      // Check if user has explicitly disabled AI mode
+      const storedAiEnabled = localStorage.getItem('proddash_ai_enabled');
+      const aiEnabled = storedAiEnabled === null ? true : storedAiEnabled === 'true';
+
       // Try to get the effective key for default provider (openai)
       const providers: AiProvider[] = ['openai', 'anthropic', 'gemini', 'openai_compatible'];
       for (const provider of providers) {
@@ -93,6 +127,7 @@ export function ProductivityDashboard() {
             apiKey: key.apiKey,
             model: key.model || DEFAULT_AI_CONFIG.model,
             baseUrl: key.baseUrl,
+            aiEnabled, // Respect stored preference
           });
           break;
         }
@@ -428,8 +463,8 @@ export function ProductivityDashboard() {
           <div
             className="mb-3 rounded"
             style={{
-              backgroundColor: isGeneratingEvents ? 'var(--color-slate-900, #1a1a2e)' : eventGenComplete ? 'var(--color-success-bg, #0d3320)' : 'var(--color-warning-light, #fff3cd)',
-              border: isGeneratingEvents ? '1px solid var(--color-slate-700, #333)' : eventGenComplete ? '1px solid var(--color-success, #10b981)' : '1px solid var(--color-warning, #ffc107)',
+              backgroundColor: isGeneratingEvents ? 'var(--color-slate-900, #1a1a2e)' : eventGenComplete ? 'var(--color-success-bg, #0d3320)' : 'rgba(255, 193, 7, 0.15)',
+              border: isGeneratingEvents ? '1px solid var(--color-slate-700, #333)' : eventGenComplete ? '1px solid var(--color-success, #10b981)' : '1px solid rgba(255, 193, 7, 0.4)',
               overflow: 'hidden',
               transition: 'all 0.3s ease'
             }}
@@ -517,8 +552,8 @@ export function ProductivityDashboard() {
               <div className="p-3 d-flex align-items-center gap-3">
                 <span style={{ fontSize: '1.5rem' }}>⚡</span>
                 <div className="flex-grow-1">
-                  <strong>Events Not Generated</strong>
-                  <div className="small text-muted">
+                  <strong style={{ color: '#ffc107' }}>Events Not Generated</strong>
+                  <div className="small" style={{ color: 'rgba(255,255,255,0.7)' }}>
                     Your data was imported without stage events. Generate events to enable HM Friction, Quality Guardrails, and activity tracking.
                   </div>
                 </div>
@@ -532,6 +567,7 @@ export function ProductivityDashboard() {
                   className="btn-close"
                   onClick={() => setEventGenDismissed(true)}
                   title="Dismiss"
+                  style={{ filter: 'invert(1) grayscale(100%) brightness(200%)' }}
                 />
               </div>
             )}
@@ -925,6 +961,7 @@ export function ProductivityDashboard() {
                       setActiveTab('hiring-managers');
                     }}
                     onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
+                    externalManualActions={manualActions}
                   />
                 ) : (
                   <TabSkeleton showKPIs showChart={false} showTable kpiCount={5} tableRows={6} />
@@ -958,6 +995,8 @@ export function ProductivityDashboard() {
                     aiEnabled={isAiEnabled}
                     aiConfig={aiConfig}
                     onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
+                    existingActions={manualActions}
+                    onAddActions={handleAddManualActions}
                   />
                 ) : (
                   <TabSkeleton showKPIs={false} showChart={false} showTable={false} />
@@ -1179,6 +1218,14 @@ export function ProductivityDashboard() {
           orgId={currentOrg?.id}
           userId={user?.id}
           canSetOrgKey={canManageMembers}
+          onAiEnabledChange={(enabled) => {
+            // Persist AI enabled preference to localStorage
+            localStorage.setItem('proddash_ai_enabled', String(enabled));
+            // Also update the current config if it exists
+            if (aiConfig) {
+              setAiConfig({ ...aiConfig, aiEnabled: enabled });
+            }
+          }}
         />
 
         {/* Progress Indicator Panel */}

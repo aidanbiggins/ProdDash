@@ -1,5 +1,36 @@
 import { supabase } from '../../lib/supabase';
-import { Requisition, Candidate, Event, User } from '../types';
+import { Requisition, Candidate, Event, User, CanonicalStage, CandidateDisposition, RequisitionStatus } from '../types';
+import {
+    createSnapshot,
+    insertSnapshotCandidates,
+    insertSnapshotRequisitions,
+    updateSnapshotStatus,
+    generateContentHash,
+    isDuplicateImport,
+    getSnapshotCount
+} from './snapshotService';
+import { processDiff } from './snapshotDiffService';
+import { SnapshotCandidateInput, SnapshotRequisitionInput, SNAPSHOT_LIMITS } from '../types/snapshotTypes';
+
+// Simple stage normalization for snapshots (without requiring full config)
+function simpleNormalizeStage(stage: string | null | undefined): CanonicalStage | null {
+    if (!stage) return null;
+    const lower = stage.toLowerCase().trim();
+
+    // Direct matches
+    if (lower === 'lead' || lower.includes('prospect') || lower === 'sourced') return CanonicalStage.LEAD;
+    if (lower === 'applied' || lower.includes('application') || lower === 'new' || lower === 'submitted') return CanonicalStage.APPLIED;
+    if (lower.includes('phone screen') || lower.includes('recruiter screen') || lower === 'screen' || lower.includes('ta screen')) return CanonicalStage.SCREEN;
+    if (lower.includes('hm screen') || lower.includes('hiring manager') || lower.includes('tech screen')) return CanonicalStage.HM_SCREEN;
+    if (lower.includes('onsite') || lower.includes('panel') || lower.includes('interview loop') || lower.includes('full loop')) return CanonicalStage.ONSITE;
+    if (lower === 'final' || lower.includes('final round') || lower.includes('exec interview') || lower.includes('debrief')) return CanonicalStage.FINAL;
+    if (lower === 'offer' || lower.includes('offer extended') || lower.includes('offer pending')) return CanonicalStage.OFFER;
+    if (lower === 'hired' || lower.includes('offer accepted') || lower.includes('accepted')) return CanonicalStage.HIRED;
+    if (lower.includes('reject') || lower.includes('declined by company') || lower.includes('not selected')) return CanonicalStage.REJECTED;
+    if (lower.includes('withdrew') || lower.includes('withdrawn') || lower.includes('candidate declined')) return CanonicalStage.WITHDREW;
+
+    return null;
+}
 
 // Helper to sanitize dates for JSON/DB (undefined -> null, Date -> ISO string)
 const toDbDate = (date: Date | null | undefined): string | null => {
@@ -447,3 +478,144 @@ export const clearAllData = async (
         throw error;
     }
 };
+
+// ============================================
+// SNAPSHOT CREATION ON IMPORT
+// ============================================
+
+export interface SnapshotImportResult {
+    snapshotId: string;
+    snapshotSeq: number;
+    candidateCount: number;
+    reqCount: number;
+    eventsGenerated: number;
+    isDuplicate: boolean;
+}
+
+/**
+ * Create a snapshot from imported data and run the diff algorithm.
+ * This is called after persistDashboardData to capture the snapshot state.
+ */
+export async function createSnapshotFromImport(
+    requisitions: Requisition[],
+    candidates: Candidate[],
+    organizationId: string,
+    options: {
+        snapshotDate?: Date;
+        sourceFilename?: string;
+        csvContent?: string;
+        userId?: string;
+    } = {}
+): Promise<SnapshotImportResult> {
+    const {
+        snapshotDate = new Date(),
+        sourceFilename,
+        csvContent,
+        userId
+    } = options;
+
+    console.log(`[Snapshot] Creating snapshot for org ${organizationId}...`);
+
+    // Generate content hash for deduplication
+    let sourceHash: string | undefined;
+    if (csvContent) {
+        sourceHash = await generateContentHash(csvContent);
+
+        // Check for duplicate import
+        const duplicate = await isDuplicateImport(organizationId, sourceHash);
+        if (duplicate) {
+            console.log('[Snapshot] Duplicate import detected, skipping snapshot creation');
+            return {
+                snapshotId: '',
+                snapshotSeq: 0,
+                candidateCount: candidates.length,
+                reqCount: requisitions.length,
+                eventsGenerated: 0,
+                isDuplicate: true
+            };
+        }
+    }
+
+    // Check snapshot limit
+    const currentCount = await getSnapshotCount(organizationId);
+    if (currentCount >= SNAPSHOT_LIMITS.MAX_SNAPSHOTS_PER_ORG) {
+        console.warn(`[Snapshot] Org ${organizationId} has reached max snapshots (${SNAPSHOT_LIMITS.MAX_SNAPSHOTS_PER_ORG})`);
+        // Could implement snapshot rotation here in the future
+    }
+
+    // Create the snapshot record
+    const snapshot = await createSnapshot({
+        organization_id: organizationId,
+        snapshot_date: snapshotDate,
+        source_filename: sourceFilename,
+        source_hash: sourceHash,
+        imported_by: userId
+    });
+
+    console.log(`[Snapshot] Created snapshot ${snapshot.id} (seq ${snapshot.snapshot_seq})`);
+
+    try {
+        // Convert candidates to snapshot format
+        const snapshotCandidates: SnapshotCandidateInput[] = candidates.map((c, index) => ({
+            snapshot_id: snapshot.id,
+            organization_id: organizationId,
+            candidate_id: c.candidate_id,
+            req_id: c.req_id,
+            current_stage: c.current_stage,
+            canonical_stage: simpleNormalizeStage(c.current_stage),
+            disposition: c.disposition as CandidateDisposition | null,
+            applied_at: c.applied_at,
+            current_stage_entered_at: c.current_stage_entered_at,
+            hired_at: c.hired_at,
+            rejected_at: null, // Not available in Candidate type
+            withdrawn_at: null, // Not available in Candidate type
+            offer_extended_at: c.offer_extended_at,
+            source_row_number: index + 1
+        }));
+
+        // Convert requisitions to snapshot format
+        const snapshotRequisitions: SnapshotRequisitionInput[] = requisitions.map((r, index) => ({
+            snapshot_id: snapshot.id,
+            organization_id: organizationId,
+            req_id: r.req_id,
+            status: r.status as RequisitionStatus | null,
+            recruiter_id: r.recruiter_id,
+            hiring_manager_id: r.hiring_manager_id,
+            opened_at: r.opened_at,
+            closed_at: r.closed_at,
+            source_row_number: index + 1
+        }));
+
+        // Insert snapshot data
+        console.log(`[Snapshot] Inserting ${snapshotCandidates.length} candidates and ${snapshotRequisitions.length} reqs...`);
+        await insertSnapshotCandidates(snapshotCandidates);
+        await insertSnapshotRequisitions(snapshotRequisitions);
+
+        // Update snapshot with counts
+        await updateSnapshotStatus(snapshot.id, 'pending', {
+            candidate_count: candidates.length,
+            req_count: requisitions.length
+        });
+
+        // Run diff algorithm
+        console.log(`[Snapshot] Running diff for snapshot ${snapshot.id}...`);
+        const diffResult = await processDiff(organizationId, snapshot.id);
+
+        console.log(`[Snapshot] Snapshot complete: ${diffResult.eventsGenerated} events generated`);
+
+        return {
+            snapshotId: snapshot.id,
+            snapshotSeq: snapshot.snapshot_seq,
+            candidateCount: candidates.length,
+            reqCount: requisitions.length,
+            eventsGenerated: diffResult.eventsGenerated,
+            isDuplicate: false
+        };
+    } catch (error) {
+        console.error('[Snapshot] Error creating snapshot:', error);
+        await updateSnapshotStatus(snapshot.id, 'failed', {
+            error_message: error instanceof Error ? error.message : 'Unknown error'
+        });
+        throw error;
+    }
+}

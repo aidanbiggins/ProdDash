@@ -428,6 +428,137 @@ describe('checkFactPackForPII', () => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// Recruiter Performance Tests
+// ─────────────────────────────────────────────────────────────
+
+describe('Recruiter Performance Data', () => {
+  it('should mark as available when recruiters exist', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', recruiter_id: 'REC-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-002', recruiter_id: 'REC-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-003', recruiter_id: 'REC-002', status: RequisitionStatus.Open }),
+      ],
+      candidates: [
+        createCandidate({ candidate_id: 'CAN-001', req_id: 'REQ-001', recruiter_id: 'REC-001', disposition: CandidateDisposition.Hired, hired_at: new Date() }),
+        createCandidate({ candidate_id: 'CAN-002', req_id: 'REQ-002', recruiter_id: 'REC-001', disposition: CandidateDisposition.Active }),
+        createCandidate({ candidate_id: 'CAN-003', req_id: 'REQ-003', recruiter_id: 'REC-002', disposition: CandidateDisposition.Active }),
+      ],
+      events: [],
+      users: [
+        createUser({ user_id: 'REC-001', name: 'Alice Recruiter' }),
+        createUser({ user_id: 'REC-002', name: 'Bob Recruiter' }),
+      ],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.recruiter_performance.available).toBe(true);
+    expect(factPack.recruiter_performance.unavailable_reason).toBeUndefined();
+    expect(factPack.recruiter_performance.total_recruiters).toBe(2);
+  });
+
+  it('should mark as unavailable when no recruiters exist', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [],
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.recruiter_performance.available).toBe(false);
+    expect(factPack.recruiter_performance.unavailable_reason).toBeDefined();
+    expect(factPack.recruiter_performance.total_recruiters).toBe(0);
+  });
+
+  it('should include anonymized_id for each recruiter', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', recruiter_id: 'REC-001', status: RequisitionStatus.Open }),
+      ],
+      candidates: [
+        createCandidate({ candidate_id: 'CAN-001', req_id: 'REQ-001', recruiter_id: 'REC-001', disposition: CandidateDisposition.Hired, hired_at: new Date() }),
+      ],
+      events: [],
+      users: [
+        createUser({ user_id: 'REC-001', name: 'Alice Recruiter' }),
+      ],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.recruiter_performance.available).toBe(true);
+    expect(factPack.recruiter_performance.top_by_hires.length).toBeGreaterThan(0);
+    expect(factPack.recruiter_performance.top_by_hires[0].anonymized_id).toBeDefined();
+    expect(factPack.recruiter_performance.top_by_hires[0].anonymized_id).toMatch(/^anon_/);
+  });
+
+  it('should calculate productivity score', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', recruiter_id: 'REC-001', status: RequisitionStatus.Open }),
+      ],
+      candidates: [
+        createCandidate({
+          candidate_id: 'CAN-001',
+          req_id: 'REQ-001',
+          recruiter_id: 'REC-001',
+          disposition: CandidateDisposition.Hired,
+          hired_at: new Date(),
+        }),
+      ],
+      events: [],
+      users: [
+        createUser({ user_id: 'REC-001', name: 'Alice Recruiter' }),
+      ],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.recruiter_performance.top_by_productivity.length).toBeGreaterThan(0);
+    expect(factPack.recruiter_performance.top_by_productivity[0].productivity_score).not.toBeNull();
+  });
+
+  it('should fallback to recruiter_ids from requisitions when no users exist', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', recruiter_id: 'REC-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-002', recruiter_id: 'REC-002', status: RequisitionStatus.Open }),
+      ],
+      candidates: [
+        createCandidate({ candidate_id: 'CAN-001', req_id: 'REQ-001', recruiter_id: 'REC-001', disposition: CandidateDisposition.Active }),
+      ],
+      events: [],
+      users: [], // No users - should fallback to requisition recruiter_ids
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.recruiter_performance.available).toBe(true);
+    expect(factPack.recruiter_performance.total_recruiters).toBeGreaterThan(0);
+  });
+
+  it('should set confidence based on sample size', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', recruiter_id: 'REC-001', status: RequisitionStatus.Open }),
+      ],
+      candidates: [],
+      events: [],
+      users: [
+        createUser({ user_id: 'REC-001', name: 'Alice Recruiter' }),
+      ],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(['high', 'medium', 'low']).toContain(factPack.recruiter_performance.confidence);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
 // KPI Calculation Tests
 // ─────────────────────────────────────────────────────────────
 
@@ -515,5 +646,150 @@ describe('KPI Calculations', () => {
 
     // With no data, stalled_reqs should be 0 (green)
     expect(factPack.control_tower.kpis.stalled_reqs.status).toBe('green');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
+// Hiring Manager Ownership Tests
+// ─────────────────────────────────────────────────────────────
+
+describe('Hiring Manager Ownership Data', () => {
+  it('should mark as available when requisitions have hiring_manager_id', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-002', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-003', hiring_manager_id: 'HM-002', status: RequisitionStatus.Open }),
+      ],
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.hiring_manager_ownership.available).toBe(true);
+    expect(factPack.hiring_manager_ownership.total_hiring_managers).toBe(2);
+    expect(factPack.hiring_manager_ownership.n).toBe(2);
+  });
+
+  it('should mark as unavailable when no hiring_manager_id in requisitions', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', hiring_manager_id: undefined, status: RequisitionStatus.Open }),
+      ],
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.hiring_manager_ownership.available).toBe(false);
+    expect(factPack.hiring_manager_ownership.unavailable_reason).toBeDefined();
+  });
+
+  it('should correctly count open reqs by hiring manager', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-002', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-003', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-004', hiring_manager_id: 'HM-002', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-005', hiring_manager_id: 'HM-002', status: RequisitionStatus.Filled }),
+      ],
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.hiring_manager_ownership.available).toBe(true);
+    // HM-001 has 3 open reqs, HM-002 has 1 open req (1 is filled)
+    const hm001 = factPack.hiring_manager_ownership.open_reqs_by_hm.find(hm => hm.open_req_count === 3);
+    const hm002 = factPack.hiring_manager_ownership.open_reqs_by_hm.find(hm => hm.open_req_count === 1);
+    expect(hm001).toBeDefined();
+    expect(hm002).toBeDefined();
+    expect(hm001?.req_ids).toContain('REQ-001');
+    expect(hm001?.req_ids).toContain('REQ-002');
+    expect(hm001?.req_ids).toContain('REQ-003');
+  });
+
+  it('should sort HMs by open req count descending', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-002', hiring_manager_id: 'HM-002', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-003', hiring_manager_id: 'HM-002', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-004', hiring_manager_id: 'HM-002', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-005', hiring_manager_id: 'HM-003', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-006', hiring_manager_id: 'HM-003', status: RequisitionStatus.Open }),
+      ],
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    const openReqsByHm = factPack.hiring_manager_ownership.open_reqs_by_hm;
+    // Should be sorted: HM-002 (3), HM-003 (2), HM-001 (1)
+    expect(openReqsByHm[0].open_req_count).toBe(3);
+    expect(openReqsByHm[1].open_req_count).toBe(2);
+    expect(openReqsByHm[2].open_req_count).toBe(1);
+  });
+
+  it('should include anonymized_id for each HM', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+      ],
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.hiring_manager_ownership.open_reqs_by_hm.length).toBeGreaterThan(0);
+    expect(factPack.hiring_manager_ownership.open_reqs_by_hm[0].anonymized_id).toBeDefined();
+    expect(factPack.hiring_manager_ownership.open_reqs_by_hm[0].anonymized_id).toMatch(/^anon_/);
+  });
+
+  it('should limit req_ids to 10 per HM', () => {
+    const manyReqs = Array.from({ length: 15 }, (_, i) =>
+      createRequisition({ req_id: `REQ-${String(i + 1).padStart(3, '0')}`, hiring_manager_id: 'HM-001', status: RequisitionStatus.Open })
+    );
+
+    const factPack = buildSimpleFactPack({
+      requisitions: manyReqs,
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.hiring_manager_ownership.open_reqs_by_hm[0].req_ids.length).toBeLessThanOrEqual(10);
+  });
+
+  it('should set confidence based on number of HMs with open reqs', () => {
+    const factPack = buildSimpleFactPack({
+      requisitions: [
+        createRequisition({ req_id: 'REQ-001', hiring_manager_id: 'HM-001', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-002', hiring_manager_id: 'HM-002', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-003', hiring_manager_id: 'HM-003', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-004', hiring_manager_id: 'HM-004', status: RequisitionStatus.Open }),
+        createRequisition({ req_id: 'REQ-005', hiring_manager_id: 'HM-005', status: RequisitionStatus.Open }),
+      ],
+      candidates: [],
+      events: [],
+      users: [],
+      aiEnabled: false,
+      dataHealthScore: 100,
+    });
+
+    expect(factPack.hiring_manager_ownership.confidence).toBe('high'); // 5+ HMs
   });
 });

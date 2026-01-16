@@ -7,7 +7,61 @@ import {
   IntentResponse,
   FactCitation,
   DeepLinkSpec,
+  FilterContext,
 } from '../types/askTypes';
+
+// ─────────────────────────────────────────────────────────────
+// Filter Preservation Helpers
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Build deep link params from filter context to preserve filters when navigating
+ */
+function buildFilterParams(filterContext: FilterContext | undefined): Record<string, string> {
+  const params: Record<string, string> = {};
+
+  if (!filterContext) return params;
+
+  if (filterContext.recruiter_ids?.length > 0) {
+    params.recruiterIds = filterContext.recruiter_ids.join(',');
+  }
+  if (filterContext.date_range_start) {
+    params.dateStart = filterContext.date_range_start;
+  }
+  if (filterContext.date_range_end) {
+    params.dateEnd = filterContext.date_range_end;
+  }
+  if (filterContext.date_range_preset) {
+    params.datePreset = filterContext.date_range_preset;
+  }
+  if (filterContext.functions?.length > 0) {
+    params.functions = filterContext.functions.join(',');
+  }
+  if (filterContext.regions?.length > 0) {
+    params.regions = filterContext.regions.join(',');
+  }
+
+  return params;
+}
+
+/**
+ * Build a deep link spec with filter context preserved
+ */
+function buildDeepLink(
+  label: string,
+  tab: string,
+  factPack: AskFactPack,
+  additionalParams: Record<string, string> = {}
+): DeepLinkSpec {
+  return {
+    label,
+    tab,
+    params: {
+      ...buildFilterParams(factPack.meta.filter_context),
+      ...additionalParams,
+    },
+  };
+}
 
 // ─────────────────────────────────────────────────────────────
 // Intent Matching
@@ -87,7 +141,7 @@ export const whatsOnFireHandler: IntentHandler = {
       return {
         answer_markdown: md,
         citations: [],
-        deep_links: [{ label: 'View Control Tower', tab: 'control-tower', params: {} }],
+        deep_links: [buildDeepLink('View Control Tower', 'control-tower', fp)],
         suggested_questions: ['Show me risks', 'What should I work on?'],
       };
     }
@@ -139,8 +193,8 @@ export const whatsOnFireHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View all actions', tab: 'control-tower', params: { view: 'actions' } },
-        { label: 'View stalled reqs', tab: 'control-tower', params: { filter: 'stalled' } },
+        buildDeepLink('View all actions', 'control-tower', fp, { view: 'actions' }),
+        buildDeepLink('View stalled reqs', 'control-tower', fp, { filter: 'stalled' }),
       ],
       suggested_questions: [
         'Why is time to offer high?',
@@ -183,7 +237,7 @@ export const topRisksHandler: IntentHandler = {
           label: 'Total At Risk',
           value: riskSummary.total_at_risk,
         }],
-        deep_links: [{ label: 'View Control Tower', tab: 'control-tower', params: {} }],
+        deep_links: [buildDeepLink('View Control Tower', 'control-tower', fp)],
         suggested_questions: ['What actions should I take?', 'Show me forecast'],
       };
     }
@@ -221,8 +275,8 @@ export const topRisksHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View all risks', tab: 'control-tower', params: { view: 'risks' } },
-        { label: 'View forecasting', tab: 'forecasting', params: {} },
+        buildDeepLink('View all risks', 'control-tower', fp, { view: 'risks' }),
+        buildDeepLink('View forecasting', 'forecasting', fp),
       ],
       suggested_questions: [
         'What actions should I take?',
@@ -307,7 +361,7 @@ export const topActionsHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View all actions', tab: 'control-tower', params: { view: 'actions' } },
+        buildDeepLink('View all actions', 'control-tower', fp, { view: 'actions' }),
       ],
       suggested_questions: [
         'What\'s on fire?',
@@ -384,8 +438,8 @@ export const whyTimeToOfferHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View velocity details', tab: 'velocity-insights', params: {} },
-        { label: 'View stage breakdown', tab: 'velocity-insights', params: { view: 'funnel' } },
+        buildDeepLink('View velocity details', 'velocity', fp),
+        buildDeepLink('View stage breakdown', 'velocity', fp, { view: 'funnel' }),
       ],
       suggested_questions: [
         'Which HMs are slowest?',
@@ -461,8 +515,8 @@ export const whyHMLatencyHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View HM queue', tab: 'hm-friction', params: {} },
-        { label: 'View pending actions', tab: 'control-tower', params: { filter: 'HIRING_MANAGER' } },
+        buildDeepLink('View HM queue', 'hm-friction', fp),
+        buildDeepLink('View pending actions', 'control-tower', fp, { filter: 'HIRING_MANAGER' }),
       ],
       suggested_questions: [
         'What actions are blocking?',
@@ -545,8 +599,8 @@ export const stalledReqsHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View stalled reqs', tab: 'control-tower', params: { filter: 'stalled' } },
-        { label: 'View data health', tab: 'data-health', params: {} },
+        buildDeepLink('View stalled reqs', 'control-tower', fp, { filter: 'stalled' }),
+        buildDeepLink('View data health', 'data-health', fp),
       ],
       suggested_questions: [
         'What actions should I take?',
@@ -629,8 +683,8 @@ export const forecastGapHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View forecasting', tab: 'forecasting', params: {} },
-        { label: 'View pipeline', tab: 'control-tower', params: { view: 'pipeline' } },
+        buildDeepLink('View forecasting', 'forecasting', fp),
+        buildDeepLink('View pipeline', 'control-tower', fp, { view: 'pipeline' }),
       ],
       suggested_questions: [
         'What\'s on fire?',
@@ -707,7 +761,7 @@ export const velocitySummaryHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View velocity details', tab: 'velocity-insights', params: {} },
+        buildDeepLink('View velocity details', 'velocity', fp),
       ],
       suggested_questions: [
         'Why is time to offer high?',
@@ -774,7 +828,7 @@ export const sourceMixSummaryHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View source effectiveness', tab: 'source-effectiveness', params: {} },
+        buildDeepLink('View source effectiveness', 'source-mix', fp),
       ],
       suggested_questions: [
         'What\'s the forecast?',
@@ -849,12 +903,305 @@ export const capacitySummaryHandler: IntentHandler = {
       answer_markdown: md,
       citations,
       deep_links: [
-        { label: 'View HM friction', tab: 'hm-friction', params: {} },
-        { label: 'View control tower', tab: 'control-tower', params: {} },
+        buildDeepLink('View HM friction', 'hm-friction', fp),
+        buildDeepLink('View control tower', 'control-tower', fp),
       ],
       suggested_questions: [
         'What\'s on fire?',
         'Show me stalled reqs',
+        'What actions should I take?',
+      ],
+    };
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// Handler: Most Productive Recruiter
+// ─────────────────────────────────────────────────────────────
+
+export const mostProductiveRecruiterHandler: IntentHandler = {
+  intent_id: 'most_productive_recruiter',
+  patterns: [
+    /\b(most|top|best)\s+(productive|performing|effective)\s+recruiter/i,
+    /who.*(most|top|best).*(productive|performer|recruiter)/i,
+    /\brecruiter\s+(leaderboard|ranking|performance)/i,
+    /top recruiter/i,
+    /best recruiter/i,
+  ],
+  keywords: ['most productive', 'top recruiter', 'best recruiter', 'recruiter performance', 'productive recruiter', 'top performer'],
+  fact_keys_used: [
+    'recruiter_performance.top_by_productivity',
+    'recruiter_performance.top_by_hires',
+    'recruiter_performance.team_avg_productivity',
+    'recruiter_performance.available',
+    'recruiter_performance.n',
+    'recruiter_performance.confidence',
+  ],
+  handler: (fp: AskFactPack): IntentResponse => {
+    const recruiterPerf = fp.recruiter_performance;
+    const citations: FactCitation[] = [];
+
+    // Check if data is available
+    if (!recruiterPerf.available) {
+      let md = `## Recruiter Productivity\n\n`;
+      md += `**Data not available:** ${recruiterPerf.unavailable_reason || 'No recruiter data found.'}\n\n`;
+      md += `To enable recruiter performance tracking:\n`;
+      md += `- Ensure requisitions have the \`recruiter_id\` field populated\n`;
+      md += `- Import data with recruiter assignments\n`;
+
+      return {
+        answer_markdown: md,
+        citations: [{
+          ref: '[1]',
+          key_path: 'recruiter_performance.available',
+          label: 'Data Availability',
+          value: 'false',
+        }],
+        deep_links: [buildDeepLink('View Data Health', 'data-health', fp)],
+        suggested_questions: [
+          'What\'s on fire?',
+          'Show me risks',
+          'What\'s the forecast?',
+        ],
+      };
+    }
+
+    const topByProductivity = recruiterPerf.top_by_productivity;
+    const topByHires = recruiterPerf.top_by_hires;
+    const teamAvg = recruiterPerf.team_avg_productivity;
+
+    let md = `## Most Productive Recruiter\n\n`;
+
+    // Top performer by productivity score
+    if (topByProductivity.length > 0) {
+      const top = topByProductivity[0];
+      md += `### Top Performer\n\n`;
+      md += `**${top.anonymized_label}** leads the team with a productivity score of **${top.productivity_score}** [1]\n\n`;
+      citations.push({
+        ref: '[1]',
+        key_path: 'recruiter_performance.top_by_productivity[0].productivity_score',
+        label: `${top.anonymized_label} Productivity Score`,
+        value: top.productivity_score,
+      });
+
+      md += `**Performance metrics:**\n`;
+      md += `- Hires in period: **${top.hires_in_period}** [2]\n`;
+      citations.push({
+        ref: '[2]',
+        key_path: 'recruiter_performance.top_by_productivity[0].hires_in_period',
+        label: 'Hires',
+        value: top.hires_in_period,
+      });
+
+      md += `- Offers in period: **${top.offers_in_period}** [3]\n`;
+      citations.push({
+        ref: '[3]',
+        key_path: 'recruiter_performance.top_by_productivity[0].offers_in_period',
+        label: 'Offers',
+        value: top.offers_in_period,
+      });
+
+      md += `- Open reqs: ${top.open_reqs}\n`;
+      md += `- Active candidates: ${top.active_candidates}\n`;
+      if (top.avg_ttf !== null) {
+        md += `- Avg TTF: ${top.avg_ttf} days\n`;
+      }
+      md += `\n`;
+    }
+
+    // Leaderboard
+    if (topByProductivity.length > 1) {
+      md += `### Recruiter Leaderboard (Top 5)\n\n`;
+      md += `| Rank | Recruiter | Score | Hires | Offers |\n`;
+      md += `|------|-----------|-------|-------|--------|\n`;
+
+      topByProductivity.slice(0, 5).forEach((r, i) => {
+        md += `| ${i + 1} | ${r.anonymized_label} | ${r.productivity_score ?? '-'} | ${r.hires_in_period} | ${r.offers_in_period} |\n`;
+      });
+      md += `\n`;
+    }
+
+    // Team average
+    if (teamAvg !== null) {
+      md += `**Team average productivity:** ${teamAvg} [4]\n`;
+      citations.push({
+        ref: '[4]',
+        key_path: 'recruiter_performance.team_avg_productivity',
+        label: 'Team Average',
+        value: teamAvg,
+      });
+    }
+
+    // Confidence indicator
+    md += `\n_Based on ${recruiterPerf.n} recruiters with activity (${recruiterPerf.confidence} confidence)_\n`;
+
+    return {
+      answer_markdown: md,
+      citations,
+      deep_links: [
+        buildDeepLink('View Recruiter Performance', 'recruiter', fp, {
+          id: topByProductivity[0]?.anonymized_id || '',
+        }),
+        buildDeepLink('View Capacity Overview', 'capacity', fp),
+      ],
+      suggested_questions: [
+        'What\'s on fire?',
+        'Show me stalled reqs',
+        'What\'s the forecast?',
+      ],
+    };
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// Handler: HM with Most Open Reqs
+// ─────────────────────────────────────────────────────────────
+
+export const hmWithMostOpenReqsHandler: IntentHandler = {
+  intent_id: 'hm_with_most_open_reqs',
+  patterns: [
+    /\b(which|who)\s+(hiring manager|hm|manager).*(most|highest|largest)\s+(open\s+)?(reqs?|requisitions?)/i,
+    /\b(hiring manager|hm|manager).*(most|highest|largest)\s+(open\s+)?(reqs?|requisitions?)/i,
+    /\bmost\s+(open\s+)?(reqs?|requisitions?)\s+by\s+(hiring manager|hm|manager)/i,
+    /\b(hm|hiring manager|manager)\s+with\s+most\s+reqs/i,
+    /\btop\s+(hiring manager|hm|manager)\s+by\s+(reqs?|requisitions?)/i,
+  ],
+  keywords: ['hiring manager', 'hm', 'manager', 'most reqs', 'most requisitions', 'open reqs', 'req ownership'],
+  fact_keys_used: [
+    'hiring_manager_ownership.available',
+    'hiring_manager_ownership.open_reqs_by_hm',
+    'hiring_manager_ownership.total_hiring_managers',
+    'hiring_manager_ownership.n',
+    'hiring_manager_ownership.confidence',
+  ],
+  handler: (fp: AskFactPack): IntentResponse => {
+    const hmOwnership = fp.hiring_manager_ownership;
+    const citations: FactCitation[] = [];
+
+    // Check if data is available
+    if (!hmOwnership.available) {
+      let md = `## Hiring Manager Ownership\n\n`;
+      md += `**Data not available:** ${hmOwnership.unavailable_reason || 'No hiring manager data found.'}\n\n`;
+      md += `To enable HM ownership tracking:\n`;
+      md += `- Ensure requisitions have the \`hiring_manager_id\` field populated\n`;
+      md += `- Import data with hiring manager assignments\n`;
+
+      return {
+        answer_markdown: md,
+        citations: [{
+          ref: '[1]',
+          key_path: 'hiring_manager_ownership.available',
+          label: 'Data Availability',
+          value: 'false',
+        }],
+        deep_links: [buildDeepLink('View Data Health', 'data-health', fp)],
+        suggested_questions: [
+          'What\'s on fire?',
+          'Show me risks',
+          'What\'s the forecast?',
+        ],
+      };
+    }
+
+    const topHMs = hmOwnership.open_reqs_by_hm;
+
+    if (topHMs.length === 0) {
+      return {
+        answer_markdown: `## Hiring Manager Ownership\n\nNo hiring managers currently have open requisitions.`,
+        citations: [{
+          ref: '[1]',
+          key_path: 'hiring_manager_ownership.n',
+          label: 'HMs with Open Reqs',
+          value: 0,
+        }],
+        deep_links: [buildDeepLink('View Hiring Managers', 'hiring-managers', fp)],
+        suggested_questions: [
+          'What\'s on fire?',
+          'Show me risks',
+          'What\'s the forecast?',
+        ],
+      };
+    }
+
+    const topHM = topHMs[0];
+    let md = `## Hiring Manager with Most Open Reqs\n\n`;
+
+    md += `### Top HM by Open Requisitions\n\n`;
+    md += `**${topHM.hm_label}** has the most open requisitions with **${topHM.open_req_count}** reqs [1]\n\n`;
+    citations.push({
+      ref: '[1]',
+      key_path: 'hiring_manager_ownership.open_reqs_by_hm[0].open_req_count',
+      label: `${topHM.hm_label} Open Reqs`,
+      value: topHM.open_req_count,
+    });
+
+    // Show sample req IDs
+    if (topHM.req_ids.length > 0) {
+      md += `**Sample Req IDs:** ${topHM.req_ids.slice(0, 5).join(', ')}`;
+      if (topHM.req_ids.length > 5) {
+        md += ` and ${topHM.req_ids.length - 5} more`;
+      }
+      md += ` [2]\n`;
+      citations.push({
+        ref: '[2]',
+        key_path: 'hiring_manager_ownership.open_reqs_by_hm[0].req_ids',
+        label: 'Req IDs',
+        value: topHM.req_ids.slice(0, 5).join(', '),
+      });
+    }
+
+    // Show HM latency if available
+    if (topHM.avg_hm_latency !== null && topHM.avg_hm_latency !== undefined) {
+      md += `\n**Avg HM Latency:** ${topHM.avg_hm_latency} days [3]\n`;
+      citations.push({
+        ref: '[3]',
+        key_path: 'hiring_manager_ownership.open_reqs_by_hm[0].avg_hm_latency',
+        label: 'Avg HM Latency',
+        value: topHM.avg_hm_latency,
+      });
+    }
+
+    // Leaderboard
+    if (topHMs.length > 1) {
+      md += `\n### HM Leaderboard (Top 10 by Open Reqs)\n\n`;
+      md += `| Rank | Hiring Manager | Open Reqs | Latency |\n`;
+      md += `|------|----------------|-----------|----------|\n`;
+
+      topHMs.slice(0, 10).forEach((hm, i) => {
+        const latency = hm.avg_hm_latency !== null && hm.avg_hm_latency !== undefined
+          ? `${hm.avg_hm_latency}d`
+          : '-';
+        md += `| ${i + 1} | ${hm.hm_label} | ${hm.open_req_count} | ${latency} |\n`;
+      });
+      md += `\n`;
+    }
+
+    // Summary stats
+    md += `**Total hiring managers:** ${hmOwnership.total_hiring_managers} [${citations.length + 1}]\n`;
+    citations.push({
+      ref: `[${citations.length + 1}]`,
+      key_path: 'hiring_manager_ownership.total_hiring_managers',
+      label: 'Total HMs',
+      value: hmOwnership.total_hiring_managers,
+    });
+
+    md += `**HMs with open reqs:** ${hmOwnership.n}\n`;
+
+    // Confidence indicator
+    md += `\n_${hmOwnership.confidence} confidence based on ${hmOwnership.n} hiring managers with open reqs_\n`;
+
+    return {
+      answer_markdown: md,
+      citations,
+      deep_links: [
+        buildDeepLink('View Hiring Managers', 'hiring-managers', fp, {
+          id: topHM.anonymized_id || '',
+        }),
+        buildDeepLink('View HM Friction', 'hm-friction', fp),
+      ],
+      suggested_questions: [
+        'Show me HM latency',
+        'What\'s on fire?',
         'What actions should I take?',
       ],
     };
@@ -876,6 +1223,8 @@ export const ALL_HANDLERS: IntentHandler[] = [
   velocitySummaryHandler,
   sourceMixSummaryHandler,
   capacitySummaryHandler,
+  mostProductiveRecruiterHandler,
+  hmWithMostOpenReqsHandler,
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -903,7 +1252,7 @@ export function generateHelpResponse(fp: AskFactPack): IntentResponse {
     answer_markdown: md,
     citations: [],
     deep_links: [
-      { label: 'View Control Tower', tab: 'control-tower', params: {} },
+      buildDeepLink('View Control Tower', 'control-tower', fp),
     ],
     suggested_questions: [
       'What\'s on fire?',

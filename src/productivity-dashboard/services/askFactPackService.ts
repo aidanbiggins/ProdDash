@@ -13,6 +13,9 @@ import {
   SourceSummary,
   GlossaryEntry,
   AnonymizationMaps,
+  RecruiterPerformanceSummary,
+  HiringManagerOwnershipSummary,
+  HMOwnershipEntry,
 } from '../types/askTypes';
 import {
   DashboardState,
@@ -519,6 +522,18 @@ export function buildFactPack(context: FactPackBuilderContext): AskFactPack {
   // Build capacity data
   const capacity = buildCapacityData(users, requisitions);
 
+  // Build recruiter performance data
+  const recruiterPerformance = buildRecruiterPerformanceData(users, requisitions, candidates, anonMaps);
+
+  // Build hiring manager ownership data
+  // Convert HM friction data to the expected format if available
+  // feedbackLatencyMedian is in hours, convert to days
+  const hmFrictionData = state.hmFriction?.map(hm => ({
+    hm_id: hm.hmId,
+    avg_latency_days: hm.feedbackLatencyMedian !== null ? hm.feedbackLatencyMedian / 24 : null,
+  }));
+  const hiringManagerOwnership = buildHiringManagerOwnershipData(requisitions, anonMaps, hmFrictionData);
+
   // Build forecast data
   const forecast = buildForecastData(requisitions, candidates, preMortemResults);
 
@@ -548,6 +563,14 @@ export function buildFactPack(context: FactPackBuilderContext): AskFactPack {
         total_hires: hireCount,
         total_offers: offerCount,
         total_events: events.length,
+      },
+      filter_context: {
+        recruiter_ids: state.filters?.recruiterIds || [],
+        date_range_start: state.filters?.dateRange?.startDate?.toISOString().split('T')[0] || null,
+        date_range_end: state.filters?.dateRange?.endDate?.toISOString().split('T')[0] || null,
+        date_range_preset: null,
+        functions: state.filters?.functions || [],
+        regions: state.filters?.regions || [],
       },
       capability_flags: capabilityFlags,
       data_health_score: state.dataStore.dataHealth.overallHealthScore,
@@ -583,6 +606,8 @@ export function buildFactPack(context: FactPackBuilderContext): AskFactPack {
     velocity,
     sources,
     capacity,
+    recruiter_performance: recruiterPerformance,
+    hiring_manager_ownership: hiringManagerOwnership,
     glossary: GLOSSARY,
   };
 }
@@ -781,6 +806,306 @@ function buildCapacityData(users: User[], requisitions: Requisition[]): AskFactP
   };
 }
 
+/**
+ * Generate a stable anonymized ID for deep links
+ * Uses a simple hash to ensure the same user always gets the same ID
+ */
+function generateAnonymizedId(userId: string): string {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    const char = userId.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return `anon_${Math.abs(hash).toString(36)}`;
+}
+
+function buildRecruiterPerformanceData(
+  users: User[],
+  requisitions: Requisition[],
+  candidates: Candidate[],
+  anonMaps: AnonymizationMaps
+): AskFactPack['recruiter_performance'] {
+  // Check if we have recruiter data at all
+  const hasRecruiterIds = requisitions.some(r => r.recruiter_id);
+
+  if (users.length === 0 && !hasRecruiterIds) {
+    return {
+      available: false,
+      unavailable_reason: 'No recruiter data in dataset. Ensure requisitions have recruiter_id field populated.',
+      top_by_hires: [],
+      top_by_productivity: [],
+      bottom_by_productivity: [],
+      team_avg_productivity: null,
+      total_recruiters: 0,
+      n: 0,
+      confidence: 'low',
+    };
+  }
+
+  // Build performance stats for each recruiter
+  const recruiterStats = new Map<string, {
+    userId: string;
+    openReqs: number;
+    hires: number;
+    offers: number;
+    ttfs: number[];
+    activeCandidates: number;
+  }>();
+
+  // Collect all recruiter IDs from users and requisitions
+  const allRecruiterIds = new Set<string>();
+  users.forEach(u => allRecruiterIds.add(u.user_id));
+  requisitions.forEach(r => {
+    if (r.recruiter_id) allRecruiterIds.add(r.recruiter_id);
+  });
+
+  // Initialize stats for all recruiters
+  allRecruiterIds.forEach(recruiterId => {
+    recruiterStats.set(recruiterId, {
+      userId: recruiterId,
+      openReqs: 0,
+      hires: 0,
+      offers: 0,
+      ttfs: [],
+      activeCandidates: 0,
+    });
+  });
+
+  // Count open reqs per recruiter
+  requisitions.forEach(r => {
+    if (r.recruiter_id && recruiterStats.has(r.recruiter_id)) {
+      const stats = recruiterStats.get(r.recruiter_id)!;
+      if (r.status === RequisitionStatus.Open) {
+        stats.openReqs++;
+      }
+    }
+  });
+
+  // Build map of req -> recruiter for candidate attribution
+  const reqRecruiterMap = new Map<string, string>();
+  requisitions.forEach(r => {
+    if (r.recruiter_id) {
+      reqRecruiterMap.set(r.req_id, r.recruiter_id);
+    }
+  });
+
+  // Build map of req -> opened_at for TTF calculation
+  const reqOpenedMap = new Map<string, Date>();
+  requisitions.forEach(r => {
+    if (r.opened_at) {
+      reqOpenedMap.set(r.req_id, r.opened_at);
+    }
+  });
+
+  // Count hires, offers, and active candidates per recruiter
+  candidates.forEach(c => {
+    const recruiterId = reqRecruiterMap.get(c.req_id);
+    if (!recruiterId || !recruiterStats.has(recruiterId)) return;
+
+    const stats = recruiterStats.get(recruiterId)!;
+
+    if (c.disposition === CandidateDisposition.Hired) {
+      stats.hires++;
+      // Calculate TTF if we have hire date and req opened date
+      const reqOpened = reqOpenedMap.get(c.req_id);
+      if (c.hired_at && reqOpened) {
+        const ttf = differenceInDays(c.hired_at, reqOpened);
+        if (ttf > 0 && ttf < 365) {
+          stats.ttfs.push(ttf);
+        }
+      }
+    }
+
+    if (c.current_stage === CanonicalStage.OFFER || c.disposition === CandidateDisposition.Hired) {
+      stats.offers++;
+    }
+
+    if (!c.disposition || c.disposition === CandidateDisposition.Active) {
+      stats.activeCandidates++;
+    }
+  });
+
+  // Convert to performance summaries with anonymized labels
+  const performanceList: RecruiterPerformanceSummary[] = [];
+  let recruiterIndex = 1;
+
+  // Sort by userId for deterministic ordering
+  const sortedRecruiterIds = Array.from(recruiterStats.keys()).sort();
+
+  sortedRecruiterIds.forEach(userId => {
+    const stats = recruiterStats.get(userId)!;
+    const avgTtf = stats.ttfs.length > 0
+      ? Math.round(stats.ttfs.reduce((a, b) => a + b, 0) / stats.ttfs.length)
+      : null;
+
+    // Productivity score: weighted combo of hires (60%) + offers (40%), normalized
+    // Higher scores = more productive
+    const rawScore = (stats.hires * 10) + (stats.offers * 5);
+    const productivityScore = rawScore > 0 ? Math.min(100, rawScore) : null;
+
+    performanceList.push({
+      anonymized_id: generateAnonymizedId(userId),
+      anonymized_label: anonMaps.recruiters.get(userId) || `Recruiter ${recruiterIndex}`,
+      open_reqs: stats.openReqs,
+      hires_in_period: stats.hires,
+      offers_in_period: stats.offers,
+      avg_ttf: avgTtf,
+      active_candidates: stats.activeCandidates,
+      productivity_score: productivityScore,
+    });
+    recruiterIndex++;
+  });
+
+  // Sort by different criteria for top lists
+  const byHires = [...performanceList]
+    .filter(r => r.hires_in_period > 0)
+    .sort((a, b) => b.hires_in_period - a.hires_in_period)
+    .slice(0, 5);
+
+  const byProductivity = [...performanceList]
+    .filter(r => r.productivity_score !== null)
+    .sort((a, b) => (b.productivity_score ?? 0) - (a.productivity_score ?? 0))
+    .slice(0, 5);
+
+  const bottomByProductivity = [...performanceList]
+    .filter(r => r.productivity_score !== null && r.productivity_score < 50)
+    .sort((a, b) => (a.productivity_score ?? 0) - (b.productivity_score ?? 0))
+    .slice(0, 3);
+
+  // Calculate team average
+  const scoresWithValues = performanceList
+    .map(r => r.productivity_score)
+    .filter((s): s is number => s !== null);
+  const teamAvg = scoresWithValues.length > 0
+    ? Math.round(scoresWithValues.reduce((a, b) => a + b, 0) / scoresWithValues.length)
+    : null;
+
+  // Determine confidence based on sample size
+  const recruitersWithActivity = performanceList.filter(r =>
+    r.hires_in_period > 0 || r.offers_in_period > 0 || r.open_reqs > 0
+  ).length;
+
+  let confidence: 'high' | 'medium' | 'low' = 'low';
+  if (recruitersWithActivity >= 5) confidence = 'high';
+  else if (recruitersWithActivity >= 2) confidence = 'medium';
+
+  // If no recruiters have any activity, mark as unavailable
+  if (recruitersWithActivity === 0) {
+    return {
+      available: false,
+      unavailable_reason: 'No recruiter activity found in the current data window.',
+      top_by_hires: [],
+      top_by_productivity: [],
+      bottom_by_productivity: [],
+      team_avg_productivity: null,
+      total_recruiters: allRecruiterIds.size,
+      n: 0,
+      confidence: 'low',
+    };
+  }
+
+  return {
+    available: true,
+    top_by_hires: byHires,
+    top_by_productivity: byProductivity,
+    bottom_by_productivity: bottomByProductivity,
+    team_avg_productivity: teamAvg,
+    total_recruiters: allRecruiterIds.size,
+    n: recruitersWithActivity,
+    confidence,
+  };
+}
+
+/**
+ * Build hiring manager ownership data
+ * Shows which HMs have the most open reqs
+ */
+function buildHiringManagerOwnershipData(
+  requisitions: Requisition[],
+  anonMaps: AnonymizationMaps,
+  hmFriction?: Array<{ hm_id: string; avg_latency_days: number | null }>
+): HiringManagerOwnershipSummary {
+  // Check if we have HM data in requisitions
+  const hasHmIds = requisitions.some(r => r.hiring_manager_id);
+
+  if (!hasHmIds) {
+    return {
+      available: false,
+      unavailable_reason: 'No hiring manager data in dataset. Ensure requisitions have hiring_manager_id field populated.',
+      total_hiring_managers: 0,
+      open_reqs_by_hm: [],
+      n: 0,
+      confidence: 'low',
+    };
+  }
+
+  // Group open reqs by hiring manager
+  const hmReqMap = new Map<string, string[]>();
+  requisitions.forEach(r => {
+    if (r.hiring_manager_id && r.status === RequisitionStatus.Open) {
+      const existing = hmReqMap.get(r.hiring_manager_id) || [];
+      existing.push(r.req_id);
+      hmReqMap.set(r.hiring_manager_id, existing);
+    }
+  });
+
+  // Get all unique HM IDs (including those without open reqs for total count)
+  const allHmIds = new Set<string>();
+  requisitions.forEach(r => {
+    if (r.hiring_manager_id) {
+      allHmIds.add(r.hiring_manager_id);
+    }
+  });
+
+  if (hmReqMap.size === 0) {
+    return {
+      available: false,
+      unavailable_reason: 'No open requisitions with hiring manager assignments found.',
+      total_hiring_managers: allHmIds.size,
+      open_reqs_by_hm: [],
+      n: 0,
+      confidence: 'low',
+    };
+  }
+
+  // Build HM latency lookup if available
+  const hmLatencyMap = new Map<string, number>();
+  if (hmFriction) {
+    hmFriction.forEach(hm => {
+      if (hm.avg_latency_days !== null) {
+        hmLatencyMap.set(hm.hm_id, hm.avg_latency_days);
+      }
+    });
+  }
+
+  // Convert to ownership entries sorted by open req count (descending)
+  const entries: HMOwnershipEntry[] = Array.from(hmReqMap.entries())
+    .map(([hmId, reqIds]) => ({
+      anonymized_id: generateAnonymizedId(hmId),
+      hm_label: anonMaps.hms.get(hmId) || 'Manager',
+      open_req_count: reqIds.length,
+      req_ids: reqIds.slice(0, 10), // Limit to 10 req IDs
+      avg_hm_latency: hmLatencyMap.get(hmId) ?? null,
+    }))
+    .sort((a, b) => b.open_req_count - a.open_req_count)
+    .slice(0, 10); // Top 10 HMs
+
+  // Determine confidence
+  const hmsWithOpenReqs = hmReqMap.size;
+  let confidence: 'high' | 'medium' | 'low' = 'low';
+  if (hmsWithOpenReqs >= 5) confidence = 'high';
+  else if (hmsWithOpenReqs >= 2) confidence = 'medium';
+
+  return {
+    available: true,
+    total_hiring_managers: allHmIds.size,
+    open_reqs_by_hm: entries,
+    n: hmsWithOpenReqs,
+    confidence,
+  };
+}
+
 function buildForecastData(
   requisitions: Requisition[],
   candidates: Candidate[],
@@ -900,6 +1225,14 @@ export interface SimpleFactPackContext {
   dataHealthScore: number;
   orgId?: string;
   orgName?: string;
+  // Filter context for deep link preservation
+  filters?: {
+    recruiterIds?: string[];
+    dateRange?: { startDate: Date; endDate: Date } | null;
+    dateRangePreset?: string;
+    functions?: string[];
+    regions?: string[];
+  };
 }
 
 /**
@@ -916,6 +1249,7 @@ export function buildSimpleFactPack(context: SimpleFactPackContext): AskFactPack
     dataHealthScore,
     orgId = 'unknown',
     orgName = 'Organization',
+    filters,
   } = context;
 
   const now = new Date();
@@ -1059,6 +1393,14 @@ export function buildSimpleFactPack(context: SimpleFactPackContext): AskFactPack
         total_offers: offerCount,
         total_events: events.length,
       },
+      filter_context: {
+        recruiter_ids: filters?.recruiterIds || [],
+        date_range_start: filters?.dateRange?.startDate?.toISOString().split('T')[0] || null,
+        date_range_end: filters?.dateRange?.endDate?.toISOString().split('T')[0] || null,
+        date_range_preset: filters?.dateRangePreset || null,
+        functions: filters?.functions || [],
+        regions: filters?.regions || [],
+      },
       capability_flags: {
         has_stage_timing: events.length > 0,
         has_source_data: candidates.some(c => c.source),
@@ -1109,6 +1451,8 @@ export function buildSimpleFactPack(context: SimpleFactPackContext): AskFactPack
     velocity: buildVelocityData(candidates, events),
     sources: buildSourceData(candidates),
     capacity: buildCapacityData(users, requisitions),
+    recruiter_performance: buildRecruiterPerformanceData(users, requisitions, candidates, anonMaps),
+    hiring_manager_ownership: buildHiringManagerOwnershipData(requisitions, anonMaps),
     glossary: GLOSSARY,
   };
 }

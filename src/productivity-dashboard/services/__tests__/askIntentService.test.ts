@@ -16,6 +16,8 @@ import {
   velocitySummaryHandler,
   sourceMixSummaryHandler,
   capacitySummaryHandler,
+  mostProductiveRecruiterHandler,
+  hmWithMostOpenReqsHandler,
 } from '../askIntentService';
 import { AskFactPack, IntentHandler, IntentResponse } from '../../types/askTypes';
 
@@ -238,10 +240,102 @@ function createMinimalFactPack(): AskFactPack {
       overloaded_count: 1,
       underloaded_count: 1,
     },
+    recruiter_performance: {
+      available: true,
+      top_by_hires: [
+        {
+          anonymized_id: 'anon_abc123',
+          anonymized_label: 'Recruiter 1',
+          open_reqs: 5,
+          hires_in_period: 8,
+          offers_in_period: 10,
+          avg_ttf: 35,
+          active_candidates: 25,
+          productivity_score: 85,
+        },
+        {
+          anonymized_id: 'anon_def456',
+          anonymized_label: 'Recruiter 2',
+          open_reqs: 4,
+          hires_in_period: 6,
+          offers_in_period: 8,
+          avg_ttf: 40,
+          active_candidates: 20,
+          productivity_score: 72,
+        },
+      ],
+      top_by_productivity: [
+        {
+          anonymized_id: 'anon_abc123',
+          anonymized_label: 'Recruiter 1',
+          open_reqs: 5,
+          hires_in_period: 8,
+          offers_in_period: 10,
+          avg_ttf: 35,
+          active_candidates: 25,
+          productivity_score: 85,
+        },
+        {
+          anonymized_id: 'anon_def456',
+          anonymized_label: 'Recruiter 2',
+          open_reqs: 4,
+          hires_in_period: 6,
+          offers_in_period: 8,
+          avg_ttf: 40,
+          active_candidates: 20,
+          productivity_score: 72,
+        },
+      ],
+      bottom_by_productivity: [
+        {
+          anonymized_id: 'anon_ghi789',
+          anonymized_label: 'Recruiter 3',
+          open_reqs: 3,
+          hires_in_period: 2,
+          offers_in_period: 3,
+          avg_ttf: 55,
+          active_candidates: 10,
+          productivity_score: 45,
+        },
+      ],
+      team_avg_productivity: 67,
+      total_recruiters: 5,
+      n: 5,
+      confidence: 'high',
+    },
+    hiring_manager_ownership: {
+      available: true,
+      total_hiring_managers: 5,
+      open_reqs_by_hm: [
+        {
+          anonymized_id: 'anon_hm_abc123',
+          hm_label: 'HM 1',
+          open_req_count: 8,
+          req_ids: ['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004', 'REQ-005', 'REQ-006', 'REQ-007', 'REQ-008'],
+          avg_hm_latency: 2.5,
+        },
+        {
+          anonymized_id: 'anon_hm_def456',
+          hm_label: 'HM 2',
+          open_req_count: 5,
+          req_ids: ['REQ-009', 'REQ-010', 'REQ-011', 'REQ-012', 'REQ-013'],
+          avg_hm_latency: 3.2,
+        },
+        {
+          anonymized_id: 'anon_hm_ghi789',
+          hm_label: 'HM 3',
+          open_req_count: 3,
+          req_ids: ['REQ-014', 'REQ-015', 'REQ-016'],
+          avg_hm_latency: 1.8,
+        },
+      ],
+      n: 5,
+      confidence: 'high',
+    },
     glossary: [
       { term: 'TTF', definition: 'Time to Fill', formula: 'hired_at - opened_at', example: null },
     ],
-  };
+  } as AskFactPack;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -308,6 +402,41 @@ describe('matchIntent', () => {
     it('should match capacity queries', () => {
       const result = matchIntent('how is team capacity?', ALL_HANDLERS);
       expect(result?.intent_id).toBe('capacity_summary');
+    });
+
+    it('should match "most productive recruiter" queries', () => {
+      const result = matchIntent('who is the most productive recruiter?', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('most_productive_recruiter');
+    });
+
+    it('should match "top recruiter" queries', () => {
+      const result = matchIntent('show me the top recruiter', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('most_productive_recruiter');
+    });
+
+    it('should match "best recruiter" queries', () => {
+      const result = matchIntent('who is the best recruiter?', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('most_productive_recruiter');
+    });
+
+    it('should match "recruiter leaderboard" queries', () => {
+      const result = matchIntent('show me the recruiter leaderboard', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('most_productive_recruiter');
+    });
+
+    it('should match "which HM has most reqs" queries', () => {
+      const result = matchIntent('which hiring manager has the most reqs?', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('hm_with_most_open_reqs');
+    });
+
+    it('should match "hm with most open requisitions" queries', () => {
+      const result = matchIntent('which manager has the most open requisitions?', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('hm_with_most_open_reqs');
+    });
+
+    it('should match "show me HM with most reqs" queries', () => {
+      const result = matchIntent('hm with most reqs', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('hm_with_most_open_reqs');
     });
   });
 
@@ -581,6 +710,123 @@ describe('Intent Handlers', () => {
       expect(response.answer_markdown).toContain('Load Distribution');
       expect(response.answer_markdown).toContain('Overloaded');
       expect(response.answer_markdown).toContain('Underloaded');
+    });
+  });
+
+  describe('mostProductiveRecruiterHandler', () => {
+    it('should return recruiter leaderboard with citations', () => {
+      const response = mostProductiveRecruiterHandler.handler(factPack);
+
+      expect(response.answer_markdown).toContain('Recruiter 1');
+      expect(response.answer_markdown).toContain('85'); // productivity score
+      expect(response.citations.length).toBeGreaterThan(0);
+    });
+
+    it('should cite recruiter_performance key paths', () => {
+      const response = mostProductiveRecruiterHandler.handler(factPack);
+
+      expect(response.citations.some(c => c.key_path.includes('recruiter_performance'))).toBe(true);
+    });
+
+    it('should include deep links', () => {
+      const response = mostProductiveRecruiterHandler.handler(factPack);
+
+      expect(response.deep_links.length).toBeGreaterThan(0);
+    });
+
+    it('should handle unavailable recruiter data gracefully', () => {
+      const unavailableFactPack = {
+        ...factPack,
+        recruiter_performance: {
+          available: false,
+          unavailable_reason: 'No recruiter data in dataset',
+          top_by_hires: [],
+          top_by_productivity: [],
+          bottom_by_productivity: [],
+          team_avg_productivity: null,
+          total_recruiters: 0,
+          n: 0,
+          confidence: 'low' as const,
+        },
+      };
+
+      const response = mostProductiveRecruiterHandler.handler(unavailableFactPack);
+
+      expect(response.answer_markdown).toContain('Data not available');
+    });
+
+    it('should show team average productivity', () => {
+      const response = mostProductiveRecruiterHandler.handler(factPack);
+
+      expect(response.answer_markdown).toContain('Team average productivity');
+      expect(response.answer_markdown).toContain('67'); // team avg
+    });
+
+    it('should include suggested questions', () => {
+      const response = mostProductiveRecruiterHandler.handler(factPack);
+
+      expect(response.suggested_questions).toBeDefined();
+      expect(response.suggested_questions!.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('hmWithMostOpenReqsHandler', () => {
+    it('should return HM leaderboard with citations', () => {
+      const response = hmWithMostOpenReqsHandler.handler(factPack);
+
+      expect(response.answer_markdown).toContain('HM 1');
+      expect(response.answer_markdown).toContain('8'); // open req count
+      expect(response.citations.length).toBeGreaterThan(0);
+    });
+
+    it('should cite hiring_manager_ownership key paths', () => {
+      const response = hmWithMostOpenReqsHandler.handler(factPack);
+
+      expect(response.citations.some(c => c.key_path.includes('hiring_manager_ownership'))).toBe(true);
+    });
+
+    it('should include deep links', () => {
+      const response = hmWithMostOpenReqsHandler.handler(factPack);
+
+      expect(response.deep_links.length).toBeGreaterThan(0);
+    });
+
+    it('should handle unavailable HM data gracefully', () => {
+      const unavailableFactPack = {
+        ...factPack,
+        hiring_manager_ownership: {
+          available: false,
+          unavailable_reason: 'No HM data in dataset',
+          total_hiring_managers: 0,
+          open_reqs_by_hm: [],
+          n: 0,
+          confidence: 'low' as const,
+        },
+      };
+
+      const response = hmWithMostOpenReqsHandler.handler(unavailableFactPack);
+
+      expect(response.answer_markdown).toContain('Data not available');
+    });
+
+    it('should show total hiring manager count', () => {
+      const response = hmWithMostOpenReqsHandler.handler(factPack);
+
+      expect(response.answer_markdown).toContain('5'); // total HMs
+    });
+
+    it('should include suggested questions', () => {
+      const response = hmWithMostOpenReqsHandler.handler(factPack);
+
+      expect(response.suggested_questions).toBeDefined();
+      expect(response.suggested_questions!.length).toBeGreaterThan(0);
+    });
+
+    it('should show HM latency if available', () => {
+      const response = hmWithMostOpenReqsHandler.handler(factPack);
+
+      // HM 1 has avg_hm_latency of 2.5
+      expect(response.answer_markdown).toContain('2.5');
     });
   });
 });

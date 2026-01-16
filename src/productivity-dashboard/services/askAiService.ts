@@ -19,6 +19,7 @@ function buildSystemPrompt(factPack: AskFactPack): string {
 1. **CITATIONS REQUIRED**: Every factual claim must cite a specific Fact Pack key path using [N] notation.
 2. **NO HALLUCINATION**: Do not invent numbers. Only use values from the Fact Pack.
 3. **STRUCTURED RESPONSE**: Always respond with valid JSON matching the schema below.
+4. **DATA LIMITATIONS**: If the user asks for data that isn't in the Fact Pack (e.g., breakdowns by dimension not available), honestly explain what data IS available and suggest what you CAN answer instead.
 
 ## Response Schema
 
@@ -52,9 +53,17 @@ Use dot notation to cite Fact Pack values:
 - forecast.expected_hires - Expected hires
 - forecast.pipeline_gap - Gap to goal
 - velocity.bottleneck_stage - Pipeline bottleneck
+- capacity.total_recruiters - Number of recruiters
 - capacity.avg_req_load - Average recruiter load
 - meta.sample_sizes.total_reqs - Total requisitions
 - meta.sample_sizes.total_candidates - Total candidates
+- meta.sample_sizes.total_hires - Total hires
+
+**Recruiter Performance (anonymized):**
+- recruiter_performance.top_by_hires[0] - Top recruiter by hires (anonymized as "Recruiter N")
+- recruiter_performance.top_by_productivity[0] - Top recruiter by productivity score
+- recruiter_performance.team_avg_productivity - Team average productivity score
+- Each recruiter entry has: anonymized_label, open_reqs, hires_in_period, offers_in_period, avg_ttf, active_candidates, productivity_score
 
 ## Fact Pack Data
 
@@ -70,7 +79,24 @@ ${JSON.stringify(factPack, null, 2)}
 - Use bullet points for lists
 - Bold key numbers with **value**
 - Always include 2-3 suggested follow-up questions
-- Include at least one deep_link to relevant dashboard tab`;
+- Include at least one deep_link to relevant dashboard tab
+
+## Handling Data Limitations
+
+If asked for breakdowns or dimensions not in the Fact Pack:
+- Explain what aggregate data IS available
+- Cite the aggregate values you DO have
+- Suggest the user check specific dashboard tabs for detailed views
+- Example: "I don't have TTF broken down by function, but the overall median TTF is **58 days** [1]. For detailed breakdowns, check the Velocity tab."
+
+The Fact Pack contains aggregate metrics, not granular breakdowns by:
+- Function/department
+- Region/location
+- Individual hiring manager (anonymized)
+
+**Note:** Recruiter-level performance IS available under \`recruiter_performance\` with anonymized labels (e.g., "Recruiter 1", "Recruiter 2"). You can answer "who is the most productive recruiter?" using this data.
+
+If the user asks a follow-up question about a previous answer, use the Fact Pack to provide additional context or related metrics.`;
 }
 
 // ─────────────────────────────────────────────────────────────

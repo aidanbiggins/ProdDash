@@ -105,6 +105,8 @@ interface AiProviderSettingsProps {
   userId?: string;
   /** Whether user can set org-level keys (admin or super admin) */
   canSetOrgKey?: boolean;
+  /** Callback when AI enabled state changes */
+  onAiEnabledChange?: (enabled: boolean) => void;
 }
 
 export function AiProviderSettings({
@@ -116,6 +118,7 @@ export function AiProviderSettings({
   orgId,
   userId,
   canSetOrgKey = false,
+  onAiEnabledChange,
 }: AiProviderSettingsProps) {
   // Form state - initialize from current config or defaults
   const [provider, setProvider] = useState<AiProvider>(currentConfig?.provider ?? DEFAULT_AI_CONFIG.provider);
@@ -125,6 +128,7 @@ export function AiProviderSettings({
   const [redactPii, setRedactPii] = useState(currentConfig?.redactPii ?? DEFAULT_AI_CONFIG.redactPii);
   const [temperature, setTemperature] = useState(currentConfig?.temperature ?? DEFAULT_AI_CONFIG.temperature);
   const [maxTokens, setMaxTokens] = useState(currentConfig?.maxTokens ?? DEFAULT_AI_CONFIG.maxTokens);
+  const [aiEnabled, setAiEnabled] = useState(currentConfig?.aiEnabled ?? DEFAULT_AI_CONFIG.aiEnabled);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
 
@@ -152,6 +156,7 @@ export function AiProviderSettings({
       setRedactPii(currentConfig?.redactPii ?? DEFAULT_AI_CONFIG.redactPii);
       setTemperature(currentConfig?.temperature ?? DEFAULT_AI_CONFIG.temperature);
       setMaxTokens(currentConfig?.maxTokens ?? DEFAULT_AI_CONFIG.maxTokens);
+      setAiEnabled(currentConfig?.aiEnabled ?? DEFAULT_AI_CONFIG.aiEnabled);
       clearError();
     }
   }, [isOpen, currentConfig, clearError]);
@@ -189,6 +194,7 @@ export function AiProviderSettings({
       redactPii,
       temperature,
       maxTokens,
+      aiEnabled,
     };
 
     // Persist key if requested
@@ -205,6 +211,11 @@ export function AiProviderSettings({
 
     onSave(config);
     onClose();
+  };
+
+  const handleAiToggle = (enabled: boolean) => {
+    setAiEnabled(enabled);
+    onAiEnabledChange?.(enabled);
   };
 
   const handleClear = async () => {
@@ -261,6 +272,42 @@ export function AiProviderSettings({
             </div>
 
             <div className="modal-body" style={{ color: '#e2e8f0' }}>
+              {/* AI Enable/Disable Toggle - Master Switch */}
+              <div className="mb-4 p-3 rounded d-flex align-items-center justify-content-between" style={{
+                background: aiEnabled ? theme.tealSubtle : theme.surfaceElevated,
+                border: `1px solid ${aiEnabled ? theme.teal : theme.border}`,
+              }}>
+                <div>
+                  <div className="d-flex align-items-center gap-2">
+                    <i className={`bi ${aiEnabled ? 'bi-stars' : 'bi-cpu'}`} style={{ color: aiEnabled ? theme.teal : theme.textSecondary }}></i>
+                    <span style={{ color: theme.textPrimary, fontWeight: 500 }}>
+                      {aiEnabled ? 'AI Mode Enabled' : 'AI Mode Disabled'}
+                    </span>
+                  </div>
+                  <div className="small mt-1" style={{ color: theme.textMuted }}>
+                    {aiEnabled
+                      ? 'AI will generate dynamic responses using your configured provider.'
+                      : 'Using deterministic mode with pre-built responses.'}
+                  </div>
+                </div>
+                <div className="form-check form-switch mb-0">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="aiEnabledToggle"
+                    checked={aiEnabled}
+                    onChange={(e) => handleAiToggle(e.target.checked)}
+                    style={{
+                      width: '3rem',
+                      height: '1.5rem',
+                      cursor: 'pointer',
+                      backgroundColor: aiEnabled ? theme.teal : theme.textMuted,
+                    }}
+                  />
+                </div>
+              </div>
+
               {/* Error display */}
               {keyState.error && (
                 <div className="mb-3 p-3" style={styles.alertDanger}>
@@ -332,11 +379,24 @@ export function AiProviderSettings({
                     onChange={(e) => setModel(e.target.value)}
                     style={styles.input}
                   >
-                    {models.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} {m.description ? `- ${m.description}` : ''}
-                      </option>
-                    ))}
+                    {/* Group models by category */}
+                    {(() => {
+                      const categories = new Map<string, typeof models>();
+                      models.forEach((m) => {
+                        const cat = m.category || 'Other';
+                        if (!categories.has(cat)) categories.set(cat, []);
+                        categories.get(cat)!.push(m);
+                      });
+                      return Array.from(categories.entries()).map(([category, categoryModels]) => (
+                        <optgroup key={category} label={category}>
+                          {categoryModels.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.name} {m.description ? `- ${m.description}` : ''}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ));
+                    })()}
                   </select>
                 )}
               </div>
