@@ -359,7 +359,14 @@ export async function saveUserAiKey(
   }
 
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Add timeout to prevent hanging on auth check
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('getUser timeout')), 5000);
+    });
+
+    const authPromise = supabase.auth.getUser();
+    const { data: { user } } = await Promise.race([authPromise, timeoutPromise]) as any;
+
     if (!user) {
       console.error('[UserAiKey] No authenticated user');
       return false;

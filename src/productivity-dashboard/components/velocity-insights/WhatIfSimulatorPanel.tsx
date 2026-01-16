@@ -16,6 +16,7 @@ import {
 } from '../../services/whatIfModel';
 import { VelocityMetrics } from '../../types/velocityTypes';
 import { AiProviderConfig } from '../../types/aiTypes';
+import { sendAiRequest } from '../../services/aiService';
 
 interface WhatIfSimulatorPanelProps {
   velocityMetrics: VelocityMetrics;
@@ -377,40 +378,32 @@ CONTEXT:
 
 Format each bullet as: • [insight] (Citation: [data source])`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': aiConfig.apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: aiConfig.model || 'claude-sonnet-4-20250514',
-          max_tokens: 1024,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
+      // Use the edge function proxy instead of calling Anthropic directly
+      const response = await sendAiRequest(
+        aiConfig,
+        [{ role: 'user', content: prompt }],
+        { taskType: 'what-if-simulator' }
+      );
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const rawMessage = errorData.error?.message || '';
-
+      // Handle error response
+      if (response.error) {
         let userMessage: string;
-        if (response.status === 401 || rawMessage.includes('api-key') || rawMessage.includes('authentication')) {
+        const errorCode = response.error.code || '';
+        const errorMessage = response.error.message || '';
+
+        if (errorCode === 'invalid_api_key' || errorMessage.includes('api-key') || errorMessage.includes('authentication') || errorMessage.includes('401')) {
           userMessage = 'Invalid API key. Check Settings.';
-        } else if (response.status === 429) {
+        } else if (errorCode === 'rate_limit' || errorMessage.includes('429')) {
           userMessage = 'Rate limited. Try again shortly.';
-        } else if (response.status >= 500) {
+        } else if (response.error.retryable) {
           userMessage = 'AI service unavailable.';
         } else {
-          userMessage = rawMessage || `Error ${response.status}`;
+          userMessage = errorMessage || 'AI request failed';
         }
         throw new Error(userMessage);
       }
 
-      const data = await response.json();
-      const content = data.content?.[0]?.text || '';
+      const content = response.content || '';
 
       // Parse bullets
       const bulletMatches = content.match(/•\s*([^•\n]+)/g) || [];

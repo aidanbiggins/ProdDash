@@ -501,11 +501,19 @@ export async function checkIsSuperAdmin(userId: string): Promise<boolean> {
 
   try {
     console.log('[OrgService] Querying super_admins...');
-    const { data, error } = await supabase
+
+    // Add timeout to prevent hanging indefinitely
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('super_admins query timeout')), 5000);
+    });
+
+    const queryPromise = supabase
       .from('super_admins')
       .select('user_id')
       .eq('user_id', userId)
       .single();
+
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
     console.log('[OrgService] super_admins query complete. Error:', error, 'Data:', data);
     if (error) return false;
