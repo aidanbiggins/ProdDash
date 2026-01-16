@@ -1,6 +1,8 @@
 // Ask Main Panel - Query input and response display
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { IntentResponse, AskFactPack, FactCitation } from '../../types/askTypes';
+import { keyPathToDeepLink, highlightElement } from '../../services/askDeepLinkService';
+import { TabType } from '../../routes';
 
 interface AskMainPanelProps {
   query: string;
@@ -28,11 +30,19 @@ export function AskMainPanel({
   onCopy,
 }: AskMainPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [copied, setCopied] = useState(false);
 
   // Auto-focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Handle copy with feedback
+  const handleCopy = useCallback(() => {
+    onCopy();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [onCopy]);
 
   // Handle keyboard submit
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -113,7 +123,7 @@ export function AskMainPanel({
               <h4 className="ask-citations-title">Sources</h4>
               <div className="ask-citations-list">
                 {response.citations.map((citation, idx) => (
-                  <CitationBadge key={idx} citation={citation} />
+                  <CitationBadge key={idx} citation={citation} onNavigate={onDeepLink} />
                 ))}
               </div>
             </div>
@@ -160,10 +170,24 @@ export function AskMainPanel({
 
           {/* Action Bar */}
           <div className="ask-action-bar">
-            <button className="ask-action-btn" onClick={onCopy} title="Copy response">
-              <i className="bi bi-clipboard" />
-              Copy
+            <button
+              className={`ask-action-btn ${copied ? 'ask-action-btn-success' : ''}`}
+              onClick={handleCopy}
+              title="Copy response"
+            >
+              <i className={`bi ${copied ? 'bi-check' : 'bi-clipboard'}`} />
+              {copied ? 'Copied!' : 'Copy'}
             </button>
+            {response.citations.length > 0 && (
+              <button
+                className="ask-action-btn"
+                onClick={() => onDeepLink('control-tower', {})}
+                title="View evidence in Control Tower"
+              >
+                <i className="bi bi-search" />
+                View Evidence
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -212,12 +236,32 @@ export function AskMainPanel({
 }
 
 // Citation badge component
-function CitationBadge({ citation }: { citation: FactCitation }) {
+function CitationBadge({
+  citation,
+  onNavigate,
+}: {
+  citation: FactCitation;
+  onNavigate: (tab: string, params: Record<string, string>) => void;
+}) {
+  const handleClick = () => {
+    const deepLink = keyPathToDeepLink(citation.key_path);
+    if (deepLink) {
+      onNavigate(deepLink.tab, deepLink.params);
+      if (deepLink.highlightSelector) {
+        highlightElement(deepLink.highlightSelector);
+      }
+    }
+  };
+
   return (
-    <span className="ask-citation-badge" title={citation.key_path}>
+    <button
+      className="ask-citation-badge"
+      onClick={handleClick}
+      title={`Navigate to: ${citation.key_path}`}
+    >
       <span className="ask-citation-ref">{citation.ref}</span>
       <span className="ask-citation-label">{citation.label}</span>
-    </span>
+    </button>
   );
 }
 

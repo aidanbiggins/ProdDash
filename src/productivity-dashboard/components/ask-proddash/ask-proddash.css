@@ -513,3 +513,56 @@
     transform: rotate(360deg);
   }
 }
+
+/* Deep Link Highlight Animation */
+.ask-highlight-target {
+  animation: askHighlight 3s ease-out;
+  position: relative;
+}
+
+.ask-highlight-target::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--color-copper, #d4a373);
+  border-radius: 8px;
+  pointer-events: none;
+  animation: askHighlightPulse 1s ease-out 3;
+}
+
+@keyframes askHighlight {
+  0% {
+    box-shadow: 0 0 0 4px rgba(212, 163, 115, 0.4);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+@keyframes askHighlightPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Citation Click Indicator */
+.ask-cite-ref {
+  color: var(--color-copper, #d4a373);
+  cursor: help;
+  font-weight: 600;
+}
+
+.ask-citation-badge:hover {
+  border-color: var(--color-copper, #d4a373);
+  cursor: pointer;
+}
+
+/* Action Button Success State */
+.ask-action-btn-success {
+  background: rgba(34, 197, 94, 0.15) !important;
+  border-color: var(--color-success, #22c55e) !important;
+  color: var(--color-success, #22c55e) !important;
+}
