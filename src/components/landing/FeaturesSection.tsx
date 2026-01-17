@@ -21,6 +21,15 @@ const features: Feature[] = [
     iconColor: 'gold'
   },
   {
+    icon: 'bi-stopwatch',
+    title: 'Bottlenecks & SLAs',
+    tagline: 'Track every delay',
+    description: 'SLA breach tracking by stage and owner. See which stages consistently miss targets and who is responsible for the delays.',
+    whyItMatters: 'Accountability requires visibility. Know exactly where candidates get stuck, how long they wait, and who needs to take action.',
+    example: '"HM Review stage: 43% breach rate, 8.2 day median (SLA: 3 days) - Engineering team is 2x slower than Sales"',
+    iconColor: 'cyan'
+  },
+  {
     icon: 'bi-people',
     title: 'HM Friction Analysis',
     tagline: 'Find the bottleneck',
@@ -28,6 +37,15 @@ const features: Feature[] = [
     whyItMatters: '80% of preventable candidate drop-off happens while waiting for HM feedback. Now you can see exactly who and how long.',
     example: '"Mike Johnson: 8.2 day avg feedback time (team avg: 2.1 days) - 12 candidates waiting"',
     iconColor: 'cyan'
+  },
+  {
+    icon: 'bi-sliders',
+    title: 'What-If Simulator',
+    tagline: 'Plan before you act',
+    description: 'Model scenarios like hiring freezes, recruiter departures, or team expansions. See projected impact before making decisions.',
+    whyItMatters: 'Don\'t guess what happens when you lose a recruiter or freeze hiring. Run the simulation and know exactly what to expect.',
+    example: '"If we freeze hiring for 60 days: 12 offers at risk, 34 candidates will withdraw, TTF increases 18 days"',
+    iconColor: 'violet'
   },
   {
     icon: 'bi-database-check',

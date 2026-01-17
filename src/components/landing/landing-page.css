@@ -1603,6 +1603,128 @@
   color: var(--landing-gold);
 }
 
+/* Scenarios */
+.scenarios-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.scenario-card {
+  background: var(--landing-surface);
+  border: 1px solid var(--landing-border);
+  border-radius: 12px !important;
+  padding: 1.25rem;
+  transition: all 0.2s;
+}
+
+.scenario-card:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.scenario-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.scenario-header > i {
+  font-size: 1.5rem;
+  color: var(--landing-violet);
+  background: rgba(139, 92, 246, 0.15);
+  padding: 0.75rem;
+  border-radius: 10px !important;
+}
+
+.scenario-header h4 {
+  font-family: var(--landing-font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--landing-text);
+}
+
+.scenario-header p {
+  font-size: 0.875rem;
+  color: var(--landing-text-muted);
+  margin: 0;
+}
+
+.scenario-impacts {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.scenario-impact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px !important;
+  min-width: 120px;
+}
+
+.scenario-impact .impact-metric {
+  font-size: 0.75rem;
+  color: var(--landing-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.scenario-impact .impact-change {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.scenario-impact.up .impact-change {
+  color: var(--landing-red);
+}
+
+.scenario-impact.down .impact-change {
+  color: var(--landing-green);
+}
+
+.scenario-impact.neutral .impact-change {
+  color: var(--landing-gold);
+}
+
+.scenario-recommendation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--landing-text);
+  padding: 0.75rem 1rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 8px !important;
+  border-left: 3px solid var(--landing-violet);
+}
+
+.scenario-recommendation i {
+  color: var(--landing-violet);
+  margin-top: 0.125rem;
+}
+
+.scenarios-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  color: var(--landing-text-muted);
+}
+
+.scenarios-note i {
+  color: var(--landing-violet);
+}
+
 /* ============================================
    SCREENSHOTS SECTION
    ============================================ */

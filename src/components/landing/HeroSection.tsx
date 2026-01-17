@@ -115,7 +115,11 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
           </div>
           <div className="hero-value-prop">
             <i className="bi bi-check-circle-fill" />
-            <span>HM accountability scorecards</span>
+            <span>SLA tracking & bottleneck detection</span>
+          </div>
+          <div className="hero-value-prop">
+            <i className="bi bi-check-circle-fill" />
+            <span>What-if scenario modeling</span>
           </div>
           <div className="hero-value-prop">
             <i className="bi bi-check-circle-fill" />

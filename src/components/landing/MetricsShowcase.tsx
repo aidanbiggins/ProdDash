@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-type MetricCategory = 'before-after' | 'hidden-insights' | 'actions';
+type MetricCategory = 'before-after' | 'hidden-insights' | 'scenarios' | 'actions';
 
 interface BeforeAfter {
   metric: string;
@@ -23,6 +23,13 @@ interface ActionExample {
   title: string;
   context: string;
   action: string;
+}
+
+interface ScenarioExample {
+  title: string;
+  description: string;
+  impacts: { metric: string; change: string; direction: 'up' | 'down' | 'neutral' }[];
+  recommendation: string;
 }
 
 const beforeAfterData: BeforeAfter[] = [
@@ -106,6 +113,39 @@ const actionExamples: ActionExample[] = [
   }
 ];
 
+const scenarioExamples: ScenarioExample[] = [
+  {
+    title: 'Hiring Freeze (60 days)',
+    description: 'What happens if we pause all new hiring for 2 months?',
+    impacts: [
+      { metric: 'Offers at Risk', change: '12', direction: 'up' },
+      { metric: 'Candidate Withdrawals', change: '+34', direction: 'up' },
+      { metric: 'TTF Impact', change: '+18 days', direction: 'up' }
+    ],
+    recommendation: 'Consider keeping top 5 critical reqs active to minimize candidate loss'
+  },
+  {
+    title: 'Recruiter Leaves',
+    description: 'What if Sarah (top performer, 24 reqs) leaves next month?',
+    impacts: [
+      { metric: 'Reqs Orphaned', change: '24', direction: 'up' },
+      { metric: 'Pipeline at Risk', change: '47 candidates', direction: 'up' },
+      { metric: 'Capacity Gap', change: '-18%', direction: 'down' }
+    ],
+    recommendation: 'Cross-train backup recruiter now, redistribute 8 critical reqs immediately'
+  },
+  {
+    title: 'Spin Up New Team',
+    description: 'Engineering wants to hire 15 people in 90 days. Can we do it?',
+    impacts: [
+      { metric: 'Sourcing Needed', change: '450+ candidates', direction: 'neutral' },
+      { metric: 'Recruiter Load', change: '+40%', direction: 'up' },
+      { metric: 'Probability', change: '62%', direction: 'neutral' }
+    ],
+    recommendation: 'Need 2 contract sourcers or extend timeline to 120 days for 85% confidence'
+  }
+];
+
 export function MetricsShowcase() {
   const [activeCategory, setActiveCategory] = useState<MetricCategory>('before-after');
 
@@ -135,6 +175,13 @@ export function MetricsShowcase() {
         >
           <i className="bi bi-lightbulb" />
           Hidden Insights
+        </button>
+        <button
+          className={`metrics-tab ${activeCategory === 'scenarios' ? 'active' : ''}`}
+          onClick={() => setActiveCategory('scenarios')}
+        >
+          <i className="bi bi-sliders" />
+          What-If Scenarios
         </button>
         <button
           className={`metrics-tab ${activeCategory === 'actions' ? 'active' : ''}`}
@@ -205,6 +252,43 @@ export function MetricsShowcase() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {activeCategory === 'scenarios' && (
+          <div className="metrics-scenarios">
+            <p className="metrics-intro">
+              Model business scenarios before they happen. Know the impact, plan the response.
+            </p>
+            <div className="scenarios-list">
+              {scenarioExamples.map((scenario, index) => (
+                <div key={index} className="scenario-card">
+                  <div className="scenario-header">
+                    <i className="bi bi-sliders" />
+                    <div>
+                      <h4>{scenario.title}</h4>
+                      <p>{scenario.description}</p>
+                    </div>
+                  </div>
+                  <div className="scenario-impacts">
+                    {scenario.impacts.map((impact, i) => (
+                      <div key={i} className={`scenario-impact ${impact.direction}`}>
+                        <span className="impact-metric">{impact.metric}</span>
+                        <span className="impact-change">{impact.change}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="scenario-recommendation">
+                    <i className="bi bi-lightbulb-fill" />
+                    <span>{scenario.recommendation}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="scenarios-note">
+              <i className="bi bi-magic" />
+              Run unlimited scenarios on your real data. See impact before making decisions.
             </div>
           </div>
         )}
