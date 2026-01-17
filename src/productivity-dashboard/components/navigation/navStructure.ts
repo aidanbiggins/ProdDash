@@ -52,7 +52,8 @@ export const NAV_STRUCTURE: NavStructure = {
     route: '/plan',
     submenu: [
       { id: 'capacity', label: 'Capacity Planning', route: '/plan/capacity' },
-      { id: 'forecast', label: 'Hiring Forecast', route: '/plan/forecast' }
+      { id: 'forecast', label: 'Hiring Forecast', route: '/plan/forecast' },
+      { id: 'scenarios', label: 'What-If Scenarios', route: '/plan/scenarios' }
     ]
   },
   'settings': {
@@ -140,6 +141,7 @@ export function getActiveItem(pathname: string): string | null {
     '/diagnose/velocity': 'velocity',
     '/plan/capacity': 'capacity',
     '/plan/forecast': 'forecast',
+    '/plan/scenarios': 'scenarios',
     '/settings/data-health': 'data-health',
     '/settings/ai': 'ai',
     '/settings/org': 'org',

@@ -66,9 +66,9 @@ export async function createOrganization(
     try {
       console.log('[OrgService] Attempting RPC create_organization...');
 
-      // Create a promise that rejects after timeout
+      // Create a promise that rejects after timeout (increased to 15s)
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('RPC timeout')), 5000);
+        setTimeout(() => reject(new Error('RPC timeout')), 15000);
       });
 
       const rpcPromise = supabase.rpc('create_organization', {
@@ -504,7 +504,7 @@ export async function checkIsSuperAdmin(userId: string): Promise<boolean> {
 
     // Add timeout to prevent hanging indefinitely
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('super_admins query timeout')), 5000);
+      setTimeout(() => reject(new Error('super_admins query timeout')), 15000);
     });
 
     const queryPromise = supabase

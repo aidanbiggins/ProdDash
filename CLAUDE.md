@@ -154,6 +154,38 @@ interface ActionItem {
 
 Supabase auth with dev bypass: set `localStorage.setItem('dev-auth-bypass', JSON.stringify({user: {id: 'dev', email: 'dev@test.com'}}))` to skip login during development.
 
+### Supabase Migrations
+
+Migrations live in `supabase/migrations/`. They are NOT auto-applied - must be run manually or via CLI.
+
+**Applying Migrations:**
+```bash
+# Option 1: Supabase CLI (recommended for CI/CD)
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
+
+# Option 2: Manual (Supabase Dashboard → SQL Editor)
+# Copy contents of migration file and run
+```
+
+**Migration Files:**
+- `001_multi_tenant.sql` - Organization tables, RLS policies
+- `003_user_ai_vault.sql` - User AI key storage
+- `004_organization_settings.sql` - Org config storage
+- `007_fix_rls_permissions.sql` - GRANT statements (fixes permission errors)
+- `008_snapshot_diff_event_stream.sql` - Snapshot tables
+- `009_simplified_rls.sql` - Simplified RLS architecture
+
+**RLS Architecture (as of 009):**
+- Pattern 1: User-owned data → `auth.uid() = user_id`
+- Pattern 2: Org-owned data → `organization_id IN (SELECT user_org_ids())`
+- Admin checks happen in app layer via `canImportData`, `canManageMembers` from AuthContext
+- Super admin check is app-level: `SUPER_ADMIN_EMAIL` constant in AuthContext
+
+**Common RLS Errors:**
+- "permission denied for table X" → Run migration 007 to add GRANTs
+- Query hangs on super_admins → Run migration 007 to fix circular dependency
+
 ### Styling
 
 Technical Editorial dark theme in `dashboard-theme.css`. Uses Bootstrap 5.3 as base with dark mode overrides.

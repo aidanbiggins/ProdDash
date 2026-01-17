@@ -463,3 +463,27 @@ export function getActionCounts(actions: ActionItem[]): Record<ActionOwnerType |
     TA_OPS: open.filter(a => a.owner_type === 'TA_OPS').length,
   };
 }
+
+/**
+ * Merge scenario-generated actions into the persisted store
+ * Only adds new actions (by action_id) that don't already exist
+ */
+export async function mergeScenarioActions(
+  scenarioActions: ActionItem[],
+  datasetId: string
+): Promise<void> {
+  const existing = loadActionStates(datasetId);
+  const existingIds = existing ? new Set(Object.keys(existing.actions)) : new Set<string>();
+
+  // Filter to only new actions
+  const newActions = scenarioActions.filter(a => !existingIds.has(a.action_id));
+
+  if (newActions.length === 0) {
+    return;
+  }
+
+  // Save each new action as OPEN
+  for (const action of newActions) {
+    saveActionState(datasetId, action.action_id, 'OPEN');
+  }
+}

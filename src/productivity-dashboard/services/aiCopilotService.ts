@@ -4,7 +4,7 @@
 
 import { Explanation, ContributingRecord, RecommendedAction } from '../types/explainTypes';
 import { ActionItem } from '../types/actionTypes';
-import { AiProviderConfig, AiMessage } from '../types/aiTypes';
+import { AiProviderConfig, AiMessage, AI_WRITING_GUIDELINES } from '../types/aiTypes';
 import { sendAiRequest } from './aiService';
 
 // ===== REDACTION =====
@@ -153,11 +153,9 @@ export async function generateExplanationSummary(
   const redactedText = explanationToRedactedText(explanation);
 
   const systemPrompt = `You are a recruiting analytics assistant. Your job is to summarize metric explanations for talent acquisition leaders in a clear, actionable way.
-
-Guidelines:
-- Be concise and direct
+${AI_WRITING_GUIDELINES}
+Additional Guidelines:
 - Focus on what matters for decision-making
-- Use plain language, avoid jargon
 - Highlight any concerning trends or issues
 - If the metric is blocked, explain what's missing and why it matters`;
 
@@ -300,14 +298,14 @@ export async function generateDraftMessage(
   const context = getActionContext(action);
 
   const systemPrompt = `You are a recruiting operations assistant drafting internal messages for talent acquisition workflows.
-
+${AI_WRITING_GUIDELINES}
 CONTEXT:
 - You are writing FROM ${context.senderRole}
 - You are writing TO ${context.recipientRole}
 - The specific ask is to: ${context.specificAsk}
 - ${context.urgencyContext}
 
-GUIDELINES:
+MESSAGE GUIDELINES:
 - Be direct and specific - state exactly what's needed and why
 - Include the specific metrics/data from the evidence (e.g., "7 HMs averaging 3+ days")
 - Give a clear timeframe for when action is needed

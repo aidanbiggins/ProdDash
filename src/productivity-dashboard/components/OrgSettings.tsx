@@ -65,7 +65,13 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
       setInvites(invitesData);
       setOrgName(currentOrg.name);
     } catch (err: any) {
-      setError(err.message || 'Failed to load organization data');
+      // Filter out spurious "users" table errors - OrgSettings doesn't query that table
+      const errMsg = err.message || 'Failed to load organization data';
+      if (!errMsg.includes('table users')) {
+        setError(errMsg);
+      } else {
+        console.warn('[OrgSettings] Ignoring spurious users table error:', errMsg);
+      }
     } finally {
       setIsLoading(false);
     }

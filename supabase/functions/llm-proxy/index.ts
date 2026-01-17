@@ -175,14 +175,36 @@ async function handleOpenAI(
     };
   }
 
+  // Extract content - handle both Chat Completions API and Responses API formats
+  // Chat Completions: choices[0].message.content
+  // Responses API: output[0].content[0].text or output_text
+  let content = '';
+  if (data.choices?.[0]?.message?.content) {
+    content = data.choices[0].message.content;
+  } else if (data.output_text) {
+    // Responses API shorthand
+    content = data.output_text;
+  } else if (data.output?.[0]?.content?.[0]?.text) {
+    // Responses API full format
+    content = data.output[0].content[0].text;
+  } else if (data.output?.[0]?.content && typeof data.output[0].content === 'string') {
+    // Alternative Responses API format
+    content = data.output[0].content;
+  }
+
+  // Log for debugging if content is empty but we got tokens
+  if (!content && (data.usage?.total_tokens || data.usage?.completion_tokens)) {
+    console.log('OpenAI response structure (content empty but got tokens):', JSON.stringify(data).slice(0, 1000));
+  }
+
   return {
     request_id: request.request_id,
     provider: 'openai',
     model: data.model || request.model,
-    content: data.choices?.[0]?.message?.content || '',
+    content,
     usage: {
-      prompt_tokens: data.usage?.prompt_tokens || 0,
-      completion_tokens: data.usage?.completion_tokens || 0,
+      prompt_tokens: data.usage?.prompt_tokens || data.usage?.input_tokens || 0,
+      completion_tokens: data.usage?.completion_tokens || data.usage?.output_tokens || 0,
       total_tokens: data.usage?.total_tokens || 0,
     },
     latency_ms: Date.now() - startTime,

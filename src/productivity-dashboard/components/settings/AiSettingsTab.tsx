@@ -4,26 +4,20 @@ import { PageShell, PageHeader, GlassPanel, SectionHeader } from '../layout';
 import { AiProviderSettings } from './AiProviderSettings';
 import { AiProviderConfig, AiProvider, DEFAULT_AI_CONFIG } from '../../types/aiTypes';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useDashboard } from '../../hooks/useDashboardContext';
 
 export function AiSettingsTab() {
   const { user, currentOrg, canManageMembers } = useAuth();
+  const { aiConfig, setAiConfig, isAiEnabled } = useDashboard();
   const [showSettings, setShowSettings] = useState(false);
-  const [aiConfigs, setAiConfigs] = useState<Map<AiProvider, AiProviderConfig>>(new Map());
-  const [currentProvider, setCurrentProvider] = useState<AiProvider>('openai');
-
-  const currentConfig = aiConfigs.get(currentProvider) || null;
 
   const handleSave = (config: AiProviderConfig) => {
-    setAiConfigs(prev => new Map(prev).set(config.provider, config));
-    setCurrentProvider(config.provider);
+    // Update global aiConfig so all components can use it
+    setAiConfig(config);
   };
 
   const handleClear = () => {
-    setAiConfigs(prev => {
-      const next = new Map(prev);
-      next.delete(currentProvider);
-      return next;
-    });
+    setAiConfig(null);
   };
 
   return (
@@ -73,12 +67,23 @@ export function AiSettingsTab() {
               </div>
             </div>
 
+            {/* Status indicator */}
+            {isAiEnabled && aiConfig && (
+              <div className="ai-status-enabled">
+                <i className="bi bi-check-circle-fill" />
+                <span>
+                  AI enabled via <strong>{aiConfig.provider}</strong>
+                  {aiConfig.model && ` (${aiConfig.model})`}
+                </span>
+              </div>
+            )}
+
             <button
               className="btn btn-primary"
               onClick={() => setShowSettings(true)}
             >
               <i className="bi bi-gear me-2" />
-              Configure AI Provider
+              {isAiEnabled ? 'Update AI Settings' : 'Configure AI Provider'}
             </button>
           </div>
         </GlassPanel>
@@ -88,7 +93,7 @@ export function AiSettingsTab() {
       <AiProviderSettings
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
-        currentConfig={currentConfig}
+        currentConfig={aiConfig}
         onSave={handleSave}
         onClear={handleClear}
         orgId={currentOrg?.id}
@@ -148,6 +153,30 @@ export function AiSettingsTab() {
           color: var(--text-muted, #6c757d);
           font-size: 0.875rem;
           margin: 0;
+        }
+
+        .ai-status-enabled {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2, 0.5rem);
+          padding: var(--space-3, 0.75rem);
+          background: rgba(34, 197, 94, 0.1);
+          border: 1px solid rgba(34, 197, 94, 0.3);
+          border-radius: var(--radius-md, 8px);
+          margin-bottom: var(--space-4, 1rem);
+          color: #22c55e;
+        }
+
+        .ai-status-enabled i {
+          font-size: 1rem;
+        }
+
+        .ai-status-enabled span {
+          font-size: 0.875rem;
+        }
+
+        .ai-status-enabled strong {
+          text-transform: capitalize;
         }
       `}</style>
     </PageShell>

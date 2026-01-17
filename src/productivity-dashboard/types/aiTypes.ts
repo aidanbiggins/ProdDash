@@ -2,6 +2,25 @@
 
 export type AiProvider = 'openai' | 'anthropic' | 'gemini' | 'openai_compatible';
 
+/**
+ * Standard writing guidelines for all AI-generated content.
+ * Append this to all system prompts to ensure consistent, clear communication.
+ */
+export const AI_WRITING_GUIDELINES = `
+WRITING STYLE (MANDATORY):
+- Use a 5th grade reading level so all concepts are clear
+- Use general business language, not recruiting jargon
+- Think like a McKinsey senior partner: lead with "So what?", then evidence, then next steps
+- Do not exaggerate. Do not make up numbers. Do not add context that isn't there.
+- Simply translate the data into concepts busy leaders can understand quickly
+
+STYLE RULES:
+- Short sentences. Active voice. No filler words.
+- Replace jargon: "pipeline depth" → "candidate pool", "velocity decay" → "hiring slowdown", "capacity gap" → "team bandwidth"
+- Lead with the bottom line, then support it
+- Be direct and actionable
+`;
+
 export interface AiMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -137,7 +156,7 @@ export const DEFAULT_AI_CONFIG: Omit<AiProviderConfig, 'apiKey'> = {
   model: 'gpt-5.2',
   redactPii: true,
   temperature: 0.7,
-  maxTokens: 1024,
+  maxTokens: 4096,
   aiEnabled: true,
 };
 

@@ -90,6 +90,13 @@ function AppRoutes() {
       {/* Main Route - Landing page for unauthenticated, Dashboard for authenticated */}
       <Route path="/" element={<HomeRoute />} />
 
+      {/* New IA Routes - all handled by the dashboard */}
+      <Route path="/control-tower" element={<HomeRoute />} />
+      <Route path="/ask" element={<HomeRoute />} />
+      <Route path="/diagnose/*" element={<HomeRoute />} />
+      <Route path="/plan/*" element={<HomeRoute />} />
+      <Route path="/settings/*" element={<HomeRoute />} />
+
       {/* Legacy Routes */}
       <Route path="/productivity" element={<Navigate to="/" />} />
       <Route path="/legacy-dashboard" element={

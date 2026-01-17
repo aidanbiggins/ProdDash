@@ -64,16 +64,41 @@ export async function sendAiRequest(
   const startTime = Date.now();
 
   try {
-    const response = await fetch(getLlmProxyUrl(), {
+    const llmProxyUrl = getLlmProxyUrl();
+    console.log('[aiService] Sending request to:', llmProxyUrl, 'Provider:', config.provider, 'Model:', config.model);
+
+    const response = await fetch(llmProxyUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(request),
     });
 
+    // Handle non-JSON responses (e.g., Edge Function not deployed)
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      const textBody = await response.text();
+      console.error('[aiService] Non-JSON response:', response.status, textBody.slice(0, 200));
+      return {
+        request_id: requestId,
+        provider: config.provider,
+        model: config.model,
+        content: '',
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+        latency_ms: Date.now() - startTime,
+        finish_reason: 'error',
+        error: {
+          code: 'invalid_response',
+          message: `Edge Function returned non-JSON (${response.status}): ${textBody.slice(0, 100)}`,
+          retryable: false,
+        },
+      };
+    }
+
     const data = await response.json();
 
     // Handle error responses
     if (!response.ok || data.error) {
+      console.warn('[aiService] Error response:', response.status, data.error);
       return {
         request_id: requestId,
         provider: config.provider,
@@ -90,8 +115,17 @@ export async function sendAiRequest(
       };
     }
 
+    console.log('[aiService] Success, tokens used:', data.usage?.total_tokens);
+    console.log('[aiService] Response content length:', data.content?.length, 'First 300 chars:', data.content?.slice(0, 300));
+
+    // Validate that we have content
+    if (!data.content) {
+      console.warn('[aiService] Response has no content. Full response:', JSON.stringify(data).slice(0, 500));
+    }
+
     return data as AiResponse;
   } catch (error) {
+    console.error('[aiService] Network/fetch error:', error);
     // Network or parsing error
     return {
       request_id: requestId,

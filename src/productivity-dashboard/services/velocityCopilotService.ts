@@ -20,7 +20,7 @@ import {
   Event,
   MetricFilters
 } from '../types';
-import { AiProviderConfig, AiMessage } from '../types/aiTypes';
+import { AiProviderConfig, AiMessage, AI_WRITING_GUIDELINES } from '../types/aiTypes';
 import { sendAiRequest } from './aiService';
 import {
   MIN_OFFERS_FOR_DECAY,
@@ -485,8 +485,15 @@ export async function generateAIInsights(
   ];
 
   try {
+    // Use a minimum of 4096 tokens for velocity copilot since the response is structured JSON
+    // that can be verbose. Lower values cause truncation and empty responses.
+    const configWithHigherTokens = {
+      ...aiConfig,
+      maxTokens: Math.max(aiConfig.maxTokens ?? 4096, 4096)
+    };
+
     const response = await sendAiRequest(
-      aiConfig,
+      configWithHigherTokens,
       messages,
       {
         systemPrompt,
@@ -507,6 +514,32 @@ export async function generateAIInsights(
     // Parse and validate AI response
     const parsed = parseAIResponse(response.content, factPack);
 
+    // Check for parsing errors or empty results
+    if (parsed.validation.error) {
+      console.warn('[VelocityCopilot] Parsing error:', parsed.validation.error, 'Response:', response.content?.slice(0, 200));
+      return {
+        insights: [],
+        model_used: aiConfig.model,
+        generated_at: new Date().toISOString(),
+        latency_ms: response.latency_ms,
+        tokens_used: response.usage.total_tokens,
+        error: `Failed to parse AI response: ${parsed.validation.error}`
+      };
+    }
+
+    // If no insights were extracted, surface this as an issue
+    if (parsed.insights.length === 0) {
+      console.warn('[VelocityCopilot] No insights extracted from response:', response.content?.slice(0, 200));
+      return {
+        insights: [],
+        model_used: aiConfig.model,
+        generated_at: new Date().toISOString(),
+        latency_ms: response.latency_ms,
+        tokens_used: response.usage.total_tokens,
+        error: 'AI returned a response but no insights could be extracted'
+      };
+    }
+
     return {
       insights: parsed.insights,
       model_used: aiConfig.model,
@@ -515,6 +548,7 @@ export async function generateAIInsights(
       tokens_used: response.usage.total_tokens
     };
   } catch (error) {
+    console.error('[VelocityCopilot] Exception during AI request:', error);
     return {
       insights: [],
       model_used: aiConfig.model,
@@ -530,7 +564,7 @@ export async function generateAIInsights(
  */
 function buildVelocityCopilotSystemPrompt(): string {
   return `You are a recruiting analytics copilot. Your job is to analyze velocity metrics and generate actionable insights.
-
+${AI_WRITING_GUIDELINES}
 CRITICAL RULES:
 1. ONLY use data from the VelocityFactPack provided. Do NOT invent or assume any numbers.
 2. Every insight MUST include citations to exact fact paths (e.g., "kpis.median_ttf_days", "sample_sizes.total_offers").
@@ -569,6 +603,53 @@ Generate insights based ONLY on the data above. Include citations for every clai
 }
 
 /**
+ * Extract JSON from AI response, handling various formats
+ */
+function extractJsonFromResponse(content: string): string | null {
+  if (!content || typeof content !== 'string') {
+    console.warn('[VelocityCopilot] Empty or invalid content:', typeof content);
+    return null;
+  }
+
+  // Log first 500 chars for debugging
+  console.log('[VelocityCopilot] Raw response (first 500 chars):', content.slice(0, 500));
+
+  // Strategy 1: Try parsing the entire content as JSON first
+  try {
+    JSON.parse(content);
+    return content;
+  } catch {
+    // Not valid JSON, continue to other strategies
+  }
+
+  // Strategy 2: Extract from markdown code blocks (```json ... ``` or ``` ... ```)
+  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (codeBlockMatch) {
+    const extracted = codeBlockMatch[1].trim();
+    console.log('[VelocityCopilot] Found code block, extracted:', extracted.slice(0, 200));
+    return extracted;
+  }
+
+  // Strategy 3: Find JSON object pattern (greedy match from first { to last })
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    console.log('[VelocityCopilot] Found JSON pattern:', jsonMatch[0].slice(0, 200));
+    return jsonMatch[0];
+  }
+
+  // Strategy 4: Try to find an array pattern for insights
+  const arrayMatch = content.match(/\[[\s\S]*\]/);
+  if (arrayMatch) {
+    // Wrap in object with insights key
+    console.log('[VelocityCopilot] Found array pattern, wrapping:', arrayMatch[0].slice(0, 200));
+    return `{"insights": ${arrayMatch[0]}}`;
+  }
+
+  console.warn('[VelocityCopilot] No JSON pattern found in response');
+  return null;
+}
+
+/**
  * Parse and validate AI response
  */
 function parseAIResponse(
@@ -577,15 +658,24 @@ function parseAIResponse(
 ): { insights: AICopilotInsight[]; validation: CitationValidationResult } {
   try {
     // Try to extract JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
+    const jsonString = extractJsonFromResponse(content);
+    if (!jsonString) {
       return {
         insights: [],
         validation: { valid: false, invalid_citations: [], missing_citations: true, error: 'No JSON found in response' }
       };
     }
 
-    const parsed = JSON.parse(jsonMatch[0]);
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error('[VelocityCopilot] JSON parse error:', parseError, 'String:', jsonString.slice(0, 300));
+      return {
+        insights: [],
+        validation: { valid: false, invalid_citations: [], missing_citations: true, error: `Invalid JSON: ${parseError}` }
+      };
+    }
     const rawInsights = parsed.insights || [];
 
     // Validate and transform insights
@@ -847,6 +937,7 @@ export async function generateDraftMessage(
   aiConfig: AiProviderConfig
 ): Promise<DraftMessage> {
   const systemPrompt = `You are drafting a professional ${channel} message to a ${recipientRole}.
+${AI_WRITING_GUIDELINES}
 Keep it brief, actionable, and friendly. Do NOT include any candidate names or PII.
 Focus on the action needed, not the analysis.`;
 

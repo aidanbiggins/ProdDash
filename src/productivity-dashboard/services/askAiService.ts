@@ -1,7 +1,7 @@
 // Ask AI Service
 // Sends free-form queries to AI with Fact Pack grounding
 
-import { AiProviderConfig, AiMessage } from '../types/aiTypes';
+import { AiProviderConfig, AiMessage, AI_WRITING_GUIDELINES } from '../types/aiTypes';
 import { AskFactPack, AskAIResponse, IntentResponse, FactCitation } from '../types/askTypes';
 import { sendAiRequest } from './aiService';
 import { validateAIResponse, parseAIResponseJSON, generateFallbackResponse } from './askValidationService';
@@ -13,7 +13,7 @@ import { handleDeterministicQuery } from './askIntentService';
 
 function buildSystemPrompt(factPack: AskFactPack): string {
   return `You are an AI assistant for ProdDash, a recruiting analytics dashboard. Your role is to answer questions about the user's recruiting data using ONLY the Fact Pack provided below.
-
+${AI_WRITING_GUIDELINES}
 ## CRITICAL RULES
 
 1. **CITATIONS REQUIRED**: Every factual claim must cite a specific Fact Pack key path using [N] notation.

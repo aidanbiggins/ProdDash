@@ -22,6 +22,7 @@ import { DataHealthTab } from './data-health';
 import { ControlTowerTab } from './control-tower';
 import { CapacityTab } from './capacity/CapacityTab';
 import { AskProdDashTab } from './ask-proddash';
+import ScenarioLibraryTab from './scenarios/ScenarioLibraryTab';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { ClearProgress } from '../services/dbService';
 import { calculatePendingActions } from '../services/hmMetricsEngine';
@@ -112,6 +113,12 @@ export function ProductivityDashboard() {
   // Respects the user's stored aiEnabled preference
   useEffect(() => {
     if (aiKeysLoaded && !keyState.isLoading && !aiConfig) {
+      // Check if user has explicitly cleared the config (don't restore)
+      const wasCleared = localStorage.getItem('proddash_ai_cleared') === 'true';
+      if (wasCleared) {
+        return; // User cleared config, don't auto-restore
+      }
+
       // Check if user has explicitly disabled AI mode
       const storedAiEnabled = localStorage.getItem('proddash_ai_enabled');
       const aiEnabled = storedAiEnabled === null ? true : storedAiEnabled === 'true';
@@ -1139,6 +1146,11 @@ export function ProductivityDashboard() {
                     return calculatePendingActions(factTables, state.dataStore.users, DEFAULT_HM_RULES);
                   })()}
                 />
+              )}
+
+              {/* Scenarios Tab */}
+              {activeTab === 'scenarios' && (
+                <ScenarioLibraryTab />
               )}
 
               {/* Data Health Tab */}

@@ -136,13 +136,16 @@ export function AiProviderSettings({
   const [saveScope, setSaveScope] = useState<AiKeyScope>('user');
   const [shouldPersist, setShouldPersist] = useState(true);
 
-  // AI Keys hook
+  // AI Keys hook - used for vault persistence (optional, non-blocking)
   const { keyState, loadKeys, saveKey, deleteKey, getEffectiveKey, clearError } = useAiKeys();
 
-  // Load keys on mount
+  // Load keys on mount (non-blocking - don't let failures block the form)
   useEffect(() => {
     if (isOpen) {
-      loadKeys(orgId ?? null);
+      // Fire and forget - don't block the form on vault loading
+      loadKeys(orgId ?? null).catch(err => {
+        console.warn('[AiProviderSettings] Failed to load keys from vault:', err);
+      });
     }
   }, [isOpen, orgId, loadKeys]);
 
@@ -197,20 +200,27 @@ export function AiProviderSettings({
       aiEnabled,
     };
 
-    // Persist key if requested
+    // Clear the "cleared" flag since user is saving new config
+    localStorage.removeItem('proddash_ai_cleared');
+
+    // Save config immediately so AI works right away
+    onSave(config);
+    onClose();
+
+    // Persist key in background if requested (don't block the UI)
     if (shouldPersist) {
-      await saveKey(
+      saveKey(
         provider,
         apiKey.trim(),
         saveScope,
         orgId,
         userId,
         { model, baseUrl: baseUrl || undefined }
-      );
+      ).catch(err => {
+        console.warn('Failed to persist AI key to vault:', err);
+        // Key still works for this session even if persistence failed
+      });
     }
-
-    onSave(config);
-    onClose();
   };
 
   const handleAiToggle = (enabled: boolean) => {
@@ -218,17 +228,23 @@ export function AiProviderSettings({
     onAiEnabledChange?.(enabled);
   };
 
-  const handleClear = async () => {
-    // Delete stored key
-    const storedKey = getEffectiveKey(provider);
-    if (storedKey) {
-      await deleteKey(provider, storedKey.scope, orgId);
-    }
+  const handleClear = () => {
+    // Set the "cleared" flag to prevent auto-restore from vault
+    localStorage.setItem('proddash_ai_cleared', 'true');
 
+    // Clear config immediately so AI is disabled right away
     onClear();
     setApiKey('');
     setBaseUrl('');
     onClose();
+
+    // Delete stored key in background (don't block the UI)
+    const storedKey = getEffectiveKey(provider);
+    if (storedKey) {
+      deleteKey(provider, storedKey.scope, orgId).catch(err => {
+        console.warn('[AiProviderSettings] Failed to delete key from vault:', err);
+      });
+    }
   };
 
   if (!isOpen) return null;
@@ -604,17 +620,13 @@ export function AiProviderSettings({
                 type="button"
                 className="btn"
                 onClick={handleSave}
-                disabled={!isValid || keyState.isLoading}
+                disabled={!isValid}
                 style={{
                   ...styles.btnPrimary,
-                  opacity: isValid && !keyState.isLoading ? 1 : 0.5,
+                  opacity: isValid ? 1 : 0.5,
                 }}
               >
-                {keyState.isLoading ? (
-                  <><span className="spinner-border spinner-border-sm me-1"></span> Saving...</>
-                ) : (
-                  <><i className="bi bi-check-lg me-1"></i> Save Settings</>
-                )}
+                <i className="bi bi-check-lg me-1"></i> Save Settings
               </button>
             </div>
           </div>

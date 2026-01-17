@@ -324,6 +324,7 @@ function tabToUrlPath(tab: TabType): string {
     'velocity': '/diagnose/velocity',
     'capacity': '/plan/capacity',
     'forecasting': '/plan/forecast',
+    'scenarios': '/plan/scenarios',
     'data-health': '/settings/data-health',
     'ai-settings': '/settings/ai',
     'org-settings': '/settings/org',
