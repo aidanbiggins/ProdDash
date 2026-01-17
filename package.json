@@ -34,7 +34,10 @@
     "eject": "react-scripts eject",
     "ui:style-audit": "node scripts/ui-style-audit.js",
     "route:smoke": "node scripts/route-smoke.js",
-    "qa:all": "npm test -- --watchAll=false && npm run build && npm run ui:style-audit && npm run route:smoke"
+    "qa:all": "npm test -- --watchAll=false && npm run build && npm run ui:style-audit && npm run route:smoke",
+    "landing:smoke": "node scripts/landing-smoke.js",
+    "landing:screenshots": "node scripts/landing-screenshots.js",
+    "landing:check": "npm run build && npm run landing:smoke && npm run landing:screenshots"
   },
   "browserslist": {
     "production": [
@@ -47,5 +50,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "node-fetch": "^3.3.2",
+    "serve-handler": "^6.1.6"
   }
 }

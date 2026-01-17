@@ -137,7 +137,7 @@ describe('Route Smoke Tests', () => {
 
     it('should have all Settings routes in settings bucket', () => {
       const settingsRoutes = ROUTE_CONFIG.filter(r => r.bucket === 'settings');
-      expect(settingsRoutes.length).toBe(3);
+      expect(settingsRoutes.length).toBe(4);
       settingsRoutes.forEach(r => {
         expect(r.path).toMatch(/^\/settings\//);
       });
