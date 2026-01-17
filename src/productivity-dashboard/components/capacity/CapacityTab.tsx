@@ -12,11 +12,16 @@ import { OverloadExplainDrawer } from './OverloadExplainDrawer';
 import { FitExplainDrawer } from './FitExplainDrawer';
 import { RecruiterLoadRow, FitMatrixCell, RebalanceRecommendation } from '../../types/capacityTypes';
 import { PageHeader } from '../layout';
+import { HelpButton, HelpDrawer } from '../common';
+import { CAPACITY_PAGE_HELP } from './capacityHelpContent';
 
 export function CapacityTab() {
   const { state } = useDashboard();
   const { dataStore, filters } = state;
   const { requisitions, candidates, events, users, config } = dataStore;
+
+  // State for page help
+  const [showPageHelp, setShowPageHelp] = useState(false);
 
   // State for drawers
   const [selectedRecruiterId, setSelectedRecruiterId] = useState<string | null>(null);
@@ -106,6 +111,13 @@ export function CapacityTab() {
           { label: 'Plan' },
           { label: 'Capacity Planning' }
         ]}
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Capacity Planning"
+        content={CAPACITY_PAGE_HELP}
       />
 
       <div className="row g-4">

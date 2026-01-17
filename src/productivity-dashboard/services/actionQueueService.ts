@@ -138,6 +138,12 @@ export function generateActionsFromHMQueue(
       'PIPELINE_HEALTH_CHECK': 'Pipeline health check',
       'PROCESS_OPTIMIZATION': 'Process optimization',
       'DATA_HYGIENE': 'Data hygiene',
+      // SLA Breach Actions
+      'SLA_BREACH_SCREEN': 'SLA breach: Recruiter screen',
+      'SLA_BREACH_HM_SCREEN': 'SLA breach: HM interview',
+      'SLA_BREACH_ONSITE': 'SLA breach: Onsite',
+      'SLA_BREACH_FINAL': 'SLA breach: Final round',
+      'SLA_BREACH_OFFER': 'SLA breach: Offer stage',
     };
 
     const req = reqMap.get(hma.reqId);

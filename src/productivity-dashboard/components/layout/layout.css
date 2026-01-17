@@ -1,21 +1,11 @@
-/* Layout Primitives CSS */
+/* Layout Primitives CSS - Per DECK_UI_UX_REFACTOR_V1.md
+ * NOTE: This file uses tokens from dashboard-theme.css
+ * Do not redefine tokens here - import or inherit from main theme.
+ */
 
-/* CSS Variables for Layout */
+/* Layout-specific variables only */
 :root {
-  /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-
-  /* Border radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-
-  /* Layout */
+  /* Layout dimensions */
   --page-max-width: 1600px;
   --header-height: 56px;
   --mobile-drawer-width: 280px;
@@ -27,9 +17,9 @@
   --z-quickfind: 400;
 }
 
-/* PageShell */
+/* PageShell - Per Plan Section 2.2 */
 .page-shell {
-  padding: var(--space-4);
+  padding: var(--space-6);
   max-width: var(--page-max-width);
   margin: 0 auto;
   min-height: calc(100vh - var(--header-height) - 2rem);
@@ -37,11 +27,11 @@
 
 @media (max-width: 768px) {
   .page-shell {
-    padding: var(--space-2);
+    padding: var(--space-4);
   }
 }
 
-/* PageHeader */
+/* PageHeader - Per Plan Section 2.2 */
 .page-header {
   display: flex;
   flex-direction: column;
@@ -51,18 +41,18 @@
 .page-header-breadcrumbs {
   display: block;
   margin-bottom: var(--space-1);
-  font-size: 0.6875rem;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--primary, #d4a373);
+  letter-spacing: var(--tracking-wide);
+  color: var(--accent);
   opacity: 0.8;
 }
 
 .breadcrumb-link {
   color: inherit;
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--transition-fast);
 }
 
 .breadcrumb-link:hover {
@@ -70,8 +60,9 @@
 }
 
 .breadcrumb-separator {
-  color: var(--text-muted, #6c757d);
+  color: var(--text-muted);
   opacity: 0.4;
+  margin: 0 var(--space-1);
 }
 
 .page-header-content {
@@ -88,19 +79,20 @@
 }
 
 .page-header-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--text-primary, #f8f9fa);
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-heading);
   margin: 0 0 var(--space-2) 0;
-  line-height: 1.2;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
 }
 
 .page-header-description {
-  color: var(--text-muted, #6c757d);
+  color: var(--text-secondary);
   margin: 0;
-  font-size: 0.9375rem;
-  line-height: 1.5;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
 }
 
 .page-header-actions {
@@ -111,7 +103,7 @@
 
 @media (max-width: 576px) {
   .page-header-title {
-    font-size: 1.5rem;
+    font-size: var(--text-xl);
   }
 
   .page-header-actions {
@@ -119,7 +111,7 @@
   }
 }
 
-/* SectionHeader */
+/* SectionHeader - Per Plan Section 2.2 */
 .section-wrapper {
   margin-bottom: var(--space-6);
 }
@@ -130,13 +122,13 @@
   align-items: center;
   margin-bottom: var(--space-4);
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .section-header-collapsible {
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
   padding: var(--space-2);
   margin: calc(-1 * var(--space-2));
   border-radius: var(--radius-sm);
@@ -146,9 +138,9 @@
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.section-header-collapsible:focus {
-  outline: 2px solid var(--primary, #d4a373);
-  outline-offset: 2px;
+.section-header-collapsible:focus-visible {
+  outline: none;
+  box-shadow: var(--glass-glow-focus);
 }
 
 .section-header-text {
@@ -156,10 +148,10 @@
 }
 
 .section-header-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary, #f8f9fa);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
   margin: 0;
   display: flex;
   align-items: center;
@@ -167,14 +159,14 @@
 }
 
 .section-collapse-icon {
-  font-size: 0.875rem;
-  transition: transform 0.2s ease;
+  font-size: var(--text-sm);
+  transition: transform var(--transition-fast);
 }
 
 .section-header-subtitle {
-  color: var(--text-muted, #6c757d);
+  color: var(--text-muted);
   margin: var(--space-1) 0 0 0;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
 }
 
 .section-header-actions {
@@ -183,7 +175,7 @@
 }
 
 .section-content {
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn var(--transition-fast) ease;
 }
 
 @keyframes fadeIn {
@@ -197,17 +189,19 @@
   }
 }
 
-/* GlassPanel */
+/* GlassPanel - Per Plan Section 2.2 */
 .glass-panel {
-  background: rgba(36, 36, 36, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
 }
 
+/* Padding variants */
 .glass-panel-sm {
-  padding: var(--space-3);
+  padding: var(--space-2);
 }
 
 .glass-panel-md {
@@ -218,37 +212,64 @@
   padding: var(--space-6);
 }
 
-/* EmptyState */
+/* Elevated variant */
+.glass-panel-elevated,
+.glass-panel.elevated {
+  background: var(--glass-bg-elevated);
+  box-shadow: var(--glass-shadow-elevated);
+}
+
+/* Interactive glass panel */
+.glass-panel.interactive,
+.glass-panel[role="button"] {
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.glass-panel.interactive:hover,
+.glass-panel[role="button"]:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-strong);
+}
+
+.glass-panel.interactive:focus-visible,
+.glass-panel[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: var(--glass-glow-focus);
+}
+
+/* EmptyState - Per Plan Section 2.2 */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: var(--space-8);
+  padding: var(--space-12) var(--space-6);
   min-height: 200px;
 }
 
 .empty-state-icon {
-  font-size: 3rem;
-  color: var(--text-muted, #6c757d);
+  font-size: var(--text-4xl);
+  color: var(--text-muted);
   margin-bottom: var(--space-4);
   opacity: 0.6;
 }
 
 .empty-state-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary, #f8f9fa);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
   margin: 0 0 var(--space-2) 0;
 }
 
 .empty-state-description {
-  color: var(--text-muted, #6c757d);
+  color: var(--text-secondary);
   margin: 0 0 var(--space-4) 0;
   max-width: 300px;
-  line-height: 1.5;
+  line-height: var(--leading-normal);
+  font-size: var(--text-sm);
 }
 
 .empty-state-action {

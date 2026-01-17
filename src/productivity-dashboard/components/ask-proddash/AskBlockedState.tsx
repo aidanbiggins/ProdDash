@@ -15,7 +15,7 @@ export function AskBlockedState({ issues, onNavigateToTab }: AskBlockedStateProp
           <i className="bi bi-exclamation-triangle-fill" />
         </div>
 
-        <h2 className="ask-blocked-title">Ask ProdDash Requires More Data</h2>
+        <div className="ask-blocked-title section-header-title">Ask ProdDash Requires More Data</div>
 
         <p className="ask-blocked-description">
           To enable intelligent insights, Ask ProdDash needs the following data to be available:

@@ -400,7 +400,7 @@ export function AskMainPanel({
           <div className="ask-empty-icon">
             <i className="bi bi-chat-square-text" />
           </div>
-          <h3>What would you like to know?</h3>
+          <div className="section-header-title">What would you like to know?</div>
           <p>
             {aiEnabled
               ? 'Ask any question about your recruiting data. AI will analyze your metrics and provide insights.'
@@ -564,12 +564,14 @@ function MarkdownRenderer({
         const text = headerMatch[2];
         const className = `ask-md-h${level}`;
         const content = renderInline(text, key);
+        // Using div with role="heading" for markdown content rendering
+        // This is AI-generated content, not page structure headers
         if (level === 2) {
-          elements.push(<h2 key={key} className={className}>{content}</h2>);
+          elements.push(<div key={key} className={`${className} section-header-title`} role="heading" aria-level={2}>{content}</div>);
         } else if (level === 3) {
-          elements.push(<h3 key={key} className={className}>{content}</h3>);
+          elements.push(<div key={key} className={`${className} section-header-title`} role="heading" aria-level={3}>{content}</div>);
         } else {
-          elements.push(<h4 key={key} className={className}>{content}</h4>);
+          elements.push(<div key={key} className={className} role="heading" aria-level={4}>{content}</div>);
         }
         return;
       }

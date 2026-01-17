@@ -193,7 +193,7 @@ export const GatedFeature: React.FC<GatedFeatureProps> = ({
     <GlassPanel>
       <div className="text-center py-4">
         <div className="mb-3">
-          <span style={{ fontSize: '2rem' }}>📊</span>
+          <span className="empty-state-icon">📊</span>
         </div>
         <h5 className="mb-2">{featureName}</h5>
         <p className="text-muted mb-3">

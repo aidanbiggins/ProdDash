@@ -8,8 +8,9 @@ import {
 import { HiringManagerFriction, Requisition, Event, User, MetricFilters } from '../../types';
 import { exportHMFrictionCSV } from '../../services';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { FilterActiveIndicator, StatLabel, StatValue } from '../common';
+import { FilterActiveIndicator, StatLabel, StatValue, HelpButton, HelpDrawer, ChartHelp } from '../common';
 import { PageHeader } from '../layout';
+import { HM_FRICTION_PAGE_HELP } from './hmFrictionHelpContent';
 
 // Helper to truncate long names
 const truncateName = (name: string, maxLen: number) =>
@@ -23,6 +24,67 @@ interface HMFrictionTabProps {
   filters?: MetricFilters;
 }
 
+/**
+ * WeightLegend - Collapsible HM Weight explanation
+ */
+function WeightLegend() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="mt-4">
+      <button
+        className="btn btn-sm d-flex align-items-center gap-2 w-100 text-start"
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          background: 'rgba(39, 39, 42, 0.5)',
+          border: '1px solid rgba(63, 63, 70, 0.5)',
+          borderRadius: '0.5rem',
+          padding: '0.75rem 1rem',
+          color: '#a1a1aa'
+        }}
+      >
+        <i className={`bi ${isOpen ? 'bi-chevron-down' : 'bi-chevron-right'}`}></i>
+        <i className="bi bi-info-circle me-1"></i>
+        <span>Understanding HM Weight</span>
+      </button>
+      {isOpen && (
+        <div
+          className="card-bespoke mt-2"
+          style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
+        >
+          <div className="card-body">
+            <p className="small text-muted mb-3">
+              HM Weight measures how a hiring manager's decision speed compares to the median.
+              It affects the complexity score of their requisitions:
+            </p>
+            <div className="d-flex flex-wrap gap-3">
+              <div>
+                <span className="badge-bespoke badge-success-soft">0.8 - 0.95x</span>
+                <span className="ms-2 small text-muted">Fast - reduces complexity</span>
+              </div>
+              <div>
+                <span className="badge-bespoke badge-neutral-soft">0.95 - 1.05x</span>
+                <span className="ms-2 small text-muted">Average</span>
+              </div>
+              <div>
+                <span className="badge-bespoke badge-warning-soft">1.05 - 1.2x</span>
+                <span className="ms-2 small text-muted">Slow</span>
+              </div>
+              <div>
+                <span className="badge-bespoke badge-danger-soft">1.2 - 1.3x</span>
+                <span className="ms-2 small text-muted">Very slow - increases complexity</span>
+              </div>
+            </div>
+            <p className="small text-muted mt-3 mb-0">
+              * HMs with fewer than 3 interview loops are assigned the default weight of 1.0
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function HMFrictionTab({
   friction,
   requisitions,
@@ -34,6 +96,7 @@ export function HMFrictionTab({
   const mainChartHeight = isMobile ? 280 : 380;
   const smallChartHeight = isMobile ? 220 : 280;
 
+  const [showPageHelp, setShowPageHelp] = useState(false);
   const [selectedHM, setSelectedHM] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<keyof HiringManagerFriction>('decisionLatencyMedian');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -292,6 +355,13 @@ export function HMFrictionTab({
           { label: 'Diagnose' },
           { label: 'HM Latency' }
         ]}
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="HM Latency"
+        content={HM_FRICTION_PAGE_HELP}
       />
 
       {/* Filter Active Indicator */}
@@ -434,10 +504,7 @@ export function HMFrictionTab({
                     </div>
                   ))}
                 </div>
-                <div className="small text-muted mb-2">
-                  <i className="bi bi-info-circle me-1"></i>
-                  HMs with &gt;30% Time Tax are costing significant recruiting cycle time
-                </div>
+                <ChartHelp text="HMs with >30% Time Tax are costing significant recruiting cycle time. Time Tax = the portion of hiring cycle spent waiting on the HM." />
                 {timeTaxDistribution.filter(b => b.min >= 30).flatMap(b => b.hms).length > 0 && (
                   <>
                     <h6 className="mt-3 mb-2">High Time Tax HMs (&gt;30%)</h6>
@@ -558,10 +625,7 @@ export function HMFrictionTab({
                         </tbody>
                       </table>
                     </div>
-                    <div className="small text-muted mt-2">
-                      <i className="bi bi-lightbulb me-1"></i>
-                      These HMs have lower-than-median decision latency, reducing complexity scores on their reqs
-                    </div>
+                    <ChartHelp text="These HMs have lower-than-median decision latency (weight < 0.9), reducing complexity scores on their requisitions. Fast HMs help shorten time-to-fill." />
                   </>
                 ) : (
                   <div className="text-center text-muted py-4">
@@ -675,10 +739,7 @@ export function HMFrictionTab({
               <Bar dataKey="decision" stackId="a" fill="#dc2626" name="Decision Wait" radius={[0, 4, 4, 0]} onClick={handleBarClick} cursor="pointer" />
             </BarChart>
           </ResponsiveContainer>
-          <div className="text-center text-muted small mt-2">
-            <i className="bi bi-info-circle me-1"></i>
-            Shows time in each pipeline stage. <span className="text-warning fw-medium">Orange</span> and <span className="text-danger fw-medium">red</span> segments are HM latency (Time Tax) - click any bar to see HM details
-          </div>
+          <ChartHelp text="Shows time in each pipeline stage. Orange (Feedback Wait) and red (Decision Wait) segments are HM latency - the 'Time Tax'. Click any bar to see that HM's detailed breakdown." />
         </div>
       </div>
 
@@ -756,10 +817,7 @@ export function HMFrictionTab({
                   <div>No offer data available</div>
                 </div>
               )}
-              <div className="text-center text-muted small mt-2">
-                <i className="bi bi-info-circle me-1"></i>
-                Larger dots = more interview loops. Points below the average line indicate declining acceptance with latency.
-              </div>
+              <ChartHelp text="Larger dots = more interview loops. Points below the average line indicate declining acceptance as latency increases. HMs in the upper-left quadrant are ideal: fast decisions, high acceptance." />
             </div>
           </div>
         </div>
@@ -842,9 +900,8 @@ export function HMFrictionTab({
                   <div>No latency data available</div>
                 </div>
               )}
-              <div className="text-center text-muted small p-2">
-                <i className="bi bi-info-circle me-1"></i>
-                Color indicates speed: green ≤24h feedback / ≤48h decision, red &gt;72h / &gt;120h
+              <div className="p-2">
+                <ChartHelp text="Color indicates speed: green = fast (≤24h feedback, ≤48h decision), yellow = moderate, orange = slow, red = very slow (>72h feedback, >120h decision). Click a row to see that HM's requisitions." />
               </div>
             </div>
           </div>
@@ -984,37 +1041,8 @@ export function HMFrictionTab({
         </div>
       )}
 
-      {/* Legend */}
-      <div className="card-bespoke mt-4">
-        <div className="card-body">
-          <h6 className="mb-3">Understanding HM Weight</h6>
-          <p className="small text-muted mb-2">
-            HM Weight measures how a hiring manager's decision speed compares to the median.
-            It affects the complexity score of their requisitions:
-          </p>
-          <div className="d-flex gap-4">
-            <div>
-              <span className="badge-bespoke badge-success-soft">0.8 - 0.95x</span>
-              <span className="ms-2 small">Fast - reduces complexity</span>
-            </div>
-            <div>
-              <span className="badge-bespoke badge-neutral-soft">0.95 - 1.05x</span>
-              <span className="ms-2 small">Average</span>
-            </div>
-            <div>
-              <span className="badge-bespoke badge-warning-soft">1.05 - 1.2x</span>
-              <span className="ms-2 small">Slow</span>
-            </div>
-            <div>
-              <span className="badge-bespoke badge-danger-soft">1.2 - 1.3x</span>
-              <span className="ms-2 small">Very slow - increases complexity</span>
-            </div>
-          </div>
-          <p className="small text-muted mt-2 mb-0">
-            * HMs with fewer than 3 interview loops are assigned the default weight of 1.0
-          </p>
-        </div>
-      </div>
+      {/* Legend - Collapsible */}
+      <WeightLegend />
     </div>
   );
 }

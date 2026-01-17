@@ -19,6 +19,8 @@ import { PipelineHealthCard, BenchmarkConfigModal } from '../pipeline-health';
 import { PipelineBenchmarkConfig, HistoricalBenchmarkResult } from '../../types/pipelineTypes';
 import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
 import { PageHeader } from '../layout';
+import { HelpButton, HelpDrawer } from '../common';
+import { OVERVIEW_PAGE_HELP } from './overviewHelpContent';
 
 interface OverviewTabProps {
   overview: OverviewMetrics;
@@ -50,6 +52,7 @@ export function OverviewTab({
   config,
   onUpdateConfig
 }: OverviewTabProps) {
+  const [showPageHelp, setShowPageHelp] = useState(false);
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? 180 : 220;
 
@@ -536,6 +539,13 @@ export function OverviewTab({
           { label: 'Diagnose' },
           { label: 'Overview' }
         ]}
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Overview"
+        content={OVERVIEW_PAGE_HELP}
       />
 
       {/* Filter Active Indicator */}

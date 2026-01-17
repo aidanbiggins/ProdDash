@@ -99,4 +99,5 @@ export type ExplainProviderId =
   | 'hm_latency'
   | 'stalled_reqs'
   | 'offer_accept_rate'
-  | 'time_to_offer';
+  | 'time_to_offer'
+  | 'sla_attribution';

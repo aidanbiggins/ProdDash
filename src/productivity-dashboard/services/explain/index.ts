@@ -7,3 +7,4 @@ export { MedianTTFProvider } from './providers/medianTTFProvider';
 export { HMLatencyProvider } from './providers/hmLatencyProvider';
 export { StalledReqsProvider } from './providers/stalledReqsProvider';
 export { OfferAcceptRateProvider } from './providers/offerAcceptRateProvider';
+export { SlaAttributionProvider } from './providers/slaAttributionProvider';

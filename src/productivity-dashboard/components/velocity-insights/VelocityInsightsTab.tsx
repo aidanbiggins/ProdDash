@@ -25,8 +25,10 @@ import { AiProviderConfig } from '../../types/aiTypes';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { PipelineHealthCard, BenchmarkConfigModal } from '../pipeline-health';
 import { VelocityCopilotPanel } from './VelocityCopilotPanel';
-import { WhatIfSimulatorPanel } from './WhatIfSimulatorPanel';
+// Note: WhatIfSimulatorPanel removed per DECK_UI_UX_REFACTOR_V1.md - canonical home is Scenario Library
 import { PageHeader } from '../layout';
+import { HelpButton, HelpDrawer } from '../common';
+import { VELOCITY_PAGE_HELP } from './velocityHelpContent';
 import { calculatePipelineHealth, generateHistoricalBenchmarks } from '../../services';
 import {
   MIN_OFFERS_FOR_DECAY,
@@ -809,6 +811,7 @@ export function VelocityInsightsTab({
   onAddToActionQueue,
   aiConfig
 }: VelocityInsightsTabProps) {
+  const [showPageHelp, setShowPageHelp] = useState(false);
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? 250 : 320;
 
@@ -1040,6 +1043,13 @@ export function VelocityInsightsTab({
           { label: 'Diagnose' },
           { label: 'Pipeline Velocity' }
         ]}
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Pipeline Velocity"
+        content={VELOCITY_PAGE_HELP}
       />
 
       {/* AI Copilot Panel - shown at top */}
@@ -1319,18 +1329,23 @@ export function VelocityInsightsTab({
         </div>
       )}
 
-      {/* ===== SECTION 7: What-if Simulator ===== */}
-      <WhatIfSimulatorPanel
-        velocityMetrics={metrics}
-        hmLatencyHours={simulatorContext.hmLatencyHours}
-        pipelineDepth={simulatorContext.pipelineDepth}
-        timeToOfferDays={simulatorContext.timeToOfferDays}
-        expectedHires={simulatorContext.expectedHires}
-        pipelineGap={simulatorContext.pipelineGap}
-        openReqsCount={simulatorContext.openReqsCount}
-        stageConversionRates={simulatorContext.stageConversionRates}
-        aiConfig={aiConfig}
-      />
+      {/* ===== SECTION 7: What-if Simulator CTA ===== */}
+      {/* Per DECK_UI_UX_REFACTOR_V1.md: Removed duplicate WhatIfSimulatorPanel */}
+      {/* Canonical home for What-if scenarios is the Scenario Library */}
+      <div className="glass-panel p-4 text-center mb-3">
+        <div className="empty-state-icon mb-2">🔮</div>
+        <div className="section-header-title mb-2">What-if Analysis</div>
+        <p className="text-secondary mb-3" style={{ fontSize: 'var(--text-sm)' }}>
+          Run hiring scenarios to understand potential outcomes.
+        </p>
+        <a
+          href="/plan/scenarios"
+          className="btn-cta-link"
+          style={{ display: 'inline-flex' }}
+        >
+          Open Scenario Library <i className="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
 
       {/* Evidence Drawer and Backdrop */}
       <DrawerBackdrop isOpen={evidenceDrawerOpen} onClose={handleCloseEvidence} />

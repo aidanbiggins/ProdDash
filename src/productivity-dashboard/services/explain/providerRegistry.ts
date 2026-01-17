@@ -8,14 +8,16 @@ import { MedianTTFProvider } from './providers/medianTTFProvider';
 import { HMLatencyProvider } from './providers/hmLatencyProvider';
 import { StalledReqsProvider } from './providers/stalledReqsProvider';
 import { OfferAcceptRateProvider } from './providers/offerAcceptRateProvider';
+import { SlaAttributionProvider } from './providers/slaAttributionProvider';
 
-// Provider instances - all 5 v1 providers
+// Provider instances - all 6 v1 providers
 const providers = new Map<ExplainProviderId, ExplainProvider>();
 providers.set('time_to_offer', new TimeToOfferProvider());
 providers.set('median_ttf', new MedianTTFProvider());
 providers.set('hm_latency', new HMLatencyProvider());
 providers.set('stalled_reqs', new StalledReqsProvider());
 providers.set('offer_accept_rate', new OfferAcceptRateProvider());
+providers.set('sla_attribution', new SlaAttributionProvider());
 
 /**
  * Get explanation for a metric
@@ -65,6 +67,7 @@ function createBlockedExplanation(
     stalled_reqs: 'Stalled Requisitions',
     offer_accept_rate: 'Offer Accept Rate',
     time_to_offer: 'Time to Offer',
+    sla_attribution: 'SLA & Bottleneck Analysis',
   };
 
   return {

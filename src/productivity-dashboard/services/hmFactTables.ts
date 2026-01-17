@@ -2,7 +2,7 @@
 // Builds enriched fact tables from raw data for HM analytics
 
 import { differenceInDays } from 'date-fns';
-import { Requisition, Candidate, Event, User, CanonicalStage } from '../types/entities';
+import { Requisition, Candidate, Event, User, CanonicalStage, UserRole } from '../types/entities';
 import {
     HMFactTables,
     ReqFact,
@@ -13,6 +13,53 @@ import {
 import { getBucketForStage, isTerminalStage } from '../config/hmStageTaxonomy';
 import { StageMappingConfig } from '../types/config';
 import { normalizeStage } from './stageNormalization';
+
+/**
+ * Synthesize user records from requisitions when users array is empty.
+ * This fallback ensures HM names display correctly even without a dedicated users table.
+ */
+function synthesizeUsersFromReqs(requisitions: Requisition[], existingUsers: User[]): User[] {
+    if (existingUsers.length > 0) {
+        return existingUsers;
+    }
+
+    const userMap = new Map<string, User>();
+
+    // Extract unique hiring managers
+    for (const req of requisitions) {
+        if (req.hiring_manager_id && !userMap.has(req.hiring_manager_id)) {
+            userMap.set(req.hiring_manager_id, {
+                user_id: req.hiring_manager_id,
+                // Convert ID to readable name: "jane_doe_abc1" -> "Jane Doe Abc1"
+                name: req.hiring_manager_id
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase()),
+                role: UserRole.HiringManager,
+                team: req.function || null,
+                manager_user_id: null,
+                email: null
+            });
+        }
+    }
+
+    // Extract unique recruiters
+    for (const req of requisitions) {
+        if (req.recruiter_id && !userMap.has(req.recruiter_id)) {
+            userMap.set(req.recruiter_id, {
+                user_id: req.recruiter_id,
+                name: req.recruiter_id
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase()),
+                role: UserRole.Recruiter,
+                team: 'TA Team',
+                manager_user_id: null,
+                email: null
+            });
+        }
+    }
+
+    return Array.from(userMap.values());
+}
 
 /**
  * Build all HM fact tables from raw data.
@@ -26,8 +73,12 @@ export function buildHMFactTables(
     stageMappingConfig: StageMappingConfig,
     asOfDate: Date = new Date()
 ): HMFactTables {
+    // Synthesize users from requisitions if users array is empty
+    // This ensures HM/recruiter names display correctly even without a dedicated users table
+    const effectiveUsers = synthesizeUsersFromReqs(requisitions, users);
+
     // Build lookup maps
-    const userMap = new Map(users.map(u => [u.user_id, u]));
+    const userMap = new Map(effectiveUsers.map(u => [u.user_id, u]));
     const reqMap = new Map(requisitions.map(r => [r.req_id, r]));
 
     // Build req facts

@@ -96,7 +96,7 @@ export default function CitationsDrawer({ citations, show, onClose }: CitationsD
                     borderLeft: '2px solid var(--accent-secondary)',
                   }}
                 >
-                  <span style={{ fontSize: '0.875rem' }}>{citation.label}</span>
+                  <span className="text-sm">{citation.label}</span>
                   <span
                     style={{
                       fontFamily: 'var(--font-mono)',

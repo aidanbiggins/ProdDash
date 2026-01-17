@@ -3,7 +3,7 @@
 import React from 'react';
 
 // Tab type definition (matches ProductivityDashboard)
-export type TabType = 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'capacity' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'ai-settings' | 'org-settings';
+export type TabType = 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'bottlenecks' | 'capacity' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'sla-settings' | 'ai-settings' | 'org-settings';
 
 // Route to tab mapping
 export interface RouteConfig {
@@ -26,6 +26,7 @@ export const ROUTE_CONFIG: RouteConfig[] = [
   { path: '/diagnose/recruiter', tab: 'recruiter', bucket: 'diagnose' },
   { path: '/diagnose/hm-friction', tab: 'hm-friction', bucket: 'diagnose' },
   { path: '/diagnose/hiring-managers', tab: 'hiring-managers', bucket: 'diagnose' },
+  { path: '/diagnose/bottlenecks', tab: 'bottlenecks', bucket: 'diagnose' },
   { path: '/diagnose/quality', tab: 'quality', bucket: 'diagnose' },
   { path: '/diagnose/sources', tab: 'source-mix', bucket: 'diagnose' },
   { path: '/diagnose/velocity', tab: 'velocity', bucket: 'diagnose' },
@@ -37,6 +38,7 @@ export const ROUTE_CONFIG: RouteConfig[] = [
 
   // Settings bucket
   { path: '/settings/data-health', tab: 'data-health', bucket: 'settings' },
+  { path: '/settings/sla', tab: 'sla-settings', bucket: 'settings' },
   { path: '/settings/ai', tab: 'ai-settings', bucket: 'settings' },
   { path: '/settings/org', tab: 'org-settings', bucket: 'settings' },
 ];

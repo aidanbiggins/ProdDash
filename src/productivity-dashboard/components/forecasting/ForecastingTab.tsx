@@ -32,9 +32,10 @@ import {
 import { HMPendingAction } from '../../types/hmTypes';
 import { runPreMortemBatch, convertToActionItems } from '../../services/preMortemService';
 import { PreMortemDrawer } from '../common/PreMortemDrawer';
-import { SectionHeader, StatLabel, StatValue } from '../common';
+import { SectionHeader, StatLabel, StatValue, HelpButton, HelpDrawer } from '../common';
 import { ActionItem } from '../../types/actionTypes';
 import { PageHeader } from '../layout';
+import { FORECASTING_PAGE_HELP } from './forecastingHelpContent';
 
 interface ForecastingTabProps {
   requisitions: Requisition[];
@@ -62,6 +63,7 @@ export function ForecastingTab({
   hmActions = [],
   onAddToActionQueue,
 }: ForecastingTabProps) {
+  const [showPageHelp, setShowPageHelp] = useState(false);
   const isMobile = useIsMobile();
 
   // Sub-tab state - default to health as it's more immediately useful
@@ -323,6 +325,13 @@ export function ForecastingTab({
           { label: 'Plan' },
           { label: 'Hiring Forecast' }
         ]}
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Hiring Forecast"
+        content={FORECASTING_PAGE_HELP}
       />
 
       {/* Sub-tab Navigation */}

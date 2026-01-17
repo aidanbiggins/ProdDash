@@ -1,10 +1,12 @@
 // TopNav - Main navigation component with 4-bucket structure
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavDropdown } from './NavDropdown';
 import { MobileDrawer } from './MobileDrawer';
 import { QuickFind } from './QuickFind';
 import { NAV_STRUCTURE, NavBucket, getActiveBucket, getActiveItem } from './navStructure';
 import { getTabFromPath, TabType } from '../../routes';
+import { useDataMasking } from '../../contexts/DataMaskingContext';
+import { useDashboard } from '../../hooks/useDashboardContext';
 import './navigation.css';
 
 export interface TopNavProps {
@@ -20,7 +22,13 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [quickFindOpen, setQuickFindOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  // Get PII masking state and dashboard actions
+  const { isMasked, toggleMasking } = useDataMasking();
+  const { refetchData, state } = useDashboard();
 
   // Update currentPath when URL changes (for back/forward navigation)
   useEffect(() => {
@@ -64,6 +72,18 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
     return () => document.removeEventListener('click', handleClickOutside);
   }, [userMenuOpen]);
 
+  // Close settings menu when clicking outside
+  useEffect(() => {
+    if (!settingsMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [settingsMenuOpen]);
+
   const handleNavigation = (route: string) => {
     // Update URL without full page reload
     window.history.pushState({}, '', route);
@@ -105,8 +125,71 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
 
           {/* Desktop Navigation */}
           <div className="top-nav-items">
-            {Object.entries(NAV_STRUCTURE).map(([key, bucket]) => (
-              bucket.submenu ? (
+            {Object.entries(NAV_STRUCTURE).map(([key, bucket]) => {
+              // Special handling for Settings - custom dropdown with actions
+              if (key === 'settings') {
+                return (
+                  <div
+                    key={key}
+                    className={`nav-dropdown ${settingsMenuOpen ? 'open' : ''} ${activeBucket === key ? 'active' : ''}`}
+                    ref={settingsRef}
+                  >
+                    <button
+                      className="nav-dropdown-trigger"
+                      onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}
+                      aria-expanded={settingsMenuOpen}
+                      aria-haspopup="true"
+                    >
+                      <i className={`bi ${bucket.icon}`} />
+                      <span>{bucket.label}</span>
+                      <i className={`bi bi-chevron-${settingsMenuOpen ? 'up' : 'down'} dropdown-chevron`} />
+                    </button>
+
+                    {settingsMenuOpen && (
+                      <div className="nav-dropdown-menu" role="menu">
+                        {/* Quick Actions */}
+                        <button
+                          className="nav-dropdown-item"
+                          onClick={() => { toggleMasking(); }}
+                          role="menuitem"
+                        >
+                          <i className={`bi bi-${isMasked ? 'eye-slash' : 'eye'}`} style={{ opacity: 0.7, width: '16px' }} />
+                          <span>{isMasked ? 'Show Real Names' : 'Mask PII'}</span>
+                          {isMasked && <i className="bi bi-check2 item-check" />}
+                        </button>
+                        <button
+                          className="nav-dropdown-item"
+                          onClick={() => { refetchData(); setSettingsMenuOpen(false); }}
+                          role="menuitem"
+                          disabled={state.isLoading}
+                        >
+                          <i className="bi bi-arrow-clockwise" style={{ opacity: 0.7, width: '16px' }} />
+                          <span>{state.isLoading ? 'Refreshing...' : 'Refresh Data'}</span>
+                        </button>
+
+                        {/* Divider */}
+                        <div className="nav-dropdown-divider" />
+
+                        {/* Navigation Items */}
+                        {bucket.submenu?.map((item) => (
+                          <button
+                            key={item.id}
+                            className={`nav-dropdown-item ${activeItem === item.id ? 'active' : ''}`}
+                            onClick={() => { handleNavigation(item.route); setSettingsMenuOpen(false); }}
+                            role="menuitem"
+                          >
+                            {activeItem === item.id && <i className="bi bi-check2 item-check" />}
+                            <span>{item.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // Regular nav items
+              return bucket.submenu ? (
                 <NavDropdown
                   key={key}
                   label={bucket.label}
@@ -125,8 +208,8 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                   <i className={`bi ${bucket.icon}`} />
                   <span>{bucket.label}</span>
                 </button>
-              )
-            ))}
+              );
+            })}
           </div>
 
           {/* Right side actions */}
@@ -158,7 +241,7 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                     {userEmail && (
                       <div className="nav-dropdown-item" style={{ cursor: 'default', opacity: 0.7 }}>
                         <i className="bi bi-envelope" />
-                        <span style={{ fontSize: '0.8rem' }}>{userEmail}</span>
+                        <span className="text-sm">{userEmail}</span>
                       </div>
                     )}
                     <button

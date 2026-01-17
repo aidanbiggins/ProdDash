@@ -41,6 +41,7 @@ export const NAV_STRUCTURE: NavStructure = {
       { id: 'recruiter', label: 'Recruiter Performance', route: '/diagnose/recruiter' },
       { id: 'hm-friction', label: 'HM Latency', route: '/diagnose/hm-friction' },
       { id: 'hiring-managers', label: 'HM Scorecard', route: '/diagnose/hiring-managers' },
+      { id: 'bottlenecks', label: 'Bottlenecks & SLAs', route: '/diagnose/bottlenecks' },
       { id: 'quality', label: 'Quality Guardrails', route: '/diagnose/quality' },
       { id: 'sources', label: 'Source Effectiveness', route: '/diagnose/sources' },
       { id: 'velocity', label: 'Pipeline Velocity', route: '/diagnose/velocity' }
@@ -62,6 +63,7 @@ export const NAV_STRUCTURE: NavStructure = {
     route: '/settings',
     submenu: [
       { id: 'data-health', label: 'Data Health', route: '/settings/data-health' },
+      { id: 'sla', label: 'SLA Configuration', route: '/settings/sla' },
       { id: 'ai', label: 'AI Configuration', route: '/settings/ai' },
       { id: 'org', label: 'Organization', route: '/settings/org' }
     ]
@@ -136,6 +138,7 @@ export function getActiveItem(pathname: string): string | null {
     '/diagnose/recruiter': 'recruiter',
     '/diagnose/hm-friction': 'hm-friction',
     '/diagnose/hiring-managers': 'hiring-managers',
+    '/diagnose/bottlenecks': 'bottlenecks',
     '/diagnose/quality': 'quality',
     '/diagnose/sources': 'sources',
     '/diagnose/velocity': 'velocity',
@@ -143,6 +146,7 @@ export function getActiveItem(pathname: string): string | null {
     '/plan/forecast': 'forecast',
     '/plan/scenarios': 'scenarios',
     '/settings/data-health': 'data-health',
+    '/settings/sla': 'sla',
     '/settings/ai': 'ai',
     '/settings/org': 'org',
     // Legacy mappings

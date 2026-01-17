@@ -319,6 +319,7 @@ function tabToUrlPath(tab: TabType): string {
     'recruiter': '/diagnose/recruiter',
     'hm-friction': '/diagnose/hm-friction',
     'hiring-managers': '/diagnose/hiring-managers',
+    'bottlenecks': '/diagnose/bottlenecks',
     'quality': '/diagnose/quality',
     'source-mix': '/diagnose/sources',
     'velocity': '/diagnose/velocity',
@@ -326,6 +327,7 @@ function tabToUrlPath(tab: TabType): string {
     'forecasting': '/plan/forecast',
     'scenarios': '/plan/scenarios',
     'data-health': '/settings/data-health',
+    'sla-settings': '/settings/sla',
     'ai-settings': '/settings/ai',
     'org-settings': '/settings/org',
   };

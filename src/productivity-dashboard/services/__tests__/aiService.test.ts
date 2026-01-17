@@ -9,6 +9,16 @@ import { AiProviderConfig } from '../../types/aiTypes';
 const mockFetch = jest.fn();
 global.fetch = mockFetch as jest.Mock;
 
+// Helper to create a mock response with proper headers
+const createMockResponse = (ok: boolean, status: number, data: unknown) => ({
+  ok,
+  status,
+  headers: {
+    get: (name: string) => name === 'content-type' ? 'application/json' : null,
+  },
+  json: () => Promise.resolve(data),
+});
+
 // Mock configurations for each provider
 const createConfig = (provider: 'openai' | 'anthropic' | 'gemini' | 'openai_compatible', overrides: Partial<AiProviderConfig> = {}): AiProviderConfig => ({
   provider,
@@ -74,10 +84,7 @@ describe('AI Service', () => {
 
   describe('sendAiRequest', () => {
     it('should route OpenAI requests correctly', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.openai),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.openai));
 
       const config = createConfig('openai');
       const response = await sendAiRequest(config, [{ role: 'user', content: 'Hello' }]);
@@ -95,10 +102,7 @@ describe('AI Service', () => {
     });
 
     it('should route Anthropic requests correctly', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.anthropic),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.anthropic));
 
       const config = createConfig('anthropic');
       const response = await sendAiRequest(config, [{ role: 'user', content: 'Hello' }]);
@@ -109,10 +113,7 @@ describe('AI Service', () => {
     });
 
     it('should route Gemini requests correctly', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.gemini),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.gemini));
 
       const config = createConfig('gemini');
       const response = await sendAiRequest(config, [{ role: 'user', content: 'Hello' }]);
@@ -123,10 +124,7 @@ describe('AI Service', () => {
     });
 
     it('should route OpenAI-compatible requests with base URL header', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.openai_compatible),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.openai_compatible));
 
       const config = createConfig('openai_compatible');
       const response = await sendAiRequest(config, [{ role: 'user', content: 'Hello' }]);
@@ -141,10 +139,7 @@ describe('AI Service', () => {
     });
 
     it('should include system prompt in request body', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.openai),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.openai));
 
       const config = createConfig('openai');
       await sendAiRequest(
@@ -159,17 +154,13 @@ describe('AI Service', () => {
     });
 
     it('should handle error responses gracefully', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: () => Promise.resolve({
-          error: {
-            code: 'invalid_api_key',
-            message: 'Invalid API key provided',
-            retryable: false,
-          },
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(false, 401, {
+        error: {
+          code: 'invalid_api_key',
+          message: 'Invalid API key provided',
+          retryable: false,
+        },
+      }));
 
       const config = createConfig('openai');
       const response = await sendAiRequest(config, [{ role: 'user', content: 'Hello' }]);
@@ -191,10 +182,7 @@ describe('AI Service', () => {
     });
 
     it('should include temperature and maxTokens from config', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.openai),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.openai));
 
       const config = createConfig('openai', { temperature: 0.9, maxTokens: 2048 });
       await sendAiRequest(config, [{ role: 'user', content: 'Hello' }]);
@@ -208,10 +196,7 @@ describe('AI Service', () => {
 
   describe('askAi', () => {
     it('should return text on success', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.openai),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.openai));
 
       const config = createConfig('openai');
       const result = await askAi(config, 'What is 2+2?');
@@ -221,13 +206,9 @@ describe('AI Service', () => {
     });
 
     it('should return error on failure', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        json: () => Promise.resolve({
-          error: { code: 'server_error', message: 'Internal server error', retryable: true },
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(false, 500, {
+        error: { code: 'server_error', message: 'Internal server error', retryable: true },
+      }));
 
       const config = createConfig('openai');
       const result = await askAi(config, 'What is 2+2?');
@@ -239,14 +220,11 @@ describe('AI Service', () => {
 
   describe('testAiConnection', () => {
     it('should return success on valid connection', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          ...MOCK_RESPONSES.openai,
-          content: 'OK',
-          latency_ms: 100,
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, {
+        ...MOCK_RESPONSES.openai,
+        content: 'OK',
+        latency_ms: 100,
+      }));
 
       const config = createConfig('openai');
       const result = await testAiConnection(config);
@@ -257,13 +235,9 @@ describe('AI Service', () => {
     });
 
     it('should return failure on invalid key', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: () => Promise.resolve({
-          error: { code: 'invalid_key', message: 'Invalid API key', retryable: false },
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(false, 401, {
+        error: { code: 'invalid_key', message: 'Invalid API key', retryable: false },
+      }));
 
       const config = createConfig('openai');
       const result = await testAiConnection(config);
@@ -275,10 +249,7 @@ describe('AI Service', () => {
 
   describe('Security: API Key Handling', () => {
     it('should pass API key in header, not in body', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(MOCK_RESPONSES.openai),
-      });
+      mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES.openai));
 
       const config = createConfig('openai');
       await sendAiRequest(config, [{ role: 'user', content: 'Hello' }]);
@@ -302,10 +273,7 @@ describe('AI Service', () => {
 
       for (const provider of providers) {
         mockFetch.mockClear();
-        mockFetch.mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve(MOCK_RESPONSES[provider]),
-        });
+        mockFetch.mockResolvedValueOnce(createMockResponse(true, 200, MOCK_RESPONSES[provider]));
 
         const config = createConfig(provider);
         await sendAiRequest(config, [{ role: 'user', content: 'Test' }]);

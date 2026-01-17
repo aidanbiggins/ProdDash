@@ -1,19 +1,22 @@
 // Quality Guardrails Tab Component
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie
 } from 'recharts';
 import { QualityMetrics } from '../../types';
-import { StatLabel, StatValue } from '../common';
+import { StatLabel, StatValue, HelpButton, HelpDrawer } from '../common';
 import { PageHeader } from '../layout';
+import { QUALITY_PAGE_HELP } from './qualityHelpContent';
 
 interface QualityTabProps {
   quality: QualityMetrics;
 }
 
 export function QualityTab({ quality }: QualityTabProps) {
+  const [showPageHelp, setShowPageHelp] = useState(false);
+
   // Prepare offer acceptance by recruiter data (top/bottom 5)
   const recruiterAcceptance = quality.offerAcceptanceByRecruiter
     .filter(r => r.offerCount >= 2)  // Only show recruiters with 2+ offers
@@ -66,6 +69,13 @@ export function QualityTab({ quality }: QualityTabProps) {
           { label: 'Diagnose' },
           { label: 'Quality Guardrails' }
         ]}
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Quality Guardrails"
+        content={QUALITY_PAGE_HELP}
       />
 
       {/* Candidate Experience Stats */}

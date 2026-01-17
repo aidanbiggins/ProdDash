@@ -2,6 +2,8 @@
 // Generates realistic recruiting funnel data with proper stage progressions
 
 import { subDays, addDays, format, differenceInDays } from 'date-fns';
+import { DataSnapshot, SnapshotEvent, SnapshotEventType, EventConfidence } from '../types/snapshotTypes';
+import { CanonicalStage, CandidateDisposition } from '../types/entities';
 
 const FUNCTIONS = ['Engineering', 'Product', 'Sales', 'G&A', 'Marketing'];
 const JOB_FAMILIES = ['Backend', 'Frontend', 'Fullstack', 'Security', 'Mobile', 'Data', 'DevOps'];
@@ -401,4 +403,358 @@ export function downloadSampleData() {
     a.click();
     URL.revokeObjectURL(url);
   });
+}
+
+// ============================================
+// SNAPSHOT DATA GENERATION FOR SLA TRACKING
+// ============================================
+
+// Map stage names to canonical stages
+const STAGE_TO_CANONICAL: Record<string, CanonicalStage> = {
+  'Applied': CanonicalStage.APPLIED,
+  'Screen': CanonicalStage.SCREEN,
+  'HM Screen': CanonicalStage.HM_SCREEN,
+  'Onsite': CanonicalStage.ONSITE,
+  'Offer': CanonicalStage.OFFER,
+  'Hired': CanonicalStage.HIRED,
+  'Rejected': CanonicalStage.REJECTED,
+  'Withdrawn': CanonicalStage.WITHDREW,
+};
+
+// Map disposition to canonical
+const DISPOSITION_TO_CANONICAL: Record<string, CandidateDisposition | null> = {
+  'Active': null,
+  'Hired': CandidateDisposition.Hired,
+  'Rejected': CandidateDisposition.Rejected,
+  'Withdrawn': CandidateDisposition.Withdrawn,
+};
+
+interface ParsedCandidate {
+  candidate_id: string;
+  req_id: string;
+  applied_at: Date;
+  current_stage: string;
+  current_stage_entered_at: Date;
+  disposition: string;
+  hired_at?: Date;
+}
+
+interface ParsedEvent {
+  event_id: string;
+  candidate_id: string;
+  req_id: string;
+  event_type: string;
+  from_stage?: string;
+  to_stage?: string;
+  event_at: Date;
+}
+
+/**
+ * Generate snapshot data from demo data for SLA tracking
+ * Creates 6 snapshots over 30 days with realistic stage transitions
+ */
+export function generateDemoSnapshots(
+  candidates: ParsedCandidate[],
+  events: ParsedEvent[],
+  organizationId: string,
+  sessionId: string
+): { snapshots: DataSnapshot[]; snapshotEvents: SnapshotEvent[] } {
+  const now = new Date();
+  const snapshots: DataSnapshot[] = [];
+  const snapshotEvents: SnapshotEvent[] = [];
+
+  // Generate 15 snapshots over 30 days (one every 2 days) to meet SLA coverage requirements
+  // Requirements: gap <3 days, coverage >50%
+  const snapshotDates: Date[] = [];
+  for (let i = 14; i >= 0; i--) {
+    snapshotDates.push(subDays(now, i * 2));
+  }
+
+  // Build event timeline per candidate
+  const eventsByCandidate = new Map<string, ParsedEvent[]>();
+  events.forEach(evt => {
+    const list = eventsByCandidate.get(evt.candidate_id) || [];
+    list.push(evt);
+    eventsByCandidate.set(evt.candidate_id, list);
+  });
+
+  // Sort events by date for each candidate
+  eventsByCandidate.forEach((evts) => {
+    evts.sort((a, b) => a.event_at.getTime() - b.event_at.getTime());
+  });
+
+  // Track candidate state at each snapshot
+  const candidateStateAtSnapshot = new Map<string, Map<string, { stage: string; disposition: string }>>();
+
+  // Initialize with "Applied" state for all candidates before first snapshot
+  candidates.forEach(cand => {
+    const stateMap = new Map<string, { stage: string; disposition: string }>();
+    candidateStateAtSnapshot.set(cand.candidate_id, stateMap);
+  });
+
+  // For each snapshot, determine candidate states
+  snapshotDates.forEach((snapshotDate, snapshotIdx) => {
+    const snapshotId = `snap_${sessionId}_${snapshotIdx + 1}`;
+
+    // Create snapshot record
+    const snapshot: DataSnapshot = {
+      id: snapshotId,
+      organization_id: organizationId,
+      snapshot_date: snapshotDate,
+      snapshot_seq: snapshotIdx + 1,
+      source_filename: 'demo_data.csv',
+      source_hash: `hash_${sessionId}_${snapshotIdx}`,
+      imported_at: snapshotDate,
+      imported_by: 'demo_system',
+      req_count: 40,
+      candidate_count: candidates.length,
+      user_count: 18,
+      status: 'completed',
+      diff_completed_at: snapshotDate,
+      events_generated: 0,
+      error_message: null,
+    };
+    snapshots.push(snapshot);
+
+    // Determine each candidate's state at this snapshot
+    candidates.forEach(cand => {
+      // Only include candidates who applied before this snapshot
+      if (cand.applied_at > snapshotDate) return;
+
+      const candEvents = eventsByCandidate.get(cand.candidate_id) || [];
+      let currentStage = 'Applied';
+      let currentDisposition = 'Active';
+
+      // Process events up to this snapshot date
+      for (const evt of candEvents) {
+        if (evt.event_at > snapshotDate) break;
+
+        if (evt.event_type === 'STAGE_CHANGE' && evt.to_stage) {
+          currentStage = evt.to_stage;
+          if (evt.to_stage === 'Rejected') {
+            currentDisposition = 'Rejected';
+          } else if (evt.to_stage === 'Hired') {
+            currentDisposition = 'Hired';
+          }
+        } else if (evt.event_type === 'CANDIDATE_WITHDREW') {
+          currentDisposition = 'Withdrawn';
+        } else if (evt.event_type === 'OFFER_ACCEPTED') {
+          currentStage = 'Hired';
+          currentDisposition = 'Hired';
+        }
+      }
+
+      const stateMap = candidateStateAtSnapshot.get(cand.candidate_id)!;
+      stateMap.set(snapshotId, { stage: currentStage, disposition: currentDisposition });
+    });
+  });
+
+  // Generate snapshot events by comparing consecutive snapshots
+  let eventIdx = 1;
+  for (let i = 1; i < snapshots.length; i++) {
+    const prevSnapshot = snapshots[i - 1];
+    const currSnapshot = snapshots[i];
+
+    candidates.forEach(cand => {
+      const stateMap = candidateStateAtSnapshot.get(cand.candidate_id)!;
+      const prevState = stateMap.get(prevSnapshot.id);
+      const currState = stateMap.get(currSnapshot.id);
+
+      // Skip if candidate didn't exist in either snapshot
+      if (!currState) return;
+
+      // Check for stage change
+      if (prevState && prevState.stage !== currState.stage) {
+        const fromCanonical = STAGE_TO_CANONICAL[prevState.stage] || null;
+        const toCanonical = STAGE_TO_CANONICAL[currState.stage] || null;
+
+        // Determine if this is a regression (going backwards)
+        const fromIdx = FUNNEL_STAGES.findIndex(f => f.stage === prevState.stage);
+        const toIdx = FUNNEL_STAGES.findIndex(f => f.stage === currState.stage);
+        const isRegression = toIdx < fromIdx && toIdx >= 0 && fromIdx >= 0;
+
+        const eventType: SnapshotEventType = isRegression ? 'STAGE_REGRESSION' : 'STAGE_CHANGE';
+
+        // Calculate event time as midpoint between snapshots
+        const eventTime = new Date(
+          (prevSnapshot.snapshot_date.getTime() + currSnapshot.snapshot_date.getTime()) / 2
+        );
+
+        const snapshotEvent: SnapshotEvent = {
+          id: `sevt_${sessionId}_${eventIdx}`,
+          organization_id: organizationId,
+          event_type: eventType,
+          candidate_id: cand.candidate_id,
+          req_id: cand.req_id,
+          from_value: prevState.stage,
+          to_value: currState.stage,
+          from_canonical: fromCanonical,
+          to_canonical: toCanonical,
+          event_at: eventTime,
+          from_snapshot_id: prevSnapshot.id,
+          to_snapshot_id: currSnapshot.id,
+          from_snapshot_date: prevSnapshot.snapshot_date,
+          to_snapshot_date: currSnapshot.snapshot_date,
+          confidence: 'high' as EventConfidence,
+          confidence_reasons: ['Demo data - stage transition detected'],
+          metadata: null,
+          created_at: new Date(),
+        };
+
+        snapshotEvents.push(snapshotEvent);
+        eventIdx++;
+      }
+
+      // Check for candidate appearing (first time in snapshots)
+      if (!prevState && currState) {
+        const snapshotEvent: SnapshotEvent = {
+          id: `sevt_${sessionId}_${eventIdx}`,
+          organization_id: organizationId,
+          event_type: 'CANDIDATE_APPEARED',
+          candidate_id: cand.candidate_id,
+          req_id: cand.req_id,
+          from_value: null,
+          to_value: currState.stage,
+          from_canonical: null,
+          to_canonical: STAGE_TO_CANONICAL[currState.stage] || null,
+          event_at: currSnapshot.snapshot_date,
+          from_snapshot_id: prevSnapshot.id,
+          to_snapshot_id: currSnapshot.id,
+          from_snapshot_date: prevSnapshot.snapshot_date,
+          to_snapshot_date: currSnapshot.snapshot_date,
+          confidence: 'high' as EventConfidence,
+          confidence_reasons: ['Demo data - new candidate detected'],
+          metadata: null,
+          created_at: new Date(),
+        };
+
+        snapshotEvents.push(snapshotEvent);
+        eventIdx++;
+      }
+    });
+
+    // Update events_generated count
+    currSnapshot.events_generated = snapshotEvents.filter(
+      e => e.to_snapshot_id === currSnapshot.id
+    ).length;
+  }
+
+  return { snapshots, snapshotEvents };
+}
+
+/**
+ * Parse CSV strings back into objects for snapshot generation
+ */
+export function parseDemoDataForSnapshots(
+  candidatesCsv: string,
+  eventsCsv: string
+): { candidates: ParsedCandidate[]; events: ParsedEvent[] } {
+  const parseDate = (str: string): Date => {
+    if (!str) return new Date();
+    return new Date(str);
+  };
+
+  // Parse candidates
+  const candidateLines = candidatesCsv.split('\n');
+  const candidateHeader = candidateLines[0].split(',');
+  const candidates: ParsedCandidate[] = [];
+
+  for (let i = 1; i < candidateLines.length; i++) {
+    const line = candidateLines[i];
+    if (!line.trim()) continue;
+
+    // Handle quoted fields (names with commas)
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (const char of line) {
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current);
+
+    const row: Record<string, string> = {};
+    candidateHeader.forEach((key, idx) => {
+      row[key.trim()] = values[idx]?.trim() || '';
+    });
+
+    candidates.push({
+      candidate_id: row['candidate_id'],
+      req_id: row['req_id'],
+      applied_at: parseDate(row['applied_at']),
+      current_stage: row['current_stage'],
+      current_stage_entered_at: parseDate(row['current_stage_entered_at']),
+      disposition: row['disposition'] || 'Active',
+      hired_at: row['hired_at'] ? parseDate(row['hired_at']) : undefined,
+    });
+  }
+
+  // Parse events
+  const eventLines = eventsCsv.split('\n');
+  const eventHeader = eventLines[0].split(',');
+  const events: ParsedEvent[] = [];
+
+  for (let i = 1; i < eventLines.length; i++) {
+    const line = eventLines[i];
+    if (!line.trim()) continue;
+
+    const values = line.split(',');
+    const row: Record<string, string> = {};
+    eventHeader.forEach((key, idx) => {
+      row[key.trim()] = values[idx]?.trim() || '';
+    });
+
+    events.push({
+      event_id: row['event_id'],
+      candidate_id: row['candidate_id'],
+      req_id: row['req_id'],
+      event_type: row['event_type'],
+      from_stage: row['from_stage'] || undefined,
+      to_stage: row['to_stage'] || undefined,
+      event_at: parseDate(row['event_at']),
+    });
+  }
+
+  return { candidates, events };
+}
+
+/**
+ * Generate snapshots from already-loaded data (Candidate[] and Event[] from entities)
+ * Use this when reloading demo data from Supabase where we don't have the original CSV
+ */
+export function generateSnapshotsFromLoadedData(
+  candidates: import('../types/entities').Candidate[],
+  events: import('../types/entities').Event[],
+  organizationId: string
+): { snapshots: DataSnapshot[]; snapshotEvents: SnapshotEvent[] } {
+  // Convert loaded Candidate[] to ParsedCandidate[]
+  const parsedCandidates: ParsedCandidate[] = candidates.map(c => ({
+    candidate_id: c.candidate_id,
+    req_id: c.req_id,
+    applied_at: c.applied_at ? new Date(c.applied_at) : new Date(),
+    current_stage: c.current_stage || 'Applied',
+    current_stage_entered_at: c.current_stage_entered_at ? new Date(c.current_stage_entered_at) : new Date(),
+    disposition: c.disposition || 'Active',
+    hired_at: c.hired_at ? new Date(c.hired_at) : undefined,
+  }));
+
+  // Convert loaded Event[] to ParsedEvent[]
+  const parsedEvents: ParsedEvent[] = events.map(e => ({
+    event_id: e.event_id,
+    candidate_id: e.candidate_id,
+    req_id: e.req_id,
+    event_type: e.event_type,
+    from_stage: e.from_stage || undefined,
+    to_stage: e.to_stage || undefined,
+    event_at: e.event_at ? new Date(e.event_at) : new Date(),
+  }));
+
+  const sessionId = `reload_${Date.now().toString(36)}`;
+  return generateDemoSnapshots(parsedCandidates, parsedEvents, organizationId, sessionId);
 }

@@ -16,6 +16,7 @@ import { QualityTab } from './quality/QualityTab';
 import { SourceEffectivenessTab } from './source-effectiveness/SourceEffectivenessTab';
 import { StageMappingModal } from './StageMappingModal';
 import { HiringManagersTab } from './hiring-managers';
+import { BottlenecksTab } from './bottlenecks';
 import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
 import { ForecastingTab } from './forecasting';
 import { DataHealthTab } from './data-health';
@@ -46,6 +47,7 @@ import '../components/layout/layout.css';
 import '../components/navigation/navigation.css';
 import { AiSettingsTab } from './settings/AiSettingsTab';
 import { OrgSettingsTab } from './settings/OrgSettingsTab';
+import { SlaSettingsTab } from './settings/SlaSettingsTab';
 import { ActionItem } from '../types/actionTypes';
 
 export function ProductivityDashboard() {
@@ -436,32 +438,15 @@ export function ProductivityDashboard() {
         {/* Mobile Menu Overlay - only show with legacy nav */}
         {isMobile && !showNewNav && <MobileMenu />}
 
-        {/* Demo Mode Banner - compact on mobile */}
-        {isDemo && !demoDismissed && (
-          <div className={`demo-banner ${isMobile ? 'demo-banner-mobile' : ''} mb-3`} role="alert">
-            {isMobile ? (
-              <>
-                <span className="small">⚠️ Demo Mode - Sample Data</span>
-                <button
-                  className="btn-close btn-close-sm ms-auto"
-                  onClick={() => setDemoDismissed(true)}
-                  style={{ fontSize: '0.6rem' }}
-                />
-              </>
-            ) : (
-              <>
-                <span className="demo-banner-icon">⚠️</span>
-                <div className="demo-banner-text">
-                  <strong>Demo Mode</strong> — You're viewing sample data. Import your own CSV files to see real metrics.
-                </div>
-                <button className="btn btn-bespoke-secondary btn-sm me-2" onClick={reset}>
-                  Back to Import
-                </button>
-                <button className="btn btn-outline-danger btn-sm" onClick={() => setShowClearConfirm(true)}>
-                  Clear Database
-                </button>
-              </>
-            )}
+        {/* Demo Mode Banner - mobile only (desktop uses inline chip) */}
+        {isDemo && !demoDismissed && isMobile && (
+          <div className="demo-banner demo-banner-mobile mb-2" role="alert">
+            <span className="small">⚠️ Demo Mode - Sample Data</span>
+            <button
+              className="btn-close btn-close-sm ms-auto"
+              onClick={() => setDemoDismissed(true)}
+              style={{ fontSize: '0.6rem' }}
+            />
           </div>
         )}
 
@@ -581,13 +566,18 @@ export function ProductivityDashboard() {
           </div>
         )}
 
-        {/* Header */}
+        {/* Header - Compact Toolbar */}
         {isMobile ? (
           // Mobile Header - compact (hamburger only shown with legacy nav)
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h1 className="fs-5 fw-bold mb-0">Recruiting Insights</h1>
-              <small className="text-muted">{state.dataStore.requisitions.length} Reqs · {state.dataStore.candidates.length} Candidates</small>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div className="d-flex align-items-center gap-2">
+              <OrgSwitcher
+                onCreateOrg={() => setShowCreateOrgModal(true)}
+                onOrgSettings={() => setShowOrgSettings(true)}
+              />
+              <span className="toolbar-stats">
+                {state.dataStore.requisitions.length} Reqs · {state.dataStore.candidates.length} Cands
+              </span>
             </div>
             {!showNewNav && (
               <button
@@ -609,43 +599,35 @@ export function ProductivityDashboard() {
             )}
           </div>
         ) : (
-          // Desktop Header
-          <div className="dashboard-header mb-5">
-            <div className="dashboard-header-title">
-              <div className="d-flex align-items-center gap-3 mb-2">
-                <OrgSwitcher
-                  onCreateOrg={() => setShowCreateOrgModal(true)}
-                  onOrgSettings={() => setShowOrgSettings(true)}
-                />
-              </div>
-              <h1 className="mb-0" style={{ color: '#ffffff', fontSize: '1.75rem', fontWeight: 700 }}>Recruiting Insights</h1>
-              <div className="d-flex flex-wrap gap-3 mt-2 align-items-center" style={{ color: '#F8FAFC', fontSize: '0.875rem' }}>
-                <span style={{ color: '#F8FAFC' }}>{state.dataStore.requisitions.filter(r => {
-                  // Flexible open req detection
+          // Desktop Compact Toolbar
+          <div className="dashboard-toolbar mb-3">
+            {/* Left: Org + Stats + Demo Chip */}
+            <div className="toolbar-left">
+              <OrgSwitcher
+                onCreateOrg={() => setShowCreateOrgModal(true)}
+                onOrgSettings={() => setShowOrgSettings(true)}
+              />
+              <span className="toolbar-divider">|</span>
+              <span className="toolbar-stats">
+                {state.dataStore.requisitions.filter(r => {
                   if (r.status === 'Open') return true;
                   const statusLower = r.status?.toLowerCase() || '';
                   if (statusLower.includes('open') || statusLower === 'active') return true;
                   if (r.status !== 'Closed' && !r.closed_at) return true;
                   return false;
-                }).length} Open Reqs</span>
-                <span style={{ color: '#a1a1aa' }}>•</span>
-                <span style={{ color: '#F8FAFC' }}>{state.dataStore.candidates.filter(c => c.disposition === 'Active').length} Active Candidates</span>
-                <span style={{ color: '#a1a1aa' }}>•</span>
-                <span style={{ color: '#F8FAFC' }}>{state.overview?.recruiterSummaries.length || 0} Recruiters</span>
-                <span style={{ color: '#a1a1aa' }}>•</span>
-                <span style={{ color: '#F8FAFC' }}>{state.hmFriction.length} Hiring Managers</span>
-                {state.dataStore.lastImportAt && (
-                  <>
-                    <span style={{ color: '#a1a1aa' }}>•</span>
-                    <span className="d-flex align-items-center gap-1" style={{ color: '#F8FAFC' }}>
-                      <i className="bi bi-clock-history" style={{ fontSize: '0.7rem' }}></i>
-                      {state.dataStore.lastImportAt.toLocaleString()}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="dashboard-header-actions" style={{ gap: '0.5rem' }}>
+                }).length} Reqs
+                <span className="toolbar-dot">•</span>
+                {state.dataStore.candidates.filter(c => c.disposition === 'Active').length} Cands
+                <span className="toolbar-dot">•</span>
+                {state.overview?.recruiterSummaries.length || 0} Rec
+                <span className="toolbar-dot">•</span>
+                {state.hmFriction.length} HM
+              </span>
+              {isDemo && !demoDismissed && (
+                <span className="demo-chip" onClick={() => setDemoDismissed(true)} title="Demo Mode - Click to dismiss">
+                  Demo
+                </span>
+              )}
               {/* Progress indicator pill */}
               {state.loadingState.operations.length > 0 && (
                 <ProgressPill
@@ -653,114 +635,8 @@ export function ProductivityDashboard() {
                   onClick={() => setShowProgressPanel(true)}
                 />
               )}
-              {/* Compact action button group */}
-              <div className="d-flex" style={{ gap: '2px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '2px' }}>
-                {/* PII Toggle */}
-                <button
-                  className="btn d-flex align-items-center justify-content-center"
-                  onClick={toggleMasking}
-                  title={isMasked ? 'Click to show real names' : 'Click to mask PII'}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: 0,
-                    background: isMasked ? 'rgba(45, 212, 191, 0.15)' : 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: isMasked ? '#2dd4bf' : '#94a3b8',
-                  }}
-                >
-                  <i className={`bi bi-${isMasked ? 'eye-slash' : 'eye'}`} style={{ fontSize: '1rem' }}></i>
-                </button>
-                {/* AI Settings */}
-                <button
-                  className={`btn d-flex align-items-center justify-content-center ${isAiEnabled ? 'ai-enabled-glow' : ''}`}
-                  onClick={() => setShowAiSettings(true)}
-                  title={isAiEnabled ? 'AI enabled - click to configure' : 'Configure AI provider'}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: 0,
-                    background: isAiEnabled ? 'rgba(139, 92, 246, 0.2)' : 'transparent',
-                    border: isAiEnabled ? '1px solid rgba(139, 92, 246, 0.4)' : 'none',
-                    borderRadius: '6px',
-                    color: isAiEnabled ? '#a78bfa' : '#94a3b8',
-                    boxShadow: isAiEnabled ? '0 0 12px rgba(139, 92, 246, 0.4)' : 'none',
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  <i className={`bi ${isAiEnabled ? 'bi-stars' : 'bi-robot'}`} style={{ fontSize: '1rem' }}></i>
-                </button>
-                {/* Refresh */}
-                <button
-                  className="btn d-flex align-items-center justify-content-center"
-                  onClick={refetchData}
-                  disabled={state.isLoading}
-                  title={state.isLoading ? 'Syncing data...' : 'Refresh data from database'}
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: 0,
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#94a3b8',
-                  }}
-                >
-                  {state.isLoading ? (
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  ) : (
-                    <i className="bi bi-arrow-clockwise" style={{ fontSize: '1rem' }}></i>
-                  )}
-                </button>
-              </div>
-              <DataHealthBadge
-                health={state.dataStore.dataHealth}
-                onConfigureStages={() => setShowStageMapping(true)}
-                onExportData={handleExportRawData}
-                onClearDatabase={() => setShowClearConfirm(true)}
-              />
-              {/* Super Admin menu - only show when user is super admin */}
-              {isSuperAdmin && (
-                <div className="position-relative">
-                  <button
-                    className="btn btn-bespoke-secondary d-flex align-items-center justify-content-center"
-                    onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-                    title="Admin options"
-                    style={{ width: '42px', height: '42px', padding: 0 }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                      <circle cx="10" cy="4" r="1.5" />
-                      <circle cx="10" cy="10" r="1.5" />
-                      <circle cx="10" cy="16" r="1.5" />
-                    </svg>
-                  </button>
-                  {showHeaderMenu && (
-                    <>
-                      <div
-                        className="position-fixed top-0 start-0 w-100 h-100"
-                        style={{ zIndex: 1000 }}
-                        onClick={() => setShowHeaderMenu(false)}
-                      />
-                      <div
-                        className="position-absolute end-0 mt-2 py-2 rounded-3 shadow-lg"
-                        style={{ zIndex: 1001, minWidth: '180px', backgroundColor: '#141414', border: '1px solid #3f3f46' }}
-                      >
-                        <button
-                          className="dropdown-item px-3 py-2 d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent text-danger"
-                          onClick={() => { setShowSuperAdminPanel(true); setShowHeaderMenu(false); }}
-                          style={{ cursor: 'pointer' }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-slate-100)'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                        >
-                          Super Admin Panel
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
+
           </div>
         )}
 
@@ -844,13 +720,12 @@ export function ProductivityDashboard() {
         )}
 
         {/* Filters - more compact on mobile */}
-        <div className={`glass-panel ${isMobile ? 'p-2 mb-2' : 'p-3 mb-5'}`}>
+        <div className={`glass-panel ${isMobile ? 'p-2 mb-2' : 'p-3 mb-3'}`}>
           <FilterBar
             filters={state.filters}
             requisitions={state.dataStore.requisitions}
             users={state.dataStore.users}
             onChange={updateFilters}
-            onRefresh={refreshMetrics}
           />
         </div>
 
@@ -1004,6 +879,8 @@ export function ProductivityDashboard() {
                     onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
                     existingActions={manualActions}
                     onAddActions={handleAddManualActions}
+                    snapshots={state.dataStore.snapshots}
+                    snapshotEvents={state.dataStore.snapshotEvents}
                   />
                 ) : (
                   <TabSkeleton showKPIs={false} showChart={false} showTable={false} />
@@ -1099,6 +976,19 @@ export function ProductivityDashboard() {
                 />
               )}
 
+              {/* Bottlenecks & SLAs Tab */}
+              {activeTab === 'bottlenecks' && (
+                <BottlenecksTab
+                  onNavigate={(path: string) => {
+                    // Navigate to the path and update active tab
+                    window.history.pushState({}, '', path);
+                    const tab = getTabFromPath(path);
+                    setActiveTab(tab);
+                  }}
+                  onCreateActions={handleAddManualActions}
+                />
+              )}
+
               {/* Capacity Tab */}
               {activeTab === 'capacity' && (
                 <CapacityTab />
@@ -1163,6 +1053,11 @@ export function ProductivityDashboard() {
                   excludedReqIds={excludedReqIds}
                   onToggleExclusion={handleToggleExclusion}
                 />
+              )}
+
+              {/* SLA Settings Tab */}
+              {activeTab === 'sla-settings' && (
+                <SlaSettingsTab />
               )}
 
               {/* AI Settings Tab */}

@@ -22,10 +22,54 @@ import {
     PeerComparisonMetric,
     HMRulesConfig
 } from '../types/hmTypes';
-import { User } from '../types/entities';
+import { User, UserRole } from '../types/entities';
 import { DEFAULT_HM_RULES, STALL_REASON_EXPLANATIONS, RISK_FLAG_DEFINITIONS, PENDING_ACTION_SUGGESTIONS } from '../config/hmRules';
 import { BUCKET_METADATA, getOrderedBuckets } from '../config/hmStageTaxonomy';
 import { getLastMovementDate, getCandidatesByBucket, getUniqueHMs, getFurthestProgressedBucket } from './hmFactTables';
+
+/**
+ * Synthesize user records from reqFacts when users array is empty.
+ * This fallback ensures HM/recruiter names display correctly.
+ */
+function synthesizeUsersFromReqFacts(reqFacts: ReqFact[], existingUsers: User[]): User[] {
+    if (existingUsers.length > 0) {
+        return existingUsers;
+    }
+
+    const userMap = new Map<string, User>();
+
+    for (const req of reqFacts) {
+        // Extract hiring managers
+        if (req.hiring_manager_id && !userMap.has(req.hiring_manager_id)) {
+            userMap.set(req.hiring_manager_id, {
+                user_id: req.hiring_manager_id,
+                name: req.hiring_manager_id
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase()),
+                role: UserRole.HiringManager,
+                team: req.function || null,
+                manager_user_id: null,
+                email: null
+            });
+        }
+
+        // Extract recruiters
+        if (req.recruiter_id && !userMap.has(req.recruiter_id)) {
+            userMap.set(req.recruiter_id, {
+                user_id: req.recruiter_id,
+                name: req.recruiter_id
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase()),
+                role: UserRole.Recruiter,
+                team: 'TA Team',
+                manager_user_id: null,
+                email: null
+            });
+        }
+    }
+
+    return Array.from(userMap.values());
+}
 
 // ===== HM REQ ROLLUP =====
 
@@ -38,7 +82,9 @@ export function buildHMReqRollups(
     rules: HMRulesConfig = DEFAULT_HM_RULES
 ): HMReqRollup[] {
     const { reqFacts, candidateFacts, eventFacts, asOfDate } = factTables;
-    const userMap = new Map(users.map(u => [u.user_id, u]));
+    // Synthesize users from reqFacts if users array is empty
+    const effectiveUsers = synthesizeUsersFromReqFacts(reqFacts, users);
+    const userMap = new Map(effectiveUsers.map(u => [u.user_id, u]));
 
     // Only process open reqs
     const openReqs = reqFacts.filter(r => r.isOpen);
@@ -258,7 +304,9 @@ export function calculatePendingActions(
     rules: HMRulesConfig = DEFAULT_HM_RULES
 ): HMPendingAction[] {
     const { reqFacts, candidateFacts, eventFacts, asOfDate } = factTables;
-    const userMap = new Map(users.map(u => [u.user_id, u]));
+    // Synthesize users from reqFacts if users array is empty
+    const effectiveUsers = synthesizeUsersFromReqFacts(reqFacts, users);
+    const userMap = new Map(effectiveUsers.map(u => [u.user_id, u]));
     const reqMap = new Map(reqFacts.map(r => [r.req_id, r]));
     const candidateMap = new Map(candidateFacts.map(c => [`${c.candidate_id}:${c.req_id}`, c]));
 
@@ -395,7 +443,9 @@ export function calculateHMLatencyMetrics(
     rules: HMRulesConfig = DEFAULT_HM_RULES
 ): HMLatencyMetrics {
     const { reqFacts, candidateFacts, eventFacts, asOfDate } = factTables;
-    const userMap = new Map(users.map(u => [u.user_id, u]));
+    // Synthesize users from reqFacts if users array is empty
+    const effectiveUsers = synthesizeUsersFromReqFacts(reqFacts, users);
+    const userMap = new Map(effectiveUsers.map(u => [u.user_id, u]));
     const hm = userMap.get(hmUserId);
 
     // Get reqs for this HM
@@ -571,13 +621,13 @@ function calculateFillDateForecast(
     // Use historical velocity (in days) per bucket
     // For now, using rough industry/internal medians if we don't have enough history
     const historicalMedians: Record<HMDecisionBucket, number> = {
-        [HMDecisionBucket.HM_REVIEW]: 3,
-        [HMDecisionBucket.HM_INTERVIEW_DECISION]: 2,
-        [HMDecisionBucket.HM_FEEDBACK]: 4,
-        [HMDecisionBucket.HM_FINAL_DECISION]: 5,
-        [HMDecisionBucket.OFFER_DECISION]: 7,
+        [HMDecisionBucket.HM_REVIEW]: 5,
+        [HMDecisionBucket.HM_INTERVIEW_DECISION]: 7,
+        [HMDecisionBucket.HM_FEEDBACK]: 5,
+        [HMDecisionBucket.HM_FINAL_DECISION]: 7,
+        [HMDecisionBucket.OFFER_DECISION]: 10,
         [HMDecisionBucket.DONE]: 0,
-        [HMDecisionBucket.OTHER]: 5
+        [HMDecisionBucket.OTHER]: 14  // Pre-HM stages (sourcing, screening)
     };
 
     // Calculate remaining days based on current bucket
@@ -585,18 +635,28 @@ function calculateFillDateForecast(
     const currentIndex = orderedBuckets.indexOf(currentBucket);
 
     let remainingDays = 0;
-    if (currentIndex !== -1) {
+
+    if (currentBucket === HMDecisionBucket.OTHER) {
+        // Candidate is in pre-HM stages - add pre-HM time plus all HM stages
+        remainingDays = historicalMedians[HMDecisionBucket.OTHER];
+        for (const bucket of orderedBuckets) {
+            remainingDays += historicalMedians[bucket];
+        }
+    } else if (currentIndex !== -1) {
+        // Candidate is in an HM stage - sum remaining stages
         for (let i = currentIndex; i < orderedBuckets.length; i++) {
             const bucket = orderedBuckets[i];
-            if (bucket !== HMDecisionBucket.DONE) {
-                remainingDays += historicalMedians[bucket];
-            }
+            remainingDays += historicalMedians[bucket];
         }
+    } else {
+        // Fallback for unknown bucket
+        remainingDays = 30;
     }
 
     // Adjust based on pipeline density: if many candidates, it's more likely to fill faster
     const pipelineAdjustment = activeCandidateCount > 5 ? 0.8 : (activeCandidateCount < 2 ? 1.5 : 1.0);
-    const likelyDays = Math.round(remainingDays * pipelineAdjustment);
+    // Ensure minimum of 1 day for forecasts
+    const likelyDays = Math.max(1, Math.round(remainingDays * pipelineAdjustment));
 
     const addDays = (date: Date, days: number) => {
         const result = new Date(date);
@@ -604,15 +664,19 @@ function calculateFillDateForecast(
         return result;
     };
 
+    // Calculate date windows ensuring earliestDate <= likelyDate <= lateDate
+    const earliestDays = Math.max(1, Math.round(likelyDays * 0.7));
+    const lateDays = Math.max(likelyDays + 1, Math.round(likelyDays * 1.5));
+
     return {
         reqId: req.req_id,
         reqTitle: req.req_title,
         hmUserId: req.hiring_manager_id ?? '',
         currentBucket,
         activeCandidates: activeCandidateCount,
-        earliestDate: addDays(asOfDate, Math.max(1, Math.round(likelyDays * 0.7))),
+        earliestDate: addDays(asOfDate, earliestDays),
         likelyDate: addDays(asOfDate, likelyDays),
-        lateDate: addDays(asOfDate, Math.round(likelyDays * 1.5)),
+        lateDate: addDays(asOfDate, lateDays),
         sampleSize: 0, // Placeholder
         cohortDescription: 'Global Medians',
         isFallback: true
@@ -654,7 +718,9 @@ export function buildHMRollups(
     hmReqRollups: HMReqRollup[],
     rules: HMRulesConfig = DEFAULT_HM_RULES
 ): HMRollup[] {
-    const userMap = new Map(users.map(u => [u.user_id, u]));
+    // Synthesize users from reqFacts if users array is empty
+    const effectiveUsers = synthesizeUsersFromReqFacts(factTables.reqFacts, users);
+    const userMap = new Map(effectiveUsers.map(u => [u.user_id, u]));
     const hmIds = getUniqueHMs(factTables.reqFacts);
 
     return hmIds.map(hmUserId => {

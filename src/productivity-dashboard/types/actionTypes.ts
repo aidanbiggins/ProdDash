@@ -39,7 +39,13 @@ export type ActionType =
   // TA Ops Actions
   | 'PIPELINE_HEALTH_CHECK'
   | 'PROCESS_OPTIMIZATION'
-  | 'DATA_HYGIENE';
+  | 'DATA_HYGIENE'
+  // SLA Breach Actions
+  | 'SLA_BREACH_SCREEN'
+  | 'SLA_BREACH_HM_SCREEN'
+  | 'SLA_BREACH_ONSITE'
+  | 'SLA_BREACH_FINAL'
+  | 'SLA_BREACH_OFFER';
 
 /**
  * Evidence linking an action to an Explain KPI

@@ -19,8 +19,10 @@ import { HMScorecard } from './HMScorecard';
 import { HMActionQueue } from './HMActionQueue';
 import { HMForecastsTab } from './HMForecastsTab';
 import { FilterActiveIndicator } from '../common/FilterActiveIndicator';
+import { HelpButton, HelpDrawer } from '../common';
 import { hasActiveDimensionalFilters } from '../../services/filterUtils';
 import { PageHeader } from '../layout';
+import { HM_SCORECARD_PAGE_HELP } from './hiringManagersHelpContent';
 
 interface HiringManagersTabProps {
     requisitions: Requisition[];
@@ -43,6 +45,7 @@ export function HiringManagersTab({
     lastImportAt,
     filters
 }: HiringManagersTabProps) {
+    const [showPageHelp, setShowPageHelp] = useState(false);
     const [activeSubTab, setActiveSubTab] = useState<HMSubTab>('overview');
     // Multi-select: track selected HM IDs as a Set (Local specific comparison)
     const [selectedHmUserIds, setSelectedHmUserIds] = useState<Set<string>>(new Set());
@@ -187,6 +190,13 @@ export function HiringManagersTab({
                     { label: 'Diagnose' },
                     { label: 'HM Scorecard' }
                 ]}
+                actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+            />
+            <HelpDrawer
+                isOpen={showPageHelp}
+                onClose={() => setShowPageHelp(false)}
+                title="HM Scorecard"
+                content={HM_SCORECARD_PAGE_HELP}
             />
 
             {/* Filter Active Indicator */}

@@ -18,6 +18,7 @@ import {
   capacitySummaryHandler,
   mostProductiveRecruiterHandler,
   hmWithMostOpenReqsHandler,
+  bottleneckAnalysisHandler,
 } from '../askIntentService';
 import { AskFactPack, IntentHandler, IntentResponse } from '../../types/askTypes';
 
@@ -332,6 +333,49 @@ function createMinimalFactPack(): AskFactPack {
       n: 5,
       confidence: 'high',
     },
+    bottlenecks: {
+      available: true,
+      top_stages: [
+        {
+          stage: 'HM_SCREEN',
+          display_name: 'HM Interview',
+          median_hours: 96,
+          sla_hours: 72,
+          breach_rate: 0.35,
+          bottleneck_score: 1.8,
+        },
+        {
+          stage: 'SCREEN',
+          display_name: 'Recruiter Screen',
+          median_hours: 48,
+          sla_hours: 48,
+          breach_rate: 0.15,
+          bottleneck_score: 0.9,
+        },
+        {
+          stage: 'ONSITE',
+          display_name: 'Onsite Interview',
+          median_hours: 120,
+          sla_hours: 168,
+          breach_rate: 0.08,
+          bottleneck_score: 0.5,
+        },
+      ],
+      summary: {
+        total_breaches: 25,
+        total_breach_hours: 480,
+        breaches_by_owner_type: { HM: 18, RECRUITER: 7 },
+        worst_stage: 'HM_SCREEN',
+        worst_owner_type: 'HM',
+      },
+      coverage: {
+        is_sufficient: true,
+        snapshot_count: 15,
+        day_span: 30,
+        coverage_percent: 85,
+      },
+      deep_link: '/diagnose/bottlenecks',
+    },
     glossary: [
       { term: 'TTF', definition: 'Time to Fill', formula: 'hired_at - opened_at', example: null },
     ],
@@ -402,6 +446,21 @@ describe('matchIntent', () => {
     it('should match capacity queries', () => {
       const result = matchIntent('how is team capacity?', ALL_HANDLERS);
       expect(result?.intent_id).toBe('capacity_summary');
+    });
+
+    it('should match bottleneck queries', () => {
+      const result = matchIntent('show me bottleneck analysis', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('bottleneck_analysis');
+    });
+
+    it('should match SLA breach queries', () => {
+      const result = matchIntent('show me SLA breaches', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('bottleneck_analysis');
+    });
+
+    it('should match stage delay queries', () => {
+      const result = matchIntent('which stage has the most delay?', ALL_HANDLERS);
+      expect(result?.intent_id).toBe('bottleneck_analysis');
     });
 
     it('should match "most productive recruiter" queries', () => {
@@ -829,6 +888,72 @@ describe('Intent Handlers', () => {
       expect(response.answer_markdown).toContain('2.5');
     });
   });
+
+  describe('bottleneckAnalysisHandler', () => {
+    it('should return bottleneck summary with citations', () => {
+      const response = bottleneckAnalysisHandler.handler(factPack);
+
+      expect(response.answer_markdown).toContain('Bottleneck');
+      expect(response.answer_markdown).toContain('HM Interview');
+      expect(response.citations.length).toBeGreaterThan(0);
+    });
+
+    it('should cite bottlenecks key paths', () => {
+      const response = bottleneckAnalysisHandler.handler(factPack);
+
+      expect(response.citations.some(c => c.key_path.includes('bottlenecks'))).toBe(true);
+    });
+
+    it('should include deep links to bottlenecks page', () => {
+      const response = bottleneckAnalysisHandler.handler(factPack);
+
+      expect(response.deep_links.length).toBeGreaterThan(0);
+      expect(response.deep_links.some(d => d.tab === 'bottlenecks')).toBe(true);
+    });
+
+    it('should handle unavailable bottleneck data gracefully', () => {
+      const unavailableFactPack = {
+        ...factPack,
+        bottlenecks: {
+          available: false,
+          unavailable_reason: 'No snapshot data available',
+          top_stages: [],
+          summary: {
+            total_breaches: 0,
+            total_breach_hours: 0,
+            breaches_by_owner_type: {},
+            worst_stage: null,
+            worst_owner_type: null,
+          },
+          coverage: {
+            is_sufficient: false,
+            snapshot_count: 0,
+            day_span: 0,
+            coverage_percent: 0,
+          },
+          deep_link: '/diagnose/bottlenecks' as const,
+        },
+      };
+
+      const response = bottleneckAnalysisHandler.handler(unavailableFactPack);
+
+      expect(response.answer_markdown).toContain('don\'t have enough snapshot data');
+    });
+
+    it('should show breach counts and owner attribution', () => {
+      const response = bottleneckAnalysisHandler.handler(factPack);
+
+      expect(response.answer_markdown).toContain('25'); // total breaches
+      expect(response.answer_markdown).toContain('HM'); // worst owner type
+    });
+
+    it('should include suggested questions', () => {
+      const response = bottleneckAnalysisHandler.handler(factPack);
+
+      expect(response.suggested_questions).toBeDefined();
+      expect(response.suggested_questions!.length).toBeGreaterThan(0);
+    });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────
@@ -882,6 +1007,7 @@ describe('generateHelpResponse', () => {
     expect(response.answer_markdown).toContain('Velocity');
     expect(response.answer_markdown).toContain('Sources');
     expect(response.answer_markdown).toContain('Capacity');
+    expect(response.answer_markdown).toContain('Bottlenecks');
   });
 
   it('should include suggested questions', () => {

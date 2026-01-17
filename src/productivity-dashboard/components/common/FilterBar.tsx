@@ -11,15 +11,13 @@ interface FilterBarProps {
   requisitions: Requisition[];
   users: User[];
   onChange: (filters: Partial<MetricFilters>) => void;
-  onRefresh: () => void;
 }
 
 export function FilterBar({
   filters,
   requisitions,
   users,
-  onChange,
-  onRefresh
+  onChange
 }: FilterBarProps) {
   const isMobile = useIsMobile();
   // Start collapsed on mobile for better UX
@@ -253,19 +251,6 @@ export function FilterBar({
                 />
               </div>
             </div>
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="d-flex gap-3">
-                <label className="d-flex align-items-center gap-1 small" style={{ cursor: 'pointer' }}>
-                  <input type="checkbox" className="form-check-input m-0" checked={filters.useWeighted} onChange={(e) => onChange({ useWeighted: e.target.checked })} />
-                  <span style={{ color: '#F8FAFC' }}>Wtd</span>
-                </label>
-                <label className="d-flex align-items-center gap-1 small" style={{ cursor: 'pointer' }}>
-                  <input type="checkbox" className="form-check-input m-0" checked={filters.normalizeByLoad} onChange={(e) => onChange({ normalizeByLoad: e.target.checked })} />
-                  <span style={{ color: '#F8FAFC' }}>Norm</span>
-                </label>
-              </div>
-              <button className="btn btn-bespoke-primary btn-sm" onClick={onRefresh}>Apply</button>
-            </div>
           </div>
         )}
       </div>
@@ -299,34 +284,6 @@ export function FilterBar({
           />
         </div>
 
-        <div className="d-flex align-items-center gap-3">
-          <div className="d-flex gap-3">
-            <label className="d-flex align-items-center gap-2 small" style={{ cursor: 'pointer' }}>
-              <input
-                className="form-check-input m-0"
-                type="checkbox"
-                checked={filters.useWeighted}
-                onChange={(e) => onChange({ useWeighted: e.target.checked })}
-              />
-              <span style={{ color: '#F8FAFC' }}>Weighted</span>
-            </label>
-            <label className="d-flex align-items-center gap-2 small" style={{ cursor: 'pointer' }}>
-              <input
-                className="form-check-input m-0"
-                type="checkbox"
-                checked={filters.normalizeByLoad}
-                onChange={(e) => onChange({ normalizeByLoad: e.target.checked })}
-              />
-              <span style={{ color: '#F8FAFC' }}>Normalize</span>
-            </label>
-          </div>
-          <button
-            className="btn btn-bespoke-primary btn-sm"
-            onClick={onRefresh}
-          >
-            Apply
-          </button>
-        </div>
       </div>
 
       {/* Expandable Filter Content */}

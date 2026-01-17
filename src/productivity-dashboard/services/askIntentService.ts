@@ -1209,6 +1209,124 @@ export const hmWithMostOpenReqsHandler: IntentHandler = {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Handler 13: Bottleneck Analysis
+// ─────────────────────────────────────────────────────────────
+
+export const bottleneckAnalysisHandler: IntentHandler = {
+  intent_id: 'bottleneck_analysis',
+  patterns: [
+    /\b(bottleneck|sla|breach)\b/i,
+    /where.*(time|slow)/i,
+    /why.*(slow|delay)/i,
+    /stage.*(delay|breach|slow)/i,
+  ],
+  keywords: ['bottleneck', 'sla', 'breach', 'slow', 'delay', 'time going', 'stage time'],
+  fact_keys_used: [
+    'bottlenecks',
+  ],
+  handler: (fp: AskFactPack): IntentResponse => {
+    const bottlenecks = fp.bottlenecks;
+    const citations: FactCitation[] = [];
+
+    // Check if bottleneck data is available
+    if (!bottlenecks.available) {
+      let md = `## Bottleneck Analysis\n\n`;
+      md += `I don't have enough snapshot data to analyze bottlenecks and SLA breaches.\n\n`;
+      md += `**Reason:** ${bottlenecks.unavailable_reason}\n\n`;
+      md += `**Current coverage:**\n`;
+      md += `- Snapshots: ${bottlenecks.coverage.snapshot_count}\n`;
+      md += `- Day span: ${bottlenecks.coverage.day_span} days\n`;
+      md += `- Coverage: ${bottlenecks.coverage.coverage_percent.toFixed(0)}%\n\n`;
+      md += `Import data snapshots more frequently (at least every 3 days) to enable SLA tracking.`;
+
+      citations.push({
+        ref: '[1]',
+        key_path: 'bottlenecks.coverage.is_sufficient',
+        label: 'Coverage Sufficient',
+        value: bottlenecks.coverage.is_sufficient ? 1 : 0,
+      });
+
+      return {
+        answer_markdown: md,
+        citations,
+        deep_links: [
+          buildDeepLink('View Data Health', 'data-health', fp),
+        ],
+        suggested_questions: [
+          'Show me velocity',
+          'What\'s on fire?',
+          'What should I do?',
+        ],
+      };
+    }
+
+    // Build response with bottleneck data
+    let md = `## Bottleneck Analysis\n\n`;
+
+    const top = bottlenecks.top_stages[0];
+    if (top) {
+      md += `**Biggest bottleneck:** ${top.display_name} with a `;
+      md += `${(top.breach_rate * 100).toFixed(0)}% SLA breach rate [1]\n\n`;
+      md += `Median dwell time is ${top.median_hours.toFixed(0)}h vs SLA of ${top.sla_hours}h.\n\n`;
+
+      citations.push({
+        ref: '[1]',
+        key_path: 'bottlenecks.top_stages[0].breach_rate',
+        label: `${top.display_name} Breach Rate`,
+        value: Math.round(top.breach_rate * 100),
+      });
+    }
+
+    // Summary stats
+    const summary = bottlenecks.summary;
+    md += `### Summary\n\n`;
+    md += `- **Total breaches:** ${summary.total_breaches} [2]\n`;
+    md += `- **Total breach hours:** ${summary.total_breach_hours.toFixed(0)}h\n`;
+
+    if (summary.worst_owner_type) {
+      md += `- **Most breaches by:** ${summary.worst_owner_type}\n`;
+    }
+
+    const hmBreaches = summary.breaches_by_owner_type['HM'] ?? 0;
+    const recruiterBreaches = summary.breaches_by_owner_type['RECRUITER'] ?? 0;
+    md += `  - HM: ${hmBreaches}\n`;
+    md += `  - Recruiter: ${recruiterBreaches}\n\n`;
+
+    citations.push({
+      ref: '[2]',
+      key_path: 'bottlenecks.summary.total_breaches',
+      label: 'Total Breaches',
+      value: summary.total_breaches,
+    });
+
+    // Top stages table
+    if (bottlenecks.top_stages.length > 1) {
+      md += `### Top Bottleneck Stages\n\n`;
+      md += `| Stage | Median Hours | SLA | Breach Rate |\n`;
+      md += `|-------|-------------|-----|-------------|\n`;
+
+      bottlenecks.top_stages.slice(0, 5).forEach(stage => {
+        const breachPct = (stage.breach_rate * 100).toFixed(0);
+        md += `| ${stage.display_name} | ${stage.median_hours.toFixed(0)}h | ${stage.sla_hours}h | ${breachPct}% |\n`;
+      });
+    }
+
+    return {
+      answer_markdown: md,
+      citations,
+      deep_links: [
+        buildDeepLink('View Bottlenecks & SLAs', 'bottlenecks', fp),
+      ],
+      suggested_questions: [
+        'Show me velocity',
+        'What actions should I take?',
+        'Show HM latency',
+      ],
+    };
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
 // All Handlers
 // ─────────────────────────────────────────────────────────────
 
@@ -1225,6 +1343,7 @@ export const ALL_HANDLERS: IntentHandler[] = [
   capacitySummaryHandler,
   mostProductiveRecruiterHandler,
   hmWithMostOpenReqsHandler,
+  bottleneckAnalysisHandler,
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -1247,6 +1366,7 @@ export function generateHelpResponse(fp: AskFactPack): IntentResponse {
   md += `- **"Velocity"** - Funnel and stage timing\n`;
   md += `- **"Sources"** - Candidate source effectiveness\n`;
   md += `- **"Capacity"** - Team workload distribution\n`;
+  md += `- **"Bottlenecks"** - SLA breaches and stage delays\n`;
 
   return {
     answer_markdown: md,

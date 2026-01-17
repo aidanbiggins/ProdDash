@@ -10,6 +10,7 @@ import { HMPendingAction } from '../../types/hmTypes';
 import { AiProviderConfig } from '../../types/aiTypes';
 import { AskFactPack, IntentResponse } from '../../types/askTypes';
 import { ActionItem } from '../../types/actionTypes';
+import { DataSnapshot, SnapshotEvent } from '../../types/snapshotTypes';
 import { buildSimpleFactPack } from '../../services/askFactPackService';
 import { handleDeterministicQuery } from '../../services/askIntentService';
 import { sendAskQueryWithRetry } from '../../services/askAiService';
@@ -19,6 +20,9 @@ import { createActionPlanFromResponse } from '../../services/askActionPlanServic
 import { AskLeftRail } from './AskLeftRail';
 import { AskMainPanel, ActionPlanFeedback } from './AskMainPanel';
 import { AskBlockedState } from './AskBlockedState';
+import { PageHeader } from '../common/PageHeader';
+import { HelpButton, HelpDrawer } from '../common';
+import { ASK_PRODDASH_PAGE_HELP } from './askProdDashHelpContent';
 import './ask-proddash.css';
 
 export interface AskProdDashTabProps {
@@ -39,6 +43,9 @@ export interface AskProdDashTabProps {
   onNavigateToTab: (tab: string) => void;
   existingActions?: ActionItem[];
   onAddActions?: (actions: ActionItem[]) => void;
+  // Snapshot data for SLA tracking (optional)
+  snapshots?: DataSnapshot[];
+  snapshotEvents?: SnapshotEvent[];
 }
 
 // Suggested questions for the left rail
@@ -71,7 +78,10 @@ export function AskProdDashTab({
   onNavigateToTab,
   existingActions = [],
   onAddActions,
+  snapshots = [],
+  snapshotEvents = [],
 }: AskProdDashTabProps) {
+  const [showPageHelp, setShowPageHelp] = useState(false);
   const [query, setQuery] = useState('');
   const [currentQuery, setCurrentQuery] = useState<string>(''); // The query that generated the current response
   const [response, setResponse] = useState<IntentResponse | null>(null);
@@ -123,8 +133,10 @@ export function AskProdDashTab({
         functions: filters.functions,
         regions: filters.regions,
       },
+      snapshots,
+      snapshotEvents,
     });
-  }, [requisitions, candidates, events, users, aiEnabled, dataHealth.overallHealthScore, filters]);
+  }, [requisitions, candidates, events, users, aiEnabled, dataHealth.overallHealthScore, filters, snapshots, snapshotEvents]);
 
   // Check coverage gate
   const coverageResult = useMemo<CoverageGateResult>(() => {
@@ -252,6 +264,18 @@ export function AskProdDashTab({
 
   return (
     <div className="ask-proddash-container">
+      <PageHeader
+        title="Ask ProdDash"
+        subtitle="Ask questions about your recruiting data in plain English"
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Ask ProdDash"
+        content={ASK_PRODDASH_PAGE_HELP}
+      />
+
       <div className="ask-proddash-layout">
         {/* Left Rail - Suggested Questions */}
         <AskLeftRail

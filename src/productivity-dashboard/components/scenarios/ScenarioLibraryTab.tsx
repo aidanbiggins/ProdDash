@@ -8,7 +8,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { PageHeader, GlassPanel, SectionHeader } from '../common';
+import { PageHeader, GlassPanel, SectionHeader, HelpButton, HelpDrawer } from '../common';
 import { useDashboard } from '../../hooks/useDashboardContext';
 import ScenarioSelector from './ScenarioSelector';
 import SpinUpTeamForm from './parameters/SpinUpTeamForm';
@@ -26,6 +26,7 @@ import {
   HiringFreezeParams,
   RecruiterLeavesParams,
 } from '../../types/scenarioTypes';
+import { SCENARIOS_PAGE_HELP } from './scenariosHelpContent';
 
 import './scenario-library.css';
 
@@ -52,6 +53,7 @@ const SCENARIO_METADATA: Record<ScenarioId, { title: string; description: string
 };
 
 export default function ScenarioLibraryTab({ className = '' }: ScenarioLibraryTabProps) {
+  const [showPageHelp, setShowPageHelp] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const { state: dashboardState } = useDashboard();
 
@@ -165,6 +167,13 @@ export default function ScenarioLibraryTab({ className = '' }: ScenarioLibraryTa
       <PageHeader
         title="Scenario Library"
         subtitle="Model recruiting changes before making decisions"
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="What-If Scenarios"
+        content={SCENARIOS_PAGE_HELP}
       />
 
       {!hasData ? (

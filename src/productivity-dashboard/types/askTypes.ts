@@ -148,6 +148,47 @@ export interface GlossaryEntry {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Bottleneck/SLA Types
+// ─────────────────────────────────────────────────────────────
+
+export interface BottleneckStageSummary {
+  stage: string;                             // Canonical stage key
+  display_name: string;                      // Human-readable name
+  median_hours: number;                      // Median dwell time
+  sla_hours: number;                         // SLA threshold
+  breach_rate: number;                       // 0-1, percentage breaching
+  bottleneck_score: number;                  // Composite score for ranking
+}
+
+export interface BottleneckFactPack {
+  available: boolean;                        // Whether bottleneck data is available
+  unavailable_reason?: string;               // Reason if not available
+
+  /** Top 5 bottleneck stages ranked by score */
+  top_stages: BottleneckStageSummary[];
+
+  /** Summary statistics */
+  summary: {
+    total_breaches: number;
+    total_breach_hours: number;
+    breaches_by_owner_type: Record<string, number>;
+    worst_stage: string | null;
+    worst_owner_type: string | null;
+  };
+
+  /** Coverage status for gating */
+  coverage: {
+    is_sufficient: boolean;
+    snapshot_count: number;
+    day_span: number;
+    coverage_percent: number;
+  };
+
+  /** Deep link to bottleneck page */
+  deep_link: '/diagnose/bottlenecks';
+}
+
+// ─────────────────────────────────────────────────────────────
 // Complete Fact Pack Structure
 // ─────────────────────────────────────────────────────────────
 
@@ -287,6 +328,9 @@ export interface AskFactPack {
 
   // HIRING_MANAGER_OWNERSHIP: HM req ownership metrics (anonymized)
   hiring_manager_ownership: HiringManagerOwnershipSummary;
+
+  // BOTTLENECKS: SLA & bottleneck analysis from snapshot diffs
+  bottlenecks: BottleneckFactPack;
 
   // GLOSSARY: Metric definitions for AI context
   glossary: GlossaryEntry[];

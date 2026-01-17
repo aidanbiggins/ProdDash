@@ -90,9 +90,13 @@ export function HMForecastsTab({ reqRollups }: HMForecastsTabProps) {
                                 <div key={req.reqId} className="d-flex align-items-center p-3 rounded" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-slate-200)' }}>
                                     {/* Date Badge */}
                                     <div className="me-4 text-center" style={{ minWidth: '80px' }}>
-                                        <div className={`badge ${isLate ? 'badge-danger-soft' : 'badge-primary-soft'} mb-1`} style={{ fontSize: '0.9rem', padding: '0.5em 1em' }}>
+                                        <div className={`badge ${isLate ? 'badge-danger-soft' : daysUntil <= 7 ? 'badge-warning-soft' : 'badge-primary-soft'} mb-1`} style={{ fontSize: '0.9rem', padding: '0.5em 1em' }}>
                                             {isLate ? (
                                                 <span>Overdue</span>
+                                            ) : daysUntil === 0 ? (
+                                                <span>Today</span>
+                                            ) : daysUntil === 1 ? (
+                                                <span>Tomorrow</span>
                                             ) : (
                                                 <span>{daysUntil} Days</span>
                                             )}

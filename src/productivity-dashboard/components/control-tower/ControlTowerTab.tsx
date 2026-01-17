@@ -24,6 +24,9 @@ import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../ty
 import { PreMortemDrawer } from '../common/PreMortemDrawer';
 import { AnimatedStat } from '../common/AnimatedNumber';
 import { SectionHeader } from '../common/SectionHeader';
+import { PageHeader } from '../common/PageHeader';
+import { HelpButton, HelpDrawer } from '../common';
+import { CONTROL_TOWER_PAGE_HELP } from './controlTowerHelpContent';
 
 interface ControlTowerTabProps {
   requisitions: Requisition[];
@@ -203,6 +206,9 @@ export function ControlTowerTab({
   onNavigateToTab,
   externalManualActions = [],
 }: ControlTowerTabProps) {
+
+  // ===== PAGE HELP STATE =====
+  const [showPageHelp, setShowPageHelp] = useState(false);
 
   // ===== EXPLAIN DRAWER STATE =====
   const [explainDrawerOpen, setExplainDrawerOpen] = useState(false);
@@ -639,6 +645,18 @@ export function ControlTowerTab({
 
   return (
     <div className="animate-fade-in">
+      <PageHeader
+        title="Command Center"
+        subtitle="Executive overview of recruiting health, risks, and actions"
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Command Center"
+        content={CONTROL_TOWER_PAGE_HELP}
+      />
+
       {/* Dataset Status Bar */}
       <DatasetStatusBar
         importSource={importSource}

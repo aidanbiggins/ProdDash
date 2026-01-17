@@ -17,19 +17,19 @@ type SortDirection = 'asc' | 'desc';
 const ACTION_TYPE_META: Record<HMActionType, { label: string; icon: string; color: string; hex: string }> = {
     [HMActionType.FEEDBACK_DUE]: {
         label: 'Feedback Due',
-        icon: '💬',
+        icon: 'bi-chat-left-dots',
         color: 'danger',
         hex: '#EF4444'
     },
     [HMActionType.REVIEW_DUE]: {
         label: 'Resume Review',
-        icon: '👀',
+        icon: 'bi-file-earmark-person',
         color: 'warning',
         hex: '#F59E0B'
     },
     [HMActionType.DECISION_DUE]: {
         label: 'Decision Needed',
-        icon: '⚖️',
+        icon: 'bi-clipboard-check',
         color: 'primary',
         hex: '#3B82F6'
     }
@@ -197,20 +197,20 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                                 style={{
                                     background: isActive ? '#2a2a2a' : '#141414',
                                     border: isActive ? `2px solid ${meta.hex}` : '1px solid #27272a',
-                                    borderRadius: '2px',
+                                    borderRadius: '0.5rem',
                                     transition: 'all 0.15s ease'
                                 }}
                             >
-                                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{meta.icon}</div>
+                                <i className={`bi ${meta.icon}`} style={{ fontSize: '1.25rem', color: meta.hex, marginBottom: '0.5rem' }}></i>
                                 <h3 style={{
-                                    fontFamily: "'JetBrains Mono', monospace",
+                                    fontFamily: "var(--font-mono)",
                                     fontWeight: 600,
                                     fontSize: '1.75rem',
-                                    color: meta.hex,
+                                    color: '#F8FAFC',
                                     marginBottom: 0
                                 }}>{count}</h3>
                                 <div style={{
-                                    color: '#94A3B8',
+                                    color: '#71717a',
                                     fontSize: '0.65rem',
                                     fontWeight: 600,
                                     textTransform: 'uppercase',
@@ -225,9 +225,9 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
 
             {/* Filter indicator */}
             {filterType !== 'ALL' && (
-                <div className="d-flex justify-content-between align-items-center mb-4 bg-slate-50 border border-slate-200 rounded p-3">
+                <div className="d-flex justify-content-between align-items-center mb-4 rounded p-3" style={{ background: '#1a1a1a', border: '1px solid #27272a' }}>
                     <div className="d-flex align-items-center">
-                        <span className="cell-muted me-2">🔽</span>
+                        <i className="bi bi-funnel-fill me-2" style={{ color: '#71717a' }}></i>
                         <span>
                             Showing: <strong>{ACTION_TYPE_META[filterType].label}</strong>
                             <span className="badge-bespoke badge-neutral-soft ms-2">{countByType[filterType]} items</span>
@@ -258,13 +258,13 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                         onSort={handleSort}
                         emptyState={
                             actions.length === 0 ? (
-                                <div className="d-flex flex-column align-items-center">
-                                    <div className="empty-state-icon">🎉</div>
-                                    <h5>All Caught Up!</h5>
-                                    <p className="cell-muted">No pending actions requiring attention.</p>
+                                <div className="d-flex flex-column align-items-center py-4">
+                                    <i className="bi bi-check-circle" style={{ fontSize: '2.5rem', color: '#22c55e', marginBottom: '0.75rem' }}></i>
+                                    <h5 style={{ color: '#F8FAFC' }}>All Caught Up!</h5>
+                                    <p className="text-muted mb-0">No pending actions requiring attention.</p>
                                 </div>
                             ) : (
-                                <div>No actions match the current filter</div>
+                                <div className="text-muted">No actions match the current filter</div>
                             )
                         }
                     />

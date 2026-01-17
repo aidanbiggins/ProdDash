@@ -232,6 +232,19 @@
   color: var(--primary, #d4a373);
 }
 
+/* Dropdown Divider */
+.nav-dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: var(--space-2, 0.5rem) 0;
+}
+
+/* Disabled dropdown item */
+.nav-dropdown-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Mobile Drawer */
 .mobile-drawer-backdrop {
   position: fixed;

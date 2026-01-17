@@ -16,7 +16,18 @@ import {
   RecruiterPerformanceSummary,
   HiringManagerOwnershipSummary,
   HMOwnershipEntry,
+  BottleneckFactPack,
 } from '../types/askTypes';
+import {
+  BottleneckSummary,
+  SnapshotCoverage,
+  DEFAULT_SLA_POLICIES,
+} from '../types/slaTypes';
+import { DataSnapshot, SnapshotEvent } from '../types/snapshotTypes';
+import {
+  checkCoverageSufficiency,
+  computeBottleneckSummary,
+} from './slaAttributionService';
 import {
   DashboardState,
   Requisition,
@@ -318,6 +329,9 @@ export interface FactPackBuilderContext {
   aiEnabled: boolean;
   orgId?: string;
   orgName?: string;
+  // Optional snapshot data for SLA/bottleneck analysis
+  snapshots?: DataSnapshot[];
+  snapshotEvents?: SnapshotEvent[];
 }
 
 /**
@@ -332,6 +346,8 @@ export function buildFactPack(context: FactPackBuilderContext): AskFactPack {
     aiEnabled,
     orgId = 'unknown',
     orgName = 'Organization',
+    snapshots = [],
+    snapshotEvents = [],
   } = context;
 
   const { requisitions, candidates, events, users } = state.dataStore;
@@ -547,6 +563,15 @@ export function buildFactPack(context: FactPackBuilderContext): AskFactPack {
     ai_enabled: aiEnabled,
   };
 
+  // Build bottleneck data (SLA analysis)
+  const bottlenecks = buildBottleneckData(
+    snapshots,
+    snapshotEvents,
+    requisitions,
+    users,
+    { start: startDate, end: endDate }
+  );
+
   return {
     meta: {
       generated_at: now.toISOString(),
@@ -608,6 +633,7 @@ export function buildFactPack(context: FactPackBuilderContext): AskFactPack {
     capacity,
     recruiter_performance: recruiterPerformance,
     hiring_manager_ownership: hiringManagerOwnership,
+    bottlenecks,
     glossary: GLOSSARY,
   };
 }
@@ -1155,6 +1181,118 @@ function buildForecastData(
   };
 }
 
+/**
+ * Build bottleneck/SLA analysis data for Fact Pack
+ */
+function buildBottleneckData(
+  snapshots: DataSnapshot[],
+  snapshotEvents: SnapshotEvent[],
+  requisitions: Requisition[],
+  users: User[],
+  dateRange: { start: Date; end: Date }
+): BottleneckFactPack {
+  // Check if we have snapshot data
+  if (snapshots.length === 0 || snapshotEvents.length === 0) {
+    return {
+      available: false,
+      unavailable_reason: 'No snapshot data available for SLA analysis. Import data snapshots regularly.',
+      top_stages: [],
+      summary: {
+        total_breaches: 0,
+        total_breach_hours: 0,
+        breaches_by_owner_type: {},
+        worst_stage: null,
+        worst_owner_type: null,
+      },
+      coverage: {
+        is_sufficient: false,
+        snapshot_count: snapshots.length,
+        day_span: 0,
+        coverage_percent: 0,
+      },
+      deep_link: '/diagnose/bottlenecks',
+    };
+  }
+
+  // Check coverage sufficiency
+  const coverage = checkCoverageSufficiency(snapshots, dateRange);
+
+  if (!coverage.is_sufficient) {
+    return {
+      available: false,
+      unavailable_reason: `Insufficient snapshot coverage: ${coverage.insufficiency_reasons.join(', ')}`,
+      top_stages: [],
+      summary: {
+        total_breaches: 0,
+        total_breach_hours: 0,
+        breaches_by_owner_type: {},
+        worst_stage: null,
+        worst_owner_type: null,
+      },
+      coverage: {
+        is_sufficient: coverage.is_sufficient,
+        snapshot_count: coverage.snapshot_count,
+        day_span: coverage.day_span,
+        coverage_percent: coverage.coverage_percent,
+      },
+      deep_link: '/diagnose/bottlenecks',
+    };
+  }
+
+  // Build maps for computation
+  const requisitionMap = new Map<string, Requisition>();
+  requisitions.forEach(r => requisitionMap.set(r.req_id, r));
+
+  const userMap = new Map<string, User>();
+  users.forEach(u => userMap.set(u.user_id, u));
+
+  // Compute bottleneck summary
+  const bottleneckSummary = computeBottleneckSummary(
+    snapshotEvents,
+    snapshots,
+    requisitionMap,
+    userMap,
+    dateRange,
+    DEFAULT_SLA_POLICIES
+  );
+
+  // Find worst owner type
+  let worstOwnerType: string | null = null;
+  let maxOwnerBreaches = 0;
+  Object.entries(bottleneckSummary.breach_by_owner_type).forEach(([ownerType, count]) => {
+    if (count > maxOwnerBreaches) {
+      maxOwnerBreaches = count;
+      worstOwnerType = ownerType;
+    }
+  });
+
+  return {
+    available: true,
+    top_stages: bottleneckSummary.top_stages.slice(0, 5).map(stage => ({
+      stage: stage.stage_key,
+      display_name: stage.display_name,
+      median_hours: stage.median_dwell_hours,
+      sla_hours: DEFAULT_SLA_POLICIES.find(p => p.stage_key === stage.stage_key)?.sla_hours ?? 72,
+      breach_rate: stage.breach_rate,
+      bottleneck_score: stage.bottleneck_score,
+    })),
+    summary: {
+      total_breaches: Object.values(bottleneckSummary.breach_counts).reduce((a, b) => a + b, 0),
+      total_breach_hours: bottleneckSummary.top_reqs.reduce((sum, r) => sum + r.worst_breach_hours, 0),
+      breaches_by_owner_type: bottleneckSummary.breach_by_owner_type,
+      worst_stage: bottleneckSummary.top_stages[0]?.stage_key ?? null,
+      worst_owner_type: worstOwnerType,
+    },
+    coverage: {
+      is_sufficient: coverage.is_sufficient,
+      snapshot_count: coverage.snapshot_count,
+      day_span: coverage.day_span,
+      coverage_percent: coverage.coverage_percent,
+    },
+    deep_link: '/diagnose/bottlenecks',
+  };
+}
+
 // ─────────────────────────────────────────────────────────────
 // Validation Helpers
 // ─────────────────────────────────────────────────────────────
@@ -1233,6 +1371,9 @@ export interface SimpleFactPackContext {
     functions?: string[];
     regions?: string[];
   };
+  // Optional snapshot data for SLA/bottleneck analysis (used in demo mode)
+  snapshots?: DataSnapshot[];
+  snapshotEvents?: SnapshotEvent[];
 }
 
 /**
@@ -1250,6 +1391,8 @@ export function buildSimpleFactPack(context: SimpleFactPackContext): AskFactPack
     orgId = 'unknown',
     orgName = 'Organization',
     filters,
+    snapshots = [],
+    snapshotEvents = [],
   } = context;
 
   const now = new Date();
@@ -1453,6 +1596,7 @@ export function buildSimpleFactPack(context: SimpleFactPackContext): AskFactPack
     capacity: buildCapacityData(users, requisitions),
     recruiter_performance: buildRecruiterPerformanceData(users, requisitions, candidates, anonMaps),
     hiring_manager_ownership: buildHiringManagerOwnershipData(requisitions, anonMaps),
+    bottlenecks: buildBottleneckData(snapshots, snapshotEvents, requisitions, users, { start: startDate, end: endDate }),
     glossary: GLOSSARY,
   };
 }

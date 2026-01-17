@@ -11,6 +11,7 @@ export * from './GlassPanel';
 
 // Interactive primitives
 export * from './InlineHelp';
+export * from './ChartHelp';
 
 // Data display components
 export * from './KPICard';
@@ -50,3 +51,5 @@ export * from './PreMortemDrawer';
 export * from './ExplainDrawer';
 export * from './ActionDetailDrawer';
 export * from './UnifiedActionQueue';
+export * from './HelpDrawer';
+export * from './HelpButton';

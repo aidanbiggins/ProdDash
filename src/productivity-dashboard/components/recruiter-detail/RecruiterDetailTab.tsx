@@ -11,6 +11,8 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
 import { METRIC_FORMULAS } from '../common/MetricDrillDown';
 import { PageHeader } from '../layout';
+import { HelpButton, HelpDrawer } from '../common';
+import { RECRUITER_PAGE_HELP } from './recruiterHelpContent';
 
 export interface RecruiterDetailTabProps {
   recruiterSummaries: RecruiterSummary[];
@@ -106,6 +108,7 @@ export function RecruiterDetailTab({
   recruiterPriorPeriods,
   filters
 }: RecruiterDetailTabProps) {
+  const [showPageHelp, setShowPageHelp] = useState(false);
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? 200 : 260;
   const chartHeightSmall = isMobile ? 160 : 200;
@@ -550,6 +553,13 @@ export function RecruiterDetailTab({
           { label: 'Diagnose' },
           { label: 'Recruiter Performance' }
         ]}
+        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
+      />
+      <HelpDrawer
+        isOpen={showPageHelp}
+        onClose={() => setShowPageHelp(false)}
+        title="Recruiter Performance"
+        content={RECRUITER_PAGE_HELP}
       />
 
       {/* KPI Cards - 7 cards using flex for equal width */}

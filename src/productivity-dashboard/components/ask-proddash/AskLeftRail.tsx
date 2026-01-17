@@ -37,7 +37,7 @@ export function AskLeftRail({
     <aside className="ask-left-rail">
       {/* Suggested Questions */}
       <div className="ask-section">
-        <h3 className="ask-section-title">Suggested Questions</h3>
+        <div className="ask-section-title section-header-title">Suggested Questions</div>
         {Object.entries(questionsByCategory).map(([category, questions]) => (
           <div key={category} className="ask-category">
             <span className="ask-category-label">{category}</span>
@@ -59,7 +59,7 @@ export function AskLeftRail({
       {/* Conversation History */}
       {conversationHistory.length > 0 && (
         <div className="ask-section">
-          <h3 className="ask-section-title">Recent Questions</h3>
+          <div className="ask-section-title section-header-title">Recent Questions</div>
           <div className="ask-history-list">
             {conversationHistory.slice(-5).reverse().map((item, idx) => (
               <button

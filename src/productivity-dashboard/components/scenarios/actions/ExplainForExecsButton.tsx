@@ -129,7 +129,7 @@ function NarrationPanel({ narration, onClose, usedFallback, aiAvailable }: Narra
       </div>
 
       {/* Headline - the bottom line */}
-      <h3 className="exec-headline">{narration.headline}</h3>
+      <div className="exec-headline section-header-title">{narration.headline}</div>
 
       {/* Key findings - simple bullets, no citations visible */}
       <ul className="exec-bullets">

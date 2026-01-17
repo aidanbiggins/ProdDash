@@ -121,7 +121,7 @@ describe('Route Smoke Tests', () => {
 
     it('should have all Diagnose routes in diagnose bucket', () => {
       const diagnoseRoutes = ROUTE_CONFIG.filter(r => r.bucket === 'diagnose');
-      expect(diagnoseRoutes.length).toBe(7);
+      expect(diagnoseRoutes.length).toBe(8);
       diagnoseRoutes.forEach(r => {
         expect(r.path).toMatch(/^\/diagnose\//);
       });
@@ -129,7 +129,7 @@ describe('Route Smoke Tests', () => {
 
     it('should have all Plan routes in plan bucket', () => {
       const planRoutes = ROUTE_CONFIG.filter(r => r.bucket === 'plan');
-      expect(planRoutes.length).toBe(2);
+      expect(planRoutes.length).toBe(3);
       planRoutes.forEach(r => {
         expect(r.path).toMatch(/^\/plan\//);
       });

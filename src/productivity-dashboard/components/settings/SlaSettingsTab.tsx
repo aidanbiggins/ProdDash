@@ -1,0 +1,406 @@
+// SLA Settings Tab - Configure stage SLAs and owner assignments
+import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '../common/PageHeader';
+import { GlassPanel } from '../layout/GlassPanel';
+import { SectionHeader } from '../common/SectionHeader';
+import { SlaPolicy, SlaOwnerType, DEFAULT_SLA_POLICIES } from '../../types/slaTypes';
+
+// Storage key for SLA policies
+const SLA_POLICIES_KEY = 'proddash_sla_policies';
+
+// Load SLA policies from localStorage, falling back to defaults
+function loadSlaPolicies(): SlaPolicy[] {
+  try {
+    const stored = localStorage.getItem(SLA_POLICIES_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to load SLA policies:', e);
+  }
+  return [...DEFAULT_SLA_POLICIES];
+}
+
+// Save SLA policies to localStorage
+function saveSlaPolicies(policies: SlaPolicy[]): void {
+  try {
+    localStorage.setItem(SLA_POLICIES_KEY, JSON.stringify(policies));
+  } catch (e) {
+    console.error('Failed to save SLA policies:', e);
+  }
+}
+
+// Export for use by other components
+export function getSlaPolicies(): SlaPolicy[] {
+  return loadSlaPolicies();
+}
+
+export function SlaSettingsTab() {
+  const [policies, setPolicies] = useState<SlaPolicy[]>(() => loadSlaPolicies());
+  const [isDirty, setIsDirty] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // New policy form state
+  const [newStageKey, setNewStageKey] = useState('');
+  const [newDisplayName, setNewDisplayName] = useState('');
+  const [newSlaHours, setNewSlaHours] = useState(72);
+  const [newOwnerType, setNewOwnerType] = useState<SlaOwnerType>('RECRUITER');
+
+  // Update a policy
+  const handleUpdatePolicy = useCallback((index: number, field: keyof SlaPolicy, value: any) => {
+    setPolicies(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+    setIsDirty(true);
+  }, []);
+
+  // Remove a policy
+  const handleRemovePolicy = useCallback((index: number) => {
+    setPolicies(prev => prev.filter((_, i) => i !== index));
+    setIsDirty(true);
+  }, []);
+
+  // Add a new policy
+  const handleAddPolicy = useCallback(() => {
+    if (!newStageKey.trim() || !newDisplayName.trim()) return;
+
+    const newPolicy: SlaPolicy = {
+      stage_key: newStageKey.toUpperCase().replace(/\s+/g, '_'),
+      display_name: newDisplayName.trim(),
+      sla_hours: newSlaHours,
+      owner_type: newOwnerType,
+      enabled: true,
+    };
+
+    setPolicies(prev => [...prev, newPolicy]);
+    setNewStageKey('');
+    setNewDisplayName('');
+    setNewSlaHours(72);
+    setNewOwnerType('RECRUITER');
+    setIsDirty(true);
+  }, [newStageKey, newDisplayName, newSlaHours, newOwnerType]);
+
+  // Save changes
+  const handleSave = useCallback(() => {
+    saveSlaPolicies(policies);
+    setIsDirty(false);
+    setSuccess('SLA policies saved successfully');
+    setTimeout(() => setSuccess(null), 3000);
+  }, [policies]);
+
+  // Reset to defaults
+  const handleReset = useCallback(() => {
+    if (!confirm('Reset all SLA policies to defaults? This cannot be undone.')) return;
+    setPolicies([...DEFAULT_SLA_POLICIES]);
+    setIsDirty(true);
+  }, []);
+
+  // Convert hours to display format
+  const formatHoursDisplay = (hours: number): string => {
+    if (hours < 24) return `${hours}h`;
+    const days = hours / 24;
+    return Number.isInteger(days) ? `${days}d` : `${days.toFixed(1)}d`;
+  };
+
+  return (
+    <div className="sla-settings-tab">
+      <PageHeader
+        title="SLA Configuration"
+        subtitle="Configure stage time limits and ownership for SLA tracking"
+      />
+
+      {/* Success Message */}
+      {success && (
+        <div
+          className="alert d-flex align-items-center mb-4"
+          style={{
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            color: '#22c55e',
+          }}
+        >
+          <i className="bi bi-check-circle me-2"></i>
+          {success}
+        </div>
+      )}
+
+      {/* Current Policies */}
+      <GlassPanel>
+        <SectionHeader
+          title="Stage SLA Policies"
+          subtitle="Define time limits for each hiring stage"
+        />
+
+        <div style={{ overflowX: 'auto' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: 'var(--text-sm)',
+            }}
+          >
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                <th style={thStyle}>Stage</th>
+                <th style={thStyle}>Display Name</th>
+                <th style={{ ...thStyle, textAlign: 'center' }}>SLA (hours)</th>
+                <th style={{ ...thStyle, textAlign: 'center' }}>Display</th>
+                <th style={thStyle}>Owner</th>
+                <th style={{ ...thStyle, textAlign: 'center' }}>Enabled</th>
+                <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {policies.map((policy, index) => (
+                <tr
+                  key={policy.stage_key}
+                  style={{
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    opacity: policy.enabled ? 1 : 0.5,
+                  }}
+                >
+                  <td style={tdStyle}>
+                    <code
+                      style={{
+                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        color: '#2dd4bf',
+                      }}
+                    >
+                      {policy.stage_key}
+                    </code>
+                  </td>
+                  <td style={tdStyle}>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm"
+                      value={policy.display_name}
+                      onChange={(e) => handleUpdatePolicy(index, 'display_name', e.target.value)}
+                      style={{ maxWidth: '180px' }}
+                    />
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm"
+                      value={policy.sla_hours}
+                      onChange={(e) => handleUpdatePolicy(index, 'sla_hours', parseInt(e.target.value) || 0)}
+                      min={1}
+                      max={720}
+                      style={{ width: '80px', textAlign: 'center' }}
+                    />
+                  </td>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      textAlign: 'center',
+                      fontFamily: 'var(--font-mono)',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    {formatHoursDisplay(policy.sla_hours)}
+                  </td>
+                  <td style={tdStyle}>
+                    <select
+                      className="form-select form-select-sm"
+                      value={policy.owner_type}
+                      onChange={(e) => handleUpdatePolicy(index, 'owner_type', e.target.value)}
+                      style={{ width: '120px' }}
+                    >
+                      <option value="RECRUITER">Recruiter</option>
+                      <option value="HM">Hiring Manager</option>
+                      <option value="OPS">TA Ops</option>
+                    </select>
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      checked={policy.enabled}
+                      onChange={(e) => handleUpdatePolicy(index, 'enabled', e.target.checked)}
+                    />
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                    <button
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => handleRemovePolicy(index)}
+                      title="Remove this SLA policy"
+                    >
+                      <i className="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {policies.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    No SLA policies configured. Add one below or reset to defaults.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Action Buttons */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 'var(--space-2)',
+            marginTop: 'var(--space-4)',
+            paddingTop: 'var(--space-4)',
+            borderTop: '1px solid var(--glass-border)',
+          }}
+        >
+          <button
+            className="btn btn-primary"
+            onClick={handleSave}
+            disabled={!isDirty}
+          >
+            <i className="bi bi-check-lg me-1"></i>
+            Save Changes
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={handleReset}
+          >
+            <i className="bi bi-arrow-counterclockwise me-1"></i>
+            Reset to Defaults
+          </button>
+          {isDirty && (
+            <span
+              style={{
+                marginLeft: 'auto',
+                color: '#f59e0b',
+                fontSize: 'var(--text-sm)',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <i className="bi bi-exclamation-circle me-1"></i>
+              Unsaved changes
+            </span>
+          )}
+        </div>
+      </GlassPanel>
+
+      {/* Add New Policy */}
+      <div style={{ marginTop: 'var(--space-4)' }}>
+      <GlassPanel>
+        <SectionHeader
+          title="Add New Stage"
+          subtitle="Create a custom SLA policy for a stage not listed above"
+        />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 120px 140px auto',
+            gap: 'var(--space-3)',
+            alignItems: 'end',
+          }}
+        >
+          <div>
+            <label className="form-label small">Stage Key</label>
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              placeholder="e.g., PHONE_SCREEN"
+              value={newStageKey}
+              onChange={(e) => setNewStageKey(e.target.value.toUpperCase().replace(/\s+/g, '_'))}
+            />
+          </div>
+          <div>
+            <label className="form-label small">Display Name</label>
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              placeholder="e.g., Phone Screen"
+              value={newDisplayName}
+              onChange={(e) => setNewDisplayName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="form-label small">SLA (hours)</label>
+            <input
+              type="number"
+              className="form-control form-control-sm"
+              value={newSlaHours}
+              onChange={(e) => setNewSlaHours(parseInt(e.target.value) || 72)}
+              min={1}
+              max={720}
+            />
+          </div>
+          <div>
+            <label className="form-label small">Owner</label>
+            <select
+              className="form-select form-select-sm"
+              value={newOwnerType}
+              onChange={(e) => setNewOwnerType(e.target.value as SlaOwnerType)}
+            >
+              <option value="RECRUITER">Recruiter</option>
+              <option value="HM">Hiring Manager</option>
+              <option value="OPS">TA Ops</option>
+            </select>
+          </div>
+          <button
+            className="btn btn-outline-primary btn-sm"
+            onClick={handleAddPolicy}
+            disabled={!newStageKey.trim() || !newDisplayName.trim()}
+            style={{ height: '31px' }}
+          >
+            <i className="bi bi-plus-lg me-1"></i>
+            Add
+          </button>
+        </div>
+      </GlassPanel>
+      </div>
+
+      {/* Help Section */}
+      <div style={{ marginTop: 'var(--space-4)' }}>
+      <GlassPanel>
+        <SectionHeader title="How SLAs Work" />
+        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+          <p>
+            <strong>Stage Key:</strong> The internal identifier matching your ATS stage names
+            (e.g., SCREEN, HM_SCREEN, ONSITE).
+          </p>
+          <p>
+            <strong>SLA Hours:</strong> Maximum time a candidate should spend in this stage
+            before it's considered a breach.
+          </p>
+          <p>
+            <strong>Owner:</strong> Who is responsible for moving candidates through this stage.
+            Breaches are attributed to this role.
+          </p>
+          <ul style={{ marginTop: 'var(--space-2)' }}>
+            <li><strong>Recruiter:</strong> Screens, sourcing, offer management</li>
+            <li><strong>Hiring Manager:</strong> HM screens, interviews, final decisions</li>
+            <li><strong>TA Ops:</strong> Administrative tasks, background checks</li>
+          </ul>
+        </div>
+      </GlassPanel>
+      </div>
+    </div>
+  );
+}
+
+const thStyle: React.CSSProperties = {
+  padding: 'var(--space-2) var(--space-3)',
+  fontSize: 'var(--text-xs)',
+  color: 'var(--text-tertiary)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  fontWeight: 600,
+  textAlign: 'left',
+};
+
+const tdStyle: React.CSSProperties = {
+  padding: 'var(--space-3)',
+  verticalAlign: 'middle',
+};
+
+export default SlaSettingsTab;

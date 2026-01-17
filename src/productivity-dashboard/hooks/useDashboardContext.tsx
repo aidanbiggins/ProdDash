@@ -46,6 +46,8 @@ import { anonymizeCandidatesWithSummary } from '../services/piiService';
 import { fetchDashboardData, persistDashboardData, clearAllData, ClearProgress, ImportProgress } from '../services/dbService';
 import { loadOrgConfig, saveOrgConfig, migrateLocalStorageConfig } from '../services/configService';
 import { useAuth } from '../../contexts/AuthContext';
+import { generateDemoSnapshots, parseDemoDataForSnapshots, generateSnapshotsFromLoadedData } from '../utils/sampleDataGenerator';
+import { DataSnapshot, SnapshotEvent } from '../types/snapshotTypes';
 
 // Utility to yield to browser and allow UI updates
 const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -55,7 +57,7 @@ const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0)
 type DashboardAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'IMPORT_DATA'; payload: { requisitions: Requisition[]; candidates: Candidate[]; events: Event[]; users: User[]; isDemo?: boolean } }
+  | { type: 'IMPORT_DATA'; payload: { requisitions: Requisition[]; candidates: Candidate[]; events: Event[]; users: User[]; isDemo?: boolean; snapshots?: DataSnapshot[]; snapshotEvents?: SnapshotEvent[] } }
   | { type: 'ADD_EVENTS'; payload: Event[] }
   | { type: 'SET_CONFIG'; payload: DashboardConfig }
   | { type: 'SET_FILTERS'; payload: Partial<MetricFilters> }
@@ -137,7 +139,10 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
           events: action.payload.events,
           users: action.payload.users,
           lastImportAt: new Date(),
-          importSource: action.payload.isDemo ? 'demo' : 'csv'
+          importSource: action.payload.isDemo ? 'demo' : 'csv',
+          // Include snapshot data if provided (for SLA tracking in demo mode)
+          snapshots: action.payload.snapshots,
+          snapshotEvents: action.payload.snapshotEvents,
         },
         // Set loading state flags for base data
         loadingState: {
@@ -368,6 +373,7 @@ interface DashboardContextType {
   failOperation: (id: string, error: string) => void;
   clearOperations: () => void;
   setDataReady: (flags: Partial<LoadingState>) => void;
+  regenerateDemoSnapshots: () => { success: boolean; snapshotCount: number; eventCount: number };
   // AI Provider config (in-memory only, never persisted)
   aiConfig: AiProviderConfig | null;
   setAiConfig: (config: AiProviderConfig | null) => void;
@@ -433,6 +439,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           const storedSource = getStoredImportSource(currentOrg.id);
           const isDemo = storedSource === 'demo';
 
+          // Generate snapshot data for demo mode (enables SLA tracking)
+          let snapshots: DataSnapshot[] | undefined;
+          let snapshotEvents: SnapshotEvent[] | undefined;
+          if (isDemo && data.candidates.length > 0) {
+            const snapshotData = generateSnapshotsFromLoadedData(
+              data.candidates,
+              data.events,
+              currentOrg.id
+            );
+            snapshots = snapshotData.snapshots;
+            snapshotEvents = snapshotData.snapshotEvents;
+          }
+
           dispatch({
             type: 'IMPORT_DATA',
             payload: {
@@ -440,7 +459,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               candidates: data.candidates,
               events: data.events,
               users: data.users,
-              isDemo
+              isDemo,
+              snapshots,
+              snapshotEvents,
             }
           });
         } else {
@@ -531,6 +552,18 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         setStoredImportSource(currentOrg.id, isDemo ? 'demo' : 'csv');
       }
 
+      // Generate snapshot data for demo mode (enables SLA tracking in bottlenecks tab)
+      let snapshots: DataSnapshot[] | undefined;
+      let snapshotEvents: SnapshotEvent[] | undefined;
+      if (isDemo) {
+        const parsed = parseDemoDataForSnapshots(candidatesCsv, eventsCsv);
+        const orgId = currentOrg?.id || 'demo-org';
+        const sessionId = `demo_${Date.now().toString(36)}`;
+        const snapshotData = generateDemoSnapshots(parsed.candidates, parsed.events, orgId, sessionId);
+        snapshots = snapshotData.snapshots;
+        snapshotEvents = snapshotData.snapshotEvents;
+      }
+
       dispatch({
         type: 'IMPORT_DATA',
         payload: {
@@ -538,7 +571,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           candidates: candidatesData,
           events: result.events.data,
           users: result.users.data,
-          isDemo
+          isDemo,
+          snapshots,
+          snapshotEvents,
         }
       });
 
@@ -816,6 +851,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
         console.log(`[Refetch] Loaded ${data.requisitions.length} reqs, ${data.candidates.length} candidates, ${data.events.length} events`);
 
+        // Generate snapshot data for demo mode (enables SLA tracking)
+        let snapshots: DataSnapshot[] | undefined;
+        let snapshotEvents: SnapshotEvent[] | undefined;
+        if (isDemo && data.candidates.length > 0) {
+          const snapshotData = generateSnapshotsFromLoadedData(
+            data.candidates,
+            data.events,
+            currentOrg.id
+          );
+          snapshots = snapshotData.snapshots;
+          snapshotEvents = snapshotData.snapshotEvents;
+        }
+
         dispatch({
           type: 'IMPORT_DATA',
           payload: {
@@ -823,7 +871,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             candidates: data.candidates,
             events: data.events,
             users: data.users,
-            isDemo
+            isDemo,
+            snapshots,
+            snapshotEvents,
           }
         });
 
@@ -1005,6 +1055,42 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_DATA_READY', payload: flags });
   }, []);
 
+  // Regenerate demo snapshots from current data (for SLA tracking)
+  const regenerateDemoSnapshots = useCallback(() => {
+    const { candidates, events, importSource } = state.dataStore;
+
+    if (importSource !== 'demo') {
+      return { success: false, snapshotCount: 0, eventCount: 0 };
+    }
+
+    if (candidates.length === 0) {
+      return { success: false, snapshotCount: 0, eventCount: 0 };
+    }
+
+    const orgId = currentOrg?.id || 'demo-org';
+    const snapshotData = generateSnapshotsFromLoadedData(candidates, events, orgId);
+
+    // Dispatch to update state with new snapshots
+    dispatch({
+      type: 'IMPORT_DATA',
+      payload: {
+        requisitions: state.dataStore.requisitions,
+        candidates: state.dataStore.candidates,
+        events: state.dataStore.events,
+        users: state.dataStore.users,
+        isDemo: true,
+        snapshots: snapshotData.snapshots,
+        snapshotEvents: snapshotData.snapshotEvents,
+      }
+    });
+
+    return {
+      success: true,
+      snapshotCount: snapshotData.snapshots.length,
+      eventCount: snapshotData.snapshotEvents.length
+    };
+  }, [state.dataStore, currentOrg?.id]);
+
   const value: DashboardContextType = {
     state,
     importCSVs,
@@ -1024,6 +1110,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     failOperation,
     clearOperations,
     setDataReady,
+    regenerateDemoSnapshots,
     // AI Provider config (in-memory only)
     aiConfig,
     setAiConfig,
