@@ -535,10 +535,6 @@ export function OverviewTab({
       <PageHeader
         title="Overview"
         description="High-level KPIs, trends, and recruiter performance summary"
-        breadcrumbs={[
-          { label: 'Diagnose' },
-          { label: 'Overview' }
-        ]}
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer

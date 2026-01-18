@@ -28,7 +28,7 @@ export default function CitationsDrawer({ citations, show, onClose }: CitationsD
     <>
       {/* Backdrop */}
       <div
-        className="citations-backdrop"
+        className="citations-backdrop glass-backdrop"
         onClick={onClose}
         style={{
           position: 'fixed',
@@ -36,14 +36,13 @@ export default function CitationsDrawer({ citations, show, onClose }: CitationsD
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
           zIndex: 1040,
         }}
       />
 
       {/* Drawer */}
       <div
-        className="citations-drawer"
+        className="citations-drawer glass-drawer"
         style={{
           position: 'fixed',
           top: 0,
@@ -51,9 +50,6 @@ export default function CitationsDrawer({ citations, show, onClose }: CitationsD
           bottom: 0,
           width: '400px',
           maxWidth: '90vw',
-          background: 'var(--glass-bg)',
-          backdropFilter: 'blur(12px)',
-          borderLeft: '1px solid var(--glass-border)',
           zIndex: 1050,
           overflowY: 'auto',
           padding: '1.5rem',

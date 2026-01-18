@@ -25,10 +25,6 @@ export function AiSettingsTab() {
       <PageHeader
         title="AI Configuration"
         description="Configure your AI provider settings and API keys"
-        breadcrumbs={[
-          { label: 'Settings', href: '/settings' },
-          { label: 'AI Configuration' }
-        ]}
       />
 
       <SectionHeader title="AI Provider Settings">

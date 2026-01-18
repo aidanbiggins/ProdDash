@@ -430,6 +430,9 @@ export function ProductivityDashboard() {
           }}
           userEmail={user?.email || supabaseUser?.email}
           onSignOut={signOut}
+          onCreateOrg={() => setShowCreateOrgModal(true)}
+          onOrgSettings={() => setShowOrgSettings(true)}
+          aiEnabled={isAiEnabled}
         />
       )}
 
@@ -566,77 +569,42 @@ export function ProductivityDashboard() {
           </div>
         )}
 
-        {/* Header - Compact Toolbar */}
-        {isMobile ? (
-          // Mobile Header - compact (hamburger only shown with legacy nav)
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <div className="d-flex align-items-center gap-2">
-              <OrgSwitcher
-                onCreateOrg={() => setShowCreateOrgModal(true)}
-                onOrgSettings={() => setShowOrgSettings(true)}
+        {/* Minimal Status Bar - Progress indicator + Demo chip */}
+        {(state.loadingState.operations.length > 0 || (isDemo && !demoDismissed)) && (
+          <div className="d-flex align-items-center gap-2 mb-3">
+            {state.loadingState.operations.length > 0 && (
+              <ProgressPill
+                loadingState={state.loadingState}
+                onClick={() => setShowProgressPanel(true)}
               />
-              <span className="toolbar-stats">
-                {state.dataStore.requisitions.length} Reqs · {state.dataStore.candidates.length} Cands
+            )}
+            {isDemo && !demoDismissed && (
+              <span className="demo-chip" onClick={() => setDemoDismissed(true)} title="Demo Mode - Click to dismiss">
+                Demo
               </span>
-            </div>
-            {!showNewNav && (
-              <button
-                className="btn"
-                onClick={() => setShowMobileMenu(true)}
-                style={{
-                  padding: '0.5rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  color: 'var(--text-primary, #F8FAFC)'
-                }}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-              </button>
             )}
           </div>
-        ) : (
-          // Desktop Compact Toolbar
-          <div className="dashboard-toolbar mb-3">
-            {/* Left: Org + Stats + Demo Chip */}
-            <div className="toolbar-left">
-              <OrgSwitcher
-                onCreateOrg={() => setShowCreateOrgModal(true)}
-                onOrgSettings={() => setShowOrgSettings(true)}
-              />
-              <span className="toolbar-divider">|</span>
-              <span className="toolbar-stats">
-                {state.dataStore.requisitions.filter(r => {
-                  if (r.status === 'Open') return true;
-                  const statusLower = r.status?.toLowerCase() || '';
-                  if (statusLower.includes('open') || statusLower === 'active') return true;
-                  if (r.status !== 'Closed' && !r.closed_at) return true;
-                  return false;
-                }).length} Reqs
-                <span className="toolbar-dot">•</span>
-                {state.dataStore.candidates.filter(c => c.disposition === 'Active').length} Cands
-                <span className="toolbar-dot">•</span>
-                {state.overview?.recruiterSummaries.length || 0} Rec
-                <span className="toolbar-dot">•</span>
-                {state.hmFriction.length} HM
-              </span>
-              {isDemo && !demoDismissed && (
-                <span className="demo-chip" onClick={() => setDemoDismissed(true)} title="Demo Mode - Click to dismiss">
-                  Demo
-                </span>
-              )}
-              {/* Progress indicator pill */}
-              {state.loadingState.operations.length > 0 && (
-                <ProgressPill
-                  loadingState={state.loadingState}
-                  onClick={() => setShowProgressPanel(true)}
-                />
-              )}
-            </div>
+        )}
 
+        {/* Mobile Legacy Nav Hamburger - only show when using legacy nav */}
+        {isMobile && !showNewNav && (
+          <div className="d-flex justify-content-end mb-2">
+            <button
+              className="btn"
+              onClick={() => setShowMobileMenu(true)}
+              style={{
+                padding: '0.5rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'var(--text-primary, #F8FAFC)'
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
           </div>
         )}
 

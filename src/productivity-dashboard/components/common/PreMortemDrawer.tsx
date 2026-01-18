@@ -56,15 +56,13 @@ export function PreMortemDrawer({
 
   return (
     <div
-      className="offcanvas offcanvas-end show"
+      className="offcanvas offcanvas-end show glass-drawer"
       style={{
         visibility: 'visible',
         width: '480px',
-        background: '#1e293b',
-        borderLeft: '1px solid rgba(255,255,255,0.1)',
       }}
     >
-      <div className="offcanvas-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="offcanvas-header glass-drawer-header">
         <div>
           <h5 className="offcanvas-title mb-1" style={{ color: '#f8fafc' }}>
             Pre-Mortem Analysis

@@ -270,8 +270,9 @@ export function BottlenecksTab({ onNavigate, onCreateActions }: BottlenecksTabPr
       <CoverageBanner
         coverage={coverage}
         onImportClick={() => onNavigate?.('/settings/data-health')}
-        onGenerateDemoSnapshots={isDemo ? regenerateDemoSnapshots : undefined}
+        onGenerateDemoSnapshots={regenerateDemoSnapshots}
         isDemo={isDemo}
+        hasCandidateData={state.dataStore.candidates.length > 0}
       />
 
       {/* Main Content */}

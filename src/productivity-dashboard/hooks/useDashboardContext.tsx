@@ -1055,13 +1055,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_DATA_READY', payload: flags });
   }, []);
 
-  // Regenerate demo snapshots from current data (for SLA tracking)
+  // Regenerate snapshots from current data (for SLA tracking)
   const regenerateDemoSnapshots = useCallback(() => {
     const { candidates, events, importSource } = state.dataStore;
-
-    if (importSource !== 'demo') {
-      return { success: false, snapshotCount: 0, eventCount: 0 };
-    }
 
     if (candidates.length === 0) {
       return { success: false, snapshotCount: 0, eventCount: 0 };
@@ -1071,6 +1067,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const snapshotData = generateSnapshotsFromLoadedData(candidates, events, orgId);
 
     // Dispatch to update state with new snapshots
+    // Keep the original importSource (don't force to 'demo')
     dispatch({
       type: 'IMPORT_DATA',
       payload: {
@@ -1078,7 +1075,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         candidates: state.dataStore.candidates,
         events: state.dataStore.events,
         users: state.dataStore.users,
-        isDemo: true,
+        isDemo: importSource === 'demo',
         snapshots: snapshotData.snapshots,
         snapshotEvents: snapshotData.snapshotEvents,
       }

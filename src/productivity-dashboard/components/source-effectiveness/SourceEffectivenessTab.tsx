@@ -283,10 +283,6 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
             <PageHeader
                 title="Source Effectiveness"
                 description="Analyze recruiting channel performance and ROI"
-                breadcrumbs={[
-                    { label: 'Diagnose' },
-                    { label: 'Source Effectiveness' }
-                ]}
                 actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
             />
             <HelpDrawer

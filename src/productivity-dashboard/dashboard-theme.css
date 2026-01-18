@@ -500,6 +500,31 @@ td[class*="numeric"] {
     box-shadow: var(--glass-shadow-elevated);
 }
 
+/* Glass Drawer - consistent translucent styling for all slide-in drawers */
+.glass-drawer {
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glass drawer header */
+.glass-drawer-header {
+    background: rgba(0, 0, 0, 0.15);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glass drawer footer */
+.glass-drawer-footer {
+    background: rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glass backdrop for drawers */
+.glass-backdrop {
+    background: rgba(0, 0, 0, 0.4);
+}
+
 /* Padding variants per plan */
 .glass-panel.p-sm { padding: var(--space-2); }  /* 8px */
 .glass-panel.p-md { padding: var(--space-4); }  /* 16px - default */

@@ -8,9 +8,9 @@ import { createPortal } from 'react-dom';
 
 export interface HelpContent {
   /** "What You're Looking At" - paragraph explaining what the section shows */
-  whatYouSee: string;
-  /** "How It Works" - paragraph explaining the methodology */
-  howItWorks: string;
+  whatYouSee: string | React.ReactNode;
+  /** "How It Works" - paragraph explaining the methodology (can include tables, etc.) */
+  howItWorks: string | React.ReactNode;
   /** "What to Look For" - bullet points of key insights */
   whatToLookFor: string[];
   /** "Watch Out For" - bullet points of caveats/gotchas */
@@ -46,9 +46,8 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
     <>
       {/* Backdrop */}
       <div
-        className="position-fixed top-0 start-0 w-100 h-100"
+        className="position-fixed top-0 start-0 w-100 h-100 glass-backdrop"
         style={{
-          backgroundColor: 'rgba(0,0,0,0.5)',
           zIndex: 1040,
           opacity: isOpen ? 1 : 0,
           pointerEvents: isOpen ? 'auto' : 'none',
@@ -59,13 +58,11 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
 
       {/* Drawer */}
       <div
-        className="position-fixed top-0 end-0 h-100 d-flex flex-column"
+        className="position-fixed top-0 end-0 h-100 d-flex flex-column glass-drawer"
         style={{
           width: '420px',
           maxWidth: '90vw',
-          backgroundColor: 'var(--surface-elevated, #1e293b)',
           zIndex: 1050,
-          boxShadow: '-4px 0 20px rgba(0,0,0,0.3)',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s ease-in-out',
           visibility: isOpen ? 'visible' : 'hidden',
@@ -75,13 +72,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         aria-labelledby="help-drawer-title"
       >
         {/* Header */}
-        <div
-          className="d-flex align-items-center justify-content-between p-3"
-          style={{
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            backgroundColor: 'rgba(0,0,0,0.2)',
-          }}
-        >
+        <div className="d-flex align-items-center justify-content-between p-3 glass-drawer-header">
           <div>
             <div
               className="small text-uppercase"
@@ -108,17 +99,17 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {/* What You're Looking At */}
           <div className="mb-4">
             <SectionHeader icon="bi-eye">What You're Looking At</SectionHeader>
-            <p className="mb-0 small" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
+            <div className="small" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
               {content.whatYouSee}
-            </p>
+            </div>
           </div>
 
           {/* How It Works */}
           <div className="mb-4">
             <SectionHeader icon="bi-gear">How It Works</SectionHeader>
-            <p className="mb-0 small" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
+            <div className="small" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
               {content.howItWorks}
-            </p>
+            </div>
           </div>
 
           {/* What to Look For */}
@@ -143,13 +134,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         </div>
 
         {/* Footer */}
-        <div
-          className="p-3 small"
-          style={{
-            borderTop: '1px solid rgba(255,255,255,0.1)',
-            color: 'var(--text-secondary)',
-          }}
-        >
+        <div className="p-3 small glass-drawer-footer" style={{ color: 'var(--text-secondary)' }}>
           <i className="bi bi-lightbulb me-1"></i>
           Tip: Click outside or press Escape to close
         </div>

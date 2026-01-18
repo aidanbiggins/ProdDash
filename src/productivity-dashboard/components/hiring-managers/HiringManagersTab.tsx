@@ -186,10 +186,6 @@ export function HiringManagersTab({
             <PageHeader
                 title="HM Scorecard"
                 description="Track hiring manager performance and manage action queues"
-                breadcrumbs={[
-                    { label: 'Diagnose' },
-                    { label: 'HM Scorecard' }
-                ]}
                 actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
             />
             <HelpDrawer

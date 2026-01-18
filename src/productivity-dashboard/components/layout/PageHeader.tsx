@@ -41,16 +41,18 @@ export function PageHeader({ title, description, actions, breadcrumbs }: PageHea
       )}
       <div className="page-header-content">
         <div className="page-header-text">
-          <h1 className="page-header-title">{title}</h1>
+          <div className="page-header-title-row">
+            <h1 className="page-header-title">{title}</h1>
+            {actions && (
+              <div className="page-header-actions">
+                {actions}
+              </div>
+            )}
+          </div>
           {description && (
             <p className="page-header-description">{description}</p>
           )}
         </div>
-        {actions && (
-          <div className="page-header-actions">
-            {actions}
-          </div>
-        )}
       </div>
     </div>
   );

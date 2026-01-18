@@ -9,6 +9,7 @@ interface CoverageBannerProps {
   onImportClick?: () => void;
   onGenerateDemoSnapshots?: () => void;
   isDemo?: boolean;
+  hasCandidateData?: boolean;
 }
 
 type CoverageStatus = 'sufficient' | 'warning' | 'insufficient' | 'no_data';
@@ -75,7 +76,7 @@ function formatDate(date: Date | null): string {
   });
 }
 
-export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshots, isDemo }: CoverageBannerProps) {
+export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshots, isDemo, hasCandidateData }: CoverageBannerProps) {
   const status = getCoverageStatus(coverage);
   const styles = getStatusStyles(status);
 
@@ -173,7 +174,7 @@ export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshot
 
         {(status === 'insufficient' || status === 'no_data') && (
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            {isDemo && onGenerateDemoSnapshots && (
+            {hasCandidateData && onGenerateDemoSnapshots && (
               <button
                 onClick={onGenerateDemoSnapshots}
                 className="btn btn-sm"
@@ -187,7 +188,7 @@ export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshot
                   cursor: 'pointer',
                 }}
               >
-                Generate Demo Snapshots
+                Generate Snapshots
               </button>
             )}
             {onImportClick && (

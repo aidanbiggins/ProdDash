@@ -235,15 +235,30 @@ function OperationRow({ operation }: { operation: BackgroundOperation }) {
 }
 
 // Compact inline version for header
+// Includes debounce to prevent layout shift from brief loading states
 export function ProgressPill({ loadingState, onClick }: { loadingState: LoadingState; onClick: () => void }) {
   const { operations, overallProgress, isFullyReady } = loadingState;
-
-  if (operations.length === 0) return null;
+  const [showAfterDelay, setShowAfterDelay] = useState(false);
 
   const hasError = operations.some(op => op.status === 'error');
   const isRunning = operations.some(op => op.status === 'running');
 
+  // Debounce showing the pill - only show after 200ms of loading
+  // This prevents layout shift from brief operations
+  useEffect(() => {
+    if (isRunning && !isFullyReady) {
+      const timer = setTimeout(() => setShowAfterDelay(true), 200);
+      return () => clearTimeout(timer);
+    } else {
+      setShowAfterDelay(false);
+    }
+  }, [isRunning, isFullyReady]);
+
+  if (operations.length === 0) return null;
   if (isFullyReady && !hasError) return null; // Hide when done
+
+  // Don't show until delay has passed (unless there's an error)
+  if (!showAfterDelay && !hasError) return null;
 
   return (
     <button

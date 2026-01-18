@@ -107,10 +107,6 @@ export function CapacityTab() {
       <PageHeader
         title="Capacity Planning"
         description="Analyze team workload distribution and recruiter fit by segment"
-        breadcrumbs={[
-          { label: 'Plan' },
-          { label: 'Capacity Planning' }
-        ]}
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer

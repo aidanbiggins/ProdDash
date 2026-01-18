@@ -110,23 +110,22 @@ export function FitExplainDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="position-fixed top-0 start-0 w-100 h-100"
-        style={{ background: 'rgba(0,0,0,0.5)', zIndex: 1040 }}
+        className="glass-backdrop position-fixed top-0 start-0 w-100 h-100"
+        style={{ zIndex: 1040 }}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className="position-fixed top-0 end-0 h-100 bg-dark"
+        className="glass-drawer position-fixed top-0 end-0 h-100"
         style={{
           width: '450px',
           maxWidth: '90vw',
           zIndex: 1050,
-          boxShadow: '-4px 0 20px rgba(0,0,0,0.3)',
           overflowY: 'auto'
         }}
       >
-        <div className="p-3 border-bottom" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+        <div className="glass-drawer-header p-3">
           <div className="d-flex justify-content-between align-items-start">
             <div>
               <h5 className="mb-1">

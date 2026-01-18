@@ -1,6 +1,7 @@
 // MobileDrawer - Mobile navigation drawer with collapsible sections
 import React, { useState, useEffect, useRef } from 'react';
 import { NAV_STRUCTURE, NavBucket } from './navStructure';
+import { OrgSwitcher } from '../OrgSwitcher';
 import './navigation.css';
 
 export interface MobileDrawerProps {
@@ -13,6 +14,8 @@ export interface MobileDrawerProps {
   onNavigate?: (route: string) => void;
   userEmail?: string;
   onSignOut?: () => void;
+  onCreateOrg?: () => void;
+  onOrgSettings?: () => void;
 }
 
 export function MobileDrawer({
@@ -24,7 +27,9 @@ export function MobileDrawer({
   onToggleLegacy,
   onNavigate,
   userEmail,
-  onSignOut
+  onSignOut,
+  onCreateOrg,
+  onOrgSettings
 }: MobileDrawerProps) {
   const [expandedBuckets, setExpandedBuckets] = useState<Set<string>>(new Set(['diagnose', 'plan', 'settings']));
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -105,6 +110,14 @@ export function MobileDrawer({
           >
             <i className="bi bi-x-lg" />
           </button>
+        </div>
+
+        {/* Org Switcher */}
+        <div className="mobile-drawer-org">
+          <OrgSwitcher
+            onCreateOrg={onCreateOrg}
+            onOrgSettings={onOrgSettings}
+          />
         </div>
 
         {/* Navigation */}

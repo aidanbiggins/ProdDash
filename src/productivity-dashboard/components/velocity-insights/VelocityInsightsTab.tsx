@@ -1039,10 +1039,6 @@ export function VelocityInsightsTab({
       <PageHeader
         title="Pipeline Velocity"
         description="Analyze pipeline timing, decay patterns, and success factors"
-        breadcrumbs={[
-          { label: 'Diagnose' },
-          { label: 'Pipeline Velocity' }
-        ]}
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer

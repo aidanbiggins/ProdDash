@@ -10,9 +10,9 @@ import { exportReqListCSV, normalizeStage } from '../../services';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
 import { METRIC_FORMULAS } from '../common/MetricDrillDown';
-import { PageHeader } from '../layout';
+import { PageShell, PageHeader } from '../layout';
 import { HelpButton, HelpDrawer } from '../common';
-import { RECRUITER_PAGE_HELP } from './recruiterHelpContent';
+import { RECRUITER_PAGE_HELP, PRODUCTIVITY_TREND_HELP } from './recruiterHelpContent';
 
 export interface RecruiterDetailTabProps {
   recruiterSummaries: RecruiterSummary[];
@@ -109,6 +109,7 @@ export function RecruiterDetailTab({
   filters
 }: RecruiterDetailTabProps) {
   const [showPageHelp, setShowPageHelp] = useState(false);
+  const [showProductivityHelp, setShowProductivityHelp] = useState(false);
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? 200 : 260;
   const chartHeightSmall = isMobile ? 160 : 200;
@@ -544,15 +545,11 @@ export function RecruiterDetailTab({
   );
 
   return (
-    <div>
+    <PageShell>
       {/* Page Header */}
       <PageHeader
         title="Recruiter Performance"
         description="Analyze individual recruiter metrics and pipeline health"
-        breadcrumbs={[
-          { label: 'Diagnose' },
-          { label: 'Recruiter Performance' }
-        ]}
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer
@@ -560,6 +557,12 @@ export function RecruiterDetailTab({
         onClose={() => setShowPageHelp(false)}
         title="Recruiter Performance"
         content={RECRUITER_PAGE_HELP}
+      />
+      <HelpDrawer
+        isOpen={showProductivityHelp}
+        onClose={() => setShowProductivityHelp(false)}
+        title="Productivity Trend"
+        content={PRODUCTIVITY_TREND_HELP}
       />
 
       {/* KPI Cards - 7 cards using flex for equal width */}
@@ -652,7 +655,10 @@ export function RecruiterDetailTab({
       <div className="card-bespoke mb-4">
         <div className="card-header">
           <div className="d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">Productivity Trend</h6>
+            <div className="d-flex align-items-center gap-2">
+              <h6 className="mb-0">Productivity Trend</h6>
+              <HelpButton onClick={() => setShowProductivityHelp(true)} ariaLabel="Explain productivity metric" />
+            </div>
             <small className="text-muted">Weighted Hires ÷ Open Reqs per Week</small>
           </div>
         </div>
@@ -687,32 +693,27 @@ export function RecruiterDetailTab({
         </div>
       </div>
 
-      {/* Charts Row */}
-      <div className="row g-3 mb-4">
-        {/* Weekly Activity Trend */}
-        <div className="col-12">
-          <div className="card-bespoke h-100">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">Weekly Activity Volume</h6>
-              <small className="text-muted">Last 12 Weeks</small>
-            </div>
-            <div className="card-body">
-              <ResponsiveContainer width="100%" height={chartHeight}>
-                <ComposedChart data={activityData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" />
-                  <XAxis dataKey="name" fontSize={12} stroke="#94A3B8" tickMargin={10} />
-                  <YAxis fontSize={12} stroke="#94A3B8" />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  />
-                  <Legend iconType="circle" />
-                  <Bar dataKey="screens" name="Screens" stackId="a" fill="#3b82f6" barSize={20} radius={[0, 0, 4, 4]} />
-                  <Bar dataKey="submittals" name="Submittals to HM" stackId="a" fill="#8b5cf6" barSize={20} radius={[4, 4, 0, 0]} />
-                  <Line type="monotone" dataKey="hires" name="Hires" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 0, fill: '#10b981' }} />
-                </ComposedChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+      {/* Weekly Activity Volume */}
+      <div className="card-bespoke mb-4">
+        <div className="card-header d-flex justify-content-between align-items-center">
+          <h6 className="mb-0">Weekly Activity Volume</h6>
+          <small className="text-muted">Last 12 Weeks</small>
+        </div>
+        <div className="card-body">
+          <ResponsiveContainer width="100%" height={chartHeight}>
+            <ComposedChart data={activityData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" />
+              <XAxis dataKey="name" fontSize={12} stroke="#94A3B8" tickMargin={10} />
+              <YAxis fontSize={12} stroke="#94A3B8" />
+              <Tooltip
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+              />
+              <Legend iconType="circle" />
+              <Bar dataKey="screens" name="Screens" stackId="a" fill="#3b82f6" barSize={20} radius={[0, 0, 4, 4]} />
+              <Bar dataKey="submittals" name="Submittals to HM" stackId="a" fill="#8b5cf6" barSize={20} radius={[4, 4, 0, 0]} />
+              <Line type="monotone" dataKey="hires" name="Hires" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 0, fill: '#10b981' }} />
+            </ComposedChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
@@ -777,58 +778,90 @@ export function RecruiterDetailTab({
           <h6 className="mb-0">Where Time is Going</h6>
         </div>
         <div className="card-body">
-          <div className="row g-3">
-            <div className="col-12 col-md-4">
-              <h6 className="text-muted mb-3">Recruiter-Controlled</h6>
-              <div className="d-flex justify-content-between mb-2">
-                <span>Lead to First Action</span>
-                <strong>
-                  {detail.timeAttribution.recruiterControlledTime.leadToFirstAction !== null
-                    ? `${Math.round(detail.timeAttribution.recruiterControlledTime.leadToFirstAction)} hrs`
-                    : 'N/A'}
-                </strong>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+            {/* Recruiter-Controlled */}
+            <div style={{
+              background: 'rgba(212, 163, 115, 0.08)',
+              borderLeft: '3px solid var(--color-accent-primary)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '1rem'
+            }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-accent-primary)', marginBottom: '0.75rem' }}>
+                <i className="bi bi-person-badge me-1" />Recruiter
               </div>
-              <div className="d-flex justify-content-between">
-                <span>Screen to Submittal</span>
-                <strong>
-                  {detail.timeAttribution.recruiterControlledTime.screenToSubmittal !== null
-                    ? `${Math.round(detail.timeAttribution.recruiterControlledTime.screenToSubmittal)} hrs`
-                    : 'N/A'}
-                </strong>
-              </div>
-            </div>
-            <div className="col-12 col-md-4">
-              <h6 className="text-muted mb-3">HM-Controlled</h6>
-              <div className="d-flex justify-content-between mb-2">
-                <span>Feedback Latency</span>
-                <strong>
-                  {detail.timeAttribution.hmControlledTime.feedbackLatency !== null
-                    ? `${Math.round(detail.timeAttribution.hmControlledTime.feedbackLatency)} hrs`
-                    : 'N/A'}
-                </strong>
-              </div>
-              <div className="d-flex justify-content-between">
-                <span>Decision Latency</span>
-                <strong>
-                  {detail.timeAttribution.hmControlledTime.decisionLatency !== null
-                    ? `${Math.round(detail.timeAttribution.hmControlledTime.decisionLatency)} hrs`
-                    : 'N/A'}
-                </strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.125rem' }}>Lead to First Action</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {detail.timeAttribution.recruiterControlledTime.leadToFirstAction !== null
+                      ? <>{Math.round(detail.timeAttribution.recruiterControlledTime.leadToFirstAction)}<span style={{ fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.25rem' }}>hrs</span></>
+                      : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.125rem' }}>Screen to Submittal</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {detail.timeAttribution.recruiterControlledTime.screenToSubmittal !== null
+                      ? <>{Math.round(detail.timeAttribution.recruiterControlledTime.screenToSubmittal)}<span style={{ fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.25rem' }}>hrs</span></>
+                      : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="col-12 col-md-4">
-              <h6 className="text-muted mb-3">Ops-Controlled</h6>
+
+            {/* HM-Controlled */}
+            <div style={{
+              background: 'rgba(45, 212, 191, 0.08)',
+              borderLeft: '3px solid var(--color-accent-secondary)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '1rem'
+            }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-accent-secondary)', marginBottom: '0.75rem' }}>
+                <i className="bi bi-briefcase me-1" />Hiring Manager
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.125rem' }}>Feedback Latency</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {detail.timeAttribution.hmControlledTime.feedbackLatency !== null
+                      ? <>{Math.round(detail.timeAttribution.hmControlledTime.feedbackLatency)}<span style={{ fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.25rem' }}>hrs</span></>
+                      : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.125rem' }}>Decision Latency</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {detail.timeAttribution.hmControlledTime.decisionLatency !== null
+                      ? <>{Math.round(detail.timeAttribution.hmControlledTime.decisionLatency)}<span style={{ fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.25rem' }}>hrs</span></>
+                      : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Ops-Controlled */}
+            <div style={{
+              background: 'rgba(148, 163, 184, 0.08)',
+              borderLeft: '3px solid var(--text-tertiary)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '1rem'
+            }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)', marginBottom: '0.75rem' }}>
+                <i className="bi bi-gear me-1" />TA Ops
+              </div>
               {detail.timeAttribution.opsControlledTime.available ? (
-                <div className="d-flex justify-content-between">
-                  <span>Offer Approval</span>
-                  <strong>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.125rem' }}>Offer Approval</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                     {detail.timeAttribution.opsControlledTime.offerApprovalLatency !== null
-                      ? `${Math.round(detail.timeAttribution.opsControlledTime.offerApprovalLatency)} hrs`
-                      : 'N/A'}
-                  </strong>
+                      ? <>{Math.round(detail.timeAttribution.opsControlledTime.offerApprovalLatency)}<span style={{ fontSize: '0.75rem', fontWeight: 400, marginLeft: '0.25rem' }}>hrs</span></>
+                      : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}
+                  </div>
                 </div>
               ) : (
-                <span className="text-muted">Not available from data</span>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+                  No data available
+                </div>
               )}
             </div>
           </div>
@@ -917,7 +950,7 @@ export function RecruiterDetailTab({
           totalValue={drillDown.totalValue}
         />
       )}
-    </div>
+    </PageShell>
   );
 }
 

@@ -119,10 +119,6 @@ export function DataHealthTab({
       <PageHeader
         title="Data Health"
         description="Monitor data hygiene: zombie reqs, ghost candidates, and TTF accuracy"
-        breadcrumbs={[
-          { label: 'Settings' },
-          { label: 'Data Health' }
-        ]}
       />
 
       {/* Summary Cards */}

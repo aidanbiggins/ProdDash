@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavDropdown } from './NavDropdown';
 import { MobileDrawer } from './MobileDrawer';
 import { QuickFind } from './QuickFind';
+import { OrgSwitcher } from '../OrgSwitcher';
 import { NAV_STRUCTURE, NavBucket, getActiveBucket, getActiveItem } from './navStructure';
 import { getTabFromPath, TabType } from '../../routes';
 import { useDataMasking } from '../../contexts/DataMaskingContext';
@@ -16,9 +17,12 @@ export interface TopNavProps {
   onNavigate?: (tab: TabType) => void;
   userEmail?: string;
   onSignOut?: () => void;
+  onCreateOrg?: () => void;
+  onOrgSettings?: () => void;
+  aiEnabled?: boolean;
 }
 
-export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, userEmail, onSignOut }: TopNavProps) {
+export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, userEmail, onSignOut, onCreateOrg, onOrgSettings, aiEnabled }: TopNavProps) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [quickFindOpen, setQuickFindOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -107,9 +111,9 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
 
   return (
     <>
-      <nav className="top-nav" role="navigation" aria-label="Main navigation">
+      <nav className={`top-nav ${aiEnabled ? 'ai-enabled' : ''}`} role="navigation" aria-label="Main navigation">
         <div className="top-nav-container">
-          {/* Logo / Brand */}
+          {/* Logo / Brand + Org Switcher */}
           <div className="top-nav-brand">
             <button
               className="mobile-menu-toggle"
@@ -121,6 +125,10 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
             <span className="top-nav-logo" onClick={() => handleNavigation('/')}>
               ProdDash
             </span>
+            <OrgSwitcher
+              onCreateOrg={onCreateOrg}
+              onOrgSettings={onOrgSettings}
+            />
           </div>
 
           {/* Desktop Navigation */}
@@ -273,6 +281,8 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
         onNavigate={handleNavigation}
         userEmail={userEmail}
         onSignOut={onSignOut}
+        onCreateOrg={onCreateOrg}
+        onOrgSettings={onOrgSettings}
       />
 
       {/* Quick Find Command Palette */}

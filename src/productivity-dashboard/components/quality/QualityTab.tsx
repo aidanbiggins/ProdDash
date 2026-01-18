@@ -65,10 +65,6 @@ export function QualityTab({ quality }: QualityTabProps) {
       <PageHeader
         title="Quality Guardrails"
         description="Monitor candidate quality metrics and offer outcomes"
-        breadcrumbs={[
-          { label: 'Diagnose' },
-          { label: 'Quality Guardrails' }
-        ]}
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer

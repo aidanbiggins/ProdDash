@@ -321,10 +321,6 @@ export function ForecastingTab({
       <PageHeader
         title="Hiring Forecast"
         description="Track role health, plan hiring capacity, and identify risks"
-        breadcrumbs={[
-          { label: 'Plan' },
-          { label: 'Hiring Forecast' }
-        ]}
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer

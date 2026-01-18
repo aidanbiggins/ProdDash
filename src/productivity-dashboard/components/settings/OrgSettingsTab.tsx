@@ -157,10 +157,6 @@ export function OrgSettingsTab() {
         <PageHeader
           title="Organization Settings"
           description="Manage your organization and team members"
-          breadcrumbs={[
-            { label: 'Settings' },
-            { label: 'Organization' }
-          ]}
         />
         <GlassPanel>
           <div className="text-center py-5 text-muted">
@@ -177,10 +173,6 @@ export function OrgSettingsTab() {
       <PageHeader
         title="Organization Settings"
         description="Manage your organization and team members"
-        breadcrumbs={[
-          { label: 'Settings' },
-          { label: 'Organization' }
-        ]}
       />
 
       {/* Error/Success Messages */}

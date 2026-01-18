@@ -99,6 +99,7 @@ export function ReqDrilldownDrawer({
     <>
       {/* Backdrop */}
       <div
+        className="glass-backdrop"
         onClick={onClose}
         style={{
           position: 'fixed',
@@ -106,13 +107,13 @@ export function ReqDrilldownDrawer({
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
           zIndex: 999,
         }}
       />
 
       {/* Drawer */}
       <div
+        className="glass-drawer"
         data-testid="req-drilldown-drawer"
         style={{
           position: 'fixed',
@@ -121,8 +122,6 @@ export function ReqDrilldownDrawer({
           width: '500px',
           maxWidth: '90vw',
           height: '100vh',
-          backgroundColor: 'var(--surface-elevated, #1e293b)',
-          boxShadow: '-4px 0 20px rgba(0,0,0,0.3)',
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
@@ -131,9 +130,9 @@ export function ReqDrilldownDrawer({
       >
         {/* Header */}
         <div
+          className="glass-drawer-header"
           style={{
             padding: 'var(--space-4)',
-            borderBottom: '1px solid var(--glass-border)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',

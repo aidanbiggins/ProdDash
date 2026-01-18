@@ -72,7 +72,11 @@ export const fetchDashboardData = async (orgId?: string | null) => {
     if (reqs.error) throw reqs.error;
     if (cands.error) throw cands.error;
     if (events.error) throw events.error;
-    if (users.error) throw users.error;
+    // Users table is optional - may not exist or have RLS restrictions
+    // Don't throw, just log and continue with empty users
+    if (users.error) {
+        console.warn('[DB] Users query failed (table may not exist):', users.error.message);
+    }
 
     // Transform ISO strings back to Date objects
     const requisitions: Requisition[] = reqs.data.map((r: any) => ({
@@ -96,8 +100,8 @@ export const fetchDashboardData = async (orgId?: string | null) => {
         event_at: new Date(e.event_at)
     }));
 
-    // Users are simple
-    const userList: User[] = users.data as User[];
+    // Users are simple (may be empty if table doesn't exist)
+    const userList: User[] = (users.data || []) as User[];
 
     return { requisitions, candidates, events: eventList, users: userList };
 };

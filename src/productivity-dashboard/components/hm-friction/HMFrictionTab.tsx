@@ -11,6 +11,7 @@ import { useIsMobile } from '../../hooks/useIsMobile';
 import { FilterActiveIndicator, StatLabel, StatValue, HelpButton, HelpDrawer, ChartHelp } from '../common';
 import { PageHeader } from '../layout';
 import { HM_FRICTION_PAGE_HELP } from './hmFrictionHelpContent';
+import { HMDetailDrawer } from './HMDetailDrawer';
 
 // Helper to truncate long names
 const truncateName = (name: string, maxLen: number) =>
@@ -351,10 +352,6 @@ export function HMFrictionTab({
       <PageHeader
         title="HM Latency"
         description="Analyze hiring manager response times and bottlenecks"
-        breadcrumbs={[
-          { label: 'Diagnose' },
-          { label: 'HM Latency' }
-        ]}
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer
@@ -988,58 +985,14 @@ export function HMFrictionTab({
         </div>
       </div>
 
-      {/* Selected HM Details */}
-      {selectedHM && selectedHMReqs.length > 0 && (
-        <div className="card-bespoke mt-4">
-          <div className="card-header d-flex justify-content-between align-items-center">
-            <h6 className="mb-0">
-              Requisitions for <span className="text-primary">{filteredFriction.find(f => f.hmId === selectedHM)?.hmName}</span>
-            </h6>
-            <button
-              className="btn btn-sm btn-bespoke-secondary"
-              onClick={() => setSelectedHM(null)}
-            >
-              Close
-            </button>
-          </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bespoke table-sm mb-0">
-                <thead>
-                  <tr>
-                    <th>Req ID</th>
-                    <th>Title</th>
-                    <th>Level</th>
-                    <th>Status</th>
-                    <th>Recruiter</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedHMReqs.map(req => {
-                    const recruiter = users.find(u => u.user_id === req.recruiter_id);
-                    return (
-                      <tr key={req.req_id}>
-                        <td><code className="small">{req.req_id}</code></td>
-                        <td>{req.req_title}</td>
-                        <td>{req.level}</td>
-                        <td>
-                          <span className={`badge-bespoke ${req.status === 'Open' ? 'badge-success-soft' :
-                            req.status === 'Closed' ? 'badge-neutral-soft' :
-                              req.status === 'OnHold' ? 'badge-warning-soft' : 'badge-danger-soft'
-                            }`}>
-                            {req.status}
-                          </span>
-                        </td>
-                        <td>{recruiter?.name || req.recruiter_id}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* HM Detail Drawer */}
+      <HMDetailDrawer
+        isOpen={!!selectedHM}
+        onClose={() => setSelectedHM(null)}
+        hmData={selectedHM ? filteredFriction.find(f => f.hmId === selectedHM) || null : null}
+        requisitions={selectedHMReqs}
+        users={users}
+      />
 
       {/* Legend - Collapsible */}
       <WeightLegend />

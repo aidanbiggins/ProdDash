@@ -65,9 +65,8 @@ export function ActionDetailDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="position-fixed top-0 start-0 w-100 h-100"
+        className="position-fixed top-0 start-0 w-100 h-100 glass-backdrop"
         style={{
-          backgroundColor: 'rgba(0,0,0,0.5)',
           zIndex: 1040,
           opacity: isOpen ? 1 : 0,
           pointerEvents: isOpen ? 'auto' : 'none',
@@ -78,25 +77,17 @@ export function ActionDetailDrawer({
 
       {/* Drawer */}
       <div
-        className="position-fixed top-0 end-0 h-100 d-flex flex-column"
+        className="position-fixed top-0 end-0 h-100 d-flex flex-column glass-drawer"
         style={{
           width: '420px',
           maxWidth: '90vw',
-          backgroundColor: 'var(--surface-elevated, #1e293b)',
           zIndex: 1050,
-          boxShadow: '-4px 0 20px rgba(0,0,0,0.3)',
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.3s ease-in-out',
         }}
       >
         {/* Header */}
-        <div
-          className="d-flex align-items-center justify-content-between p-3"
-          style={{
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-            backgroundColor: 'rgba(0,0,0,0.2)',
-          }}
-        >
+        <div className="d-flex align-items-center justify-content-between p-3 glass-drawer-header">
           <div className="d-flex align-items-center gap-2">
             <div
               style={{

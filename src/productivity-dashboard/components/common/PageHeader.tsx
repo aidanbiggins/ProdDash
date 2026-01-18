@@ -18,16 +18,20 @@ export function PageHeader({
   return (
     <div className={`page-header ${className}`}>
       <div className="page-header-content">
-        <h1 className="page-header-title">{title}</h1>
-        {subtitle && (
-          <p className="page-header-subtitle">{subtitle}</p>
-        )}
-      </div>
-      {actions && (
-        <div className="page-header-actions">
-          {actions}
+        <div className="page-header-text">
+          <div className="page-header-title-row">
+            <h1 className="page-header-title">{title}</h1>
+            {actions && (
+              <div className="page-header-actions">
+                {actions}
+              </div>
+            )}
+          </div>
+          {subtitle && (
+            <p className="page-header-description">{subtitle}</p>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
