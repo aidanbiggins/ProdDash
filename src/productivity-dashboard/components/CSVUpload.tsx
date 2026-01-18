@@ -1,7 +1,8 @@
-// CSV Upload Component
+// CSV/Excel Upload Component
 
 import React, { useState, useCallback } from 'react';
 import { generateSampleData } from '../utils/sampleDataGenerator';
+import { readFileAsTextOrExcel, FILE_ACCEPT, isExcelFile } from '../utils/excelParser';
 import { ICIMSImportGuide } from './ICIMSImportGuide';
 import { useDashboard } from '../hooks/useDashboardContext';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
@@ -76,22 +77,13 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
     setErrors([]);
   };
 
-  const readFileAsText = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
-      reader.readAsText(file);
-    });
-  };
-
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Relaxed validation: Only Requisitions (which can be the Universal file) is strictly required at submit time
     // Logic inside importCsvData will determine if it's a valid Universal file or missing sub-files
     if (!files.requisitions) {
-      setErrors(['Please select at least a Requisitions CSV or a Universal Report CSV']);
+      setErrors(['Please select at least a Requisitions file (CSV, XLS, or XLSX) or a Universal Report']);
       return;
     }
 
@@ -101,10 +93,10 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
     try {
       const [reqCsv, candCsv, eventCsv, userCsv] = await Promise.all([
-        readFileAsText(files.requisitions),
-        files.candidates ? readFileAsText(files.candidates) : Promise.resolve(undefined),
-        files.events ? readFileAsText(files.events) : Promise.resolve(undefined),
-        files.users ? readFileAsText(files.users) : Promise.resolve(undefined)
+        readFileAsTextOrExcel(files.requisitions),
+        files.candidates ? readFileAsTextOrExcel(files.candidates) : Promise.resolve(undefined),
+        files.events ? readFileAsTextOrExcel(files.events) : Promise.resolve(undefined),
+        files.users ? readFileAsTextOrExcel(files.users) : Promise.resolve(undefined)
       ]);
 
       // Parse CSV to detect PII in candidates
@@ -339,7 +331,9 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
             <div className="card-body">
               <p className="text-muted mb-4">
                 Drag and drop your "Universal Application Report" (Jobs + Candidates in one file)
-                <strong> OR </strong> select the individual CSV files below.
+                <strong> OR </strong> select individual files below.
+                <br />
+                <small>Supports CSV, XLS, and XLSX formats.</small>
               </p>
 
               <form onSubmit={handleSubmit}>
@@ -348,13 +342,13 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                   className="border rounded p-5 text-center mb-4"
                   style={{ borderStyle: 'dashed', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.2)', background: 'rgba(30, 41, 59, 0.5)' }}
                 >
-                  <p className="lead mb-2">Drag & Drop CSS Files Here</p>
-                  <p className="small text-muted">Supports "Universal Report" or individual files</p>
+                  <p className="lead mb-2">Drag & Drop Files Here</p>
+                  <p className="small text-muted">Supports CSV, XLS, XLSX - "Universal Report" or individual files</p>
 
                   <input
                     type="file"
                     className="form-control mt-3"
-                    accept=".csv"
+                    accept={FILE_ACCEPT}
                     multiple
                     onChange={(e) => {
                       // Simple implementation for now - just map to standard inputs
@@ -365,13 +359,18 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                       if (fileList.length === 1) {
                         setFiles(prev => ({ ...prev, requisitions: fileList[0] }));
                       } else {
-                        // TODO: Smart auto-assign based on filename, for now manual is backup
+                        // Smart auto-assign based on filename (works for CSV and Excel)
                         Array.from(fileList).forEach(f => {
-                          const name = f.name.toLowerCase();
-                          if (name.includes('req') || name.includes('job')) setFiles(p => ({ ...p, requisitions: f }));
-                          else if (name.includes('cand') || name.includes('person')) setFiles(p => ({ ...p, candidates: f }));
-                          else if (name.includes('event') || name.includes('activity')) setFiles(p => ({ ...p, events: f }));
-                          else if (name.includes('user')) setFiles(p => ({ ...p, users: f }));
+                          const name = f.name.toLowerCase().replace(/\.(csv|xlsx?|xls)$/i, '');
+                          if (name.includes('req') || name.includes('job') || name.includes('universal')) {
+                            setFiles(p => ({ ...p, requisitions: f }));
+                          } else if (name.includes('cand') || name.includes('person') || name.includes('applicant')) {
+                            setFiles(p => ({ ...p, candidates: f }));
+                          } else if (name.includes('event') || name.includes('activity') || name.includes('history')) {
+                            setFiles(p => ({ ...p, events: f }));
+                          } else if (name.includes('user') || name.includes('recruiter') || name.includes('team')) {
+                            setFiles(p => ({ ...p, users: f }));
+                          }
                         });
                       }
                       setErrors([]);
