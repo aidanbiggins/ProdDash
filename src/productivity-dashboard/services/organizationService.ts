@@ -436,32 +436,48 @@ export async function getInvitesForEmail(email: string): Promise<OrganizationInv
 
 /**
  * Accept an invite and add user to organization
+ * Uses SECURITY DEFINER RPC function to bypass RLS
  */
 export async function acceptInvite(token: string, userId: string): Promise<OrganizationMembership> {
   if (!supabase) throw new Error('Supabase not configured');
 
-  // Get the invite
+  // Get the invite first to get org_id for membership lookup
   const invite = await getInviteByToken(token);
   if (!invite) throw new Error('Invite not found or expired');
 
-  // Add user to organization
-  const { data: memberData, error: memberError } = await supabase
-    .from('organization_members')
-    .insert({
-      organization_id: invite.organization_id,
-      user_id: userId,
-      role: invite.role
-    })
-    .select()
-    .single();
+  try {
+    // Use RPC function to accept invite (bypasses RLS)
+    const { data: membershipId, error: rpcError } = await supabase.rpc('accept_organization_invite', {
+      invite_token: token,
+      accepting_user_id: userId
+    });
 
-  if (memberError) throw memberError;
+    if (rpcError) {
+      console.error('[OrgService] RPC accept_organization_invite failed:', rpcError);
+      throw new Error(rpcError.message || 'Failed to accept invite');
+    }
 
-  // Mark invite as accepted
-  await supabase
-    .from('organization_invites')
-    .update({ accepted_at: new Date().toISOString() })
-    .eq('id', invite.id);
+    console.log('[OrgService] Invite accepted via RPC, membership ID:', membershipId);
+  } catch (err: any) {
+    // Fallback to direct insert if RPC not available
+    console.warn('[OrgService] RPC failed, trying direct insert:', err.message);
+
+    const { error: memberError } = await supabase
+      .from('organization_members')
+      .insert({
+        organization_id: invite.organization_id,
+        user_id: userId,
+        role: invite.role
+      });
+
+    if (memberError) throw memberError;
+
+    // Mark invite as accepted
+    await supabase
+      .from('organization_invites')
+      .update({ accepted_at: new Date().toISOString() })
+      .eq('id', invite.id);
+  }
 
   // Fetch the full membership with org details
   const memberships = await getUserMemberships(userId);
