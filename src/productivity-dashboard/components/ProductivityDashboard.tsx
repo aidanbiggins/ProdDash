@@ -69,6 +69,7 @@ export function ProductivityDashboard() {
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [showOrgSettings, setShowOrgSettings] = useState(false);
   const [showSuperAdminPanel, setShowSuperAdminPanel] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // AI Keys - auto-load on sign-in
   const { keyState, loadKeys, getEffectiveKey } = useAiKeys();
@@ -394,6 +395,14 @@ export function ProductivityDashboard() {
           >
             Reload from Database
           </button>
+          {canImportData && (
+            <button
+              className="mobile-menu-item"
+              onClick={() => { setShowImportModal(true); setShowMobileMenu(false); }}
+            >
+              Import Data
+            </button>
+          )}
           <hr />
           <button
             className="mobile-menu-item"
@@ -432,6 +441,7 @@ export function ProductivityDashboard() {
           onSignOut={signOut}
           onCreateOrg={() => setShowCreateOrgModal(true)}
           onOrgSettings={() => setShowOrgSettings(true)}
+          onImportData={() => setShowImportModal(true)}
           aiEnabled={isAiEnabled}
         />
       )}
@@ -1102,6 +1112,69 @@ export function ProductivityDashboard() {
             }
           }}
         />
+
+        {/* Import Data Modal */}
+        {showImportModal && (
+          <div
+            className="modal-overlay"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.85)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '2rem'
+            }}
+            onClick={() => setShowImportModal(false)}
+          >
+            <div
+              className="import-modal-content"
+              style={{
+                maxWidth: '900px',
+                maxHeight: '90vh',
+                width: '100%',
+                overflow: 'auto',
+                borderRadius: '12px',
+                backgroundColor: 'var(--surface-primary, #1a1a1a)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    zIndex: 10,
+                    background: 'rgba(255,255,255,0.1)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: 'var(--text-secondary, #888)'
+                  }}
+                  title="Close"
+                >
+                  <i className="bi bi-x-lg" />
+                </button>
+                <CSVUpload
+                  onUpload={async (files) => {
+                    await importCSVs(files);
+                    setShowImportModal(false);
+                  }}
+                  isLoading={state.isLoading}
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Progress Indicator Panel */}
         {showProgressPanel && (

@@ -19,10 +19,11 @@ export interface TopNavProps {
   onSignOut?: () => void;
   onCreateOrg?: () => void;
   onOrgSettings?: () => void;
+  onImportData?: () => void;
   aiEnabled?: boolean;
 }
 
-export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, userEmail, onSignOut, onCreateOrg, onOrgSettings, aiEnabled }: TopNavProps) {
+export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, userEmail, onSignOut, onCreateOrg, onOrgSettings, onImportData, aiEnabled }: TopNavProps) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [quickFindOpen, setQuickFindOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -32,7 +33,7 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
 
   // Get PII masking state and dashboard actions
   const { isMasked, toggleMasking } = useDataMasking();
-  const { refetchData, state } = useDashboard();
+  const { refetchData, state, canImportData } = useDashboard();
 
   // Update currentPath when URL changes (for back/forward navigation)
   useEffect(() => {
@@ -174,6 +175,16 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                           <i className="bi bi-arrow-clockwise" style={{ opacity: 0.7, width: '16px' }} />
                           <span>{state.isLoading ? 'Refreshing...' : 'Refresh Data'}</span>
                         </button>
+                        {canImportData && onImportData && (
+                          <button
+                            className="nav-dropdown-item"
+                            onClick={() => { onImportData(); setSettingsMenuOpen(false); }}
+                            role="menuitem"
+                          >
+                            <i className="bi bi-upload" style={{ opacity: 0.7, width: '16px' }} />
+                            <span>Import Data</span>
+                          </button>
+                        )}
 
                         {/* Divider */}
                         <div className="nav-dropdown-divider" />
@@ -283,6 +294,8 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
         onSignOut={onSignOut}
         onCreateOrg={onCreateOrg}
         onOrgSettings={onOrgSettings}
+        onImportData={onImportData}
+        canImportData={canImportData}
       />
 
       {/* Quick Find Command Palette */}

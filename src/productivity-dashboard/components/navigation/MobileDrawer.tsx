@@ -16,6 +16,8 @@ export interface MobileDrawerProps {
   onSignOut?: () => void;
   onCreateOrg?: () => void;
   onOrgSettings?: () => void;
+  onImportData?: () => void;
+  canImportData?: boolean;
 }
 
 export function MobileDrawer({
@@ -29,7 +31,9 @@ export function MobileDrawer({
   userEmail,
   onSignOut,
   onCreateOrg,
-  onOrgSettings
+  onOrgSettings,
+  onImportData,
+  canImportData
 }: MobileDrawerProps) {
   const [expandedBuckets, setExpandedBuckets] = useState<Set<string>>(new Set(['diagnose', 'plan', 'settings']));
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -161,6 +165,18 @@ export function MobileDrawer({
               <i className="bi bi-person-circle" />
               <span>{userEmail}</span>
             </div>
+          )}
+          {canImportData && onImportData && (
+            <button
+              className="mobile-drawer-action"
+              onClick={() => {
+                onClose();
+                onImportData();
+              }}
+            >
+              <i className="bi bi-upload" />
+              <span>Import Data</span>
+            </button>
           )}
           {onSignOut && (
             <button
