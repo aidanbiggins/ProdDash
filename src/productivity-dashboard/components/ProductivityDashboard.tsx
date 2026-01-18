@@ -1165,9 +1165,12 @@ export function ProductivityDashboard() {
                   <i className="bi bi-x-lg" />
                 </button>
                 <CSVUpload
-                  onUpload={async (files) => {
-                    await importCSVs(files);
-                    setShowImportModal(false);
+                  onUpload={async (reqCsv, candCsv, eventCsv, userCsv, isDemo, onProgress, shouldAnonymize) => {
+                    const result = await importCSVs(reqCsv, candCsv, eventCsv, userCsv, isDemo, onProgress, shouldAnonymize);
+                    if (result.success) {
+                      setShowImportModal(false);
+                    }
+                    return result;
                   }}
                   isLoading={state.isLoading}
                 />
