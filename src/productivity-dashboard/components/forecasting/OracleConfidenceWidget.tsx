@@ -158,6 +158,18 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     >
                         {displayForecast.confidenceLevel}
                     </span>
+                    {hasAdjustments && (
+                        <span
+                            className="badge rounded-pill text-uppercase"
+                            style={{
+                                fontSize: '0.6rem',
+                                background: 'rgba(45, 212, 191, 0.15)',
+                                color: '#2dd4bf'
+                            }}
+                        >
+                            Adjusted
+                        </span>
+                    )}
                 </div>
                 <span className="text-muted" style={{ fontSize: '0.65rem' }}>
                     {displayForecast.debug.iterations} runs
