@@ -922,7 +922,7 @@ export function ForecastingTab({
             <div className="card-bespoke mb-4">
               <div className="card-header d-flex justify-content-between align-items-center">
                 <h6 className="mb-0">Open Requisitions</h6>
-                <span className="small text-muted">Click row for details, or "View" for pre-mortem analysis</span>
+                <span className="small text-muted">Click any row for forecast details and risk analysis</span>
               </div>
               <div className="card-body p-0">
                 <div className="table-responsive">
@@ -937,7 +937,6 @@ export function ForecastingTab({
                         <th>Failure Mode</th>
                         <th className="text-end">Predicted Fill</th>
                         <th>Primary Issue</th>
-                        <th className="text-center" style={{ width: '60px' }}></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1023,23 +1022,6 @@ export function ForecastingTab({
                               <td>
                                 <span className="small text-muted">{req.primaryIssue || '-'}</span>
                               </td>
-                              {/* View Pre-Mortem Button */}
-                              <td className="text-center">
-                                {preMortem && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-sm btn-bespoke-secondary"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleViewPreMortem(req.reqId);
-                                    }}
-                                    title="View Pre-Mortem Analysis"
-                                    style={{ padding: '0.25rem 0.5rem' }}
-                                  >
-                                    <i className="bi bi-eye"></i>
-                                  </button>
-                                )}
-                              </td>
                             </tr>
                           );
                         })}
@@ -1076,23 +1058,13 @@ export function ForecastingTab({
           </div>
         )}
 
-      {/* Req Health Detail Drawer */}
+      {/* Unified Req Health Detail Drawer (includes Oracle + Pre-Mortem) */}
       <ReqHealthDrawer
         isOpen={!!selectedHealthReq && !!selectedHealthDetails}
         onClose={() => setSelectedHealthReq(null)}
         healthData={selectedHealthDetails}
         forecast={probForecast}
-      />
-
-      {/* Pre-Mortem Detail Drawer */}
-      <PreMortemDrawer
-        isOpen={preMortemDrawerOpen}
-        onClose={() => {
-          setPreMortemDrawerOpen(false);
-          setSelectedPreMortem(null);
-        }}
-        result={selectedPreMortem}
-        onAddToQueue={onAddToActionQueue ? handleAddToQueue : undefined}
+        preMortem={selectedHealthReq ? preMortemByReqId.get(selectedHealthReq) : null}
       />
     </div>
   );

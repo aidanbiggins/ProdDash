@@ -1,7 +1,8 @@
-// ReqHealthDrawer - Slide-in drawer showing requisition health details and Oracle prediction
+// ReqHealthDrawer - Unified slide-in drawer showing requisition health, Oracle prediction, and Pre-Mortem analysis
 import React from 'react';
 import { RoleHealthMetrics } from '../../types/forecastingTypes';
 import { ForecastResult } from '../../services/probabilisticEngine';
+import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../types/preMortemTypes';
 import { OracleConfidenceWidget } from './OracleConfidenceWidget';
 
 // Health status badge styling
@@ -36,9 +37,24 @@ function getVelocityBadgeStyle(trend: string) {
 function getPriorityBadgeStyle(priority: string) {
   switch (priority) {
     case 'urgent':
+    case 'high':
       return { background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' };
     case 'important':
+    case 'medium':
       return { background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' };
+    default:
+      return { background: 'rgba(100, 116, 139, 0.15)', color: '#64748b' };
+  }
+}
+
+function getRiskBandBadgeStyle(band: string) {
+  switch (band) {
+    case 'HIGH':
+      return { background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' };
+    case 'MED':
+      return { background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' };
+    case 'LOW':
+      return { background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' };
     default:
       return { background: 'rgba(100, 116, 139, 0.15)', color: '#64748b' };
   }
@@ -49,6 +65,7 @@ interface ReqHealthDrawerProps {
   onClose: () => void;
   healthData: RoleHealthMetrics | null | undefined;
   forecast: ForecastResult | null;
+  preMortem: PreMortemResult | null | undefined;
 }
 
 export function ReqHealthDrawer({
@@ -56,6 +73,7 @@ export function ReqHealthDrawer({
   onClose,
   healthData,
   forecast,
+  preMortem,
 }: ReqHealthDrawerProps) {
   if (!isOpen || !healthData) return null;
 
@@ -115,7 +133,7 @@ export function ReqHealthDrawer({
                 marginBottom: '4px',
               }}
             >
-              Requisition Health
+              Requisition Details
             </div>
             <div
               style={{
@@ -129,7 +147,7 @@ export function ReqHealthDrawer({
             >
               {healthData.reqTitle}
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span
                 className="badge rounded-pill text-uppercase"
                 style={{ fontSize: '0.65rem', ...healthBadgeStyle }}
@@ -142,6 +160,14 @@ export function ReqHealthDrawer({
               >
                 {healthData.velocityTrend}
               </span>
+              {preMortem && (
+                <span
+                  className="badge rounded-pill text-uppercase"
+                  style={{ fontSize: '0.65rem', ...getRiskBandBadgeStyle(preMortem.risk_band) }}
+                >
+                  {preMortem.risk_band} Risk
+                </span>
+              )}
             </div>
           </div>
           <button
@@ -162,7 +188,7 @@ export function ReqHealthDrawer({
 
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-4)' }}>
-          {/* Oracle Widget */}
+          {/* Oracle Widget - Primary Feature */}
           {forecast ? (
             <div style={{ marginBottom: 'var(--space-4)' }}>
               <OracleConfidenceWidget
@@ -177,6 +203,116 @@ export function ReqHealthDrawer({
             >
               <div className="spinner-border spinner-border-sm me-2" />
               Running Oracle Simulation...
+            </div>
+          )}
+
+          {/* Pre-Mortem Risk Analysis */}
+          {preMortem && (
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <div
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--text-tertiary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: 'var(--space-2)',
+                }}
+              >
+                Risk Analysis
+              </div>
+
+              {/* Risk Score Card */}
+              <div
+                style={{
+                  padding: 'var(--space-3)',
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  borderRadius: 'var(--radius-md)',
+                  marginBottom: 'var(--space-3)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '2.5rem',
+                        fontWeight: 'var(--font-bold)',
+                        color: getRiskBandColor(preMortem.risk_band),
+                        lineHeight: 1,
+                      }}
+                    >
+                      {preMortem.risk_score}
+                    </div>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+                      /100
+                    </div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        padding: '8px 12px',
+                        background: `${getRiskBandColor(preMortem.risk_band)}15`,
+                        borderLeft: `3px solid ${getRiskBandColor(preMortem.risk_band)}`,
+                        borderRadius: 'var(--radius-sm)',
+                      }}
+                    >
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: '2px' }}>
+                        Primary Failure Mode
+                      </div>
+                      <div style={{ fontWeight: 'var(--font-medium)', color: getRiskBandColor(preMortem.risk_band) }}>
+                        {getFailureModeLabel(preMortem.failure_mode)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Risk Drivers */}
+              {preMortem.top_drivers && preMortem.top_drivers.length > 0 && (
+                <div style={{ marginBottom: 'var(--space-3)' }}>
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
+                    Risk Drivers
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {preMortem.top_drivers.slice(0, 3).map((driver, i) => {
+                      const severityStyle = getPriorityBadgeStyle(driver.severity);
+                      return (
+                        <div
+                          key={i}
+                          style={{
+                            padding: 'var(--space-3)',
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            borderRadius: 'var(--radius-sm)',
+                            borderLeft: `3px solid ${severityStyle.color}`,
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: 'var(--font-medium)', marginBottom: '4px' }}>
+                                {driver.description}
+                              </div>
+                              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                                {driver.evidence.description}
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', marginLeft: '12px' }}>
+                              <span
+                                className="badge text-uppercase"
+                                style={{ fontSize: '0.6rem', ...severityStyle }}
+                              >
+                                {driver.severity}
+                              </span>
+                              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                                {Math.round(driver.weight)}% weight
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -280,7 +416,7 @@ export function ReqHealthDrawer({
             </div>
           )}
 
-          {/* Recommended Actions */}
+          {/* Recommended Actions - Merged from both sources */}
           <div>
             <div
               style={{
@@ -293,13 +429,15 @@ export function ReqHealthDrawer({
             >
               Recommended Actions
             </div>
+
+            {/* Health-based actions */}
             {healthData.actionRecommendations && healthData.actionRecommendations.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {healthData.actionRecommendations.map((action, i) => {
                   const priorityStyle = getPriorityBadgeStyle(action.priority);
                   return (
                     <div
-                      key={i}
+                      key={`health-${i}`}
                       style={{
                         padding: 'var(--space-3)',
                         background: 'rgba(255, 255, 255, 0.02)',
@@ -322,6 +460,81 @@ export function ReqHealthDrawer({
                             {action.expectedImpact}
                             <span style={{ color: 'var(--color-accent-primary, #d4a373)', marginLeft: '8px' }}>
                               ({action.owner})
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Pre-Mortem interventions */}
+                {preMortem?.recommended_interventions && preMortem.recommended_interventions.length > 0 && (
+                  preMortem.recommended_interventions.slice(0, 2).map((intervention, i) => {
+                    const priorityStyle = getPriorityBadgeStyle(intervention.priority);
+                    return (
+                      <div
+                        key={`pm-${i}`}
+                        style={{
+                          padding: 'var(--space-3)',
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          borderRadius: 'var(--radius-sm)',
+                          borderLeft: `3px solid ${priorityStyle.color}`,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                          <span
+                            className="badge text-uppercase"
+                            style={{ fontSize: '0.6rem', ...priorityStyle }}
+                          >
+                            {intervention.priority}
+                          </span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 'var(--font-medium)' }}>
+                              {intervention.title}
+                            </div>
+                            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                              {intervention.description}
+                              <span style={{ color: 'var(--color-accent-primary, #d4a373)', marginLeft: '8px' }}>
+                                ({intervention.owner_type})
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            ) : preMortem?.recommended_interventions && preMortem.recommended_interventions.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {preMortem.recommended_interventions.map((intervention, i) => {
+                  const priorityStyle = getPriorityBadgeStyle(intervention.priority);
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        padding: 'var(--space-3)',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        borderRadius: 'var(--radius-sm)',
+                        borderLeft: `3px solid ${priorityStyle.color}`,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                        <span
+                          className="badge text-uppercase"
+                          style={{ fontSize: '0.6rem', ...priorityStyle }}
+                        >
+                          {intervention.priority}
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 'var(--font-medium)' }}>
+                            {intervention.title}
+                          </div>
+                          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            {intervention.description}
+                            <span style={{ color: 'var(--color-accent-primary, #d4a373)', marginLeft: '8px' }}>
+                              ({intervention.owner_type})
                             </span>
                           </div>
                         </div>
