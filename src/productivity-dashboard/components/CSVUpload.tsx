@@ -92,46 +92,89 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
     setImportProgress(null);
 
     try {
-      let reqCsv: string;
+      let reqCsv: string = '';
       let candCsv: string | undefined;
       let eventCsv: string | undefined;
       let userCsv: string | undefined;
 
-      // Check if main file is Excel - if so, extract all sheets
-      if (isExcelFile(files.requisitions)) {
-        console.log('[CSVUpload] Detected Excel file, extracting all sheets...');
-        const multiSheet = await extractAllSheets(files.requisitions);
+      // Collect all files to process
+      const allFiles = [files.requisitions, files.candidates, files.events, files.users].filter(Boolean) as File[];
+      const excelFiles = allFiles.filter(f => isExcelFile(f));
+      const csvFiles = allFiles.filter(f => !isExcelFile(f));
 
-        // Use extracted sheets, but allow explicit file uploads to override
-        reqCsv = multiSheet.requisitions || '';
-        candCsv = files.candidates
-          ? await readFileAsTextOrExcel(files.candidates)
-          : multiSheet.candidates;
-        eventCsv = files.events
-          ? await readFileAsTextOrExcel(files.events)
-          : multiSheet.events;
-        userCsv = files.users
-          ? await readFileAsTextOrExcel(files.users)
-          : multiSheet.users;
+      console.log(`[CSVUpload] Processing ${allFiles.length} files (${excelFiles.length} Excel, ${csvFiles.length} CSV)`);
 
-        // Log what we found
-        const sheetsFound = [];
-        if (multiSheet.requisitions) sheetsFound.push('requisitions');
-        if (multiSheet.candidates) sheetsFound.push('candidates');
-        if (multiSheet.events) sheetsFound.push('events');
-        if (multiSheet.users) sheetsFound.push('users');
-        console.log(`[CSVUpload] Extracted sheets: ${sheetsFound.join(', ') || 'none classified'}`);
-        if (multiSheet.unclassified.length > 0) {
-          console.log(`[CSVUpload] Unclassified sheets: ${multiSheet.unclassified.map(s => s.name).join(', ')}`);
+      // Extract sheets from ALL Excel files and merge results
+      const mergedSheets: { requisitions?: string; candidates?: string; events?: string; users?: string } = {};
+
+      for (const excelFile of excelFiles) {
+        console.log(`[CSVUpload] Extracting sheets from: ${excelFile.name}`);
+        const multiSheet = await extractAllSheets(excelFile);
+
+        // Merge - first one wins for each type
+        if (multiSheet.requisitions && !mergedSheets.requisitions) {
+          mergedSheets.requisitions = multiSheet.requisitions;
+          console.log(`[CSVUpload] Using requisitions from ${excelFile.name}`);
         }
+        if (multiSheet.candidates && !mergedSheets.candidates) {
+          mergedSheets.candidates = multiSheet.candidates;
+          console.log(`[CSVUpload] Using candidates from ${excelFile.name}`);
+        }
+        if (multiSheet.events && !mergedSheets.events) {
+          mergedSheets.events = multiSheet.events;
+          console.log(`[CSVUpload] Using events from ${excelFile.name}`);
+        }
+        if (multiSheet.users && !mergedSheets.users) {
+          mergedSheets.users = multiSheet.users;
+          console.log(`[CSVUpload] Using users from ${excelFile.name}`);
+        }
+      }
+
+      // Now process explicit file assignments (these override extracted sheets)
+      // Requisitions: use extracted, or read the file directly
+      if (files.requisitions) {
+        if (isExcelFile(files.requisitions) && mergedSheets.requisitions) {
+          reqCsv = mergedSheets.requisitions;
+        } else if (!isExcelFile(files.requisitions)) {
+          reqCsv = await readFileAsTextOrExcel(files.requisitions);
+        } else {
+          reqCsv = mergedSheets.requisitions || '';
+        }
+      }
+
+      // Candidates: explicit file overrides extracted
+      if (files.candidates && !isExcelFile(files.candidates)) {
+        candCsv = await readFileAsTextOrExcel(files.candidates);
       } else {
-        // Standard CSV handling
-        [reqCsv, candCsv, eventCsv, userCsv] = await Promise.all([
-          readFileAsTextOrExcel(files.requisitions),
-          files.candidates ? readFileAsTextOrExcel(files.candidates) : Promise.resolve(undefined),
-          files.events ? readFileAsTextOrExcel(files.events) : Promise.resolve(undefined),
-          files.users ? readFileAsTextOrExcel(files.users) : Promise.resolve(undefined)
-        ]);
+        candCsv = mergedSheets.candidates;
+      }
+
+      // Events: explicit file overrides extracted
+      if (files.events && !isExcelFile(files.events)) {
+        eventCsv = await readFileAsTextOrExcel(files.events);
+      } else {
+        eventCsv = mergedSheets.events;
+      }
+
+      // Users: explicit file overrides extracted
+      if (files.users && !isExcelFile(files.users)) {
+        userCsv = await readFileAsTextOrExcel(files.users);
+      } else {
+        userCsv = mergedSheets.users;
+      }
+
+      // Log final data sources
+      const sources = [];
+      if (reqCsv) sources.push('requisitions');
+      if (candCsv) sources.push('candidates');
+      if (eventCsv) sources.push('events');
+      if (userCsv) sources.push('users');
+      console.log(`[CSVUpload] Final data: ${sources.join(', ') || 'none'}`);
+
+      // If no requisitions data found at all, try to use first unclassified content
+      if (!reqCsv && excelFiles.length > 0) {
+        console.log('[CSVUpload] No requisitions found, using first Excel file as requisitions');
+        reqCsv = await readFileAsTextOrExcel(excelFiles[0]);
       }
 
       // Parse CSV to detect PII in candidates
