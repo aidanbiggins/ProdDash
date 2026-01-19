@@ -1,4 +1,5 @@
 import React from 'react';
+import { useInView } from './hooks/useScrollAnimations';
 
 interface Step {
   number: number;
@@ -33,9 +34,16 @@ const steps: Step[] = [
 ];
 
 export function HowItWorksSection() {
+  const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [stepsRef, stepsInView] = useInView<HTMLDivElement>({ threshold: 0.1 });
+  const [logosRef, logosInView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+
   return (
     <section className="landing-how-it-works">
-      <div className="landing-section-header">
+      <div
+        ref={headerRef}
+        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+      >
         <span className="landing-section-eyebrow">How It Works</span>
         <h2>From Export to Insight in Under 5 Minutes</h2>
         <p>
@@ -43,11 +51,14 @@ export function HowItWorksSection() {
         </p>
       </div>
 
-      <div className="landing-steps">
+      <div ref={stepsRef} className="landing-steps">
         {steps.map((step, index) => (
           <React.Fragment key={step.number}>
-            <div className="landing-step">
-              <div className="step-icon">
+            <div
+              className={`landing-step glass-card glass-card-interactive animate-scale-up ${stepsInView ? 'in-view' : ''}`}
+              style={{ transitionDelay: `${index * 150}ms` }}
+            >
+              <div className="step-icon icon-bounce">
                 <i className={step.icon} />
               </div>
               <div className="step-number">{step.number}</div>
@@ -59,7 +70,10 @@ export function HowItWorksSection() {
               </div>
             </div>
             {index < steps.length - 1 && (
-              <div className="step-connector">
+              <div
+                className={`step-connector animate-fade-up ${stepsInView ? 'in-view' : ''}`}
+                style={{ transitionDelay: `${index * 150 + 75}ms` }}
+              >
                 <i className="bi bi-arrow-right" />
               </div>
             )}
@@ -67,14 +81,21 @@ export function HowItWorksSection() {
         ))}
       </div>
 
-      <div className="landing-supported-systems">
+      <div
+        ref={logosRef}
+        className={`landing-supported-systems animate-fade-up ${logosInView ? 'in-view' : ''}`}
+      >
         <p className="supported-label">Works with exports from:</p>
         <div className="supported-logos">
-          <span className="supported-logo">iCIMS</span>
-          <span className="supported-logo">Greenhouse</span>
-          <span className="supported-logo">Lever</span>
-          <span className="supported-logo">Workday</span>
-          <span className="supported-logo">+ Any CSV</span>
+          {['iCIMS', 'Greenhouse', 'Lever', 'Workday', '+ Any CSV'].map((logo, i) => (
+            <span
+              key={logo}
+              className={`supported-logo hover-lift animate-scale-up ${logosInView ? 'in-view' : ''}`}
+              style={{ transitionDelay: `${i * 80}ms` }}
+            >
+              {logo}
+            </span>
+          ))}
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useInView } from './hooks/useScrollAnimations';
 
 interface Feature {
   icon: string;
@@ -91,10 +92,15 @@ interface FeaturesSectionProps {
 
 export function FeaturesSection({ sectionRef }: FeaturesSectionProps) {
   const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
+  const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [gridRef, gridInView] = useInView<HTMLDivElement>({ threshold: 0.05 });
 
   return (
     <section className="landing-features" ref={sectionRef}>
-      <div className="landing-section-header">
+      <div
+        ref={headerRef}
+        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+      >
         <span className="landing-section-eyebrow">Features</span>
         <h2>Everything You Need to Run Recruiting</h2>
         <p>
@@ -103,17 +109,27 @@ export function FeaturesSection({ sectionRef }: FeaturesSectionProps) {
         </p>
       </div>
 
-      <div className="landing-features-grid">
-        {features.map((feature) => (
+      <div ref={gridRef} className="landing-features-grid">
+        {features.map((feature, index) => (
           <div
             key={feature.title}
-            className={`landing-feature-card ${expandedFeature === feature.title ? 'expanded' : ''}`}
+            className={`landing-feature-card glass-card glass-card-interactive glass-card-glow animate-scale-up ${expandedFeature === feature.title ? 'expanded' : ''} ${gridInView ? 'in-view' : ''}`}
+            style={{ transitionDelay: `${index * 80}ms` }}
             onClick={() => setExpandedFeature(
               expandedFeature === feature.title ? null : feature.title
             )}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setExpandedFeature(
+                  expandedFeature === feature.title ? null : feature.title
+                );
+              }
+            }}
           >
             <div className="feature-card-header">
-              <div className={`landing-feature-icon ${feature.iconColor}`}>
+              <div className={`landing-feature-icon ${feature.iconColor} icon-bounce`}>
                 <i className={feature.icon} />
               </div>
               <div className="feature-title-group">

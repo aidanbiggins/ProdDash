@@ -10,12 +10,21 @@ interface RecruiterLoadTableProps {
   onRecruiterClick?: (recruiterId: string) => void;
 }
 
-const STATUS_STYLES: Record<LoadStatus, { bg: string; text: string; label: string }> = {
-  critical: { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171', label: 'Critical' },
-  overloaded: { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', label: 'Overloaded' },
-  balanced: { bg: 'rgba(59, 130, 246, 0.15)', text: '#60a5fa', label: 'Balanced' },
-  available: { bg: 'rgba(34, 197, 94, 0.15)', text: '#34d399', label: 'Available' },
-  underutilized: { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8', label: 'Underutilized' }
+// Map status to badge class - uses CSS classes from dashboard-theme.css
+const STATUS_BADGE_CLASS: Record<LoadStatus, { className: string; label: string }> = {
+  critical: { className: 'badge-danger-soft', label: 'Critical' },
+  overloaded: { className: 'badge-warning-soft', label: 'Overloaded' },
+  balanced: { className: 'badge-primary-soft', label: 'Balanced' },
+  available: { className: 'badge-success-soft', label: 'Available' },
+  underutilized: { className: 'badge-neutral-soft', label: 'Underutilized' }
+};
+
+// Map confidence to CSS class for the indicator dots
+const CONFIDENCE_CLASS: Record<ConfidenceLevel, string> = {
+  HIGH: 'confidence-high',
+  MED: 'confidence-med',
+  LOW: 'confidence-low',
+  INSUFFICIENT: 'confidence-insufficient'
 };
 
 function ConfidenceIndicator({ confidence }: { confidence: ConfidenceLevel }) {
@@ -26,26 +35,12 @@ function ConfidenceIndicator({ confidence }: { confidence: ConfidenceLevel }) {
     INSUFFICIENT: 0
   }[confidence];
 
-  const color = {
-    HIGH: '#34d399',
-    MED: '#fbbf24',
-    LOW: '#94a3b8',
-    INSUFFICIENT: '#ef4444'
-  }[confidence];
-
   return (
-    <span title={`${confidence} confidence`}>
+    <span title={`${confidence} confidence`} className={`confidence-dots ${CONFIDENCE_CLASS[confidence]}`}>
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          style={{
-            display: 'inline-block',
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            marginRight: 2,
-            background: i < dots ? color : 'rgba(255,255,255,0.1)'
-          }}
+          className={`confidence-dot ${i < dots ? 'active' : ''}`}
         />
       ))}
     </span>
@@ -53,41 +48,30 @@ function ConfidenceIndicator({ confidence }: { confidence: ConfidenceLevel }) {
 }
 
 function StatusBadge({ status }: { status: LoadStatus }) {
-  const style = STATUS_STYLES[status];
+  const { className, label } = STATUS_BADGE_CLASS[status];
   return (
-    <span
-      className="badge"
-      style={{
-        background: style.bg,
-        color: style.text,
-        fontSize: '0.7rem'
-      }}
-    >
-      {style.label}
+    <span className={`badge ${className}`}>
+      {label}
     </span>
   );
 }
 
 function UtilizationBar({ utilization }: { utilization: number }) {
   const percent = Math.min(utilization * 100, 150);
-  const color = utilization > 1.2 ? '#f87171' :
-                utilization > 1.1 ? '#fbbf24' :
-                utilization > 0.9 ? '#60a5fa' :
-                utilization > 0.7 ? '#34d399' : '#94a3b8';
+  const colorClass = utilization > 1.2 ? 'utilization-critical' :
+                     utilization > 1.1 ? 'utilization-warning' :
+                     utilization > 0.9 ? 'utilization-balanced' :
+                     utilization > 0.7 ? 'utilization-good' : 'utilization-low';
 
   return (
     <div className="d-flex align-items-center gap-2">
-      <div style={{ width: 60, height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3 }}>
+      <div className="utilization-bar-track">
         <div
-          style={{
-            width: `${Math.min(percent, 100)}%`,
-            height: '100%',
-            background: color,
-            borderRadius: 3
-          }}
+          className={`utilization-bar-fill ${colorClass}`}
+          style={{ width: `${Math.min(percent, 100)}%` }}
         />
       </div>
-      <span style={{ color, fontSize: '0.8rem', fontFamily: "'JetBrains Mono', monospace" }}>
+      <span className={`utilization-value ${colorClass}`}>
         {Math.round(utilization * 100)}%
       </span>
     </div>

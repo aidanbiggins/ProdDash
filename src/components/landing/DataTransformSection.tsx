@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useInView } from './hooks/useScrollAnimations';
 
 type TransformStage = 'raw' | 'parsed' | 'normalized' | 'cleaned' | 'insights';
 
@@ -45,9 +46,13 @@ const stages: StageInfo[] = [
 export function DataTransformSection() {
   const [activeStage, setActiveStage] = useState<TransformStage>('raw');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [containerRef, containerInView] = useInView<HTMLDivElement>({ threshold: 0.1 });
 
-  // Auto-advance through stages for demo effect
+  // Auto-advance through stages for demo effect (only when in view)
   useEffect(() => {
+    if (!containerInView) return;
+
     const timer = setInterval(() => {
       setIsAnimating(true);
       setTimeout(() => {
@@ -61,13 +66,16 @@ export function DataTransformSection() {
     }, 4000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [containerInView]);
 
   const activeInfo = stages.find(s => s.id === activeStage)!;
 
   return (
     <section className="landing-transform">
-      <div className="landing-section-header">
+      <div
+        ref={headerRef}
+        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+      >
         <span className="landing-section-eyebrow">The Transformation</span>
         <h2>From Chaos to Clarity in Seconds</h2>
         <p>
@@ -75,13 +83,16 @@ export function DataTransformSection() {
         </p>
       </div>
 
-      <div className="landing-transform-container">
+      <div
+        ref={containerRef}
+        className={`landing-transform-container animate-scale-up ${containerInView ? 'in-view' : ''}`}
+      >
         {/* Stage Navigation */}
         <div className="landing-transform-nav">
           {stages.map((stage, index) => (
             <button
               key={stage.id}
-              className={`transform-nav-item ${activeStage === stage.id ? 'active' : ''}`}
+              className={`transform-nav-item btn-press ${activeStage === stage.id ? 'active' : ''}`}
               onClick={() => setActiveStage(stage.id)}
             >
               <span className="transform-nav-number">{index + 1}</span>
@@ -91,7 +102,7 @@ export function DataTransformSection() {
         </div>
 
         {/* Visual Display */}
-        <div className={`landing-transform-visual ${isAnimating ? 'animating' : ''}`}>
+        <div className={`landing-transform-visual glass-card ${isAnimating ? 'animating' : ''}`}>
           {activeStage === 'raw' && <RawCSVVisual />}
           {activeStage === 'parsed' && <ParsedVisual />}
           {activeStage === 'normalized' && <NormalizedVisual />}

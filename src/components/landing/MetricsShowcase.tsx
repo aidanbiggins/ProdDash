@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useInView } from './hooks/useScrollAnimations';
 
 type MetricCategory = 'before-after' | 'hidden-insights' | 'scenarios' | 'actions';
 
@@ -148,10 +149,16 @@ const scenarioExamples: ScenarioExample[] = [
 
 export function MetricsShowcase() {
   const [activeCategory, setActiveCategory] = useState<MetricCategory>('before-after');
+  const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [tabsRef, tabsInView] = useInView<HTMLDivElement>({ threshold: 0.3 });
+  const [contentRef, contentInView] = useInView<HTMLDivElement>({ threshold: 0.1 });
 
   return (
     <section className="landing-metrics">
-      <div className="landing-section-header">
+      <div
+        ref={headerRef}
+        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+      >
         <span className="landing-section-eyebrow">The Difference</span>
         <h2>See What's Really Happening</h2>
         <p>
@@ -161,7 +168,10 @@ export function MetricsShowcase() {
       </div>
 
       {/* Category Tabs */}
-      <div className="metrics-tabs">
+      <div
+        ref={tabsRef}
+        className={`metrics-tabs animate-fade-up ${tabsInView ? 'in-view' : ''}`}
+      >
         <button
           className={`metrics-tab ${activeCategory === 'before-after' ? 'active' : ''}`}
           onClick={() => setActiveCategory('before-after')}
@@ -193,15 +203,22 @@ export function MetricsShowcase() {
       </div>
 
       {/* Content */}
-      <div className="metrics-content">
+      <div
+        ref={contentRef}
+        className={`metrics-content animate-scale-up ${contentInView ? 'in-view' : ''}`}
+      >
         {activeCategory === 'before-after' && (
           <div className="metrics-before-after">
             <p className="metrics-intro">
               Standard reports inflate metrics with bad data. ProdDash shows you the truth.
             </p>
             <div className="before-after-grid">
-              {beforeAfterData.map((item) => (
-                <div key={item.metric} className="before-after-card">
+              {beforeAfterData.map((item, index) => (
+                <div
+                  key={item.metric}
+                  className={`before-after-card glass-card hover-lift animate-fade-up ${contentInView ? 'in-view' : ''}`}
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
                   <h4>{item.metric}</h4>
                   <div className="before-after-comparison">
                     <div className="comparison-before">

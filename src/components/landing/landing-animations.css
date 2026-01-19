@@ -1,0 +1,900 @@
+/* ============================================
+   LANDING PAGE SCROLL ANIMATIONS & EFFECTS
+   Performance-optimized animations with GPU acceleration
+   ============================================ */
+
+/* ============================================
+   SCROLL PROGRESS INDICATOR
+   ============================================ */
+
+.scroll-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--landing-gold), var(--landing-cyan));
+  transform-origin: left;
+  z-index: 1000;
+  will-change: transform;
+}
+
+/* ============================================
+   ENHANCED NAVIGATION
+   ============================================ */
+
+.landing-nav {
+  transition: background 0.3s ease,
+              backdrop-filter 0.3s ease,
+              box-shadow 0.3s ease,
+              padding 0.3s ease;
+}
+
+.landing-nav.nav-scrolled {
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  padding: 0.75rem 2rem;
+}
+
+.landing-nav.nav-scrolled .landing-logo {
+  transform: scale(0.95);
+}
+
+.landing-nav .landing-logo {
+  transition: transform 0.3s ease;
+}
+
+/* ============================================
+   SCROLL-TRIGGERED ANIMATION CLASSES
+   ============================================ */
+
+/* Base hidden state for animated elements */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.animate-on-scroll.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade up animation */
+.animate-fade-up {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-up.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade in from sides */
+.animate-fade-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-left.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.animate-fade-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-fade-right.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Scale up animation */
+.animate-scale-up {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-scale-up.in-view {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Blur in animation */
+.animate-blur-in {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-blur-in.in-view {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+/* Stagger delay utilities */
+.stagger-1 { transition-delay: 0ms; }
+.stagger-2 { transition-delay: 100ms; }
+.stagger-3 { transition-delay: 200ms; }
+.stagger-4 { transition-delay: 300ms; }
+.stagger-5 { transition-delay: 400ms; }
+.stagger-6 { transition-delay: 500ms; }
+.stagger-7 { transition-delay: 600ms; }
+.stagger-8 { transition-delay: 700ms; }
+
+/* ============================================
+   HERO ENTRANCE ANIMATIONS
+   ============================================ */
+
+.hero-animate-item {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-animate-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* CTA button icon animations */
+.cta-arrow {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.landing-cta-primary:hover .cta-arrow {
+  transform: translateX(4px);
+}
+
+.cta-chevron {
+  transition: transform 0.3s ease;
+}
+
+.landing-cta-secondary:hover .cta-chevron {
+  animation: bounceDown 1s ease infinite;
+}
+
+@keyframes bounceDown {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+/* ============================================
+   ENHANCED PARALLAX HERO
+   ============================================ */
+
+.landing-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient orbs container */
+.hero-gradient-orbs {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-parallax-layer {
+  position: absolute;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.hero-parallax-layer.slow {
+  animation: heroParallaxSlow 20s ease-in-out infinite;
+}
+
+.hero-parallax-layer.medium {
+  animation: heroParallaxMedium 15s ease-in-out infinite;
+}
+
+.hero-parallax-layer.fast {
+  animation: heroParallaxFast 10s ease-in-out infinite;
+}
+
+@keyframes heroParallaxSlow {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  25% { transform: translateY(-15px) translateX(10px); }
+  50% { transform: translateY(-10px) translateX(-5px); }
+  75% { transform: translateY(-20px) translateX(5px); }
+}
+
+@keyframes heroParallaxMedium {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  33% { transform: translateY(-25px) translateX(-15px); }
+  66% { transform: translateY(-15px) translateX(20px); }
+}
+
+@keyframes heroParallaxFast {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }
+}
+
+/* Gradient orbs for depth */
+.hero-gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.hero-gradient-orb.gold {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, transparent 70%);
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: orbPulse 8s ease-in-out infinite;
+}
+
+.hero-gradient-orb.cyan {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%);
+  width: 500px;
+  height: 500px;
+  bottom: -100px;
+  right: -100px;
+  animation: orbPulse 10s ease-in-out infinite 2s;
+}
+
+.hero-gradient-orb.violet {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.25) 0%, transparent 70%);
+  width: 450px;
+  height: 450px;
+  bottom: 100px;
+  left: -150px;
+  animation: orbPulse 12s ease-in-out infinite 4s;
+}
+
+@keyframes orbPulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.15);
+    opacity: 0.5;
+  }
+}
+
+.hero-gradient-orb.cyan,
+.hero-gradient-orb.violet {
+  animation-name: orbPulseSide;
+}
+
+@keyframes orbPulseSide {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.45;
+  }
+}
+
+/* ============================================
+   ENHANCED GLASSMORPHISM
+   ============================================ */
+
+.glass-card {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.8) 0%,
+    rgba(30, 41, 59, 0.4) 100%
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* Enhanced glass hover state */
+.glass-card-interactive {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
+}
+
+.glass-card-interactive:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Glow effect on hover */
+.glass-card-glow {
+  position: relative;
+}
+
+.glass-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0) 0%,
+    rgba(245, 158, 11, 0.3) 50%,
+    rgba(245, 158, 11, 0) 100%
+  );
+  border-radius: 18px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+
+.glass-card-glow:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   MICRO-INTERACTIONS
+   ============================================ */
+
+/* Button press effect */
+.btn-press {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Icon bounce on hover */
+.icon-bounce {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-bounce:hover {
+  transform: scale(1.15);
+}
+
+/* Magnetic button effect (applied via JS) */
+.magnetic-btn {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Text reveal animation */
+.text-reveal {
+  overflow: hidden;
+}
+
+.text-reveal span {
+  display: inline-block;
+  transform: translateY(100%);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.text-reveal.in-view span {
+  transform: translateY(0);
+}
+
+/* Counter animation placeholder */
+.counter-animate {
+  transition: opacity 0.3s ease;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Ripple effect base */
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple-effect::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+              rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.ripple-effect:active::after {
+  opacity: 1;
+  transform: scale(2);
+  transition: transform 0s, opacity 0s;
+}
+
+/* ============================================
+   CARD TILT EFFECT (3D)
+   ============================================ */
+
+.tilt-card {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: transform 0.3s ease;
+}
+
+.tilt-card-inner {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
+
+/* ============================================
+   SMOOTH SECTION TRANSITIONS
+   ============================================ */
+
+.section-divider {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent
+  );
+}
+
+.section-gradient-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 200px;
+  pointer-events: none;
+}
+
+.section-gradient-fade.top {
+  top: 0;
+  background: linear-gradient(to bottom, var(--landing-bg), transparent);
+}
+
+.section-gradient-fade.bottom {
+  bottom: 0;
+  background: linear-gradient(to top, var(--landing-bg), transparent);
+}
+
+/* ============================================
+   LOADING & SKELETON STATES
+   ============================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   MOBILE TOUCH OPTIMIZATIONS
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Disable hover effects on touch devices */
+  .glass-card-interactive:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .hover-lift:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Add touch-friendly active states instead */
+  .glass-card-interactive:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  .hover-lift:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  /* Larger touch targets */
+  .landing-nav-link,
+  .landing-cta-primary,
+  .landing-cta-secondary {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Reduce motion for performance */
+  .hero-gradient-orb,
+  .hero-parallax-layer {
+    animation: none !important;
+  }
+
+  /* Faster transitions for snappy feel */
+  .animate-on-scroll,
+  .animate-fade-up,
+  .animate-scale-up {
+    transition-duration: 0.5s;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION PREFERENCES
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-on-scroll,
+  .animate-fade-up,
+  .animate-fade-left,
+  .animate-fade-right,
+  .animate-scale-up,
+  .animate-blur-in {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Smooth scrolling for the whole page */
+.landing-page {
+  scroll-behavior: smooth;
+}
+
+/* GPU-accelerated properties */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Contain layout paint */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+/* Optimize will-change for animated elements only when needed */
+.will-animate {
+  will-change: transform, opacity;
+}
+
+/* Clear will-change after animation */
+.animation-complete {
+  will-change: auto;
+}
+
+/* ============================================
+   ENHANCED BUTTON STATES
+   ============================================ */
+
+.landing-cta-primary,
+.landing-cta-secondary {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-cta-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.landing-cta-primary:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+.landing-cta-secondary::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-50%);
+  transition: width 0.3s ease;
+}
+
+.landing-cta-secondary:hover::after {
+  width: 80%;
+}
+
+/* ============================================
+   CARD SHINE EFFECT ON HOVER
+   ============================================ */
+
+.glass-card-interactive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transition: left 0.5s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.glass-card-interactive:hover::before {
+  left: 100%;
+}
+
+/* ============================================
+   FLOATING BADGE PULSE
+   ============================================ */
+
+.hero-badge {
+  animation: badgePulse 3s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+  }
+}
+
+/* ============================================
+   SECTION EYEBROW ANIMATION
+   ============================================ */
+
+.landing-section-eyebrow {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-section-eyebrow::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.2), transparent);
+  transform: translateX(-100%);
+  animation: eyebrowShine 3s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+@keyframes eyebrowShine {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+/* ============================================
+   FOOTER ANIMATION
+   ============================================ */
+
+.landing-footer {
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 158, 11, 0.3),
+    rgba(6, 182, 212, 0.3),
+    transparent
+  );
+  animation: footerLine 8s linear infinite;
+}
+
+@keyframes footerLine {
+  0% { transform: translateX(-25%); }
+  100% { transform: translateX(25%); }
+}
+
+/* ============================================
+   ENHANCED MOBILE TOUCH
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Tap highlight color */
+  .landing-cta-primary,
+  .landing-cta-secondary,
+  .landing-nav-link,
+  .glass-card-interactive {
+    -webkit-tap-highlight-color: rgba(245, 158, 11, 0.2);
+  }
+
+  /* Active state feedback */
+  .landing-cta-primary:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  }
+
+  .landing-cta-secondary:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Remove hover-only effects */
+  .landing-cta-primary::before,
+  .landing-cta-secondary::after,
+  .glass-card-interactive::before {
+    display: none;
+  }
+
+  /* Scrollable sections */
+  .landing-transform-nav,
+  .metrics-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .landing-transform-nav::-webkit-scrollbar,
+  .metrics-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Snap scrolling for tabs */
+  .landing-transform-nav,
+  .metrics-tabs {
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 1rem;
+  }
+
+  .transform-nav-item,
+  .metrics-tab {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+
+  /* Larger tap targets */
+  .transform-nav-item,
+  .metrics-tab {
+    min-height: 48px;
+    min-width: 100px;
+  }
+
+  /* Smoother touch scrolling */
+  .landing-page {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ============================================
+   TABLET OPTIMIZATIONS
+   ============================================ */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .landing-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .landing-problem-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero-gradient-orb {
+    transform: scale(0.8);
+  }
+}
+
+/* ============================================
+   HIGH DPI / RETINA OPTIMIZATIONS
+   ============================================ */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .glass-card {
+    border-width: 0.5px;
+  }
+
+  .section-divider {
+    height: 0.5px;
+  }
+}

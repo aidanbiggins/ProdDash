@@ -17,7 +17,7 @@ function RecommendationCard({
   onApply?: () => void;
 }) {
   return (
-    <div className="border rounded p-3 mb-2" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+    <div className="border rounded p-3 mb-2" style={{ borderColor: 'var(--glass-border)' }}>
       <div className="d-flex justify-content-between align-items-start mb-2">
         <div>
           <span className="badge-bespoke badge-primary-soft me-2">#{rec.rank}</span>
@@ -34,14 +34,7 @@ function RecommendationCard({
           <div className="text-muted">From:</div>
           <div>
             {rec.fromRecruiterName}
-            <span
-              className="badge ms-1"
-              style={{
-                background: 'rgba(239, 68, 68, 0.15)',
-                color: '#f87171',
-                fontSize: '0.7rem'
-              }}
-            >
+            <span className="badge badge-danger-soft ms-1">
               {Math.round(rec.fromUtilization * 100)}%
             </span>
           </div>
@@ -50,14 +43,7 @@ function RecommendationCard({
           <div className="text-muted">To:</div>
           <div>
             {rec.toRecruiterName}
-            <span
-              className="badge ms-1"
-              style={{
-                background: 'rgba(34, 197, 94, 0.15)',
-                color: '#34d399',
-                fontSize: '0.7rem'
-              }}
-            >
+            <span className="badge badge-success-soft ms-1">
               {Math.round(rec.toUtilization * 100)}%
             </span>
           </div>
@@ -73,8 +59,7 @@ function RecommendationCard({
         <div className="small mb-2">
           <span className="text-muted">Fit improvement:</span>
           <span
-            className="ms-1"
-            style={{ color: rec.fitScoreImprovement > 0 ? '#34d399' : '#f87171' }}
+            className={`ms-1 ${rec.fitScoreImprovement > 0 ? 'text-success' : 'text-danger'}`}
           >
             {rec.fitScoreImprovement > 0 ? '+' : ''}{rec.fitScoreImprovement.toFixed(2)}
           </span>
@@ -112,7 +97,7 @@ export function RebalanceRecommendations({
           </h6>
         </div>
         <div className="card-body text-center py-4 text-muted">
-          <i className="bi bi-check-circle" style={{ fontSize: '2rem', color: '#34d399' }}></i>
+          <i className="bi bi-check-circle text-success" style={{ fontSize: '2rem' }}></i>
           <div className="mt-2">Workload is well distributed</div>
           <div className="small">No rebalancing recommendations at this time</div>
         </div>
@@ -141,11 +126,7 @@ export function RebalanceRecommendations({
 
       {!isCollapsed && (
         <div className="card-body">
-          <div className="alert alert-light small mb-3" style={{
-            background: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.2)',
-            color: '#94a3b8'
-          }}>
+          <div className="alert alert-info small mb-3">
             <i className="bi bi-lightbulb me-1"></i>
             These are suggestions based on workload and fit analysis.
             Apply only after reviewing each move with your team.

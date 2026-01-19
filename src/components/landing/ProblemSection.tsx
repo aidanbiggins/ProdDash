@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useInView } from './hooks/useScrollAnimations';
 
 interface PainPoint {
   icon: string;
@@ -41,10 +42,16 @@ const painPoints: PainPoint[] = [
 
 export function ProblemSection() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [gridRef, gridInView] = useInView<HTMLDivElement>({ threshold: 0.1 });
+  const [quoteRef, quoteInView] = useInView<HTMLDivElement>({ threshold: 0.3 });
 
   return (
     <section className="landing-problem">
-      <div className="landing-section-header">
+      <div
+        ref={headerRef}
+        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+      >
         <span className="landing-section-eyebrow">The Problem</span>
         <h2>TA Teams Are Flying Blind</h2>
         <p>
@@ -53,15 +60,16 @@ export function ProblemSection() {
         </p>
       </div>
 
-      <div className="landing-problem-grid">
+      <div ref={gridRef} className="landing-problem-grid">
         {painPoints.map((point, index) => (
           <div
             key={point.title}
-            className={`landing-problem-card ${activeIndex === index ? 'active' : ''}`}
+            className={`landing-problem-card glass-card-interactive animate-fade-up ${activeIndex === index ? 'active' : ''} ${gridInView ? 'in-view' : ''}`}
+            style={{ transitionDelay: `${index * 100}ms` }}
             onMouseEnter={() => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(null)}
           >
-            <div className="landing-problem-icon">
+            <div className="landing-problem-icon icon-bounce">
               <i className={point.icon} />
             </div>
             <h3>{point.title}</h3>
@@ -74,7 +82,10 @@ export function ProblemSection() {
         ))}
       </div>
 
-      <div className="landing-problem-quote">
+      <div
+        ref={quoteRef}
+        className={`landing-problem-quote animate-blur-in ${quoteInView ? 'in-view' : ''}`}
+      >
         <blockquote>
           We have 120 open reqs but keep missing hiring goals. What's going wrong?
         </blockquote>

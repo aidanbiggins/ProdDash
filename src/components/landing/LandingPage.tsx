@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { HeroSection } from './HeroSection';
 import { ProblemSection } from './ProblemSection';
@@ -8,12 +8,25 @@ import { FeaturesSection } from './FeaturesSection';
 import { MetricsShowcase } from './MetricsShowcase';
 import { ScreenshotsSection } from './ScreenshotsSection';
 import { CTASection } from './CTASection';
+import { useScrollProgress } from './hooks/useScrollAnimations';
 import './landing-page.css';
+import './landing-animations.css';
 
 export function LandingPage() {
   const navigate = useNavigate();
   const problemRef = useRef<HTMLElement>(null);
   const featuresRef = useRef<HTMLElement>(null);
+  const scrollProgress = useScrollProgress();
+  const [navScrolled, setNavScrolled] = useState(false);
+
+  // Update nav style based on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setNavScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleGetStarted = () => {
     navigate('/login');
@@ -25,8 +38,13 @@ export function LandingPage() {
 
   return (
     <div className="landing-page">
+      {/* Scroll progress indicator */}
+      <div
+        className="scroll-progress-bar"
+        style={{ transform: `scaleX(${scrollProgress})` }}
+      />
       {/* Navigation */}
-      <nav className="landing-nav">
+      <nav className={`landing-nav ${navScrolled ? 'nav-scrolled' : ''}`}>
         <div className="landing-nav-inner">
           <Link to="/" className="landing-logo">
             <span className="landing-logo-icon">

@@ -116,7 +116,9 @@ function DatasetStatusBar({
   candidateCount,
   eventCount,
   dataHealthScore,
-  unmappedStages
+  unmappedStages,
+  repairSuggestionsCount = 0,
+  onRepairsClick
 }: {
   importSource: string | null;
   lastImportAt: Date | null;
@@ -125,6 +127,8 @@ function DatasetStatusBar({
   eventCount: number;
   dataHealthScore: number;
   unmappedStages: number;
+  repairSuggestionsCount?: number;
+  onRepairsClick?: () => void;
 }) {
   const formatName = importSource === 'demo' ? 'Demo Data' :
     importSource?.includes('icims') ? 'iCIMS Format' :
@@ -173,6 +177,18 @@ function DatasetStatusBar({
             <i className="bi bi-exclamation-triangle" style={{ color: '#f59e0b' }}></i>
             <span style={{ color: '#f59e0b' }}>{unmappedStages} unmapped stages</span>
           </div>
+        )}
+
+        {repairSuggestionsCount > 0 && (
+          <button
+            className="repairs-chip"
+            onClick={onRepairsClick}
+            type="button"
+          >
+            <i className="bi bi-wrench-adjustable"></i>
+            <span className="count">{repairSuggestionsCount}</span>
+            <span>improvements</span>
+          </button>
         )}
 
         {lastImportAt && (

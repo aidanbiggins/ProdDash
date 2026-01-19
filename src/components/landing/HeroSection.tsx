@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useMouseParallax } from './hooks/useScrollAnimations';
 
 interface HeroSectionProps {
   onGetStarted: () => void;
@@ -52,15 +53,68 @@ const floatingElements = [
 ];
 
 export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const heroRef = useRef<HTMLElement>(null);
+
+  // Trigger entrance animations after mount
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Track mouse position for parallax effect on floating elements
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / rect.width;
+    const y = (e.clientY - rect.top - rect.height / 2) / rect.height;
+    setMousePosition({ x, y });
+  };
+
   return (
-    <section className="landing-hero">
+    <section
+      className="landing-hero"
+      ref={heroRef}
+      onMouseMove={handleMouseMove}
+    >
+      {/* Gradient orbs for depth */}
+      <div className="hero-gradient-orbs">
+        <div
+          className="hero-gradient-orb gold"
+          style={{
+            transform: `translate(calc(-50% + ${mousePosition.x * 30}px), ${mousePosition.y * 20}px)`,
+          }}
+        />
+        <div
+          className="hero-gradient-orb cyan"
+          style={{
+            transform: `translate(${mousePosition.x * -20}px, ${mousePosition.y * -15}px)`,
+          }}
+        />
+        <div
+          className="hero-gradient-orb violet"
+          style={{
+            transform: `translate(${mousePosition.x * 25}px, ${mousePosition.y * 18}px)`,
+          }}
+        />
+      </div>
+
       {/* Background floating data layer - behind everything */}
-      <div className="hero-background-data">
+      <div
+        className="hero-background-data"
+        style={{
+          transform: `translate(${mousePosition.x * -10}px, ${mousePosition.y * -8}px)`,
+        }}
+      >
         {floatingElements.map((el, index) => (
           <div
             key={index}
             className={`bg-data-element ${el.type} ${el.position}`}
-            style={{ animationDelay: `${index * 0.5}s` }}
+            style={{
+              animationDelay: `${index * 0.3}s`,
+              transform: `translate(${mousePosition.x * (10 + index % 5 * 3)}px, ${mousePosition.y * (8 + index % 4 * 2)}px)`,
+            }}
           >
             {el.type === 'stat' && (
               <>
@@ -95,20 +149,22 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
       </div>
 
       {/* Main hero content - foreground */}
-      <div className="landing-hero-content">
-        <div className="hero-badge">
+      <div className={`landing-hero-content ${isLoaded ? 'hero-loaded' : ''}`}>
+        <div className={`hero-badge hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '0ms' }}>
           <i className="bi bi-lightning-charge-fill" />
           <span>CSV to insights in under 5 minutes</span>
         </div>
 
-        <h1>Stop Guessing.<br />Start Knowing.</h1>
+        <h1 className={`hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '100ms' }}>
+          Stop Guessing.<br />Start Knowing.
+        </h1>
 
-        <p className="subheadline">
+        <p className={`subheadline hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '200ms' }}>
           Your ATS has the data. ProdDash reveals the story - why reqs stall,
           where candidates drop off, and exactly what to do next.
         </p>
 
-        <div className="hero-value-props">
+        <div className={`hero-value-props hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '300ms' }}>
           <div className="hero-value-prop">
             <i className="bi bi-check-circle-fill" />
             <span>True metrics (zombie reqs excluded)</span>
@@ -127,18 +183,18 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
           </div>
         </div>
 
-        <div className="landing-hero-ctas">
-          <button className="landing-cta-primary" onClick={onGetStarted}>
+        <div className={`landing-hero-ctas hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '400ms' }}>
+          <button className="landing-cta-primary btn-press ripple-effect" onClick={onGetStarted}>
             Get Started Free
-            <i className="bi bi-arrow-right" />
+            <i className="bi bi-arrow-right cta-arrow" />
           </button>
-          <button className="landing-cta-secondary" onClick={onLearnMore}>
+          <button className="landing-cta-secondary btn-press" onClick={onLearnMore}>
             See How It Works
-            <i className="bi bi-chevron-down" />
+            <i className="bi bi-chevron-down cta-chevron" />
           </button>
         </div>
 
-        <p className="hero-no-credit-card">
+        <p className={`hero-no-credit-card hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '500ms' }}>
           <i className="bi bi-shield-check" />
           No credit card required. Import your own data.
         </p>

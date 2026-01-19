@@ -23,6 +23,13 @@ import {
   generateDraftMessage,
   generateDeterministicDraftMessage
 } from '../../services/velocityCopilotService';
+import {
+  getCitationLabel,
+  shouldCollapseCitations,
+  getCitationsSummary
+} from '../../services/citationLabelService';
+import { getChartDataForInsight, ChartData } from '../../services/insightChartService';
+import { MiniChart } from './MiniCharts';
 
 interface VelocityCopilotPanelProps {
   metrics: VelocityMetrics;
@@ -54,77 +61,129 @@ function SeverityBadge({ severity }: { severity: 'P0' | 'P1' | 'P2' }) {
   );
 }
 
-// Citation badge component
+// Citation badge component - displays human-readable labels
 function CitationBadge({ citation }: { citation: string }) {
+  const label = getCitationLabel(citation);
   return (
     <span
-      className="badge font-mono"
+      className="badge"
       style={{
         background: 'rgba(96, 165, 250, 0.1)',
         color: '#60a5fa',
-        fontSize: '0.6rem'
+        fontSize: '0.65rem',
+        fontWeight: 500,
+        marginRight: '0.25rem',
+        marginBottom: '0.25rem'
       }}
+      title={citation}  // Show technical path on hover for debugging
     >
-      {citation}
+      {label}
     </span>
   );
 }
 
-// AI Insight Card component - compact design matching Control Tower patterns
+// Citations display component - handles collapse for many citations
+function CitationsDisplay({
+  citations,
+  onViewEvidence
+}: {
+  citations: string[];
+  onViewEvidence?: () => void;
+}) {
+  if (citations.length === 0) return null;
+
+  const shouldCollapse = shouldCollapseCitations(citations);
+
+  if (shouldCollapse) {
+    // Show collapsed summary with click to expand
+    return (
+      <button
+        className="btn btn-link p-0 ms-2"
+        onClick={onViewEvidence}
+        style={{
+          fontSize: '0.7rem',
+          color: '#60a5fa',
+          textDecoration: 'none',
+          verticalAlign: 'middle'
+        }}
+        title="Click to see evidence"
+      >
+        <i className="bi bi-database me-1" style={{ fontSize: '0.6rem' }}></i>
+        {getCitationsSummary(citations)}
+      </button>
+    );
+  }
+
+  // Show inline badges for 1-3 citations
+  return (
+    <span className="ms-2 d-inline-flex flex-wrap align-items-center gap-1">
+      {citations.map((citation, idx) => (
+        <CitationBadge key={idx} citation={citation} />
+      ))}
+    </span>
+  );
+}
+
+// AI Insight Card component - with inline visualization
 function AIInsightCard({
   insight,
+  chartData,
   onCreateAction,
   onDraftMessage,
   onViewEvidence,
   createdActionIds
 }: {
   insight: AICopilotInsight;
+  chartData: ChartData;
   onCreateAction: (insight: AICopilotInsight) => void;
   onDraftMessage: (insight: AICopilotInsight) => void;
   onViewEvidence: (insight: AICopilotInsight) => void;
   createdActionIds: Set<string>;
 }) {
   const isActionCreated = createdActionIds.has(insight.id);
-  const borderColor = insight.severity === 'P0' ? '#ef4444' :
-                      insight.severity === 'P1' ? '#f59e0b' : '#22c55e';
+  const borderColor = insight.severity === 'P0' ? 'var(--color-bad)' :
+                      insight.severity === 'P1' ? 'var(--color-warn)' : 'var(--color-good)';
 
   return (
     <div
       className="glass-panel p-3 mb-3"
       style={{ borderLeft: `3px solid ${borderColor}` }}
     >
-      {/* Header with severity and title */}
-      <div className="d-flex align-items-center gap-2 mb-2 flex-wrap">
-        <SeverityBadge severity={insight.severity} />
-        <span className="fw-semibold" style={{ color: 'var(--color-text-primary)', fontSize: '0.875rem' }}>
-          {insight.title}
-        </span>
+      {/* Header row with severity, title, and mini chart */}
+      <div className="d-flex align-items-start justify-content-between gap-3 mb-2">
+        <div className="flex-grow-1">
+          <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <SeverityBadge severity={insight.severity} />
+            <span className="fw-semibold" style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+              {insight.title}
+            </span>
+          </div>
+          {/* Claim text */}
+          <p className="mb-0" style={{ color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.5 }}>
+            {insight.claim}
+          </p>
+        </div>
+
+        {/* Mini chart on the right */}
+        {chartData.type !== 'none' && (
+          <div className="flex-shrink-0">
+            <MiniChart data={chartData} width={140} height={55} />
+          </div>
+        )}
       </div>
 
-      {/* Claim with inline citations */}
-      <p className="mb-2" style={{ color: 'var(--color-text-primary)', fontSize: '0.85rem', lineHeight: 1.5 }}>
-        {insight.claim}
-        {insight.citations.length > 0 && (
-          <span className="ms-2">
-            {insight.citations.map((citation, idx) => (
-              <CitationBadge key={idx} citation={citation} />
-            ))}
-          </span>
-        )}
-      </p>
-
-      {/* Why Now + First recommended action inline */}
-      <p className="mb-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
-        <span style={{ fontStyle: 'italic' }}>{insight.why_now}</span>
+      {/* Why Now + recommended action */}
+      <p className="mb-2" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+        {insight.why_now}
         {insight.recommended_actions[0] && (
-          <span style={{ color: 'var(--color-accent)', marginLeft: '8px' }}>
+          <span style={{ color: 'var(--accent)', marginLeft: '6px' }}>
             → {insight.recommended_actions[0]}
           </span>
         )}
       </p>
 
-      {/* Action Buttons - compact */}
-      <div className="d-flex gap-2 flex-wrap">
+      {/* Action Buttons */}
+      <div className="d-flex gap-2 flex-wrap align-items-center">
         <button
           className="btn btn-sm btn-bespoke-secondary"
           onClick={() => onCreateAction(insight)}
@@ -153,6 +212,14 @@ function AIInsightCard({
           <i className="bi bi-eye me-1"></i>
           Evidence
         </button>
+
+        {/* Collapsed citations link */}
+        {insight.citations.length > 0 && (
+          <CitationsDisplay
+            citations={insight.citations}
+            onViewEvidence={() => onViewEvidence(insight)}
+          />
+        )}
       </div>
     </div>
   );
@@ -438,82 +505,55 @@ export function VelocityCopilotPanel({
 
   return (
     <div className="glass-panel p-3 mb-4" data-testid="velocity-copilot-panel">
-      {/* Header - matches KEY INSIGHTS section styling */}
+      {/* Simplified Header - one line, no redundancy */}
       <div className="d-flex align-items-center justify-content-between mb-3">
         <div className="d-flex align-items-center gap-2">
           <span
-            className={hasAI && isLoading ? 'ai-enabled-glow' : ''}
+            className={isLoading ? 'ai-enabled-glow' : ''}
             style={{
-              width: 28,
-              height: 28,
-              background: hasAI ? 'rgba(139, 92, 246, 0.15)' : 'rgba(96, 165, 250, 0.15)',
-              border: hasAI ? '1px solid rgba(139, 92, 246, 0.3)' : 'none',
+              width: 24,
+              height: 24,
+              background: source === 'ai' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(96, 165, 250, 0.15)',
               borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.9rem',
+              fontSize: '0.8rem',
             }}
           >
-            {hasAI ? '✨' : '📊'}
+            {source === 'ai' ? '✨' : '📊'}
           </span>
-          <div>
-            <div className="d-flex align-items-center gap-2">
-              <h6 className="mb-0" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f5f5f5' }}>
-                Velocity Copilot
-              </h6>
-              {hasAI && <span className="ai-powered-badge"><i className="bi bi-stars"></i> AI</span>}
-            </div>
-            <small style={{ color: '#6b7280', fontSize: '0.7rem' }}>
-              {isLoading && source === 'ai'
-                ? <span className="ai-generating"><i className="bi bi-lightning-charge-fill"></i> Generating insights...</span>
-                : hasAI
-                  ? (insights.length > 0 ? `${insights.length} insight${insights.length !== 1 ? 's' : ''} ready` : 'AI-powered analysis')
-                  : 'Deterministic analysis'}
-            </small>
-          </div>
+          <h6 className="mb-0" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            Velocity Insights
+            {insights.length > 0 && !isLoading && (
+              <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '6px' }}>
+                ({insights.length})
+              </span>
+            )}
+          </h6>
         </div>
 
         <div className="d-flex gap-2">
-          {hasAI && (
-            <button
-              className="btn btn-sm btn-bespoke-primary"
-              onClick={handleGenerateAI}
-              disabled={isLoading}
-              data-testid="generate-ai-btn"
-            >
-              {isLoading && source === 'ai' ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <i className="bi bi-stars me-1"></i>
-                  AI Insights
-                </>
-              )}
-            </button>
+          {isLoading ? (
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+              <span className="spinner-border spinner-border-sm me-1" role="status" />
+              Analyzing...
+            </span>
+          ) : (
+            <>
+              <button
+                className="btn btn-sm btn-link p-0"
+                onClick={handleGenerateAI}
+                disabled={!hasAI}
+                title={hasAI ? 'Regenerate with AI' : 'Configure AI key in Settings'}
+                style={{ color: hasAI ? 'var(--accent)' : 'var(--text-muted)', fontSize: '0.75rem' }}
+                data-testid="generate-ai-btn"
+              >
+                <i className="bi bi-arrow-clockwise me-1"></i>
+                Refresh
+              </button>
+            </>
           )}
-
-          <button
-            className="btn btn-sm btn-bespoke-secondary"
-            onClick={handleGenerateDeterministic}
-            disabled={isLoading}
-            data-testid="generate-deterministic-btn"
-          >
-            {isLoading && source === 'deterministic' ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-1" role="status"></span>
-                Generating...
-              </>
-            ) : (
-              <>
-                <i className="bi bi-calculator me-1"></i>
-                Deterministic
-              </>
-            )}
-          </button>
         </div>
       </div>
 
@@ -527,46 +567,50 @@ export function VelocityCopilotPanel({
 
       {/* Empty state */}
       {!isLoading && insights.length === 0 && !error && (
-        <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>
-          <i className="bi bi-lightbulb" style={{ fontSize: '2rem', opacity: 0.5 }}></i>
-          <p className="mt-2 mb-0" style={{ fontSize: '0.85rem' }}>
-            {hasAI
-              ? 'Click "AI Insights" or "Deterministic" to analyze your velocity data.'
-              : 'Click "Deterministic" to generate insights from your data.'}
+        <div className="text-center py-4" style={{ color: 'var(--text-secondary)' }}>
+          <i className="bi bi-graph-up" style={{ fontSize: '1.5rem', opacity: 0.5 }}></i>
+          <p className="mt-2 mb-2" style={{ fontSize: '0.85rem' }}>
+            Analyze your velocity data
           </p>
+          <div className="d-flex gap-2 justify-content-center">
+            {hasAI && (
+              <button
+                className="btn btn-sm btn-bespoke-primary"
+                onClick={handleGenerateAI}
+                data-testid="generate-ai-empty-btn"
+              >
+                <i className="bi bi-stars me-1"></i>
+                AI Analysis
+              </button>
+            )}
+            <button
+              className="btn btn-sm btn-bespoke-secondary"
+              onClick={handleGenerateDeterministic}
+              data-testid="generate-deterministic-btn"
+            >
+              <i className="bi bi-calculator me-1"></i>
+              Quick Analysis
+            </button>
+          </div>
         </div>
       )}
 
       {/* Loading state */}
       {isLoading && (
-        <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>
+        <div className="text-center py-4" style={{ color: 'var(--text-secondary)' }}>
           <div className="spinner-border spinner-border-sm me-2" role="status"></div>
           Analyzing velocity data...
         </div>
       )}
 
-      {/* Insights */}
+      {/* Insights - directly rendered, no intermediate banner */}
       {!isLoading && insights.length > 0 && (
         <>
-          <div className="mb-3 d-flex align-items-center gap-2">
-            <span
-              className="badge"
-              style={{
-                background: source === 'ai' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(96, 165, 250, 0.15)',
-                color: source === 'ai' ? '#8b5cf6' : '#60a5fa'
-              }}
-            >
-              {source === 'ai' ? '✨ AI Generated' : '📊 Deterministic'}
-            </span>
-            <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
-              {insights.length} insight{insights.length !== 1 ? 's' : ''} generated
-            </span>
-          </div>
-
           {insights.map(insight => (
             <AIInsightCard
               key={insight.id}
               insight={insight}
+              chartData={getChartDataForInsight(insight, factPack)}
               onCreateAction={handleCreateAction}
               onDraftMessage={handleDraftMessage}
               onViewEvidence={handleViewEvidence}

@@ -27,6 +27,7 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
   const maxValue = Math.max(demand, capacity) * 1.2;
   const demandPercent = (demand / maxValue) * 100;
   const capacityPercent = (capacity / maxValue) * 100;
+  const isOverDemand = demand > capacity;
 
   return (
     <div className="mb-3">
@@ -34,13 +35,10 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
         <span>Team Demand</span>
         <span>{demand} WU</span>
       </div>
-      <div className="progress mb-2" style={{ height: '8px', background: 'rgba(255,255,255,0.1)' }}>
+      <div className="progress mb-2 capacity-progress-track">
         <div
-          className="progress-bar"
-          style={{
-            width: `${demandPercent}%`,
-            background: demand > capacity ? '#f87171' : '#60a5fa'
-          }}
+          className={`progress-bar ${isOverDemand ? 'bg-danger' : 'bg-primary'}`}
+          style={{ width: `${demandPercent}%` }}
         />
       </div>
 
@@ -48,31 +46,25 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
         <span>Team Capacity</span>
         <span>{capacity} WU</span>
       </div>
-      <div className="progress" style={{ height: '8px', background: 'rgba(255,255,255,0.1)' }}>
+      <div className="progress capacity-progress-track">
         <div
-          className="progress-bar"
-          style={{
-            width: `${capacityPercent}%`,
-            background: '#34d399'
-          }}
+          className="progress-bar bg-success"
+          style={{ width: `${capacityPercent}%` }}
         />
       </div>
     </div>
   );
 }
 
-export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
-  const statusColors = {
-    understaffed: '#f87171',
-    overstaffed: '#fbbf24',
-    balanced: '#34d399'
-  };
+// Map status to CSS class
+const STATUS_CLASS: Record<string, { panel: string; badge: string; label: string }> = {
+  understaffed: { panel: 'capacity-status-understaffed', badge: 'badge-danger-soft', label: 'Understaffed' },
+  overstaffed: { panel: 'capacity-status-overstaffed', badge: 'badge-warning-soft', label: 'Overstaffed' },
+  balanced: { panel: 'capacity-status-balanced', badge: 'badge-success-soft', label: 'Balanced' }
+};
 
-  const statusLabels = {
-    understaffed: 'Understaffed',
-    overstaffed: 'Overstaffed',
-    balanced: 'Balanced'
-  };
+export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
+  const statusStyle = STATUS_CLASS[summary.status] || STATUS_CLASS.balanced;
 
   return (
     <div className="card-bespoke">
@@ -87,20 +79,14 @@ export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
       <div className="card-body">
         <CapacityGauge demand={summary.teamDemand} capacity={summary.teamCapacity} />
 
-        <div className="text-center p-3 rounded mb-3" style={{
-          background: `${statusColors[summary.status]}15`,
-          border: `1px solid ${statusColors[summary.status]}40`
-        }}>
+        <div className={`text-center p-3 rounded mb-3 capacity-status-panel ${statusStyle.panel}`}>
           <div className="stat-label text-muted">Capacity Gap</div>
-          <div className="stat-value" style={{ color: statusColors[summary.status] }}>
+          <div className="stat-value capacity-gap-value">
             {summary.capacityGap > 0 ? '+' : ''}{summary.capacityGap} WU
           </div>
           <div className="small mt-1">
-            <span className="badge-bespoke" style={{
-              background: `${statusColors[summary.status]}20`,
-              color: statusColors[summary.status]
-            }}>
-              {Math.abs(summary.capacityGapPercent)}% {statusLabels[summary.status]}
+            <span className={`badge ${statusStyle.badge}`}>
+              {Math.abs(summary.capacityGapPercent)}% {statusStyle.label}
             </span>
           </div>
         </div>

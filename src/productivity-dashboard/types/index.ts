@@ -16,6 +16,7 @@ export * from './preMortemTypes';
 export * from './aiTypes';
 export * from './askTypes';
 export * from './snapshotTypes';
+export * from './resilientImportTypes';
 
 // ===== DATA STORE STATE =====
 

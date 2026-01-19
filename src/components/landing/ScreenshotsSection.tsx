@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useInView } from './hooks/useScrollAnimations';
 
 export function ScreenshotsSection() {
+  const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [mockupRef, mockupInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
+  const [barsAnimated, setBarsAnimated] = useState(false);
+
   // Simulated dashboard preview with mock data
   const kpis = [
     { label: 'Median TTF', value: '32', unit: 'days', color: 'gold' },
@@ -14,17 +19,30 @@ export function ScreenshotsSection() {
   const barColors = ['#f59e0b', '#06b6d4', '#8b5cf6', '#22c55e', '#f59e0b', '#06b6d4',
                      '#8b5cf6', '#22c55e', '#f59e0b', '#06b6d4', '#8b5cf6', '#22c55e'];
 
+  // Animate bars when section comes into view
+  useEffect(() => {
+    if (mockupInView && !barsAnimated) {
+      setTimeout(() => setBarsAnimated(true), 300);
+    }
+  }, [mockupInView, barsAnimated]);
+
   return (
     <section className="landing-screenshots">
-      <div className="landing-section-header">
+      <div
+        ref={headerRef}
+        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+      >
         <h2>See Your Pipeline at a Glance</h2>
         <p>
           Real-time dashboards that update as your data changes. No more stale spreadsheets.
         </p>
       </div>
       <div className="landing-screenshot-container">
-        <div className="landing-screenshot-wrapper">
-          <div className="landing-screenshot-mockup">
+        <div
+          ref={mockupRef}
+          className={`landing-screenshot-wrapper animate-scale-up ${mockupInView ? 'in-view' : ''}`}
+        >
+          <div className="landing-screenshot-mockup glass-card">
             <div className="landing-screenshot-header">
               <span className="landing-screenshot-dot red" />
               <span className="landing-screenshot-dot yellow" />
@@ -32,15 +50,22 @@ export function ScreenshotsSection() {
             </div>
             <div className="landing-screenshot-content">
               <div className="landing-preview-grid">
-                {kpis.map((kpi) => (
-                  <div key={kpi.label} className="landing-preview-kpi">
+                {kpis.map((kpi, index) => (
+                  <div
+                    key={kpi.label}
+                    className={`landing-preview-kpi animate-fade-up ${mockupInView ? 'in-view' : ''}`}
+                    style={{ transitionDelay: `${index * 100 + 200}ms` }}
+                  >
                     <div className="landing-preview-kpi-label">{kpi.label}</div>
                     <div className={`landing-preview-kpi-value ${kpi.color}`}>
                       {kpi.value}{kpi.unit}
                     </div>
                   </div>
                 ))}
-                <div className="landing-preview-chart">
+                <div
+                  className={`landing-preview-chart animate-fade-up ${mockupInView ? 'in-view' : ''}`}
+                  style={{ transitionDelay: '500ms' }}
+                >
                   <div className="landing-preview-chart-header">Pipeline Velocity (12 weeks)</div>
                   <div className="landing-preview-bars">
                     {barHeights.map((height, index) => (
@@ -48,9 +73,10 @@ export function ScreenshotsSection() {
                         key={index}
                         className="landing-preview-bar"
                         style={{
-                          height: `${height}%`,
+                          height: barsAnimated ? `${height}%` : '0%',
                           background: barColors[index],
-                          opacity: 0.8
+                          opacity: 0.8,
+                          transition: `height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 50}ms`
                         }}
                       />
                     ))}

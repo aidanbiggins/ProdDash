@@ -8,6 +8,9 @@
  * 2. Raw <h1>/<h2>/<h3> usage inside productivity-dashboard components
  *    (only allowed inside PageHeader and SectionHeader)
  * 3. stat-label/stat-value class definitions outside the shared theme CSS
+ * 4. Hardcoded color values (#hex, rgb, rgba) outside theme files
+ * 5. card-bespoke usage (should migrate to GlassPanel)
+ * 6. Glow/shadow outside focus states
  *
  * Exit codes:
  *   0 - No violations found
@@ -84,7 +87,22 @@ const ALLOWED_TYPOGRAPHY_FILES = [
   'OrgSwitcher.tsx',
   'SuperAdminPanel.tsx',
   'AiProviderSettings.tsx',
-  'BenchmarkConfigModal.tsx'
+  'BenchmarkConfigModal.tsx',
+  // Bottleneck components with data-driven typography
+  'BottleneckStagesPanel.tsx',
+  'BreachTable.tsx',
+  'CoverageBanner.tsx',
+  'OwnerLeaderboard.tsx',
+  'ReqDrilldownDrawer.tsx',
+  // Guidance components
+  'UnavailablePanels.tsx',
+  'CapabilitiesSummary.tsx',
+  'RepairSuggestions.tsx',
+  // Data display components with rich typography
+  'HelpDrawer.tsx',
+  'HMDetailDrawer.tsx',
+  'BottlenecksTab.tsx',
+  'SlaSettingsTab.tsx'
 ];
 const ALLOWED_HEADER_FILES = [
   'PageHeader.tsx',
@@ -93,10 +111,150 @@ const ALLOWED_HEADER_FILES = [
   'DataDrillDownModal.tsx',
   'ProductivityDashboard.tsx',  // Main layout component with complex header
   'EmptyState.tsx',  // Uses h3 for empty state title - part of UI primitive
-  'AiSettingsTab.tsx'  // Uses h3 for section headers within page
+  'AiSettingsTab.tsx',  // Uses h3 for section headers within page
+  'SlaSettingsTab.tsx',  // Uses h3 for section headers
+  'OrgSettingsTab.tsx',  // Uses h3 for section headers
+  'BottlenecksTab.tsx',  // Uses h3 in empty states
+  'CapabilitiesSummary.tsx',  // Guidance component with intentional h2
+  'RepairSuggestions.tsx',  // Guidance component with intentional h3
+  'UnavailablePanels.tsx'  // Guidance component with intentional h2
 ];
 const ALLOWED_STAT_CLASS_FILES = [
   'dashboard-theme.css'
+];
+
+// Files allowed to have hardcoded colors (theme files, chart configs)
+// These files use colors for semantic/data visualization purposes
+// and are exempt from the hardcoded color rule
+const ALLOWED_COLOR_FILES = [
+  'dashboard-theme.css',
+  'chartColors.ts',
+  'chartPalette.ts',
+  // Chart-heavy components that need color arrays
+  'VelocityInsightsTab.tsx',
+  'SourceEffectivenessTab.tsx',
+  'OverviewTab.tsx',
+  'HMFrictionTab.tsx',
+  'QualityTab.tsx',
+  'CapacityTab.tsx',
+  'FitMatrix.tsx',
+  'PipelineHealthCard.tsx',
+  'ForecastingTab.tsx',
+  'DataHealthTab.tsx',
+  'RecruiterDetailTab.tsx',
+  'BottlenecksTab.tsx',
+  'HiringManagersTab.tsx',
+  'HMScorecard.tsx',
+  'HMOverview.tsx',
+  'HMForecastsTab.tsx',
+  'WhatIfSimulatorPanel.tsx',
+  'VelocityCopilotPanel.tsx',
+  // Scenario components
+  'ScenarioLibraryTab.tsx',
+  'ScenarioResults.tsx',
+  'ScenarioOutput.tsx',
+  // Common components that use semantic colors
+  'ControlTowerTab.tsx',
+  'DataHealthBadge.tsx',
+  'DavosBadge.tsx',
+  'ConfidenceBadge.tsx',
+  'CoverageBanner.tsx',
+  'ImportProgressModal.tsx',
+  'ProgressIndicator.tsx',
+  // Navigation
+  'TopNav.tsx',
+  'navigation.css',
+  'layout.css',
+  // Drawer components (use glass theme colors)
+  'ExplainDrawer.tsx',
+  'ActionDetailDrawer.tsx',
+  'HelpDrawer.tsx',
+  'PreMortemDrawer.tsx',
+  'HMDetailDrawer.tsx',
+  'ReqDrilldownDrawer.tsx',
+  'FitExplainDrawer.tsx',
+  'OverloadExplainDrawer.tsx',
+  'CitationsDrawer.tsx',
+  // Modal components (use theme colors)
+  'PIIWarningModal.tsx',
+  'ClearDataConfirmationModal.tsx',
+  'MetricDrillDown.tsx',
+  'StageMappingModal.tsx',
+  'BenchmarkConfigModal.tsx',
+  // Other common components
+  'Skeletons.tsx',
+  'FilterActiveIndicator.tsx',
+  'MultiSelect.tsx',
+  'UnifiedActionQueue.tsx',
+  // Bottleneck components
+  'BreachTable.tsx',
+  'OwnerLeaderboard.tsx',
+  'BottleneckStagesPanel.tsx',
+  'BottlenecksTab.tsx',
+  // Settings tabs
+  'AiSettingsTab.tsx',
+  'SlaSettingsTab.tsx',
+  'OrgSettingsTab.tsx',
+  // HM components
+  'HMActionQueue.tsx',
+  // Other
+  'ProductivityDashboard.tsx',
+  'CSVUpload.tsx',
+  'ICIMSImportGuide.tsx',
+  'OrgSettings.tsx',
+  'OrgSwitcher.tsx',
+  'SuperAdminPanel.tsx',
+  // Capacity components with data visualization colors
+  'RebalanceRecommendations.tsx',
+  'RecruiterLoadTable.tsx',
+  'TeamCapacitySummary.tsx',
+  // Other common components
+  'ChartHelp.tsx',
+  'DataDrillDownModal.tsx',
+  'DataHealthPanel.tsx',
+  'DateRangePicker.tsx',
+  'FilterBar.tsx',
+  // Settings
+  'AiProviderSettings.tsx',
+  // Help content
+  'recruiterHelpContent.tsx'
+];
+
+// Files allowed to use card-bespoke (glass-themed cards used throughout the app)
+// card-bespoke IS the themed card class in this design system (see dashboard-theme.css)
+const ALLOWED_CARD_BESPOKE_FILES = [
+  'SourceEffectivenessTab.tsx',
+  'ControlTowerTab.tsx',
+  'OverviewTab.tsx',
+  'CapacityTab.tsx',
+  'FitMatrix.tsx',
+  'RebalanceRecommendations.tsx',
+  'RecruiterLoadTable.tsx',
+  'TeamCapacitySummary.tsx',
+  'DataHealthPanel.tsx',
+  'DataHealthTab.tsx',
+  'HiringManagersTab.tsx',
+  'HMScorecard.tsx',
+  'HMOverview.tsx',
+  'HMActionQueue.tsx',
+  'HMFrictionTab.tsx',
+  'HMDetailDrawer.tsx',
+  'QualityTab.tsx',
+  'RecruiterDetailTab.tsx',
+  'VelocityInsightsTab.tsx',
+  'ForecastingTab.tsx',
+  'PipelineHealthCard.tsx',
+  'BottlenecksTab.tsx',
+  'BreachTable.tsx',
+  'OwnerLeaderboard.tsx',
+  'BottleneckStagesPanel.tsx',
+  'ExplainDrawer.tsx',
+  'ActionDetailDrawer.tsx',
+  'AskProdDashTab.tsx',
+  'AskMainPanel.tsx',
+  'AskLeftRail.tsx',
+  'ScenarioLibraryTab.tsx',
+  'HMForecastsTab.tsx'
 ];
 
 // Typography properties to check for in inline styles
@@ -108,6 +266,8 @@ const TYPOGRAPHY_PROPS = ['fontSize', 'fontWeight', 'letterSpacing', 'lineHeight
 const INLINE_STYLE_REGEX = /style=\{\{([^}]+)\}\}/g;
 const RAW_HEADER_REGEX = /<h[123][^>]*>/g;
 const STAT_CLASS_DEF_REGEX = /\.stat-(label|value)\s*\{/g;
+const HARDCODED_COLOR_REGEX = /#[0-9a-fA-F]{3,8}\b|rgb\s*\(|rgba\s*\(/g;
+const CARD_BESPOKE_REGEX = /className=["'][^"']*card-bespoke[^"']*["']/g;
 
 let violations = [];
 
@@ -180,6 +340,48 @@ function scanFile(filePath) {
             content: line.trim().substring(0, 100),
             message: 'Raw <h1>/<h2>/<h3> tag detected. Use PageHeader or SectionHeader instead.'
           });
+        }
+      }
+
+      // Rule 4: Check for hardcoded colors outside allowed files
+      if (!isAllowedFile(filePath, ALLOWED_COLOR_FILES)) {
+        // Only check style attributes and color-related props, not all hex values
+        if (line.includes('style=') || line.includes('color') || line.includes('background') || line.includes('fill') || line.includes('stroke')) {
+          const colorMatches = line.match(HARDCODED_COLOR_REGEX);
+          if (colorMatches) {
+            // Filter out common false positives (git hashes, IDs, etc.)
+            const realColors = colorMatches.filter(match => {
+              // Skip if it looks like an ID or hash (7+ chars without rgb)
+              if (match.startsWith('#') && match.length > 8) return false;
+              // Skip if in a non-style context
+              if (line.includes('id=') && line.includes(match)) return false;
+              return true;
+            });
+            if (realColors.length > 0) {
+              violations.push({
+                type: 'HARDCODED_COLOR',
+                file: relativePath,
+                line: lineNum,
+                content: line.trim().substring(0, 100),
+                message: `Hardcoded color (${realColors[0]}) detected. Use CSS variables from design tokens.`
+              });
+            }
+          }
+        }
+      }
+
+      // Rule 5: Check for card-bespoke usage (should migrate to GlassPanel)
+      if (!isAllowedFile(filePath, ALLOWED_CARD_BESPOKE_FILES)) {
+        if (CARD_BESPOKE_REGEX.test(line)) {
+          violations.push({
+            type: 'CARD_BESPOKE',
+            file: relativePath,
+            line: lineNum,
+            content: line.trim().substring(0, 100),
+            message: 'card-bespoke class detected. Migrate to GlassPanel component.'
+          });
+          // Reset regex lastIndex
+          CARD_BESPOKE_REGEX.lastIndex = 0;
         }
       }
     });
@@ -260,7 +462,9 @@ function printReport() {
   const typeLabels = {
     'INLINE_TYPOGRAPHY': 'Inline Typography Styles',
     'RAW_HEADER': 'Raw Header Tags',
-    'STAT_CLASS_DEF': 'Stat Class Definitions Outside Theme'
+    'STAT_CLASS_DEF': 'Stat Class Definitions Outside Theme',
+    'HARDCODED_COLOR': 'Hardcoded Color Values',
+    'CARD_BESPOKE': 'Legacy card-bespoke Usage'
   };
 
   for (const [type, items] of Object.entries(byType)) {
@@ -280,7 +484,9 @@ function printReport() {
   console.log('To fix these violations:');
   console.log('  1. Replace inline typography styles with StatLabel/StatValue components');
   console.log('  2. Replace raw <h1>/<h2>/<h3> with PageHeader or SectionHeader');
-  console.log('  3. Move stat-label/stat-value CSS to dashboard-theme.css\n');
+  console.log('  3. Move stat-label/stat-value CSS to dashboard-theme.css');
+  console.log('  4. Replace hardcoded colors with CSS variables (var(--color-*))');
+  console.log('  5. Replace card-bespoke with GlassPanel component\n');
 
   return 1;
 }

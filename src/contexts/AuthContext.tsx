@@ -281,9 +281,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [loadMemberships]);
 
     const signOut = async () => {
+        console.log('[Auth] Signing out...');
+
+        // Clear local storage first
         localStorage.removeItem('dev-auth-bypass');
         localStorage.removeItem(CURRENT_ORG_KEY);
-        if (supabase) await supabase.auth.signOut();
+        // Also clear Supabase session storage directly as backup
+        localStorage.removeItem('prod-dash-auth');
+
+        // Clear local state immediately to prevent UI flicker
+        setUser(null);
+        setSession(null);
+        setMemberships([]);
+        setCurrentOrgId(null);
+        setIsSuperAdmin(false);
+
+        // Set up a fallback redirect in case supabase.auth.signOut() hangs
+        const redirectTimeout = setTimeout(() => {
+            console.log('[Auth] Redirect timeout triggered');
+            window.location.href = '/login';
+        }, 2000);
+
+        try {
+            if (supabase) {
+                await supabase.auth.signOut();
+            }
+        } catch (err) {
+            console.error('[Auth] Sign out error:', err);
+            // Continue with redirect even if supabase signOut fails
+        }
+
+        clearTimeout(redirectTimeout);
+        console.log('[Auth] Redirecting to /login');
+        // Always redirect to login
         window.location.href = '/login';
     };
 
