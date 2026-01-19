@@ -35,6 +35,7 @@ import { useUrlState } from '../hooks/useUrlState';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgSwitcher, CreateOrgModal } from './OrgSwitcher';
 import { OrgSettings } from './OrgSettings';
+import { ImportReview } from './ImportReview';
 import { SuperAdminPanel } from './SuperAdminPanel';
 import { createOrganization } from '../services/organizationService';
 import { AiProviderSettings } from './settings/AiProviderSettings';
@@ -70,6 +71,7 @@ export function ProductivityDashboard() {
   const [showOrgSettings, setShowOrgSettings] = useState(false);
   const [showSuperAdminPanel, setShowSuperAdminPanel] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showImportReview, setShowImportReview] = useState(false);
 
   // AI Keys - auto-load on sign-in
   const { keyState, loadKeys, getEffectiveKey } = useAiKeys();
@@ -442,6 +444,7 @@ export function ProductivityDashboard() {
           onCreateOrg={() => setShowCreateOrgModal(true)}
           onOrgSettings={() => setShowOrgSettings(true)}
           onImportData={() => setShowImportModal(true)}
+          onImportReview={() => setShowImportReview(true)}
           aiEnabled={isAiEnabled}
         />
       )}
@@ -1177,6 +1180,11 @@ export function ProductivityDashboard() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Import Review Modal */}
+        {showImportReview && (
+          <ImportReview onClose={() => setShowImportReview(false)} />
         )}
 
         {/* Progress Indicator Panel */}

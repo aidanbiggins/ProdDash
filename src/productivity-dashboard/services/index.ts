@@ -27,3 +27,4 @@ export * from './capabilityRegistry';
 export * from './repairSuggestionsService';
 export * from './importAuditService';
 export * from './snapshotDateService';
+export * from './importDiagnosticsService';

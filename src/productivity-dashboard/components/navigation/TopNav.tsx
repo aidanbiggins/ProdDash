@@ -20,10 +20,11 @@ export interface TopNavProps {
   onCreateOrg?: () => void;
   onOrgSettings?: () => void;
   onImportData?: () => void;
+  onImportReview?: () => void;
   aiEnabled?: boolean;
 }
 
-export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, userEmail, onSignOut, onCreateOrg, onOrgSettings, onImportData, aiEnabled }: TopNavProps) {
+export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, userEmail, onSignOut, onCreateOrg, onOrgSettings, onImportData, onImportReview, aiEnabled }: TopNavProps) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [quickFindOpen, setQuickFindOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -183,6 +184,16 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                           >
                             <i className="bi bi-upload" style={{ opacity: 0.7, width: '16px' }} />
                             <span>Import Data</span>
+                          </button>
+                        )}
+                        {onImportReview && (
+                          <button
+                            className="nav-dropdown-item"
+                            onClick={() => { onImportReview(); setSettingsMenuOpen(false); }}
+                            role="menuitem"
+                          >
+                            <i className="bi bi-file-earmark-check" style={{ opacity: 0.7, width: '16px' }} />
+                            <span>Import Review</span>
                           </button>
                         )}
 
