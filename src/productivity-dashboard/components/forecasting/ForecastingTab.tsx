@@ -27,6 +27,7 @@ import {
 import { ForecastResult } from '../../services/probabilisticEngine';
 import { OracleConfidenceWidget } from './OracleConfidenceWidget';
 import { CalibrationCard } from './CalibrationCard';
+import { ReqHealthDrawer } from './ReqHealthDrawer';
 import { runCalibration, CalibrationReport } from '../../services/calibrationService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import {
@@ -1072,108 +1073,16 @@ export function ForecastingTab({
               </div>
             </div>
 
-            {/* Selected Role Detail */}
-            {selectedHealthDetails && (
-              <div className="card-bespoke border-primary">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                  <h6 className="mb-0">
-                    {selectedHealthDetails.reqTitle}
-                    <span className={`badge-bespoke ms-2 ${getHealthBadgeClass(selectedHealthDetails.healthStatus)}`}>
-                      Score: {selectedHealthDetails.healthScore}
-                    </span>
-                  </h6>
-                  <button className="btn btn-sm btn-bespoke-secondary" onClick={() => setSelectedHealthReq(null)}>
-                    <i className="bi bi-x-lg"></i>
-                  </button>
-                </div>
-                <div className="card-body">
-                  <div className="row g-4">
-                    {/* Metrics */}
-                    <div className="col-md-6">
-                      <h6 className="mb-3">Metrics</h6>
-                      <div className="d-flex justify-content-between mb-2">
-                        <span className="text-muted">Recruiter:</span>
-                        <span>{selectedHealthDetails.recruiterName}</span>
-                      </div>
-                      <div className="d-flex justify-content-between mb-2">
-                        <span className="text-muted">Hiring Manager:</span>
-                        <span>{selectedHealthDetails.hiringManagerName}</span>
-                      </div>
-                      <div className="d-flex justify-content-between mb-2">
-                        <span className="text-muted">Days Open:</span>
-                        <span>{selectedHealthDetails.daysOpen}d (benchmark: {selectedHealthDetails.benchmarkTTF}d)</span>
-                      </div>
-                      <div className="d-flex justify-content-between mb-2">
-                        <span className="text-muted">Pipeline Depth:</span>
-                        <span className={selectedHealthDetails.pipelineGap < 0 ? 'text-danger' : ''}>
-                          {selectedHealthDetails.currentPipelineDepth} ({selectedHealthDetails.pipelineGap >= 0 ? '+' : ''}{selectedHealthDetails.pipelineGap} vs benchmark)
-                        </span>
-                      </div>
-                      <div className="d-flex justify-content-between mb-2">
-                        <span className="text-muted">Last Activity:</span>
-                        <span className={selectedHealthDetails.daysSinceActivity > 7 ? 'text-warning' : ''}>
-                          {selectedHealthDetails.daysSinceActivity}d ago
-                        </span>
-                      </div>
-                      <div className="d-flex justify-content-between">
-                        <span className="text-muted">Velocity Trend:</span>
-                        <span className={`badge-bespoke ${selectedHealthDetails.velocityTrend === 'improving' ? 'badge-success-soft' :
-                          selectedHealthDetails.velocityTrend === 'stalled' ? 'badge-danger-soft' :
-                            selectedHealthDetails.velocityTrend === 'declining' ? 'badge-warning-soft' : 'badge-neutral-soft'
-                          }`}>
-                          {selectedHealthDetails.velocityTrend}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="col-md-6">
-                      {/* Oracle Widget for Active Role */}
-                      <div className="mb-4">
-                        {probForecast ? (
-                          <OracleConfidenceWidget
-                            forecast={probForecast}
-                            startDate={new Date()}
-                            className="border-primary bg-soft-primary"
-                          />
-                        ) : (
-                          <div className="card-bespoke p-3 text-center text-muted small">
-                            Running Oracle Simulation...
-                          </div>
-                        )}
-                      </div>
-
-                      <h6 className="mb-3">Recommended Actions</h6>
-                      {selectedHealthDetails.actionRecommendations.length > 0 ? (
-                        <div className="list-group list-group-flush">
-                          {selectedHealthDetails.actionRecommendations.map((action, i) => (
-                            <div key={i} className="list-group-item px-0">
-                              <div className="d-flex align-items-start">
-                                <span className={`badge-bespoke me-2 ${action.priority === 'urgent' ? 'badge-danger-soft' :
-                                  action.priority === 'important' ? 'badge-warning-soft' : 'badge-neutral-soft'
-                                  }`}>
-                                  {action.priority}
-                                </span>
-                                <div>
-                                  <div className="fw-medium">{action.action}</div>
-                                  <div className="small text-muted">
-                                    {action.expectedImpact} <span className="text-primary">({action.owner})</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-muted">No specific actions recommended - role is on track!</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
+
+      {/* Req Health Detail Drawer */}
+      <ReqHealthDrawer
+        isOpen={!!selectedHealthReq && !!selectedHealthDetails}
+        onClose={() => setSelectedHealthReq(null)}
+        healthData={selectedHealthDetails}
+        forecast={probForecast}
+      />
 
       {/* Pre-Mortem Detail Drawer */}
       <PreMortemDrawer

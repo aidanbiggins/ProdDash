@@ -102,6 +102,7 @@ const ALLOWED_TYPOGRAPHY_FILES = [
   // Data display components with rich typography
   'HelpDrawer.tsx',
   'HMDetailDrawer.tsx',
+  'ReqHealthDrawer.tsx',
   'BottlenecksTab.tsx',
   'SlaSettingsTab.tsx'
 ];
@@ -173,6 +174,7 @@ const ALLOWED_COLOR_FILES = [
   'HelpDrawer.tsx',
   'PreMortemDrawer.tsx',
   'HMDetailDrawer.tsx',
+  'ReqHealthDrawer.tsx',
   'ReqDrilldownDrawer.tsx',
   'FitExplainDrawer.tsx',
   'OverloadExplainDrawer.tsx',
@@ -241,6 +243,7 @@ const ALLOWED_CARD_BESPOKE_FILES = [
   'HMActionQueue.tsx',
   'HMFrictionTab.tsx',
   'HMDetailDrawer.tsx',
+  'ReqHealthDrawer.tsx',
   'QualityTab.tsx',
   'RecruiterDetailTab.tsx',
   'VelocityInsightsTab.tsx',
