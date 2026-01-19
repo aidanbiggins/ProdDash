@@ -202,13 +202,16 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     >
                         <div className="stat-label mb-1">Most Likely (P50)</div>
                         <div className="stat-value" style={{ fontSize: '1.75rem' }}>{p50Str}</div>
-                        <div className="text-muted small mt-1">
+                        <div className="text-muted small mt-1" style={{ whiteSpace: 'nowrap' }}>
                             {differenceInDays(displayForecast.p50Date, startDate)} days from today
-                            {p50Delta !== null && p50Delta !== 0 && (
-                                <span style={{ color: p50Delta < 0 ? '#10b981' : '#ef4444', marginLeft: '6px' }}>
-                                    ({p50Delta > 0 ? '+' : ''}{p50Delta} days)
-                                </span>
-                            )}
+                            <span style={{
+                                color: p50Delta !== null && p50Delta < 0 ? '#10b981' : p50Delta !== null && p50Delta > 0 ? '#ef4444' : 'transparent',
+                                marginLeft: '6px',
+                                display: 'inline-block',
+                                minWidth: '70px'
+                            }}>
+                                ({p50Delta !== null && p50Delta > 0 ? '+' : ''}{p50Delta ?? 0} days)
+                            </span>
                         </div>
                     </div>
 
@@ -340,20 +343,26 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                 return (
                                     <div key={stage} className="mb-3">
                                         <div className="d-flex justify-content-between align-items-center mb-1">
-                                            <span style={{ fontSize: '0.75rem' }}>{STAGE_LABELS[stage]}</span>
+                                            <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{STAGE_LABELS[stage]}</span>
                                             <span
                                                 style={{
                                                     fontSize: '0.75rem',
                                                     fontFamily: 'var(--font-mono)',
-                                                    color: adjustment !== 0 ? '#2dd4bf' : 'inherit'
+                                                    color: adjustment !== 0 ? '#2dd4bf' : 'inherit',
+                                                    minWidth: '85px',
+                                                    textAlign: 'right',
+                                                    whiteSpace: 'nowrap'
                                                 }}
                                             >
                                                 {current.toFixed(0)}%
-                                                {adjustment !== 0 && (
-                                                    <span style={{ color: adjustment > 0 ? '#10b981' : '#ef4444', marginLeft: '4px' }}>
-                                                        ({adjustment > 0 ? '+' : ''}{adjustment.toFixed(0)})
-                                                    </span>
-                                                )}
+                                                <span style={{
+                                                    color: adjustment > 0 ? '#10b981' : adjustment < 0 ? '#ef4444' : 'transparent',
+                                                    marginLeft: '4px',
+                                                    display: 'inline-block',
+                                                    minWidth: '40px'
+                                                }}>
+                                                    ({adjustment > 0 ? '+' : ''}{adjustment.toFixed(0)})
+                                                </span>
                                             </span>
                                         </div>
                                         <input
@@ -400,20 +409,26 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                 return (
                                     <div key={stage} className="mb-3">
                                         <div className="d-flex justify-content-between align-items-center mb-1">
-                                            <span style={{ fontSize: '0.75rem' }}>{STAGE_LABELS[stage]}</span>
+                                            <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{STAGE_LABELS[stage]}</span>
                                             <span
                                                 style={{
                                                     fontSize: '0.75rem',
                                                     fontFamily: 'var(--font-mono)',
-                                                    color: pctChange !== 0 ? '#2dd4bf' : 'inherit'
+                                                    color: pctChange !== 0 ? '#2dd4bf' : 'inherit',
+                                                    minWidth: '85px',
+                                                    textAlign: 'right',
+                                                    whiteSpace: 'nowrap'
                                                 }}
                                             >
                                                 {currentDays}d
-                                                {pctChange !== 0 && (
-                                                    <span style={{ color: pctChange < 0 ? '#10b981' : '#ef4444', marginLeft: '4px' }}>
-                                                        ({pctChange > 0 ? '+' : ''}{pctChange}%)
-                                                    </span>
-                                                )}
+                                                <span style={{
+                                                    color: pctChange < 0 ? '#10b981' : pctChange > 0 ? '#ef4444' : 'transparent',
+                                                    marginLeft: '4px',
+                                                    display: 'inline-block',
+                                                    minWidth: '45px'
+                                                }}>
+                                                    ({pctChange > 0 ? '+' : ''}{pctChange}%)
+                                                </span>
                                             </span>
                                         </div>
                                         <input
@@ -442,34 +457,44 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                         </div>
                     </div>
 
-                    {/* Impact Summary */}
-                    {hasAdjustments && p50Delta !== null && (
-                        <div
-                            className="mt-3 p-3 rounded-3"
-                            style={{
-                                background: p50Delta < 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                border: `1px solid ${p50Delta < 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-                            }}
-                        >
-                            <div className="d-flex align-items-center gap-2">
-                                <i
-                                    className={`bi ${p50Delta < 0 ? 'bi-graph-down-arrow' : 'bi-graph-up-arrow'}`}
-                                    style={{ color: p50Delta < 0 ? '#10b981' : '#ef4444' }}
-                                ></i>
-                                <span style={{ fontSize: '0.85rem' }}>
-                                    {p50Delta < 0 ? (
+                    {/* Impact Summary - Always rendered to reserve space */}
+                    <div
+                        className="mt-3 p-3 rounded-3"
+                        style={{
+                            background: hasAdjustments && p50Delta !== null
+                                ? (p50Delta < 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)')
+                                : 'rgba(100, 116, 139, 0.05)',
+                            border: hasAdjustments && p50Delta !== null
+                                ? `1px solid ${p50Delta < 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                                : '1px solid rgba(100, 116, 139, 0.1)',
+                            opacity: hasAdjustments && p50Delta !== null ? 1 : 0.5,
+                            minHeight: '48px'
+                        }}
+                    >
+                        <div className="d-flex align-items-center gap-2">
+                            <i
+                                className={`bi ${hasAdjustments && p50Delta !== null && p50Delta < 0 ? 'bi-graph-down-arrow' : 'bi-graph-up-arrow'}`}
+                                style={{ color: hasAdjustments && p50Delta !== null ? (p50Delta < 0 ? '#10b981' : '#ef4444') : '#64748b' }}
+                            ></i>
+                            <span style={{ fontSize: '0.85rem' }}>
+                                {hasAdjustments && p50Delta !== null ? (
+                                    p50Delta < 0 ? (
                                         <>
                                             These changes could <strong style={{ color: '#10b981' }}>speed up hiring by {Math.abs(p50Delta)} days</strong>
                                         </>
-                                    ) : (
+                                    ) : p50Delta > 0 ? (
                                         <>
                                             These changes would <strong style={{ color: '#ef4444' }}>delay hiring by {p50Delta} days</strong>
                                         </>
-                                    )}
-                                </span>
-                            </div>
+                                    ) : (
+                                        <span className="text-muted">No net impact on timeline</span>
+                                    )
+                                ) : (
+                                    <span className="text-muted">Adjust levers above to see impact</span>
+                                )}
+                            </span>
                         </div>
-                    )}
+                    </div>
                 </div>
             )}
         </div>
