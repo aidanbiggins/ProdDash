@@ -1,7 +1,7 @@
 // ReqHealthDrawer - Unified slide-in drawer showing requisition health, Oracle prediction, and Pre-Mortem analysis
 import React from 'react';
 import { RoleHealthMetrics } from '../../types/forecastingTypes';
-import { ForecastResult } from '../../services/probabilisticEngine';
+import { ForecastResult, SimulationParameters } from '../../services/probabilisticEngine';
 import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../types/preMortemTypes';
 import { OracleConfidenceWidget } from './OracleConfidenceWidget';
 
@@ -66,6 +66,7 @@ interface ReqHealthDrawerProps {
   healthData: RoleHealthMetrics | null | undefined;
   forecast: ForecastResult | null;
   preMortem: PreMortemResult | null | undefined;
+  simulationParams?: SimulationParameters | null;
 }
 
 export function ReqHealthDrawer({
@@ -74,6 +75,7 @@ export function ReqHealthDrawer({
   healthData,
   forecast,
   preMortem,
+  simulationParams,
 }: ReqHealthDrawerProps) {
   if (!isOpen || !healthData) return null;
 
@@ -194,6 +196,7 @@ export function ReqHealthDrawer({
               <OracleConfidenceWidget
                 forecast={forecast}
                 startDate={new Date()}
+                simulationParams={simulationParams || undefined}
               />
             </div>
           ) : (

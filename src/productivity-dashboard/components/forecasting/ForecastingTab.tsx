@@ -22,9 +22,10 @@ import {
   generateRoleForecast,
   calculateActiveRoleHealth,
   generateProbabilisticForecast,
-  buildForecastingBenchmarks
+  buildForecastingBenchmarks,
+  prepareSimulationParameters
 } from '../../services/forecastingService';
-import { ForecastResult } from '../../services/probabilisticEngine';
+import { ForecastResult, SimulationParameters } from '../../services/probabilisticEngine';
 import { OracleConfidenceWidget } from './OracleConfidenceWidget';
 import { CalibrationCard } from './CalibrationCard';
 import { ReqHealthDrawer } from './ReqHealthDrawer';
@@ -87,6 +88,7 @@ export function ForecastingTab({
   });
   const [forecast, setForecast] = useState<RoleForecast | null>(null);
   const [probForecast, setProbForecast] = useState<ForecastResult | null>(null);
+  const [simParams, setSimParams] = useState<SimulationParameters | null>(null);
   const [calibrationReport, setCalibrationReport] = useState<CalibrationReport | null>(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
 
@@ -214,6 +216,10 @@ export function ForecastingTab({
       new Date()
     ).then(res => setProbForecast(res));
 
+    // Set simulation params for What-If analysis
+    const params = prepareSimulationParameters(roleProfile, benchmarks, config);
+    setSimParams(params);
+
   }, [roleProfile, requisitions, candidates, events, users, hmFriction, config, benchmarks]);
 
   // Reset wizard
@@ -266,8 +272,13 @@ export function ForecastingTab({
         activeCandidates,
         new Date()
       ).then(res => setProbForecast(res));
+
+      // Set simulation params for What-If analysis
+      const params = prepareSimulationParameters(profile, benchmarks, config);
+      setSimParams(params);
     } else {
       setProbForecast(null);
+      setSimParams(null);
     }
   }, [selectedHealthReq, candidates, selectedHealthDetails, benchmarks, config]);
 
@@ -621,6 +632,7 @@ export function ForecastingTab({
                     <OracleConfidenceWidget
                       forecast={probForecast}
                       startDate={new Date()}
+                      simulationParams={simParams || undefined}
                     />
                   ) : (
                     <div className="card-bespoke text-center h-100 d-flex align-items-center justify-content-center">
@@ -1065,6 +1077,7 @@ export function ForecastingTab({
         healthData={selectedHealthDetails}
         forecast={probForecast}
         preMortem={selectedHealthReq ? preMortemByReqId.get(selectedHealthReq) : null}
+        simulationParams={simParams}
       />
     </div>
   );

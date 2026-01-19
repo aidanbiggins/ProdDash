@@ -230,8 +230,9 @@ function aggregateCandidateForecasts(
 
 /**
  * Prepare simulation parameters with Bayesian shrinkage
+ * Exported for What-If analysis in OracleConfidenceWidget
  */
-function prepareSimulationParameters(
+export function prepareSimulationParameters(
   roleProfile: RoleProfile,
   benchmarks: ForecastingBenchmarks,
   config: DashboardConfig
