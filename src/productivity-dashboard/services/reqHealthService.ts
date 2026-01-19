@@ -219,11 +219,17 @@ export function calculateDataHygieneSummary(
   const reqAssessments = assessAllReqHealth(requisitions, candidates, events, settings);
   const ghostCandidates = detectGhostCandidates(candidates, requisitions, events, users, settings);
 
-  // Count by status (only open reqs)
+  // Count by status (non-closed/canceled reqs)
+  // Include any req that isn't explicitly closed or canceled
+  // This handles various status values from different ATS systems
+  const closedStatuses = [RequisitionStatus.Closed, RequisitionStatus.Canceled, 'Closed', 'Canceled', 'Filled', 'Cancelled'];
   const openReqAssessments = reqAssessments.filter(a => {
     const req = requisitions.find(r => r.req_id === a.reqId);
-    return req?.status === RequisitionStatus.Open;
+    return req && !closedStatuses.includes(req.status as any);
   });
+
+  // Fallback: if no reqs match our "active" filter, use all reqs
+  const effectiveReqAssessments = openReqAssessments.length > 0 ? openReqAssessments : reqAssessments;
 
   const activeReqCount = openReqAssessments.filter(a => a.status === ReqHealthStatus.ACTIVE).length;
   const stalledReqCount = openReqAssessments.filter(a => a.status === ReqHealthStatus.STALLED).length;
@@ -251,14 +257,21 @@ export function calculateDataHygieneSummary(
     : null;
 
   // Calculate hygiene score (0-100)
-  const totalOpenReqs = openReqAssessments.length;
-  const healthyReqRatio = totalOpenReqs > 0 ? activeReqCount / totalOpenReqs : 1;
+  // If no data, show 0 (not 100) to indicate we can't calculate
+  const totalOpenReqs = effectiveReqAssessments.length;
+  const effectiveActiveCount = effectiveReqAssessments.filter(a => a.status === ReqHealthStatus.ACTIVE).length;
+  const healthyReqRatio = totalOpenReqs > 0 ? effectiveActiveCount / totalOpenReqs : 0;
+
   const totalActiveCandidates = candidates.filter(c => c.disposition === CandidateDisposition.Active).length;
   const healthyCandidateRatio = totalActiveCandidates > 0
-    ? (totalActiveCandidates - stagnantCandidateCount - abandonedCandidateCount) / totalActiveCandidates
-    : 1;
+    ? Math.max(0, (totalActiveCandidates - stagnantCandidateCount - abandonedCandidateCount) / totalActiveCandidates)
+    : (candidates.length > 0 ? 0.5 : 0); // If no active candidates but some exist, assume 50%
 
-  const hygieneScore = Math.round((healthyReqRatio * 0.6 + healthyCandidateRatio * 0.4) * 100);
+  // If we have no data at all, score is 0 (insufficient data)
+  const hasData = requisitions.length > 0 || candidates.length > 0;
+  const hygieneScore = hasData
+    ? Math.round((healthyReqRatio * 0.6 + healthyCandidateRatio * 0.4) * 100)
+    : 0;
 
   return {
     activeReqCount,

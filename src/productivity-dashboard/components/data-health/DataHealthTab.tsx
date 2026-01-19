@@ -82,12 +82,18 @@ export function DataHealthTab({
     [requisitions, candidates, events, users, settings]
   );
 
-  // Filter assessments for display (only open reqs)
+  // Filter assessments for display (non-closed/canceled reqs)
   const displayAssessments = useMemo(() => {
-    const openReqIds = new Set(
-      requisitions.filter(r => r.status === RequisitionStatus.Open).map(r => r.req_id)
+    // Include any req that isn't explicitly closed or canceled
+    // This handles various status values from different ATS systems
+    const closedStatuses = [RequisitionStatus.Closed, RequisitionStatus.Canceled, 'Closed', 'Canceled', 'Filled', 'Cancelled'];
+    const activeReqIds = new Set(
+      requisitions.filter(r => !closedStatuses.includes(r.status as any)).map(r => r.req_id)
     );
-    let filtered = reqAssessments.filter(a => openReqIds.has(a.reqId));
+
+    // If no reqs match our "active" filter, show all reqs (better than showing nothing)
+    const targetReqIds = activeReqIds.size > 0 ? activeReqIds : new Set(requisitions.map(r => r.req_id));
+    let filtered = reqAssessments.filter(a => targetReqIds.has(a.reqId));
 
     if (activeFilter !== 'ALL') {
       filtered = filtered.filter(a => a.status === activeFilter);
