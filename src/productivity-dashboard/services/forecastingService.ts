@@ -1,4 +1,4 @@
-// Forecasting Service for the Recruiter Productivity Dashboard
+// Forecasting Service - Builds benchmarks, predicts time-to-fill, and runs probabilistic forecasts
 
 import { differenceInDays, addDays } from 'date-fns';
 import {
@@ -6,12 +6,11 @@ import {
   Candidate,
   Event,
   User,
-  RequisitionStatus,
-  CandidateDisposition,
-  CanonicalStage,
   HiringManagerFriction,
   RoleProfile,
   RoleForecast,
+  ForecastingBenchmarks,
+  CohortBenchmark,
   TTFPrediction,
   PipelineRequirements,
   PipelineStageRequirement,
@@ -20,446 +19,37 @@ import {
   RiskFactor,
   MilestoneTimeline,
   MilestoneEvent,
+  StageDurationBenchmark,
+  ActionRecommendation,
   RoleHealthMetrics,
   HealthStatus,
-  ActionRecommendation,
-  ForecastingBenchmarks,
-  CohortBenchmark,
-  StageDurationBenchmark
+  CanonicalStage,
+  CandidateDisposition,
+  RequisitionStatus
 } from '../types';
 import { DashboardConfig } from '../types/config';
 import { normalizeStage } from './stageNormalization';
+import {
+  runSimulation,
+  ForecastInput,
+  SimulationParameters,
+  ForecastResult,
+  DurationDistribution,
+  shrinkRate
+} from './probabilisticEngine';
 
-// ===== UTILITY FUNCTIONS =====
-
-function median(values: number[]): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
-function percentile(values: number[], p: number): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const index = Math.ceil((p / 100) * sorted.length) - 1;
-  return sorted[Math.max(0, index)];
+// Helper functions
+function severityOrder(severity: 'high' | 'medium' | 'low'): number {
+  return severity === 'high' ? 3 : severity === 'medium' ? 2 : 1;
 }
 
 function getConfidenceLevel(sampleSize: number): 'high' | 'medium' | 'low' {
-  if (sampleSize >= 10) return 'high';
-  if (sampleSize >= 5) return 'medium';
+  if (sampleSize >= 20) return 'high';
+  if (sampleSize >= 10) return 'medium';
   return 'low';
 }
 
-function severityOrder(severity: 'high' | 'medium' | 'low'): number {
-  return { high: 3, medium: 2, low: 1 }[severity];
-}
-
-// ===== BENCHMARK BUILDING =====
-
-/**
- * Build benchmarks from historical data grouped by dimensions
- */
-export function buildForecastingBenchmarks(
-  requisitions: Requisition[],
-  candidates: Candidate[],
-  events: Event[],
-  users: User[],
-  hmFriction: HiringManagerFriction[],
-  config: DashboardConfig
-): ForecastingBenchmarks {
-  // Get closed reqs with hires for TTF calculation
-  const closedReqs = requisitions.filter(r =>
-    r.status === RequisitionStatus.Closed && r.closed_at
-  );
-  const reqMap = new Map(requisitions.map(r => [r.req_id, r]));
-
-  // Calculate TTF for each req using candidate.hired_at - req.opened_at
-  // This matches metricsEngine.ts methodology for consistency across all views
-  const reqTTFs = new Map<string, number>();
-  for (const cand of candidates) {
-    if (cand.disposition === CandidateDisposition.Hired && cand.hired_at) {
-      const req = reqMap.get(cand.req_id);
-      if (req?.opened_at) {
-        const ttf = differenceInDays(cand.hired_at, req.opened_at);
-        if (ttf > 0 && ttf < 365) { // Sanity check
-          // Use the first hire's TTF for each req (most accurate)
-          if (!reqTTFs.has(cand.req_id)) {
-            reqTTFs.set(cand.req_id, ttf);
-          }
-        }
-      }
-    }
-  }
-
-  // Get hire counts per req for pipeline depth calculation
-  const hiresByReq = new Map<string, number>();
-  const candidatesByReq = new Map<string, Candidate[]>();
-  for (const cand of candidates) {
-    const existing = candidatesByReq.get(cand.req_id) || [];
-    existing.push(cand);
-    candidatesByReq.set(cand.req_id, existing);
-
-    if (cand.disposition === CandidateDisposition.Hired) {
-      hiresByReq.set(cand.req_id, (hiresByReq.get(cand.req_id) || 0) + 1);
-    }
-  }
-
-  // Calculate stage conversion rates globally
-  const stageConversionRates = calculateStageConversionRates(candidates, events, config);
-
-  // Calculate source effectiveness
-  const sourceStats = calculateSourceStats(candidates);
-
-  // Calculate global stage durations from all historical data
-  const globalStageDurations = calculateStageDurations(events, candidates, config);
-
-  // Build cohort benchmarks
-  const byCohort: Record<string, CohortBenchmark> = {};
-  const byFunction: Record<string, CohortBenchmark> = {};
-  const byLevel: Record<string, CohortBenchmark> = {};
-  const byLocationType: Record<string, CohortBenchmark> = {};
-  const byJobFamily: Record<string, CohortBenchmark> = {};
-
-  // Group reqs by dimensions
-  const reqsByFunction = groupBy(closedReqs, r => r.function);
-  const reqsByLevel = groupBy(closedReqs, r => r.level);
-  const reqsByLocationType = groupBy(closedReqs, r => r.location_type);
-  const reqsByJobFamily = groupBy(closedReqs, r => r.job_family);
-
-  // Build function benchmarks with cohort-specific stage durations where we have enough data
-  for (const [func, reqs] of Object.entries(reqsByFunction)) {
-    const reqIdSet = new Set(reqs.map(r => r.req_id));
-    const cohortStageDurations = calculateStageDurations(events, candidates, config, reqIdSet);
-    // Use cohort-specific durations if we have enough data, otherwise fall back to global
-    const stageDurations = cohortStageDurations.some(d => d.sampleSize >= 5) ? cohortStageDurations : globalStageDurations;
-    byFunction[func] = buildCohortBenchmark(func, reqs, reqTTFs, candidatesByReq, stageConversionRates, sourceStats, stageDurations);
-  }
-
-  // Build level benchmarks
-  for (const [level, reqs] of Object.entries(reqsByLevel)) {
-    const reqIdSet = new Set(reqs.map(r => r.req_id));
-    const cohortStageDurations = calculateStageDurations(events, candidates, config, reqIdSet);
-    const stageDurations = cohortStageDurations.some(d => d.sampleSize >= 5) ? cohortStageDurations : globalStageDurations;
-    byLevel[level] = buildCohortBenchmark(level, reqs, reqTTFs, candidatesByReq, stageConversionRates, sourceStats, stageDurations);
-  }
-
-  // Build location type benchmarks
-  for (const [locType, reqs] of Object.entries(reqsByLocationType)) {
-    const reqIdSet = new Set(reqs.map(r => r.req_id));
-    const cohortStageDurations = calculateStageDurations(events, candidates, config, reqIdSet);
-    const stageDurations = cohortStageDurations.some(d => d.sampleSize >= 5) ? cohortStageDurations : globalStageDurations;
-    byLocationType[locType] = buildCohortBenchmark(locType, reqs, reqTTFs, candidatesByReq, stageConversionRates, sourceStats, stageDurations);
-  }
-
-  // Build job family benchmarks
-  for (const [jobFamily, reqs] of Object.entries(reqsByJobFamily)) {
-    const reqIdSet = new Set(reqs.map(r => r.req_id));
-    const cohortStageDurations = calculateStageDurations(events, candidates, config, reqIdSet);
-    const stageDurations = cohortStageDurations.some(d => d.sampleSize >= 5) ? cohortStageDurations : globalStageDurations;
-    byJobFamily[jobFamily] = buildCohortBenchmark(jobFamily, reqs, reqTTFs, candidatesByReq, stageConversionRates, sourceStats, stageDurations);
-  }
-
-  // Build full cohort benchmarks (function|level|locationType|jobFamily)
-  const reqsByCohort = groupBy(closedReqs, r =>
-    `${r.function}|${r.level}|${r.location_type}|${r.job_family}`
-  );
-  for (const [cohortKey, reqs] of Object.entries(reqsByCohort)) {
-    const reqIdSet = new Set(reqs.map(r => r.req_id));
-    const cohortStageDurations = calculateStageDurations(events, candidates, config, reqIdSet);
-    const stageDurations = cohortStageDurations.some(d => d.sampleSize >= 5) ? cohortStageDurations : globalStageDurations;
-    byCohort[cohortKey] = buildCohortBenchmark(cohortKey, reqs, reqTTFs, candidatesByReq, stageConversionRates, sourceStats, stageDurations);
-  }
-
-  // Build HM benchmarks
-  const byHM: Record<string, { hmWeight: number; feedbackLatency: number; decisionLatency: number }> = {};
-  for (const hm of hmFriction) {
-    byHM[hm.hmId] = {
-      hmWeight: hm.hmWeight,
-      feedbackLatency: hm.feedbackLatencyMedian || 24,
-      decisionLatency: hm.decisionLatencyMedian || 48
-    };
-  }
-
-  // Build global benchmark
-  const global = buildCohortBenchmark('global', closedReqs, reqTTFs, candidatesByReq, stageConversionRates, sourceStats, globalStageDurations);
-
-  return {
-    byFunction,
-    byLevel,
-    byLocationType,
-    byJobFamily,
-    byCohort,
-    byHM,
-    global
-  };
-}
-
-function buildCohortBenchmark(
-  cohortKey: string,
-  reqs: Requisition[],
-  reqTTFs: Map<string, number>,
-  candidatesByReq: Map<string, Candidate[]>,
-  stageConversionRates: Record<string, number>,
-  sourceStats: { hireRates: Record<string, number>; ttfs: Record<string, number> },
-  stageDurations: StageDurationBenchmark[]
-): CohortBenchmark {
-  const ttfs = reqs.map(r => reqTTFs.get(r.req_id)).filter((t): t is number => t !== undefined);
-  const pipelineDepths = reqs.map(r => candidatesByReq.get(r.req_id)?.length || 0);
-
-  return {
-    cohortKey,
-    medianTTF: median(ttfs) || 45,
-    p25TTF: percentile(ttfs, 25) || 30,
-    p75TTF: percentile(ttfs, 75) || 60,
-    sampleSize: ttfs.length,
-    medianPipelineDepth: median(pipelineDepths) || 10,
-    stageConversionRates,
-    sourceHireRates: sourceStats.hireRates,
-    sourceTTF: sourceStats.ttfs,
-    stageDurations
-  };
-}
-
-function calculateStageConversionRates(
-  candidates: Candidate[],
-  events: Event[],
-  config: DashboardConfig
-): Record<string, number> {
-  // Track stage progression per candidate
-  const stageReached = new Map<string, Set<CanonicalStage>>();
-
-  for (const event of events) {
-    if (event.event_type !== 'STAGE_CHANGE') continue;
-    const toCanonical = normalizeStage(event.to_stage, config.stageMapping);
-    if (!toCanonical) continue;
-
-    const stages = stageReached.get(event.candidate_id) || new Set();
-    stages.add(toCanonical);
-    stageReached.set(event.candidate_id, stages);
-  }
-
-  // Also count by current stage for candidates
-  for (const cand of candidates) {
-    const canonical = normalizeStage(cand.current_stage, config.stageMapping);
-    if (canonical) {
-      const stages = stageReached.get(cand.candidate_id) || new Set();
-      stages.add(canonical);
-      stageReached.set(cand.candidate_id, stages);
-    }
-  }
-
-  // Calculate conversion rates
-  const stageCounts: Record<string, number> = {};
-  for (const stages of stageReached.values()) {
-    for (const stage of stages) {
-      stageCounts[stage] = (stageCounts[stage] || 0) + 1;
-    }
-  }
-
-  const total = stageReached.size || 1;
-  const rates: Record<string, number> = {};
-
-  // Calculate pass rates from stage to next
-  const stageOrder = [
-    CanonicalStage.SCREEN,
-    CanonicalStage.HM_SCREEN,
-    CanonicalStage.ONSITE,
-    CanonicalStage.OFFER,
-    CanonicalStage.HIRED
-  ];
-
-  for (let i = 0; i < stageOrder.length - 1; i++) {
-    const from = stageOrder[i];
-    const to = stageOrder[i + 1];
-    const fromCount = stageCounts[from] || 1;
-    const toCount = stageCounts[to] || 0;
-    rates[from] = Math.min(1, toCount / fromCount);
-  }
-
-  // Default rates if no data
-  return {
-    [CanonicalStage.SCREEN]: rates[CanonicalStage.SCREEN] || 0.4,
-    [CanonicalStage.HM_SCREEN]: rates[CanonicalStage.HM_SCREEN] || 0.5,
-    [CanonicalStage.ONSITE]: rates[CanonicalStage.ONSITE] || 0.4,
-    [CanonicalStage.OFFER]: rates[CanonicalStage.OFFER] || 0.8
-  };
-}
-
-function calculateSourceStats(candidates: Candidate[]): {
-  hireRates: Record<string, number>;
-  ttfs: Record<string, number>;
-} {
-  const bySource: Record<string, { total: number; hires: number; ttfs: number[] }> = {};
-
-  for (const cand of candidates) {
-    const source = cand.source || 'Unknown';
-    if (!bySource[source]) {
-      bySource[source] = { total: 0, hires: 0, ttfs: [] };
-    }
-    bySource[source].total++;
-    if (cand.disposition === CandidateDisposition.Hired && cand.hired_at && cand.applied_at) {
-      bySource[source].hires++;
-      const ttf = differenceInDays(cand.hired_at, cand.applied_at);
-      if (ttf > 0) bySource[source].ttfs.push(ttf);
-    }
-  }
-
-  const hireRates: Record<string, number> = {};
-  const ttfs: Record<string, number> = {};
-
-  for (const [source, stats] of Object.entries(bySource)) {
-    hireRates[source] = stats.total > 0 ? stats.hires / stats.total : 0;
-    ttfs[source] = median(stats.ttfs) || 45;
-  }
-
-  return { hireRates, ttfs };
-}
-
-function groupBy<T>(items: T[], keyFn: (item: T) => string): Record<string, T[]> {
-  const result: Record<string, T[]> = {};
-  for (const item of items) {
-    const key = keyFn(item);
-    if (!result[key]) result[key] = [];
-    result[key].push(item);
-  }
-  return result;
-}
-
-/**
- * Calculate actual time candidates spend in each stage from STAGE_CHANGE events
- */
-function calculateStageDurations(
-  events: Event[],
-  candidates: Candidate[],
-  config: DashboardConfig,
-  reqIds?: Set<string>  // Optional filter to specific reqs
-): StageDurationBenchmark[] {
-  // Group events by candidate, sorted by time
-  const eventsByCandidate = new Map<string, Event[]>();
-  for (const event of events) {
-    if (event.event_type !== 'STAGE_CHANGE') continue;
-    if (reqIds && !reqIds.has(event.req_id)) continue;
-
-    const existing = eventsByCandidate.get(event.candidate_id) || [];
-    existing.push(event);
-    eventsByCandidate.set(event.candidate_id, existing);
-  }
-
-  // Sort each candidate's events by time
-  for (const [candId, candEvents] of eventsByCandidate) {
-    candEvents.sort((a, b) => a.event_at.getTime() - b.event_at.getTime());
-  }
-
-  // Track time spent in each stage
-  const stageDurations: Record<string, number[]> = {};
-
-  for (const [candId, candEvents] of eventsByCandidate) {
-    // Track stage entry times
-    let lastStage: CanonicalStage | null = null;
-    let lastEntryTime: Date | null = null;
-
-    for (const event of candEvents) {
-      const toCanonical = normalizeStage(event.to_stage, config.stageMapping);
-
-      // If we were in a stage and are now moving to a different one, record duration
-      if (lastStage && lastEntryTime && toCanonical && toCanonical !== lastStage) {
-        const daysInStage = differenceInDays(event.event_at, lastEntryTime);
-        if (daysInStage >= 0 && daysInStage < 180) {  // Sanity check
-          if (!stageDurations[lastStage]) stageDurations[lastStage] = [];
-          stageDurations[lastStage].push(daysInStage);
-        }
-      }
-
-      // Update current stage
-      if (toCanonical) {
-        lastStage = toCanonical;
-        lastEntryTime = event.event_at;
-      }
-    }
-  }
-
-  // Build benchmarks for each stage
-  const stageOrder = [
-    CanonicalStage.SCREEN,
-    CanonicalStage.HM_SCREEN,
-    CanonicalStage.ONSITE,
-    CanonicalStage.OFFER
-  ];
-
-  const benchmarks: StageDurationBenchmark[] = [];
-
-  for (const stage of stageOrder) {
-    const durations = stageDurations[stage] || [];
-    benchmarks.push({
-      stage,
-      medianDays: median(durations) ?? 7,  // Default 7 days if no data
-      p25Days: percentile(durations, 25) ?? 4,
-      p75Days: percentile(durations, 75) ?? 14,
-      sampleSize: durations.length
-    });
-  }
-
-  return benchmarks;
-}
-
-// ===== GET COHORT BENCHMARK WITH FALLBACK =====
-
-export function getCohortBenchmark(
-  roleProfile: RoleProfile,
-  benchmarks: ForecastingBenchmarks
-): { benchmark: CohortBenchmark; isFallback: boolean; cohortDescription: string } {
-  const cohortKey = `${roleProfile.function}|${roleProfile.level}|${roleProfile.locationType}|${roleProfile.jobFamily}`;
-
-  // Try exact cohort match
-  if (benchmarks.byCohort[cohortKey] && benchmarks.byCohort[cohortKey].sampleSize >= 3) {
-    return {
-      benchmark: benchmarks.byCohort[cohortKey],
-      isFallback: false,
-      cohortDescription: `${roleProfile.function} ${roleProfile.level} ${roleProfile.locationType} ${roleProfile.jobFamily}`
-    };
-  }
-
-  // Try function + level
-  const funcLevelKey = `${roleProfile.function}|${roleProfile.level}`;
-  const funcLevelReqs = Object.entries(benchmarks.byCohort)
-    .filter(([k]) => k.startsWith(funcLevelKey))
-    .flatMap(([, v]) => Array(v.sampleSize).fill(v.medianTTF));
-
-  if (funcLevelReqs.length >= 3) {
-    const funcBench = benchmarks.byFunction[roleProfile.function];
-    const levelBench = benchmarks.byLevel[roleProfile.level];
-    return {
-      benchmark: {
-        ...benchmarks.global,
-        medianTTF: median([funcBench?.medianTTF || 45, levelBench?.medianTTF || 45]) || 45,
-        sampleSize: funcLevelReqs.length,
-        cohortKey: funcLevelKey
-      },
-      isFallback: true,
-      cohortDescription: `${roleProfile.function} ${roleProfile.level} (partial match)`
-    };
-  }
-
-  // Try function only
-  if (benchmarks.byFunction[roleProfile.function]?.sampleSize >= 3) {
-    return {
-      benchmark: benchmarks.byFunction[roleProfile.function],
-      isFallback: true,
-      cohortDescription: `${roleProfile.function} (function average)`
-    };
-  }
-
-  // Fall back to global
-  return {
-    benchmark: benchmarks.global,
-    isFallback: true,
-    cohortDescription: 'All roles (global average)'
-  };
-}
-
-// ===== TTF PREDICTION =====
+// ===== TIME-TO-FILL PREDICTION =====
 
 export function predictTimeToFill(
   roleProfile: RoleProfile,
@@ -467,43 +57,251 @@ export function predictTimeToFill(
   hmFriction: HiringManagerFriction[],
   config: DashboardConfig
 ): TTFPrediction {
-  const { benchmark, isFallback, cohortDescription } = getCohortBenchmark(roleProfile, benchmarks);
+  const { benchmark, cohortDescription } = getCohortBenchmark(roleProfile, benchmarks);
 
-  // Start with cohort median
-  let adjustedMedian = benchmark.medianTTF;
-  let adjustedP25 = benchmark.p25TTF;
-  let adjustedP75 = benchmark.p75TTF;
+  // Base prediction from benchmark
+  let medianDays = benchmark.medianTTF;
+  let p25Days = benchmark.p25TTF;
+  let p75Days = benchmark.p75TTF;
 
-  // Apply HM weight adjustment if HM selected
+  // Apply complexity adjustments
+  const complexity = calculateRoleComplexity(roleProfile, config);
+  medianDays = Math.round(medianDays * complexity);
+  p25Days = Math.round(p25Days * complexity);
+  p75Days = Math.round(p75Days * complexity);
+
+  // Apply HM friction if known
   if (roleProfile.hiringManagerId) {
     const hm = hmFriction.find(h => h.hmId === roleProfile.hiringManagerId);
-    if (hm && hm.hmWeight !== 1.0) {
-      const hmAdjustment = hm.hmWeight; // >1 = slower, <1 = faster
-      adjustedMedian *= hmAdjustment;
-      adjustedP25 *= hmAdjustment;
-      adjustedP75 *= hmAdjustment;
+    if (hm && hm.hmWeight) {
+      medianDays = Math.round(medianDays * hm.hmWeight);
+      p25Days = Math.round(p25Days * hm.hmWeight);
+      p75Days = Math.round(p75Days * hm.hmWeight);
     }
   }
 
-  // Apply complexity score adjustment
-  const complexityScore = calculateRoleComplexity(roleProfile, config);
-  if (complexityScore > 1.2) {
-    const complexityAdjustment = 1 + (complexityScore - 1) * 0.3; // Dampen effect
-    adjustedMedian *= complexityAdjustment;
-    adjustedP25 *= complexityAdjustment;
-    adjustedP75 *= complexityAdjustment;
+  return {
+    medianDays,
+    p25Days,
+    p75Days,
+    confidenceLevel: getConfidenceLevel(benchmark.sampleSize),
+    sampleSize: benchmark.sampleSize,
+    cohortDescription: cohortDescription,
+    isFallback: benchmark.sampleSize < 5
+  };
+}
+
+
+// ===== PROBABILISTIC FORECASTING =====
+
+// Worker instance (lazy loaded)
+let forecastingWorker: Worker | null = null;
+
+function getForecastingWorker(): Worker {
+  if (!forecastingWorker) {
+    // Initialize worker
+    forecastingWorker = new Worker(new URL('../workers/forecasting.worker.ts', import.meta.url));
+  }
+  return forecastingWorker;
+}
+
+/**
+ * Run a probabilistic forecast using Monte Carlo simulation
+ */
+export async function generateProbabilisticForecast(
+  roleProfile: RoleProfile,
+  benchmarks: ForecastingBenchmarks,
+  config: DashboardConfig,
+  currentPipeline: Candidate[], // Candidates currently in funnel
+  startDate: Date = new Date()
+): Promise<ForecastResult> {
+  // 1. Prepare Simulation Parameters
+  const params = prepareSimulationParameters(roleProfile, benchmarks, config);
+
+  // 2. Prepare Inputs (Candidates)
+  // We simulate "Lead Inflow" as new candidates at SCREEN stage if needed, 
+  // but for v1 we only simulate current pipeline.
+  const inputs: ForecastInput[] = currentPipeline.map(c => ({
+    currentStage: normalizeStage(c.current_stage, config.stageMapping) || CanonicalStage.SCREEN,
+    startDate: startDate,
+    seed: `${c.candidate_id}-${startDate.getTime()}` // Deterministic seed per candidate
+  })).filter(i =>
+    i.currentStage !== CanonicalStage.HIRED &&
+    i.currentStage !== CanonicalStage.REJECTED &&
+    i.currentStage !== CanonicalStage.WITHDREW
+  );
+
+  if (inputs.length === 0) {
+    // Edge case: Empty pipeline
+    // For v1 we return a "Low Confidence" empty result or handle upstream
+    return {
+      p10Date: startDate,
+      p50Date: startDate,
+      p90Date: startDate,
+      simulatedDays: [],
+      confidenceLevel: 'LOW',
+      debug: { iterations: 0, seed: 'empty' }
+    };
+  }
+
+  // 3. Run in Worker
+  return new Promise((resolve, reject) => {
+    const worker = getForecastingWorker();
+    const id = Math.random().toString(36).substring(7);
+
+    const handler = (event: MessageEvent) => {
+      if (event.data.id === id) {
+        worker.removeEventListener('message', handler);
+
+        if (event.data.error) {
+          reject(new Error(event.data.error));
+        } else {
+          // Worker returns array of results (one per candidate)
+          // We need to aggregate them to find the "Hire Date" for the Role
+          // For a single hire, it's the MIN date of all successful candidates
+          const results = event.data.results as (ForecastResult | null)[];
+          const combined = aggregateCandidateForecasts(results, startDate);
+          resolve(combined);
+        }
+      }
+    };
+
+    worker.addEventListener('message', handler);
+    worker.postMessage({ id, inputs, params });
+  });
+}
+
+/**
+ * Aggregate individual candidate simulations into a role forecast
+ * Logic: One role fill = The FIRST candidate to get hired
+ */
+function aggregateCandidateForecasts(
+  results: (ForecastResult | null)[],
+  startDate: Date
+): ForecastResult {
+  // Collect all simulated "days to hire" across all iterations
+  // This is tricky: we ran X iterations for EACH candidate.
+  // We need to slice "Iteration 1" across all candidates and pick the winner.
+
+  // Assuming worker ran same # of iterations for each
+  const iterations = results[0]?.debug.iterations || 1000;
+  const roleOutcomeDays: number[] = [];
+
+  for (let i = 0; i < iterations; i++) {
+    // For this iteration `i`, find the minimum days-to-hire across all candidates
+    let minDays = Infinity;
+
+    for (const res of results) {
+      if (res && res.simulatedDays[i] !== undefined) {
+        // If this candidate was hired in this iteration
+        if (res.simulatedDays[i] < minDays) {
+          minDays = res.simulatedDays[i];
+        }
+      }
+    }
+
+    if (minDays !== Infinity) {
+      roleOutcomeDays.push(minDays);
+    }
+  }
+
+  // Calculate percentiles
+  roleOutcomeDays.sort((a, b) => a - b);
+
+  if (roleOutcomeDays.length === 0) {
+    const dummy = new Date(startDate);
+    dummy.setDate(dummy.getDate() + 365);
+    return {
+      p10Date: dummy, p50Date: dummy, p90Date: dummy,
+      simulatedDays: [], confidenceLevel: 'LOW', debug: { iterations, seed: 'agg' }
+    };
   }
 
   return {
-    medianDays: Math.round(adjustedMedian),
-    p25Days: Math.round(adjustedP25),
-    p75Days: Math.round(adjustedP75),
-    confidenceLevel: getConfidenceLevel(benchmark.sampleSize),
-    sampleSize: benchmark.sampleSize,
-    cohortDescription,
-    isFallback
+    p10Date: addDays(startDate, roleOutcomeDays[Math.floor(roleOutcomeDays.length * 0.1)]),
+    p50Date: addDays(startDate, roleOutcomeDays[Math.floor(roleOutcomeDays.length * 0.5)]),
+    p90Date: addDays(startDate, roleOutcomeDays[Math.floor(roleOutcomeDays.length * 0.9)]),
+    simulatedDays: roleOutcomeDays,
+    confidenceLevel: 'MEDIUM', // TODO: Aggregate confidence from inputs
+    debug: { iterations, seed: 'aggregated' }
   };
 }
+
+
+/**
+ * Prepare simulation parameters with Bayesian shrinkage
+ */
+function prepareSimulationParameters(
+  roleProfile: RoleProfile,
+  benchmarks: ForecastingBenchmarks,
+  config: DashboardConfig
+): SimulationParameters {
+  const { benchmark } = getCohortBenchmark(roleProfile, benchmarks);
+
+  // Prior: Global Averages (most stable)
+  const priorRates = benchmarks.global.stageConversionRates;
+  const priorDurations = benchmarks.global.stageDurations;
+
+  // Obsidian: Shrink rates
+  const stages = [CanonicalStage.SCREEN, CanonicalStage.HM_SCREEN, CanonicalStage.ONSITE, CanonicalStage.OFFER];
+  const shrunkRates: Record<string, number> = {};
+  const shrunkDurations: Record<string, DurationDistribution> = {};
+  const sampleSizes: Record<string, number> = {};
+
+  for (const stage of stages) {
+    // 1. Rates
+    const obsRate = benchmark.stageConversionRates[stage];
+    // n for rates isn't explicitly stored in benchmark, using generic sampleSize
+    // In v1.1 we should store n per stage transition
+    const n = benchmark.sampleSize;
+
+    shrunkRates[stage] = shrinkRate(obsRate, priorRates[stage] || 0.5, n);
+    sampleSizes[`${stage}_rate`] = n;
+
+    // 2. Durations (Empirical -> Lognormal -> Global)
+    const stageBench = benchmark.stageDurations.find(s => s.stage === stage);
+    const globalStageBench = priorDurations.find(s => s.stage === stage);
+
+    // We assume 7 days default if missing
+    const obsMedian = stageBench?.medianDays || 7;
+    const globalMedian = globalStageBench?.medianDays || 7;
+
+    // Construct distribution
+    // Ideally we'd pass full buckets, but benchmarks only have quartiles currently.
+    // We will simulate a lognormal distribution fitting the quartiles.
+    // NOTE: In v1.1 we will load raw snapshot diffs to get true empirical buckets.
+
+    if (n > 5 && stageBench) {
+      // Fit Log-Normal: estimated from median and p75
+      // mu = ln(median)
+      // p75 corresponds to z=0.674 roughly
+      // ln(p75) = mu + sigma * 0.674 => sigma = (ln(p75) - mu) / 0.674
+      const mu = Math.log(Math.max(1, stageBench.medianDays));
+      const sigmaHat = (Math.log(Math.max(1, stageBench.p75Days)) - mu) / 0.674;
+
+      shrunkDurations[stage] = {
+        type: 'lognormal',
+        mu: mu,
+        sigma: Math.max(0.1, sigmaHat) // Clamp sigma
+      };
+    } else {
+      // Fallback to global constant or tighter lognormal
+      shrunkDurations[stage] = {
+        type: 'constant',
+        days: globalMedian
+      };
+    }
+  }
+
+  return {
+    stageConversionRates: shrunkRates,
+    stageDurations: shrunkDurations,
+    sampleSizes
+  };
+}
+
+// ... (keep rest of file)
+
 
 function calculateRoleComplexity(roleProfile: RoleProfile, config: DashboardConfig): number {
   const levelWeight = config.levelWeights[roleProfile.level] || 1.0;
@@ -985,8 +783,8 @@ function calculateHealthScore(
   // Activity score (25%): Recency of activity
   const activityScore = daysSinceActivity <= 3 ? 100
     : daysSinceActivity <= 7 ? 80
-    : daysSinceActivity <= 14 ? 50
-    : Math.max(0, 100 - daysSinceActivity * 5);
+      : daysSinceActivity <= 14 ? 50
+        : Math.max(0, 100 - daysSinceActivity * 5);
 
   return Math.round(paceScore * 0.4 + pipelineScore * 0.35 + activityScore * 0.25);
 }
@@ -1078,4 +876,359 @@ function generateActionRecommendations(
   }
 
   return actions;
+}
+
+// ===== HELPER FUNCTIONS (Restored) =====
+
+function groupBy<T>(items: T[], keyFn: (item: T) => string): Record<string, T[]> {
+  const result: Record<string, T[]> = {};
+  for (const item of items) {
+    const key = keyFn(item);
+    if (!result[key]) result[key] = [];
+    result[key].push(item);
+  }
+  return result;
+}
+
+function calculateStageConversionRates(
+  candidates: Candidate[],
+  events: Event[],
+  config: DashboardConfig
+): Record<string, number> {
+  // Track stage progression per candidate
+  const stageReached = new Map<string, Set<CanonicalStage>>();
+
+  for (const event of events) {
+    if (event.event_type !== 'STAGE_CHANGE') continue;
+    const toCanonical = normalizeStage(event.to_stage, config.stageMapping);
+    if (!toCanonical) continue;
+
+    const stages = stageReached.get(event.candidate_id) || new Set();
+    stages.add(toCanonical);
+    stageReached.set(event.candidate_id, stages);
+  }
+
+  // Also count by current stage for candidates
+  for (const cand of candidates) {
+    const canonical = normalizeStage(cand.current_stage, config.stageMapping);
+    if (canonical) {
+      const stages = stageReached.get(cand.candidate_id) || new Set();
+      stages.add(canonical);
+      stageReached.set(cand.candidate_id, stages);
+    }
+  }
+
+  // Calculate conversion rates
+  const stageCounts: Record<string, number> = {};
+  for (const stages of stageReached.values()) {
+    for (const stage of stages) {
+      stageCounts[stage] = (stageCounts[stage] || 0) + 1;
+    }
+  }
+
+  const rates: Record<string, number> = {};
+
+  // Calculate pass rates from stage to next
+  const stageOrder = [
+    CanonicalStage.SCREEN,
+    CanonicalStage.HM_SCREEN,
+    CanonicalStage.ONSITE,
+    CanonicalStage.OFFER,
+    CanonicalStage.HIRED
+  ];
+
+  for (let i = 0; i < stageOrder.length - 1; i++) {
+    const from = stageOrder[i];
+    const to = stageOrder[i + 1];
+    const fromCount = stageCounts[from] || 1;
+    const toCount = stageCounts[to] || 0;
+    rates[from] = Math.min(1, toCount / fromCount);
+  }
+
+  // Default rates if no data
+  return {
+    [CanonicalStage.SCREEN]: rates[CanonicalStage.SCREEN] || 0.4,
+    [CanonicalStage.HM_SCREEN]: rates[CanonicalStage.HM_SCREEN] || 0.5,
+    [CanonicalStage.ONSITE]: rates[CanonicalStage.ONSITE] || 0.4,
+    [CanonicalStage.OFFER]: rates[CanonicalStage.OFFER] || 0.8
+  };
+}
+
+function calculateSourceStats(candidates: Candidate[]): {
+  hireRates: Record<string, number>;
+  ttfs: Record<string, number>;
+} {
+  const bySource: Record<string, { total: number; hires: number; ttfs: number[] }> = {};
+
+  for (const cand of candidates) {
+    const source = cand.source || 'Unknown';
+    if (!bySource[source]) {
+      bySource[source] = { total: 0, hires: 0, ttfs: [] };
+    }
+    bySource[source].total++;
+    if (cand.disposition === CandidateDisposition.Hired && cand.hired_at && cand.applied_at) {
+      bySource[source].hires++;
+      const ttf = differenceInDays(cand.hired_at, cand.applied_at);
+      if (ttf > 0) bySource[source].ttfs.push(ttf);
+    }
+  }
+
+  const hireRates: Record<string, number> = {};
+  const ttfs: Record<string, number> = {};
+
+  for (const [source, stats] of Object.entries(bySource)) {
+    hireRates[source] = stats.total > 0 ? stats.hires / stats.total : 0;
+    ttfs[source] = median(stats.ttfs) || 45;
+  }
+
+  return { hireRates, ttfs };
+}
+
+/**
+ * Calculate actual time candidates spend in each stage from STAGE_CHANGE events
+ */
+function calculateStageDurations(
+  events: Event[],
+  candidates: Candidate[],
+  config: DashboardConfig,
+  reqIds?: Set<string>  // Optional filter to specific reqs
+): StageDurationBenchmark[] {
+  // Group events by candidate, sorted by time
+  const eventsByCandidate = new Map<string, Event[]>();
+  for (const event of events) {
+    if (event.event_type !== 'STAGE_CHANGE') continue;
+    if (reqIds && !reqIds.has(event.req_id)) continue;
+
+    const existing = eventsByCandidate.get(event.candidate_id) || [];
+    existing.push(event);
+    eventsByCandidate.set(event.candidate_id, existing);
+  }
+
+  // Sort each candidate's events by time
+  for (const [candId, candEvents] of eventsByCandidate) {
+    candEvents.sort((a, b) => a.event_at.getTime() - b.event_at.getTime());
+  }
+
+  // Track time spent in each stage
+  const stageDurations: Record<string, number[]> = {};
+
+  for (const [candId, candEvents] of eventsByCandidate) {
+    // Track stage entry times
+    let lastStage: CanonicalStage | null = null;
+    let lastEntryTime: Date | null = null;
+
+    for (const event of candEvents) {
+      const toCanonical = normalizeStage(event.to_stage, config.stageMapping);
+
+      // If we were in a stage and are now moving to a different one, record duration
+      if (lastStage && lastEntryTime && toCanonical && toCanonical !== lastStage) {
+        const daysInStage = differenceInDays(event.event_at, lastEntryTime);
+        if (daysInStage >= 0 && daysInStage < 180) {  // Sanity check
+          if (!stageDurations[lastStage]) stageDurations[lastStage] = [];
+          stageDurations[lastStage].push(daysInStage);
+        }
+      }
+
+      // Update current stage
+      if (toCanonical) {
+        lastStage = toCanonical;
+        lastEntryTime = event.event_at;
+      }
+    }
+  }
+
+  // Build benchmarks for each stage
+  const stageOrder = [
+    CanonicalStage.SCREEN,
+    CanonicalStage.HM_SCREEN,
+    CanonicalStage.ONSITE,
+    CanonicalStage.OFFER
+  ];
+
+  const benchmarks: StageDurationBenchmark[] = [];
+
+  for (const stage of stageOrder) {
+    const durations = stageDurations[stage] || [];
+
+    // Build Histogram (Buckets of 1 day)
+    // We limit to 0-120 days for histogram to avoid outliers blowing up the view
+    const histogramMap = new Map<number, number>();
+    for (const d of durations) {
+      if (d >= 0 && d <= 120) {
+        const bucket = Math.round(d);
+        histogramMap.set(bucket, (histogramMap.get(bucket) || 0) + 1);
+      }
+    }
+    const histogram: { days: number; count: number }[] = [];
+    histogramMap.forEach((count, days) => histogram.push({ days, count }));
+    histogram.sort((a, b) => a.days - b.days);
+
+    benchmarks.push({
+      stage,
+      medianDays: median(durations) ?? 7,  // Default 7 days if no data
+      p25Days: percentile(durations, 25) ?? 4,
+      p75Days: percentile(durations, 75) ?? 14,
+      sampleSize: durations.length,
+      histogram
+    });
+  }
+
+  return benchmarks;
+}
+
+function median(values: number[]): number | undefined {
+  if (values.length === 0) return undefined;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return sorted[mid];
+}
+
+function percentile(values: number[], p: number): number | undefined {
+  if (values.length === 0) return undefined;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = (p / 100) * (sorted.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  const weight = index - lower;
+  if (lower === upper) return sorted[index];
+  return (1 - weight) * sorted[lower] + weight * sorted[upper];
+}
+
+export function getCohortBenchmark(
+  roleProfile: RoleProfile,
+  benchmarks: ForecastingBenchmarks
+): { benchmark: CohortBenchmark; cohortDescription: string } {
+  // 1. Try Function + Level (Most Specific)
+  const funcLevelKey = `${roleProfile.function}:${roleProfile.level}`;
+  if (benchmarks.byFunction[funcLevelKey]) { // Ideally byFunctionLevel but using flat structure for now
+    // Fallback to simpler lookups if needed
+  }
+
+  // Real implementation of hierarchy:
+  // 1. Specific Function Benchmark
+  if (benchmarks.byFunction[roleProfile.function] && benchmarks.byFunction[roleProfile.function].sampleSize >= 5) {
+    return { benchmark: benchmarks.byFunction[roleProfile.function], cohortDescription: `similar ${roleProfile.function} roles` };
+  }
+
+  // 2. Family Benchmark
+  if (benchmarks.byJobFamily[roleProfile.jobFamily] && benchmarks.byJobFamily[roleProfile.jobFamily].sampleSize >= 5) {
+    return { benchmark: benchmarks.byJobFamily[roleProfile.jobFamily], cohortDescription: `${roleProfile.jobFamily} roles` };
+  }
+
+  // 3. Level Benchmark (weak signal but better than global)
+  if (benchmarks.byLevel[roleProfile.level] && benchmarks.byLevel[roleProfile.level].sampleSize >= 10) {
+    return { benchmark: benchmarks.byLevel[roleProfile.level], cohortDescription: `${roleProfile.level} level roles` };
+  }
+
+  // 4. Global Fallback
+  return { benchmark: benchmarks.global, cohortDescription: 'all roles (global average)' };
+}
+
+export function buildForecastingBenchmarks(
+  requisitions: Requisition[],
+  candidates: Candidate[],
+  events: Event[],
+  users: User[],
+  hmFriction: HiringManagerFriction[],
+  config: DashboardConfig
+): ForecastingBenchmarks {
+
+  // Helper to build a single benchmark from a set of reqs/candidates
+  const buildBenchmark = (
+    subsetReqs: Requisition[],
+    subsetCandidates: Candidate[],
+    subsetEvents: Event[],
+    cohortKey: string = 'global'
+  ): CohortBenchmark => {
+    const closedReqs = subsetReqs.filter(r => r.status === 'Closed' && r.closed_at);
+    const completedCandidates = subsetCandidates.filter(c => c.disposition === 'Hired');
+
+    // TTFs
+    const ttfs = closedReqs
+      .map(r => r.closed_at && r.opened_at ? differenceInDays(r.closed_at, r.opened_at) : 0)
+      .filter(d => d > 0).sort((a, b) => a - b);
+
+    // Pipeline Depth
+    const depths = closedReqs.map(r =>
+      subsetCandidates.filter(c => c.req_id === r.req_id && c.disposition === 'Hired').length +
+      subsetCandidates.filter(c => c.req_id === r.req_id && c.disposition === 'Rejected').length
+    ).sort((a, b) => a - b);
+
+    const sourceStats = calculateSourceStats(completedCandidates);
+    const stageRates = calculateStageConversionRates(subsetCandidates, subsetEvents, config);
+    const stageDurations = calculateStageDurations(subsetEvents, subsetCandidates, config);
+
+    return {
+      cohortKey,
+      sampleSize: closedReqs.length,
+      medianTTF: median(ttfs) || 45,
+      p25TTF: percentile(ttfs, 25) || 30,
+      p75TTF: percentile(ttfs, 75) || 60,
+      medianPipelineDepth: median(depths) || 20,
+      stageConversionRates: stageRates,
+      sourceHireRates: sourceStats.hireRates,
+      sourceTTF: sourceStats.ttfs,
+      stageDurations: stageDurations
+    };
+  };
+
+  // 1. Global Benchmark
+  const globalBenchmark = buildBenchmark(requisitions, candidates, events);
+
+  // 2. By Function
+  const byFunction: Record<string, CohortBenchmark> = {};
+  const functions = new Set(requisitions.map(r => r.function).filter(Boolean));
+  functions.forEach(f => {
+    const reqs = requisitions.filter(r => r.function === f);
+    const reqIds = new Set(reqs.map(r => r.req_id));
+    const cands = candidates.filter(c => reqIds.has(c.req_id));
+    const evts = events.filter(e => reqIds.has(e.req_id));
+    byFunction[f] = buildBenchmark(reqs, cands, evts, `function:${f}`);
+  });
+
+  // 3. By Level
+  const byLevel: Record<string, CohortBenchmark> = {};
+  const levels = new Set(requisitions.map(r => r.level).filter(Boolean));
+  levels.forEach(l => {
+    const reqs = requisitions.filter(r => r.level === l);
+    const reqIds = new Set(reqs.map(r => r.req_id));
+    const cands = candidates.filter(c => reqIds.has(c.req_id));
+    const evts = events.filter(e => reqIds.has(e.req_id));
+    byLevel[l] = buildBenchmark(reqs, cands, evts, `level:${l}`);
+  });
+
+  // 4. By Job Family
+  const byJobFamily: Record<string, CohortBenchmark> = {};
+  const families = new Set(requisitions.map(r => r.job_family).filter(Boolean));
+  families.forEach(f => {
+    const reqs = requisitions.filter(r => r.job_family === f);
+    const reqIds = new Set(reqs.map(r => r.req_id));
+    const cands = candidates.filter(c => reqIds.has(c.req_id));
+    const evts = events.filter(e => reqIds.has(e.req_id));
+    byJobFamily[f] = buildBenchmark(reqs, cands, evts, `family:${f}`);
+  });
+
+  // 5. By Location Type
+  const byLocationType: Record<string, CohortBenchmark> = {};
+  const types = new Set(requisitions.map(r => r.location_type).filter(Boolean));
+  types.forEach(t => {
+    const reqs = requisitions.filter(r => r.location_type === t);
+    const reqIds = new Set(reqs.map(r => r.req_id));
+    const cands = candidates.filter(c => reqIds.has(c.req_id));
+    const evts = events.filter(e => reqIds.has(e.req_id));
+    byLocationType[t] = buildBenchmark(reqs, cands, evts, `location:${t}`);
+  });
+
+  return {
+    global: globalBenchmark,
+    byFunction,
+    byLevel,
+    byJobFamily,
+    byLocationType,
+    byCohort: {}, // TODO: Full cohort combinations
+    byHM: {}      // TODO: HM-specific benchmarks
+  };
 }

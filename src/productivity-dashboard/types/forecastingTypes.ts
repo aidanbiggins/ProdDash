@@ -148,6 +148,8 @@ export interface StageDurationBenchmark {
   p25Days: number;            // 25th percentile (fast)
   p75Days: number;            // 75th percentile (slow)
   sampleSize: number;         // Number of observations
+  // For Oracle Empirical Distributions
+  histogram?: { days: number; count: number }[];
 }
 
 export interface CohortBenchmark {

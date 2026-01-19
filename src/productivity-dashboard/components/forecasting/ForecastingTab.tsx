@@ -9,7 +9,7 @@ import {
 import {
   Requisition,
   Candidate,
-  Event,
+  Event as EntityEvent,
   User,
   HiringManagerFriction,
   RoleProfile,
@@ -20,8 +20,14 @@ import {
 import { DashboardConfig } from '../../types/config';
 import {
   generateRoleForecast,
-  calculateActiveRoleHealth
+  calculateActiveRoleHealth,
+  generateProbabilisticForecast,
+  buildForecastingBenchmarks
 } from '../../services/forecastingService';
+import { ForecastResult } from '../../services/probabilisticEngine';
+import { OracleConfidenceWidget } from './OracleConfidenceWidget';
+import { CalibrationCard } from './CalibrationCard';
+import { runCalibration, CalibrationReport } from '../../services/calibrationService';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   PreMortemResult,
@@ -40,7 +46,7 @@ import { FORECASTING_PAGE_HELP } from './forecastingHelpContent';
 interface ForecastingTabProps {
   requisitions: Requisition[];
   candidates: Candidate[];
-  events: Event[];
+  events: EntityEvent[];
   users: User[];
   hmFriction: HiringManagerFriction[];
   config: DashboardConfig;
@@ -79,6 +85,9 @@ export function ForecastingTab({
     hiringManagerId: undefined
   });
   const [forecast, setForecast] = useState<RoleForecast | null>(null);
+  const [probForecast, setProbForecast] = useState<ForecastResult | null>(null);
+  const [calibrationReport, setCalibrationReport] = useState<CalibrationReport | null>(null);
+  const [isCalibrating, setIsCalibrating] = useState(false);
 
   // Health dashboard state
   const [selectedHealthReq, setSelectedHealthReq] = useState<string | null>(null);
@@ -110,6 +119,12 @@ export function ForecastingTab({
   const hiringManagers = useMemo(() =>
     users.filter(u => u.role === 'HiringManager' || hmFriction.some(h => h.hmId === u.user_id)),
     [users, hmFriction]
+  );
+
+  // Memoize benchmarks - crucial for performance and correctness of Oracle
+  const benchmarks = useMemo(() =>
+    buildForecastingBenchmarks(requisitions, candidates, events, users, hmFriction, config),
+    [requisitions, candidates, events, users, hmFriction, config]
   );
 
   // Calculate role health for all open reqs
@@ -187,7 +202,18 @@ export function ForecastingTab({
     );
     setForecast(result);
     setWizardStep('results');
-  }, [roleProfile, requisitions, candidates, events, users, hmFriction, config]);
+
+    // Run Oracle Forecast (will likely be low confidence/empty for new roles without pipeline)
+    // We simulate an empty pipeline or specific "simulated candidates" could be added here in v2
+    generateProbabilisticForecast(
+      roleProfile,
+      benchmarks, // benchmarks source
+      config,
+      [], // Empty pipeline for new role
+      new Date()
+    ).then(res => setProbForecast(res));
+
+  }, [roleProfile, requisitions, candidates, events, users, hmFriction, config, benchmarks]);
 
   // Reset wizard
   const handleResetWizard = useCallback(() => {
@@ -213,6 +239,60 @@ export function ForecastingTab({
     if (!selectedHealthReq) return null;
     return roleHealthMetrics.find(r => r.reqId === selectedHealthReq);
   }, [selectedHealthReq, roleHealthMetrics]);
+
+  // Run Oracle when selecting a health req
+  React.useEffect(() => {
+    if (selectedHealthReq && selectedHealthDetails) {
+      // Find candidates for this req
+      const activeCandidates = candidates.filter(c =>
+        c.req_id === selectedHealthReq &&
+        ['Screen', 'HM Screen', 'Onsite', 'Offer'].includes(c.current_stage) // active only
+      );
+
+      // Reconstruct role profile
+      const profile: RoleProfile = {
+        function: selectedHealthDetails.function,
+        level: selectedHealthDetails.level,
+        locationType: 'Remote', // Todo: get from req
+        jobFamily: selectedHealthDetails.jobFamily,
+        hiringManagerId: selectedHealthDetails.hiringManagerId
+      };
+
+      generateProbabilisticForecast(
+        profile,
+        benchmarks, // Correct: Pass calculated benchmarks
+        config,
+        activeCandidates,
+        new Date()
+      ).then(res => setProbForecast(res));
+    } else {
+      setProbForecast(null);
+    }
+  }, [selectedHealthReq, candidates, selectedHealthDetails, benchmarks, config]);
+
+  const handleRunCalibration = useCallback(async () => {
+    setIsCalibrating(true);
+    // Find completed reqs
+    const completedReqs = requisitions
+      .filter(r => r.status === 'Closed' && r.closed_at)
+      .map(r => ({
+        reqId: r.req_id,
+        hiredDate: r.closed_at!,
+        openedDate: r.opened_at || new Date(),
+        roleProfile: {
+          function: r.function,
+          level: r.level,
+          locationType: r.location_type,
+          jobFamily: r.job_family
+        }
+      }));
+
+    // Run calibration (mocked services)
+    // We pass empty snapshot list for now as we don't have them loaded in client
+    const report = await runCalibration(completedReqs, [], config, {} as any);
+    setCalibrationReport(report);
+    setIsCalibrating(false);
+  }, [requisitions, config]);
 
   // Open pre-mortem drawer for a req
   const handleViewPreMortem = useCallback((reqId: string) => {
@@ -534,22 +614,21 @@ export function ForecastingTab({
             <div>
               {/* Summary Cards */}
               <div className="row g-3 mb-4">
-                <div className="col-md-4">
-                  <div className="card-bespoke text-center">
-                    <div className="card-body">
-                      <StatLabel className="mb-2">Expected Time-to-Fill</StatLabel>
-                      <StatValue color="primary">{forecast.ttfPrediction.medianDays} days</StatValue>
-                      <div className="text-muted small">
-                        Range: {forecast.ttfPrediction.p25Days}-{forecast.ttfPrediction.p75Days} days
-                      </div>
-                      <div className={`badge-bespoke mt-2 ${forecast.ttfPrediction.confidenceLevel === 'high' ? 'badge-success-soft' : forecast.ttfPrediction.confidenceLevel === 'medium' ? 'badge-warning-soft' : 'badge-danger-soft'}`}>
-                        {forecast.ttfPrediction.confidenceLevel} confidence
-                      </div>
+                <div className="col-md-5">
+                  {/* Oracle Widget replaces simple TTF card */}
+                  {probForecast ? (
+                    <OracleConfidenceWidget
+                      forecast={probForecast}
+                      startDate={new Date()}
+                    />
+                  ) : (
+                    <div className="card-bespoke text-center h-100 d-flex align-items-center justify-content-center">
+                      <div className="spinner-border text-primary" role="status"></div>
                     </div>
-                  </div>
+                  )}
                 </div>
-                <div className="col-md-4">
-                  <div className="card-bespoke text-center">
+                <div className="col-md-3">
+                  <div className="card-bespoke text-center h-100">
                     <div className="card-body">
                       <StatLabel className="mb-2">Candidates Needed</StatLabel>
                       <StatValue>{forecast.pipelineRequirements.totalCandidatesNeeded}</StatValue>
@@ -558,15 +637,12 @@ export function ForecastingTab({
                   </div>
                 </div>
                 <div className="col-md-4">
-                  <div className="card-bespoke text-center">
-                    <div className="card-body">
-                      <StatLabel className="mb-2">Complexity Score</StatLabel>
-                      <StatValue color={forecast.complexityScore > 1.5 ? 'warning' : 'default'}>
-                        {forecast.complexityScore.toFixed(1)}x
-                      </StatValue>
-                      <div className="text-muted small">vs baseline role</div>
-                    </div>
-                  </div>
+                  <CalibrationCard
+                    report={calibrationReport}
+                    isLoading={isCalibrating}
+                    onRunCalibration={handleRunCalibration}
+                    className="h-100"
+                  />
                 </div>
               </div>
 
@@ -744,343 +820,360 @@ export function ForecastingTab({
             </div>
           )}
         </div>
-      )}
+      )
+      }
 
       {/* ===== ACTIVE ROLE HEALTH ===== */}
-      {activeSubTab === 'health' && (
-        <div>
-          {/* Summary Cards */}
-          <div className="row g-3 mb-4">
-            <div className="col-6 col-md-3">
-              <div
-                className={`card-bespoke text-center cursor-pointer ${healthFilter === 'all' ? 'border-primary shadow' : ''}`}
-                onClick={() => setHealthFilter('all')}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="card-body">
-                  <StatLabel className="mb-2">Total Open</StatLabel>
-                  <StatValue>{healthSummary.total}</StatValue>
-                </div>
-              </div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div
-                className={`card-bespoke text-center cursor-pointer ${healthFilter === 'on-track' ? 'border-primary shadow' : ''}`}
-                onClick={() => setHealthFilter('on-track')}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="card-body">
-                  <StatLabel className="mb-2 text-success">On Track</StatLabel>
-                  <StatValue color="success">{healthSummary.onTrack}</StatValue>
-                </div>
-              </div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div
-                className={`card-bespoke text-center cursor-pointer ${healthFilter === 'at-risk' ? 'border-primary shadow' : ''}`}
-                onClick={() => setHealthFilter('at-risk')}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="card-body">
-                  <StatLabel className="mb-2 text-warning">At Risk</StatLabel>
-                  <StatValue color="warning">{healthSummary.atRisk}</StatValue>
-                </div>
-              </div>
-            </div>
-            <div className="col-6 col-md-3">
-              <div
-                className={`card-bespoke text-center cursor-pointer ${healthFilter === 'off-track' ? 'border-primary shadow' : ''}`}
-                onClick={() => setHealthFilter('off-track')}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="card-body">
-                  <StatLabel className="mb-2 text-danger">Off Track</StatLabel>
-                  <StatValue color="danger">{healthSummary.offTrack}</StatValue>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Pre-Mortem Risk Summary */}
-          <div className="d-flex gap-2 mb-4 flex-wrap align-items-center">
-            <span className="text-muted small me-2">Pre-Mortem Risk:</span>
-            <span
-              className="badge rounded-pill d-flex align-items-center gap-1"
-              style={{
-                ...getRiskBadgeStyle('HIGH'),
-                padding: '0.4rem 0.75rem',
-                fontSize: '0.8rem',
-              }}
-            >
-              <i className="bi bi-exclamation-triangle-fill"></i>
-              {riskSummary.high} High
-            </span>
-            <span
-              className="badge rounded-pill d-flex align-items-center gap-1"
-              style={{
-                ...getRiskBadgeStyle('MED'),
-                padding: '0.4rem 0.75rem',
-                fontSize: '0.8rem',
-              }}
-            >
-              <i className="bi bi-exclamation-circle"></i>
-              {riskSummary.med} Medium
-            </span>
-            <span
-              className="badge rounded-pill d-flex align-items-center gap-1"
-              style={{
-                ...getRiskBadgeStyle('LOW'),
-                padding: '0.4rem 0.75rem',
-                fontSize: '0.8rem',
-              }}
-            >
-              <i className="bi bi-check-circle"></i>
-              {riskSummary.low} Low
-            </span>
-          </div>
-
-          {/* Health Table */}
-          <div className="card-bespoke mb-4">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">Open Requisitions</h6>
-              <span className="small text-muted">Click row for details, or "View" for pre-mortem analysis</span>
-            </div>
-            <div className="card-body p-0">
-              <div className="table-responsive">
-                <table className="table table-bespoke table-hover mb-0">
-                  <thead>
-                    <tr>
-                      <th>Role</th>
-                      <th className="text-end">Days Open</th>
-                      <th className="text-end">Pipeline</th>
-                      <th className="text-center">Status</th>
-                      <th className="text-center">Risk</th>
-                      <th>Failure Mode</th>
-                      <th className="text-end">Predicted Fill</th>
-                      <th>Primary Issue</th>
-                      <th className="text-center" style={{ width: '60px' }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredHealthMetrics
-                      .sort((a, b) => {
-                        // Sort by pre-mortem risk score (highest first) then health score
-                        const pmA = preMortemByReqId.get(a.reqId);
-                        const pmB = preMortemByReqId.get(b.reqId);
-                        const riskA = pmA?.risk_score ?? 0;
-                        const riskB = pmB?.risk_score ?? 0;
-                        if (riskB !== riskA) return riskB - riskA;
-                        return a.healthScore - b.healthScore;
-                      })
-                      .slice(healthPage * HEALTH_PAGE_SIZE, (healthPage + 1) * HEALTH_PAGE_SIZE)
-                      .map(req => {
-                        const preMortem = preMortemByReqId.get(req.reqId);
-                        return (
-                        <tr
-                          key={req.reqId}
-                          className={selectedHealthReq === req.reqId ? 'bg-soft-primary' : ''}
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => setSelectedHealthReq(selectedHealthReq === req.reqId ? null : req.reqId)}
-                        >
-                          <td>
-                            <div className="fw-medium">{req.reqTitle}</div>
-                            <div className="small text-muted">{req.function} {req.level}</div>
-                          </td>
-                          <td className="text-end">
-                            <span className={req.daysOpen > req.benchmarkTTF ? 'text-danger fw-bold' : ''}>
-                              {req.daysOpen}d
-                            </span>
-                            <div className="small text-muted">/ {req.benchmarkTTF}d benchmark</div>
-                          </td>
-                          <td className="text-end">
-                            <span className={req.pipelineGap < 0 ? 'text-danger fw-bold' : ''}>
-                              {req.currentPipelineDepth}
-                            </span>
-                            <span className="text-muted">/{req.benchmarkPipelineDepth}</span>
-                          </td>
-                          <td className="text-center">
-                            <span className={`badge-bespoke ${getHealthBadgeClass(req.healthStatus)}`}>
-                              {req.healthScore}
-                            </span>
-                          </td>
-                          {/* Risk Score + Band */}
-                          <td className="text-center">
-                            {preMortem ? (
-                              <span
-                                className="badge rounded-pill font-monospace"
-                                style={{
-                                  ...getRiskBadgeStyle(preMortem.risk_band),
-                                  padding: '0.35rem 0.6rem',
-                                  fontSize: '0.75rem',
-                                }}
-                                title={`Risk Score: ${preMortem.risk_score}/100`}
-                              >
-                                {preMortem.risk_band} {preMortem.risk_score}
-                              </span>
-                            ) : (
-                              <span className="text-muted small">-</span>
-                            )}
-                          </td>
-                          {/* Failure Mode */}
-                          <td>
-                            {preMortem ? (
-                              <span
-                                className="small"
-                                style={{ color: getRiskBandColor(preMortem.risk_band) }}
-                              >
-                                {getFailureModeLabel(preMortem.failure_mode)}
-                              </span>
-                            ) : (
-                              <span className="text-muted small">-</span>
-                            )}
-                          </td>
-                          <td className="text-end">
-                            {req.predictedFillDate ? (
-                              <span>{format(req.predictedFillDate, 'MMM d')}</span>
-                            ) : (
-                              <span className="text-danger">Unknown</span>
-                            )}
-                          </td>
-                          <td>
-                            <span className="small text-muted">{req.primaryIssue || '-'}</span>
-                          </td>
-                          {/* View Pre-Mortem Button */}
-                          <td className="text-center">
-                            {preMortem && (
-                              <button
-                                type="button"
-                                className="btn btn-sm btn-bespoke-secondary"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleViewPreMortem(req.reqId);
-                                }}
-                                title="View Pre-Mortem Analysis"
-                                style={{ padding: '0.25rem 0.5rem' }}
-                              >
-                                <i className="bi bi-eye"></i>
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-              {/* Pagination */}
-              {filteredHealthMetrics.length > HEALTH_PAGE_SIZE && (
-                <div className="card-footer d-flex justify-content-between align-items-center">
-                  <span className="text-muted small">
-                    Showing {healthPage * HEALTH_PAGE_SIZE + 1}-{Math.min((healthPage + 1) * HEALTH_PAGE_SIZE, filteredHealthMetrics.length)} of {filteredHealthMetrics.length}
-                  </span>
-                  <div className="btn-group btn-group-sm">
-                    <button
-                      className="btn btn-outline-secondary"
-                      disabled={healthPage === 0}
-                      onClick={() => setHealthPage(p => p - 1)}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      className="btn btn-outline-secondary"
-                      disabled={(healthPage + 1) * HEALTH_PAGE_SIZE >= filteredHealthMetrics.length}
-                      onClick={() => setHealthPage(p => p + 1)}
-                    >
-                      Next
-                    </button>
+      {
+        activeSubTab === 'health' && (
+          <div>
+            {/* Summary Cards */}
+            <div className="row g-3 mb-4">
+              <div className="col-6 col-md-3">
+                <div
+                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'all' ? 'border-primary shadow' : ''}`}
+                  onClick={() => setHealthFilter('all')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="card-body">
+                    <StatLabel className="mb-2">Total Open</StatLabel>
+                    <StatValue>{healthSummary.total}</StatValue>
                   </div>
                 </div>
-              )}
+              </div>
+              <div className="col-6 col-md-3">
+                <div
+                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'on-track' ? 'border-primary shadow' : ''}`}
+                  onClick={() => setHealthFilter('on-track')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="card-body">
+                    <StatLabel className="mb-2 text-success">On Track</StatLabel>
+                    <StatValue color="success">{healthSummary.onTrack}</StatValue>
+                  </div>
+                </div>
+              </div>
+              <div className="col-6 col-md-3">
+                <div
+                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'at-risk' ? 'border-primary shadow' : ''}`}
+                  onClick={() => setHealthFilter('at-risk')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="card-body">
+                    <StatLabel className="mb-2 text-warning">At Risk</StatLabel>
+                    <StatValue color="warning">{healthSummary.atRisk}</StatValue>
+                  </div>
+                </div>
+              </div>
+              <div className="col-6 col-md-3">
+                <div
+                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'off-track' ? 'border-primary shadow' : ''}`}
+                  onClick={() => setHealthFilter('off-track')}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="card-body">
+                    <StatLabel className="mb-2 text-danger">Off Track</StatLabel>
+                    <StatValue color="danger">{healthSummary.offTrack}</StatValue>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Selected Role Detail */}
-          {selectedHealthDetails && (
-            <div className="card-bespoke border-primary">
+            {/* Pre-Mortem Risk Summary */}
+            <div className="d-flex gap-2 mb-4 flex-wrap align-items-center">
+              <span className="text-muted small me-2">Pre-Mortem Risk:</span>
+              <span
+                className="badge rounded-pill d-flex align-items-center gap-1"
+                style={{
+                  ...getRiskBadgeStyle('HIGH'),
+                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.8rem',
+                }}
+              >
+                <i className="bi bi-exclamation-triangle-fill"></i>
+                {riskSummary.high} High
+              </span>
+              <span
+                className="badge rounded-pill d-flex align-items-center gap-1"
+                style={{
+                  ...getRiskBadgeStyle('MED'),
+                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.8rem',
+                }}
+              >
+                <i className="bi bi-exclamation-circle"></i>
+                {riskSummary.med} Medium
+              </span>
+              <span
+                className="badge rounded-pill d-flex align-items-center gap-1"
+                style={{
+                  ...getRiskBadgeStyle('LOW'),
+                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.8rem',
+                }}
+              >
+                <i className="bi bi-check-circle"></i>
+                {riskSummary.low} Low
+              </span>
+            </div>
+
+            {/* Health Table */}
+            <div className="card-bespoke mb-4">
               <div className="card-header d-flex justify-content-between align-items-center">
-                <h6 className="mb-0">
-                  {selectedHealthDetails.reqTitle}
-                  <span className={`badge-bespoke ms-2 ${getHealthBadgeClass(selectedHealthDetails.healthStatus)}`}>
-                    Score: {selectedHealthDetails.healthScore}
-                  </span>
-                </h6>
-                <button className="btn btn-sm btn-bespoke-secondary" onClick={() => setSelectedHealthReq(null)}>
-                  <i className="bi bi-x-lg"></i>
-                </button>
+                <h6 className="mb-0">Open Requisitions</h6>
+                <span className="small text-muted">Click row for details, or "View" for pre-mortem analysis</span>
               </div>
-              <div className="card-body">
-                <div className="row g-4">
-                  {/* Metrics */}
-                  <div className="col-md-6">
-                    <h6 className="mb-3">Metrics</h6>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">Recruiter:</span>
-                      <span>{selectedHealthDetails.recruiterName}</span>
-                    </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">Hiring Manager:</span>
-                      <span>{selectedHealthDetails.hiringManagerName}</span>
-                    </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">Days Open:</span>
-                      <span>{selectedHealthDetails.daysOpen}d (benchmark: {selectedHealthDetails.benchmarkTTF}d)</span>
-                    </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">Pipeline Depth:</span>
-                      <span className={selectedHealthDetails.pipelineGap < 0 ? 'text-danger' : ''}>
-                        {selectedHealthDetails.currentPipelineDepth} ({selectedHealthDetails.pipelineGap >= 0 ? '+' : ''}{selectedHealthDetails.pipelineGap} vs benchmark)
-                      </span>
-                    </div>
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="text-muted">Last Activity:</span>
-                      <span className={selectedHealthDetails.daysSinceActivity > 7 ? 'text-warning' : ''}>
-                        {selectedHealthDetails.daysSinceActivity}d ago
-                      </span>
-                    </div>
-                    <div className="d-flex justify-content-between">
-                      <span className="text-muted">Velocity Trend:</span>
-                      <span className={`badge-bespoke ${selectedHealthDetails.velocityTrend === 'improving' ? 'badge-success-soft' :
-                        selectedHealthDetails.velocityTrend === 'stalled' ? 'badge-danger-soft' :
-                          selectedHealthDetails.velocityTrend === 'declining' ? 'badge-warning-soft' : 'badge-neutral-soft'
-                        }`}>
-                        {selectedHealthDetails.velocityTrend}
-                      </span>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-bespoke table-hover mb-0">
+                    <thead>
+                      <tr>
+                        <th>Role</th>
+                        <th className="text-end">Days Open</th>
+                        <th className="text-end">Pipeline</th>
+                        <th className="text-center">Status</th>
+                        <th className="text-center">Risk</th>
+                        <th>Failure Mode</th>
+                        <th className="text-end">Predicted Fill</th>
+                        <th>Primary Issue</th>
+                        <th className="text-center" style={{ width: '60px' }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredHealthMetrics
+                        .sort((a, b) => {
+                          // Sort by pre-mortem risk score (highest first) then health score
+                          const pmA = preMortemByReqId.get(a.reqId);
+                          const pmB = preMortemByReqId.get(b.reqId);
+                          const riskA = pmA?.risk_score ?? 0;
+                          const riskB = pmB?.risk_score ?? 0;
+                          if (riskB !== riskA) return riskB - riskA;
+                          return a.healthScore - b.healthScore;
+                        })
+                        .slice(healthPage * HEALTH_PAGE_SIZE, (healthPage + 1) * HEALTH_PAGE_SIZE)
+                        .map(req => {
+                          const preMortem = preMortemByReqId.get(req.reqId);
+                          return (
+                            <tr
+                              key={req.reqId}
+                              className={selectedHealthReq === req.reqId ? 'bg-soft-primary' : ''}
+                              style={{ cursor: 'pointer' }}
+                              onClick={() => setSelectedHealthReq(selectedHealthReq === req.reqId ? null : req.reqId)}
+                            >
+                              <td>
+                                <div className="fw-medium">{req.reqTitle}</div>
+                                <div className="small text-muted">{req.function} {req.level}</div>
+                              </td>
+                              <td className="text-end">
+                                <span className={req.daysOpen > req.benchmarkTTF ? 'text-danger fw-bold' : ''}>
+                                  {req.daysOpen}d
+                                </span>
+                                <div className="small text-muted">/ {req.benchmarkTTF}d benchmark</div>
+                              </td>
+                              <td className="text-end">
+                                <span className={req.pipelineGap < 0 ? 'text-danger fw-bold' : ''}>
+                                  {req.currentPipelineDepth}
+                                </span>
+                                <span className="text-muted">/{req.benchmarkPipelineDepth}</span>
+                              </td>
+                              <td className="text-center">
+                                <span className={`badge-bespoke ${getHealthBadgeClass(req.healthStatus)}`}>
+                                  {req.healthScore}
+                                </span>
+                              </td>
+                              {/* Risk Score + Band */}
+                              <td className="text-center">
+                                {preMortem ? (
+                                  <span
+                                    className="badge rounded-pill font-monospace"
+                                    style={{
+                                      ...getRiskBadgeStyle(preMortem.risk_band),
+                                      padding: '0.35rem 0.6rem',
+                                      fontSize: '0.75rem',
+                                    }}
+                                    title={`Risk Score: ${preMortem.risk_score}/100`}
+                                  >
+                                    {preMortem.risk_band} {preMortem.risk_score}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted small">-</span>
+                                )}
+                              </td>
+                              {/* Failure Mode */}
+                              <td>
+                                {preMortem ? (
+                                  <span
+                                    className="small"
+                                    style={{ color: getRiskBandColor(preMortem.risk_band) }}
+                                  >
+                                    {getFailureModeLabel(preMortem.failure_mode)}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted small">-</span>
+                                )}
+                              </td>
+                              <td className="text-end">
+                                {req.predictedFillDate ? (
+                                  <span>{format(req.predictedFillDate, 'MMM d')}</span>
+                                ) : (
+                                  <span className="text-danger">Unknown</span>
+                                )}
+                              </td>
+                              <td>
+                                <span className="small text-muted">{req.primaryIssue || '-'}</span>
+                              </td>
+                              {/* View Pre-Mortem Button */}
+                              <td className="text-center">
+                                {preMortem && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-bespoke-secondary"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewPreMortem(req.reqId);
+                                    }}
+                                    title="View Pre-Mortem Analysis"
+                                    style={{ padding: '0.25rem 0.5rem' }}
+                                  >
+                                    <i className="bi bi-eye"></i>
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Pagination */}
+                {filteredHealthMetrics.length > HEALTH_PAGE_SIZE && (
+                  <div className="card-footer d-flex justify-content-between align-items-center">
+                    <span className="text-muted small">
+                      Showing {healthPage * HEALTH_PAGE_SIZE + 1}-{Math.min((healthPage + 1) * HEALTH_PAGE_SIZE, filteredHealthMetrics.length)} of {filteredHealthMetrics.length}
+                    </span>
+                    <div className="btn-group btn-group-sm">
+                      <button
+                        className="btn btn-outline-secondary"
+                        disabled={healthPage === 0}
+                        onClick={() => setHealthPage(p => p - 1)}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        className="btn btn-outline-secondary"
+                        disabled={(healthPage + 1) * HEALTH_PAGE_SIZE >= filteredHealthMetrics.length}
+                        onClick={() => setHealthPage(p => p + 1)}
+                      >
+                        Next
+                      </button>
                     </div>
                   </div>
+                )}
+              </div>
+            </div>
 
-                  {/* Actions */}
-                  <div className="col-md-6">
-                    <h6 className="mb-3">Recommended Actions</h6>
-                    {selectedHealthDetails.actionRecommendations.length > 0 ? (
-                      <div className="list-group list-group-flush">
-                        {selectedHealthDetails.actionRecommendations.map((action, i) => (
-                          <div key={i} className="list-group-item px-0">
-                            <div className="d-flex align-items-start">
-                              <span className={`badge-bespoke me-2 ${action.priority === 'urgent' ? 'badge-danger-soft' :
-                                action.priority === 'important' ? 'badge-warning-soft' : 'badge-neutral-soft'
-                                }`}>
-                                {action.priority}
-                              </span>
-                              <div>
-                                <div className="fw-medium">{action.action}</div>
-                                <div className="small text-muted">
-                                  {action.expectedImpact} <span className="text-primary">({action.owner})</span>
+            {/* Selected Role Detail */}
+            {selectedHealthDetails && (
+              <div className="card-bespoke border-primary">
+                <div className="card-header d-flex justify-content-between align-items-center">
+                  <h6 className="mb-0">
+                    {selectedHealthDetails.reqTitle}
+                    <span className={`badge-bespoke ms-2 ${getHealthBadgeClass(selectedHealthDetails.healthStatus)}`}>
+                      Score: {selectedHealthDetails.healthScore}
+                    </span>
+                  </h6>
+                  <button className="btn btn-sm btn-bespoke-secondary" onClick={() => setSelectedHealthReq(null)}>
+                    <i className="bi bi-x-lg"></i>
+                  </button>
+                </div>
+                <div className="card-body">
+                  <div className="row g-4">
+                    {/* Metrics */}
+                    <div className="col-md-6">
+                      <h6 className="mb-3">Metrics</h6>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted">Recruiter:</span>
+                        <span>{selectedHealthDetails.recruiterName}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted">Hiring Manager:</span>
+                        <span>{selectedHealthDetails.hiringManagerName}</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted">Days Open:</span>
+                        <span>{selectedHealthDetails.daysOpen}d (benchmark: {selectedHealthDetails.benchmarkTTF}d)</span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted">Pipeline Depth:</span>
+                        <span className={selectedHealthDetails.pipelineGap < 0 ? 'text-danger' : ''}>
+                          {selectedHealthDetails.currentPipelineDepth} ({selectedHealthDetails.pipelineGap >= 0 ? '+' : ''}{selectedHealthDetails.pipelineGap} vs benchmark)
+                        </span>
+                      </div>
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="text-muted">Last Activity:</span>
+                        <span className={selectedHealthDetails.daysSinceActivity > 7 ? 'text-warning' : ''}>
+                          {selectedHealthDetails.daysSinceActivity}d ago
+                        </span>
+                      </div>
+                      <div className="d-flex justify-content-between">
+                        <span className="text-muted">Velocity Trend:</span>
+                        <span className={`badge-bespoke ${selectedHealthDetails.velocityTrend === 'improving' ? 'badge-success-soft' :
+                          selectedHealthDetails.velocityTrend === 'stalled' ? 'badge-danger-soft' :
+                            selectedHealthDetails.velocityTrend === 'declining' ? 'badge-warning-soft' : 'badge-neutral-soft'
+                          }`}>
+                          {selectedHealthDetails.velocityTrend}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="col-md-6">
+                      {/* Oracle Widget for Active Role */}
+                      <div className="mb-4">
+                        {probForecast ? (
+                          <OracleConfidenceWidget
+                            forecast={probForecast}
+                            startDate={new Date()}
+                            className="border-primary bg-soft-primary"
+                          />
+                        ) : (
+                          <div className="card-bespoke p-3 text-center text-muted small">
+                            Running Oracle Simulation...
+                          </div>
+                        )}
+                      </div>
+
+                      <h6 className="mb-3">Recommended Actions</h6>
+                      {selectedHealthDetails.actionRecommendations.length > 0 ? (
+                        <div className="list-group list-group-flush">
+                          {selectedHealthDetails.actionRecommendations.map((action, i) => (
+                            <div key={i} className="list-group-item px-0">
+                              <div className="d-flex align-items-start">
+                                <span className={`badge-bespoke me-2 ${action.priority === 'urgent' ? 'badge-danger-soft' :
+                                  action.priority === 'important' ? 'badge-warning-soft' : 'badge-neutral-soft'
+                                  }`}>
+                                  {action.priority}
+                                </span>
+                                <div>
+                                  <div className="fw-medium">{action.action}</div>
+                                  <div className="small text-muted">
+                                    {action.expectedImpact} <span className="text-primary">({action.owner})</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-muted">No specific actions recommended - role is on track!</div>
-                    )}
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-muted">No specific actions recommended - role is on track!</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
       {/* Pre-Mortem Detail Drawer */}
       <PreMortemDrawer
@@ -1097,3 +1190,5 @@ export function ForecastingTab({
 }
 
 export default ForecastingTab;
+
+
