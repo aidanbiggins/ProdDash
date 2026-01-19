@@ -258,7 +258,17 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     <div className="row g-3">
                         {/* Conversion Rates */}
                         <div className="col-6">
-                            <div className="text-muted mb-2" style={{ fontSize: '0.65rem', fontWeight: 600 }}>
+                            <div
+                                className="mb-3 pb-1 text-center"
+                                style={{
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                    color: '#d4a373',
+                                    borderBottom: '1px solid rgba(212, 163, 115, 0.3)',
+                                    letterSpacing: '0.05em',
+                                    textTransform: 'uppercase'
+                                }}
+                            >
                                 Pass Rates
                             </div>
                             {CONTROLLABLE_STAGES.map(stage => {
@@ -299,7 +309,17 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
 
                         {/* Stage Durations */}
                         <div className="col-6">
-                            <div className="text-muted mb-2" style={{ fontSize: '0.65rem', fontWeight: 600 }}>
+                            <div
+                                className="mb-3 pb-1 text-center"
+                                style={{
+                                    fontSize: '0.7rem',
+                                    fontWeight: 600,
+                                    color: '#d4a373',
+                                    borderBottom: '1px solid rgba(212, 163, 115, 0.3)',
+                                    letterSpacing: '0.05em',
+                                    textTransform: 'uppercase'
+                                }}
+                            >
                                 Durations
                             </div>
                             {CONTROLLABLE_STAGES.map(stage => {
