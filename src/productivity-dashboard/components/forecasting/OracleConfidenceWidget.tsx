@@ -193,7 +193,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                         }}
                     >
                         <div className="stat-label mb-1">Most Likely (P50)</div>
-                        <div className="stat-value" style={{ fontSize: '1.75rem' }}>{p50Str}</div>
+                        <div className="stat-value" style={{ fontSize: '1.75rem', whiteSpace: 'nowrap' }}>{p50Str}</div>
                         <div className="small mt-1" style={{ whiteSpace: 'nowrap' }}>
                             <span className="text-muted">{differenceInDays(displayForecast.p50Date, startDate)} days from today</span>
                             <span style={{
@@ -208,16 +208,16 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     {/* P10/P90 Range - Fixed layout */}
                     <div className="d-flex justify-content-between align-items-end text-center small px-2">
                         <div style={{ minWidth: '70px' }}>
-                            <div className="fw-bold" style={{ color: '#10b981' }}>{p10Str}</div>
-                            <div className="text-muted" style={{ fontSize: '0.7rem' }}>Optimistic (P10)</div>
+                            <div className="fw-bold" style={{ color: '#10b981', whiteSpace: 'nowrap' }}>{p10Str}</div>
+                            <div className="text-muted" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Optimistic (P10)</div>
                         </div>
                         <div className="text-center flex-grow-1 mx-2">
                             <div className="text-muted" style={{ fontSize: '0.7rem' }}>{rangeDays} day range</div>
                             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', marginTop: '4px' }}></div>
                         </div>
                         <div style={{ minWidth: '70px' }}>
-                            <div className="fw-bold text-muted">{p90Str}</div>
-                            <div className="text-muted" style={{ fontSize: '0.7rem' }}>Conservative (P90)</div>
+                            <div className="fw-bold text-muted" style={{ whiteSpace: 'nowrap' }}>{p90Str}</div>
+                            <div className="text-muted" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Conservative (P90)</div>
                         </div>
                     </div>
                 </div>
