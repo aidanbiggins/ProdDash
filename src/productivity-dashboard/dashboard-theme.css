@@ -3673,89 +3673,56 @@ input[type="time"] {
 
 /* ============================================
    ORACLE FLIP CARD SYSTEM
-   3D card flip animation for explainability
+   Crossfade transition for explainability view
+   (3D flip causes artifacts with backdrop-filter)
    ============================================ */
 
-/* Container - provides 3D perspective */
+/* Container */
 .oracle-flip-container {
-    perspective: 1000px;
     position: relative;
 }
 
-/* Inner card that flips */
+/* Inner wrapper */
 .oracle-flip-inner {
     position: relative;
     width: 100%;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
 }
 
-/* Flipped state */
-.oracle-flip-inner.flipped {
-    transform: rotateY(180deg);
-}
-
-/* Both front and back faces - force GPU compositing layer */
+/* Both front and back faces */
 .oracle-flip-front,
 .oracle-flip-back {
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 /* Front face (default view) */
 .oracle-flip-front {
     position: relative;
-    /* Disable glass blur during 3D transform to prevent artifacts */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    opacity: 1;
+    visibility: visible;
 }
 
-/* Back face (explain view) */
+/* Back face (explain view) - stacked behind front */
 .oracle-flip-back {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    transform: rotateY(180deg) translateZ(0);
-    -webkit-transform: rotateY(180deg) translateZ(0);
     overflow-y: auto;
-    /* Disable glass blur during 3D transform to prevent artifacts */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+    opacity: 0;
+    visibility: hidden;
 }
 
-/* Reduced motion: Use fade instead of flip */
-@media (prefers-reduced-motion: reduce) {
-    .oracle-flip-inner {
-        transition: opacity 0.3s ease;
-        transform: none !important;
-    }
+/* Flipped state - crossfade */
+.oracle-flip-inner.flipped .oracle-flip-front {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
 
-    .oracle-flip-inner.flipped .oracle-flip-front {
-        opacity: 0;
-        visibility: hidden;
-    }
-
-    .oracle-flip-inner.flipped .oracle-flip-back {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    .oracle-flip-front,
-    .oracle-flip-back {
-        backface-visibility: visible;
-        -webkit-backface-visibility: visible;
-        transform: none !important;
-    }
-
-    .oracle-flip-back {
-        opacity: 0;
-        visibility: hidden;
-        position: absolute;
-    }
+.oracle-flip-inner.flipped .oracle-flip-back {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Info icon button */
