@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { generateSampleData } from '../utils/sampleDataGenerator';
-import { readFileAsTextOrExcel, FILE_ACCEPT, isExcelFile } from '../utils/excelParser';
+import { readFileAsTextOrExcel, FILE_ACCEPT, isExcelFile, extractAllSheets, MultiSheetResult } from '../utils/excelParser';
 import { ICIMSImportGuide } from './ICIMSImportGuide';
 import { useDashboard } from '../hooks/useDashboardContext';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
@@ -92,12 +92,47 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
     setImportProgress(null);
 
     try {
-      const [reqCsv, candCsv, eventCsv, userCsv] = await Promise.all([
-        readFileAsTextOrExcel(files.requisitions),
-        files.candidates ? readFileAsTextOrExcel(files.candidates) : Promise.resolve(undefined),
-        files.events ? readFileAsTextOrExcel(files.events) : Promise.resolve(undefined),
-        files.users ? readFileAsTextOrExcel(files.users) : Promise.resolve(undefined)
-      ]);
+      let reqCsv: string;
+      let candCsv: string | undefined;
+      let eventCsv: string | undefined;
+      let userCsv: string | undefined;
+
+      // Check if main file is Excel - if so, extract all sheets
+      if (isExcelFile(files.requisitions)) {
+        console.log('[CSVUpload] Detected Excel file, extracting all sheets...');
+        const multiSheet = await extractAllSheets(files.requisitions);
+
+        // Use extracted sheets, but allow explicit file uploads to override
+        reqCsv = multiSheet.requisitions || '';
+        candCsv = files.candidates
+          ? await readFileAsTextOrExcel(files.candidates)
+          : multiSheet.candidates;
+        eventCsv = files.events
+          ? await readFileAsTextOrExcel(files.events)
+          : multiSheet.events;
+        userCsv = files.users
+          ? await readFileAsTextOrExcel(files.users)
+          : multiSheet.users;
+
+        // Log what we found
+        const sheetsFound = [];
+        if (multiSheet.requisitions) sheetsFound.push('requisitions');
+        if (multiSheet.candidates) sheetsFound.push('candidates');
+        if (multiSheet.events) sheetsFound.push('events');
+        if (multiSheet.users) sheetsFound.push('users');
+        console.log(`[CSVUpload] Extracted sheets: ${sheetsFound.join(', ') || 'none classified'}`);
+        if (multiSheet.unclassified.length > 0) {
+          console.log(`[CSVUpload] Unclassified sheets: ${multiSheet.unclassified.map(s => s.name).join(', ')}`);
+        }
+      } else {
+        // Standard CSV handling
+        [reqCsv, candCsv, eventCsv, userCsv] = await Promise.all([
+          readFileAsTextOrExcel(files.requisitions),
+          files.candidates ? readFileAsTextOrExcel(files.candidates) : Promise.resolve(undefined),
+          files.events ? readFileAsTextOrExcel(files.events) : Promise.resolve(undefined),
+          files.users ? readFileAsTextOrExcel(files.users) : Promise.resolve(undefined)
+        ]);
+      }
 
       // Parse CSV to detect PII in candidates
       const parseResult = importCsvData(reqCsv, candCsv || '', eventCsv || '', userCsv || '');
