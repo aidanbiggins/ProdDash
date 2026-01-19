@@ -48,6 +48,9 @@ import { loadOrgConfig, saveOrgConfig, migrateLocalStorageConfig } from '../serv
 import { useAuth } from '../../contexts/AuthContext';
 import { generateDemoSnapshots, parseDemoDataForSnapshots, generateSnapshotsFromLoadedData } from '../utils/sampleDataGenerator';
 import { DataSnapshot, SnapshotEvent } from '../types/snapshotTypes';
+import { computeCoverageMetrics } from '../services/coverageMetricsService';
+import { generateRepairSuggestions } from '../services/repairSuggestionsService';
+import { CoverageMetrics, RepairSuggestion } from '../types/resilientImportTypes';
 
 // Utility to yield to browser and allow UI updates
 const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0));
@@ -57,8 +60,9 @@ const yieldToBrowser = () => new Promise<void>(resolve => setTimeout(resolve, 0)
 type DashboardAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'IMPORT_DATA'; payload: { requisitions: Requisition[]; candidates: Candidate[]; events: Event[]; users: User[]; isDemo?: boolean; snapshots?: DataSnapshot[]; snapshotEvents?: SnapshotEvent[] } }
+  | { type: 'IMPORT_DATA'; payload: { requisitions: Requisition[]; candidates: Candidate[]; events: Event[]; users: User[]; isDemo?: boolean; snapshots?: DataSnapshot[]; snapshotEvents?: SnapshotEvent[]; coverageMetrics?: CoverageMetrics; repairSuggestions?: RepairSuggestion[] } }
   | { type: 'ADD_EVENTS'; payload: Event[] }
+  | { type: 'SET_COVERAGE_METRICS'; payload: { coverageMetrics: CoverageMetrics; repairSuggestions: RepairSuggestion[] } }
   | { type: 'SET_CONFIG'; payload: DashboardConfig }
   | { type: 'SET_FILTERS'; payload: Partial<MetricFilters> }
   | { type: 'SET_OVERVIEW'; payload: OverviewMetrics }
@@ -143,6 +147,9 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
           // Include snapshot data if provided (for SLA tracking in demo mode)
           snapshots: action.payload.snapshots,
           snapshotEvents: action.payload.snapshotEvents,
+          // Include coverage metrics and repair suggestions
+          coverageMetrics: action.payload.coverageMetrics,
+          repairSuggestions: action.payload.repairSuggestions,
         },
         // Set loading state flags for base data
         loadingState: {
@@ -158,6 +165,16 @@ function dashboardReducer(state: DashboardState, action: DashboardAction): Dashb
           isFullyReady: false,
           overallProgress: 0
         }
+      };
+
+    case 'SET_COVERAGE_METRICS':
+      return {
+        ...state,
+        dataStore: {
+          ...state.dataStore,
+          coverageMetrics: action.payload.coverageMetrics,
+          repairSuggestions: action.payload.repairSuggestions,
+        },
       };
 
     case 'ADD_EVENTS':
@@ -452,6 +469,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             snapshotEvents = snapshotData.snapshotEvents;
           }
 
+          // Compute coverage metrics for loaded data
+          const snapshotCount = snapshots?.length ?? 1;
+          const coverageMetrics = computeCoverageMetrics(
+            data.requisitions,
+            data.candidates,
+            data.events,
+            data.users,
+            snapshotCount
+          );
+          const repairSuggestions = generateRepairSuggestions(
+            { unmappedColumns: [], unmappedStages: [], snapshotDate: new Date(), snapshotDateSource: 'import_date' },
+            coverageMetrics
+          );
+
           dispatch({
             type: 'IMPORT_DATA',
             payload: {
@@ -462,6 +493,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
               isDemo,
               snapshots,
               snapshotEvents,
+              coverageMetrics,
+              repairSuggestions,
             }
           });
         } else {
@@ -564,6 +597,22 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         snapshotEvents = snapshotData.snapshotEvents;
       }
 
+      // Compute coverage metrics for resilient import
+      const snapshotCount = snapshots?.length ?? 1;
+      const coverageMetrics = computeCoverageMetrics(
+        result.requisitions.data,
+        candidatesData,
+        result.events.data,
+        result.users.data,
+        snapshotCount
+      );
+
+      // Generate repair suggestions based on coverage
+      const repairSuggestions = generateRepairSuggestions(
+        { unmappedColumns: [], unmappedStages: [], snapshotDate: new Date(), snapshotDateSource: 'import_date' },
+        coverageMetrics
+      );
+
       dispatch({
         type: 'IMPORT_DATA',
         payload: {
@@ -574,6 +623,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           isDemo,
           snapshots,
           snapshotEvents,
+          coverageMetrics,
+          repairSuggestions,
         }
       });
 
@@ -864,6 +915,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           snapshotEvents = snapshotData.snapshotEvents;
         }
 
+        // Compute coverage metrics for refetched data
+        const snapshotCount = snapshots?.length ?? 1;
+        const coverageMetrics = computeCoverageMetrics(
+          data.requisitions,
+          data.candidates,
+          data.events,
+          data.users,
+          snapshotCount
+        );
+        const repairSuggestions = generateRepairSuggestions(
+          { unmappedColumns: [], unmappedStages: [], snapshotDate: new Date(), snapshotDateSource: 'import_date' },
+          coverageMetrics
+        );
+
         dispatch({
           type: 'IMPORT_DATA',
           payload: {
@@ -874,6 +939,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             isDemo,
             snapshots,
             snapshotEvents,
+            coverageMetrics,
+            repairSuggestions,
           }
         });
 
@@ -1066,6 +1133,20 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     const orgId = currentOrg?.id || 'demo-org';
     const snapshotData = generateSnapshotsFromLoadedData(candidates, events, orgId);
 
+    // Compute updated coverage metrics
+    const snapshotCount = snapshotData.snapshots?.length ?? 1;
+    const coverageMetrics = computeCoverageMetrics(
+      state.dataStore.requisitions,
+      state.dataStore.candidates,
+      state.dataStore.events,
+      state.dataStore.users,
+      snapshotCount
+    );
+    const repairSuggestions = generateRepairSuggestions(
+      { unmappedColumns: [], unmappedStages: [], snapshotDate: new Date(), snapshotDateSource: 'import_date' },
+      coverageMetrics
+    );
+
     // Dispatch to update state with new snapshots
     // Keep the original importSource (don't force to 'demo')
     dispatch({
@@ -1078,6 +1159,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         isDemo: importSource === 'demo',
         snapshots: snapshotData.snapshots,
         snapshotEvents: snapshotData.snapshotEvents,
+        coverageMetrics,
+        repairSuggestions,
       }
     });
 

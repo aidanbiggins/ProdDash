@@ -25,6 +25,7 @@ import { DashboardConfig } from './config';
 import { MetricFilters, OverviewMetrics, RecruiterSummary, HiringManagerFriction, QualityMetrics, WeeklyTrend } from './metrics';
 import { LoadingState } from './loadingTypes';
 import { DataSnapshot, SnapshotEvent } from './snapshotTypes';
+import { CoverageMetrics, RepairSuggestion } from './resilientImportTypes';
 
 export interface DataHealth {
   candidatesMissingFirstContact: { count: number; percentage: number };
@@ -48,6 +49,9 @@ export interface DataStore {
   // Snapshot data for SLA tracking (optional, generated from demo or snapshots feature)
   snapshots?: DataSnapshot[];
   snapshotEvents?: SnapshotEvent[];
+  // Resilient import: coverage metrics and suggestions
+  coverageMetrics?: CoverageMetrics;
+  repairSuggestions?: RepairSuggestion[];
 }
 
 export interface DashboardState {

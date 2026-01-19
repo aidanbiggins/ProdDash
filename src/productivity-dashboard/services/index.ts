@@ -20,3 +20,10 @@ export * from './canonicalDataLayer';
 export * from './explain';
 export * from './actionQueueService';
 export * from './preMortemService';
+
+// Resilient Import services
+export * from './coverageMetricsService';
+export * from './capabilityRegistry';
+export * from './repairSuggestionsService';
+export * from './importAuditService';
+export * from './snapshotDateService';

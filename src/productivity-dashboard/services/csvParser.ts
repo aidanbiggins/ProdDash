@@ -146,7 +146,9 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   // Requisition fields
   'req_id': ['job_id', 'requisition_id', 'job_number', 'position_id', 'icims_id', 'posting_id',
     // iCIMS specific
-    'job_requisition_id', 'job__requisition_id'],
+    'job_requisition_id', 'job__requisition_id', 'job_requisition', 'requisition', 'req',
+    // More variations
+    'id', 'job', 'position', 'opening_id', 'vacancy_id', 'posting', 'job_posting_id'],
   'req_title': ['job_title', 'position_title', 'title', 'job_name', 'position_name',
     // iCIMS specific
     'job_job_title_and_job_code', 'job_job_title'],
@@ -312,28 +314,64 @@ function fuzzyGet(raw: any, key: string): string | undefined {
 // ===== CSV COLUMN VALIDATION =====
 
 // Reduced required columns - only truly essential fields
-const REQUISITION_REQUIRED_COLS = [
-  'req_id' // Just the ID is strictly required, others can be inferred or defaulted
-];
+// Per RESILIENT_IMPORT plan: missing columns are WARNINGS, not blockers
+// We'll synthesize IDs when not found
+const REQUISITION_REQUIRED_COLS: string[] = []; // No hard requirements - we can synthesize
+const CANDIDATE_REQUIRED_COLS: string[] = []; // No hard requirements - we can synthesize
+const EVENT_REQUIRED_COLS: string[] = []; // No hard requirements
+const USER_REQUIRED_COLS: string[] = []; // No hard requirements
 
-const CANDIDATE_REQUIRED_COLS = [
-  'candidate_id', 'req_id', 'current_stage'
-];
-
-const EVENT_REQUIRED_COLS = [
-  'event_id', 'req_id', 'event_type', 'event_at'
-];
-
-const USER_REQUIRED_COLS = [
-  'user_id', 'name'
-];
+// Columns that are ideal but not blocking
+const REQUISITION_IDEAL_COLS = ['req_id', 'req_title'];
+const CANDIDATE_IDEAL_COLS = ['candidate_id', 'req_id', 'current_stage'];
 
 function validateColumns(headers: string[], requiredCols: string[], entityType: string): string[] {
+  // Per RESILIENT_IMPORT: Return warnings, not blocking errors
+  // The import will proceed with ID synthesis
   const missing = requiredCols.filter(col => !headers.includes(col));
   if (missing.length > 0) {
-    return [`${entityType}: Missing required columns: ${missing.join(', ')}`];
+    // Log for debugging but don't block
+    console.log(`[CSV Parser] ${entityType}: Missing ideal columns (will synthesize): ${missing.join(', ')}`);
   }
-  return [];
+  return []; // Never block - always return empty errors
+}
+
+/**
+ * Generate a synthetic ID from available data
+ */
+function synthesizeReqId(raw: any, index: number): string {
+  // Try multiple strategies to create a unique, deterministic ID
+  const title = raw.req_title?.trim() || raw.job_title?.trim() || raw.title?.trim() || '';
+  const dept = raw.function?.trim() || raw.department?.trim() || '';
+  const openDate = raw.opened_at?.trim() || raw.open_date?.trim() || '';
+
+  if (title) {
+    // Use title + index for uniqueness
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 30);
+    return `synth_req_${slug}_${index}`;
+  }
+
+  // Last resort: row-based ID
+  return `synth_req_row_${index}`;
+}
+
+function synthesizeCandidateId(raw: any, index: number): string {
+  const name = raw.candidate_name?.trim() || raw.name?.trim() || raw.person_full_name_first_last?.trim() || '';
+  const email = raw.candidate_email?.trim() || raw.email?.trim() || '';
+  const reqId = raw.req_id?.trim() || '';
+
+  if (email && reqId) {
+    // Email + req is a good unique combo
+    const emailSlug = email.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 20);
+    return `synth_cand_${emailSlug}_${reqId.slice(0, 10)}`;
+  }
+
+  if (name && reqId) {
+    const nameSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 20);
+    return `synth_cand_${nameSlug}_${reqId.slice(0, 10)}`;
+  }
+
+  return `synth_cand_row_${index}`;
 }
 
 // ===== PARSE REQUISITIONS =====
@@ -364,31 +402,38 @@ export function parseRequisitions(csvContent: string): ParseResult<Requisition> 
   }
 
   const seenIds = new Set<string>();
+  let synthesizedCount = 0;
 
   result.data.forEach((raw, index) => {
     const row = index + 2; // +2 for header and 1-based indexing
 
-    // Validate unique ID
-    if (!raw.req_id || raw.req_id.trim() === '') {
-      errors.push({ row, field: 'req_id', message: 'Missing required field', value: '' });
-      return;
+    // Get or synthesize ID (RESILIENT: never block on missing ID)
+    let reqId = raw.req_id?.trim() || '';
+    if (!reqId) {
+      reqId = synthesizeReqId(raw, index);
+      synthesizedCount++;
+      warnings.push({ row, field: 'req_id', message: `ID synthesized: ${reqId}`, value: reqId });
     }
-    if (seenIds.has(raw.req_id)) {
-      errors.push({ row, field: 'req_id', message: 'Duplicate ID', value: raw.req_id });
-      return;
-    }
-    seenIds.add(raw.req_id);
 
-    // Parse dates
+    // Handle duplicate IDs by making them unique
+    if (seenIds.has(reqId)) {
+      let suffix = 2;
+      let uniqueId = `${reqId}_${suffix}`;
+      while (seenIds.has(uniqueId)) {
+        suffix++;
+        uniqueId = `${reqId}_${suffix}`;
+      }
+      warnings.push({ row, field: 'req_id', message: `Duplicate ID made unique: ${reqId} -> ${uniqueId}`, value: uniqueId });
+      reqId = uniqueId;
+    }
+    seenIds.add(reqId);
+
+    // Parse dates (RESILIENT: missing dates are warnings, not errors)
     const openedAtResult = parseDate(raw.opened_at, 'opened_at', row);
     if (openedAtResult.error) {
-      errors.push(openedAtResult.error);
-      return;
+      warnings.push(openedAtResult.error); // Warning, not error
     }
-    if (!openedAtResult.date) {
-      errors.push({ row, field: 'opened_at', message: 'Required date field is empty', value: '' });
-      return;
-    }
+    // opened_at is no longer required - we'll use null if missing
 
     const closedAtResult = parseDate(raw.closed_at, 'closed_at', row);
     if (closedAtResult.error) {
@@ -412,7 +457,7 @@ export function parseRequisitions(csvContent: string): ParseResult<Requisition> 
     if (priorityResult.warning) warnings.push(priorityResult.warning);
 
     requisitions.push({
-      req_id: raw.req_id.trim(),
+      req_id: reqId,
       req_title: raw.req_title?.trim() || '',
       function: raw.function?.trim() || '',
       job_family: raw.job_family?.trim() || '',
