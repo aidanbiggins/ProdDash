@@ -185,6 +185,30 @@ export const persistDashboardData = async (
 
     console.log(`[DB] Starting persist: ${requisitions.length} reqs, ${candidates.length} candidates, ${events.length} events, ${users.length} users`);
 
+    // Build set of valid req_ids from requisitions being imported
+    const validReqIds = new Set(requisitions.map(r => r.req_id));
+
+    // Filter candidates to only those referencing valid requisitions (resilient import)
+    const validCandidates = candidates.filter(c => validReqIds.has(c.req_id));
+    const orphanedCandidates = candidates.length - validCandidates.length;
+
+    if (orphanedCandidates > 0) {
+        console.warn(`[DB] Filtering ${orphanedCandidates} orphaned candidates (req_id not in requisitions file)`);
+        // Log some examples
+        const orphanExamples = candidates
+            .filter(c => !validReqIds.has(c.req_id))
+            .slice(0, 5)
+            .map(c => c.req_id);
+        console.warn(`[DB] Example orphaned req_ids: ${orphanExamples.join(', ')}`);
+    }
+
+    // Similarly filter events
+    const validEvents = events.filter(e => validReqIds.has(e.req_id));
+    const orphanedEvents = events.length - validEvents.length;
+    if (orphanedEvents > 0) {
+        console.warn(`[DB] Filtering ${orphanedEvents} orphaned events (req_id not in requisitions file)`);
+    }
+
     // Transform for DB - ONLY include columns that exist in the DB schema
     const dbReqs = requisitions.map(r => ({
         req_id: r.req_id,
@@ -204,7 +228,7 @@ export const persistDashboardData = async (
         organization_id: organizationId
     }));
 
-    const dbCands = candidates.map(c => ({
+    const dbCands = validCandidates.map(c => ({
         candidate_id: c.candidate_id,
         name: c.name,
         req_id: c.req_id,
@@ -221,7 +245,7 @@ export const persistDashboardData = async (
         organization_id: organizationId
     }));
 
-    const dbEvents = events.map(e => ({
+    const dbEvents = validEvents.map(e => ({
         candidate_id: e.candidate_id,
         req_id: e.req_id,
         event_type: e.event_type,
