@@ -6,7 +6,7 @@ import { useDashboard } from '../hooks/useDashboardContext';
 import {
   ImportDiagnostics,
   EntityDiagnostics,
-  ColumnMapping,
+  ImportColumnMapping,
   loadDiagnostics,
   createDiagnosticsSummary,
   analyzeImportData,

@@ -1,7 +1,7 @@
 // Import Diagnostics Service
 // Tracks column mapping and data quality during CSV imports
 
-export interface ColumnMapping {
+export interface ImportColumnMapping {
   originalName: string;
   normalizedName: string;
   mappedTo: string | null;  // Our canonical field name, or null if unmapped
@@ -15,7 +15,7 @@ export interface EntityDiagnostics {
   entityType: 'requisitions' | 'candidates' | 'events' | 'users';
   sourceFile?: string;
   rowCount: number;
-  columnMappings: ColumnMapping[];
+  columnMappings: ImportColumnMapping[];
   mappedColumns: string[];      // Columns that mapped to our schema
   unmappedColumns: string[];    // Columns we couldn't map
   missingIdealColumns: string[];// Columns we'd like but didn't find
@@ -142,7 +142,7 @@ export function analyzeImportData(
   const firstRow = rawData[0];
   const originalColumns = Object.keys(firstRow);
 
-  const columnMappings: ColumnMapping[] = [];
+  const columnMappings: ImportColumnMapping[] = [];
   const mappedColumns: string[] = [];
   const unmappedColumns: string[] = [];
   const fieldCoverage: Record<string, { filled: number; total: number; coverage: number }> = {};
