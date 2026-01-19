@@ -112,15 +112,20 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
         }));
     }, [pipelineCandidates]);
 
-    // Generate cache key
+    // Generate cache key - must include ALL adjustment factors
     const cacheKey = useMemo(() => {
+        // Include lever adjustments in cache key
+        const leverHash = JSON.stringify({
+            conv: conversionAdjustments,
+            dur: durationAdjustments
+        });
         return generateCacheKey({
             reqId,
-            pipelineHash: hashPipelineCounts(pipelineCounts),
+            pipelineHash: hashPipelineCounts(pipelineCounts) + '-' + leverHash,
             seed: forecast.debug.seed,
             knobSettings
         });
-    }, [reqId, pipelineCounts, forecast.debug.seed, knobSettings]);
+    }, [reqId, pipelineCounts, forecast.debug.seed, knobSettings, conversionAdjustments, durationAdjustments]);
 
     // Calculate adjusted simulation result when levers or knobs change
     const adjustedForecast = useMemo(() => {
