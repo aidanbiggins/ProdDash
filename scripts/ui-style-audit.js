@@ -81,7 +81,7 @@ const ALLOWED_TYPOGRAPHY_FILES = [
   // Layout and settings
   'ProductivityDashboard.tsx',
   'CSVUpload.tsx',
-  'ICIMSImportGuide.tsx',
+  'ImportGuide.tsx',
   'StageMappingModal.tsx',
   'OrgSettings.tsx',
   'OrgSwitcher.tsx',
@@ -200,7 +200,7 @@ const ALLOWED_COLOR_FILES = [
   // Other
   'ProductivityDashboard.tsx',
   'CSVUpload.tsx',
-  'ICIMSImportGuide.tsx',
+  'ImportGuide.tsx',
   'OrgSettings.tsx',
   'OrgSwitcher.tsx',
   'SuperAdminPanel.tsx',

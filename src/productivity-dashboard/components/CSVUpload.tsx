@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { generateSampleData } from '../utils/sampleDataGenerator';
 import { readFileAsTextOrExcel, FILE_ACCEPT, isExcelFile, extractAllSheets, MultiSheetResult } from '../utils/excelParser';
-import { ICIMSImportGuide } from './ICIMSImportGuide';
+import { ImportGuide } from './ImportGuide';
 import { useDashboard } from '../hooks/useDashboardContext';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
 import { ImportProgressModal } from './common/ImportProgressModal';
@@ -360,7 +360,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
   return (
     <div className="container py-5">
-      {showGuide && <ICIMSImportGuide onClose={() => setShowGuide(false)} />}
+      {showGuide && <ImportGuide onClose={() => setShowGuide(false)} />}
 
       <div className="row justify-content-center">
         <div className="col-md-8">
@@ -403,7 +403,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                 className="btn btn-sm btn-outline-info"
                 onClick={() => setShowGuide(true)}
               >
-                iCIMS Import Guide
+                Import Guide
               </button>
             </div>
             <div className="card-body">
