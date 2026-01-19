@@ -33,7 +33,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
     const showPerfWarning = knobSettings.iterations >= ITERATIONS_RANGE.performanceWarningThreshold;
 
     return (
-        <div className="oracle-backside glass-panel p-3">
+        <div className="oracle-backside p-3">
             {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <div className="d-flex align-items-center gap-2">

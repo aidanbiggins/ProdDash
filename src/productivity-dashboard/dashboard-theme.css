@@ -3673,56 +3673,106 @@ input[type="time"] {
 
 /* ============================================
    ORACLE FLIP CARD SYSTEM
-   Crossfade transition for explainability view
-   (3D flip causes artifacts with backdrop-filter)
+   3D flip with separated glass layer to prevent
+   backdrop-filter + transform artifacts
    ============================================ */
 
-/* Container */
+/* Container - perspective + isolation */
 .oracle-flip-container {
+    perspective: 1200px;
+    isolation: isolate;
     position: relative;
 }
 
-/* Inner wrapper */
+/* Inner wrapper - does the 3D flip (NO backdrop-filter here) */
 .oracle-flip-inner {
     position: relative;
     width: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Both front and back faces */
+/* Flipped state */
+.oracle-flip-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+/* Face wrappers - handle backface visibility (NO backdrop-filter) */
 .oracle-flip-front,
 .oracle-flip-back {
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 
-/* Front face (default view) */
+/* Front face */
 .oracle-flip-front {
     position: relative;
-    opacity: 1;
-    visibility: visible;
 }
 
-/* Back face (explain view) - stacked behind front */
+/* Back face - rotated 180deg */
 .oracle-flip-back {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    inset: 0;
+    transform: rotateY(180deg) translateZ(0);
+    -webkit-transform: rotateY(180deg) translateZ(0);
+}
+
+/* Glass panel INSIDE each face - this gets the backdrop-filter */
+.oracle-flip-front > .oracle-glass-inner,
+.oracle-flip-back > .oracle-glass-inner {
     height: 100%;
+    background: var(--glass-bg, rgba(30, 41, 59, 0.7));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+    box-shadow: var(--glass-shadow, 0 4px 12px rgba(0, 0, 0, 0.4));
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    overflow: hidden;
+}
+
+/* Back side inner needs overflow-y for scrolling */
+.oracle-flip-back > .oracle-glass-inner {
     overflow-y: auto;
-    opacity: 0;
-    visibility: hidden;
+    max-height: 100%;
 }
 
-/* Flipped state - crossfade */
-.oracle-flip-inner.flipped .oracle-flip-front {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
+/* Reduced motion: Use fade instead of flip */
+@media (prefers-reduced-motion: reduce) {
+    .oracle-flip-inner {
+        transform-style: flat;
+        transition: none;
+    }
 
-.oracle-flip-inner.flipped .oracle-flip-back {
-    opacity: 1;
-    visibility: visible;
+    .oracle-flip-inner.flipped {
+        transform: none;
+    }
+
+    .oracle-flip-front,
+    .oracle-flip-back {
+        backface-visibility: visible;
+        -webkit-backface-visibility: visible;
+        transform: none;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .oracle-flip-back {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .oracle-flip-inner.flipped .oracle-flip-front {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .oracle-flip-inner.flipped .oracle-flip-back {
+        opacity: 1;
+        visibility: visible;
+    }
 }
 
 /* Info icon button */

@@ -370,7 +370,8 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                 style={{ minHeight: frontHeight }}
             >
                 {/* Front Face */}
-                <div className="oracle-flip-front glass-panel p-3" ref={frontRef}>
+                <div className="oracle-flip-front" ref={frontRef}>
+                    <div className="oracle-glass-inner p-3">
                     {/* Compact Header */}
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <div className="d-flex align-items-center gap-2">
@@ -611,6 +612,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                             )}
                         </div>
                     )}
+                    </div>
                 </div>
 
                 {/* Back Face */}
@@ -618,13 +620,15 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     className="oracle-flip-back"
                     style={{ minHeight: frontHeight }}
                 >
-                    <OracleBackside
-                        explainData={explainData}
-                        knobSettings={knobSettings}
-                        onKnobChange={setKnobSettings}
-                        hasKnobChanges={hasKnobChanges}
-                        onClose={() => setIsFlipped(false)}
-                    />
+                    <div className="oracle-glass-inner">
+                        <OracleBackside
+                            explainData={explainData}
+                            knobSettings={knobSettings}
+                            onKnobChange={setKnobSettings}
+                            hasKnobChanges={hasKnobChanges}
+                            onClose={() => setIsFlipped(false)}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
