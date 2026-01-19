@@ -147,158 +147,67 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
     const hasAdjustments = adjustedForecast !== null;
 
     return (
-        <div className={`glass-panel p-4 ${className || ''}`}>
-            <div className="d-flex justify-content-between align-items-center mb-3" style={{ flexWrap: 'nowrap', minHeight: '32px' }}>
-                <div className="d-flex align-items-center gap-2" style={{ flexWrap: 'nowrap', flexShrink: 0 }}>
-                    <h5 className="mb-0 fw-bold" style={{ whiteSpace: 'nowrap' }}>The Oracle</h5>
+        <div className={`glass-panel p-3 ${className || ''}`}>
+            {/* Compact Header */}
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center gap-2">
+                    <span className="fw-bold">The Oracle</span>
                     <span
                         className="badge rounded-pill text-uppercase"
-                        style={{ fontSize: '0.65rem', whiteSpace: 'nowrap', ...badgeStyle }}
+                        style={{ fontSize: '0.6rem', ...badgeStyle }}
                     >
                         {displayForecast.confidenceLevel}
                     </span>
                 </div>
-                <div className="d-flex align-items-center gap-2" style={{ flexWrap: 'nowrap', flexShrink: 0 }}>
-                    {simulationParams && (
-                        <button
-                            className="btn btn-sm"
-                            style={{
-                                background: showLevers ? 'rgba(212, 163, 115, 0.15)' : 'transparent',
-                                border: `1px solid ${showLevers ? 'rgba(212, 163, 115, 0.4)' : 'rgba(255,255,255,0.15)'}`,
-                                color: showLevers ? '#d4a373' : '#94a3b8',
-                                fontSize: '0.7rem',
-                                padding: '0.25rem 0.5rem',
-                                whiteSpace: 'nowrap'
-                            }}
-                            onClick={() => setShowLevers(!showLevers)}
-                        >
-                            <i className="bi bi-sliders2 me-1"></i>
-                            What-If
-                        </button>
+                <span className="text-muted" style={{ fontSize: '0.65rem' }}>
+                    {displayForecast.debug.iterations} runs
+                </span>
+            </div>
+
+            {/* P50 - Main Prediction */}
+            <div
+                className="text-center p-3 rounded-3 mb-3"
+                style={{
+                    background: 'rgba(212, 163, 115, 0.1)',
+                    borderLeft: '4px solid var(--color-accent-primary, #d4a373)'
+                }}
+            >
+                <div className="stat-label mb-1">Most Likely (P50)</div>
+                <div className="stat-value" style={{ fontSize: '1.5rem' }}>{p50Str}</div>
+                <div className="text-muted small mt-1">
+                    {differenceInDays(displayForecast.p50Date, startDate)} days from today
+                    {p50Delta !== null && p50Delta !== 0 && (
+                        <span style={{ color: p50Delta < 0 ? '#10b981' : '#ef4444', marginLeft: '6px' }}>
+                            ({p50Delta > 0 ? '+' : ''}{p50Delta}d)
+                        </span>
                     )}
-                    <span className="text-muted" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
-                        {displayForecast.debug.iterations} runs
-                    </span>
                 </div>
             </div>
 
-            <div className="row g-4">
-                {/* Left: Main Prediction */}
-                <div className="col-md-5">
-                    <div
-                        className="text-center p-3 rounded-3 mb-3"
-                        style={{
-                            background: 'rgba(212, 163, 115, 0.1)',
-                            borderLeft: '4px solid var(--color-accent-primary, #d4a373)'
-                        }}
-                    >
-                        <div className="stat-label mb-1">Most Likely (P50)</div>
-                        <div className="stat-value" style={{ fontSize: '1.75rem', whiteSpace: 'nowrap' }}>{p50Str}</div>
-                        <div className="small mt-1" style={{ whiteSpace: 'nowrap' }}>
-                            <span className="text-muted">{differenceInDays(displayForecast.p50Date, startDate)} days from today</span>
-                            <span style={{
-                                color: p50Delta !== null && p50Delta < 0 ? '#10b981' : p50Delta !== null && p50Delta > 0 ? '#ef4444' : 'transparent',
-                                marginLeft: '6px'
-                            }}>
-                                {p50Delta !== null && p50Delta !== 0 ? `(${p50Delta > 0 ? '+' : ''}${p50Delta}d)` : ''}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* P10/P90 Range - Fixed layout */}
-                    <div className="d-flex justify-content-between align-items-end text-center small px-2">
-                        <div style={{ minWidth: '70px' }}>
-                            <div className="fw-bold" style={{ color: '#10b981', whiteSpace: 'nowrap' }}>{p10Str}</div>
-                            <div className="text-muted" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Optimistic (P10)</div>
-                        </div>
-                        <div className="text-center flex-grow-1 mx-2">
-                            <div className="text-muted" style={{ fontSize: '0.7rem' }}>{rangeDays} day range</div>
-                            <div style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', marginTop: '4px' }}></div>
-                        </div>
-                        <div style={{ minWidth: '70px' }}>
-                            <div className="fw-bold text-muted" style={{ whiteSpace: 'nowrap' }}>{p90Str}</div>
-                            <div className="text-muted" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>Conservative (P90)</div>
-                        </div>
-                    </div>
+            {/* P10/P90 Range - Compact horizontal */}
+            <div className="d-flex justify-content-between align-items-center text-center mb-3 px-2">
+                <div>
+                    <div className="fw-bold" style={{ color: '#10b981', fontSize: '0.85rem' }}>{p10Str}</div>
+                    <div className="text-muted" style={{ fontSize: '0.65rem' }}>Optimistic</div>
                 </div>
-
-                {/* Middle: Interactive Probability */}
-                <div
-                    className="col-md-3"
-                    style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}
-                >
-                    <div className="px-2">
-                        <label className="stat-label d-block mb-2">Target Date Probability</label>
-                        <input
-                            type="date"
-                            className="form-control form-control-sm mb-2"
-                            style={{
-                                background: 'rgba(30, 41, 59, 0.8)',
-                                border: '1px solid rgba(255,255,255,0.2)',
-                                color: '#F8FAFC'
-                            }}
-                            value={userTargetDate ? format(userTargetDate, 'yyyy-MM-dd') : ''}
-                            onChange={(e) => {
-                                const d = new Date(e.target.value);
-                                if (isValid(d)) {
-                                    setUserTargetDate(d);
-                                    onTargetDateChange?.(d);
-                                }
-                            }}
-                        />
-
-                        {probability !== null ? (
-                            <div className="text-center mt-3">
-                                <div
-                                    className="stat-value"
-                                    style={{
-                                        fontSize: '2rem',
-                                        color: probability > 75 ? '#10b981' : probability > 40 ? '#f59e0b' : '#ef4444'
-                                    }}
-                                >
-                                    {probability.toFixed(0)}%
-                                </div>
-                                <div className="text-muted" style={{ fontSize: '0.7rem' }}>chance of hiring by date</div>
-                            </div>
-                        ) : (
-                            <div className="text-center text-muted small mt-4 fst-italic">
-                                Select a date to see probability
-                            </div>
-                        )}
-                    </div>
+                <div className="flex-grow-1 mx-3 text-center">
+                    <div className="text-muted" style={{ fontSize: '0.65rem' }}>{rangeDays}d range</div>
+                    <div style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', marginTop: '2px' }}></div>
                 </div>
-
-                {/* Right: Distribution Chart */}
-                <div className="col-md-4">
-                    <div className="h-100 d-flex flex-column">
-                        <div className="stat-label mb-2">Outcome Distribution</div>
-                        <div className="flex-grow-1">
-                            <DistributionChart
-                                startDate={startDate}
-                                simulatedDays={displayForecast.simulatedDays}
-                                p10Date={displayForecast.p10Date}
-                                p50Date={displayForecast.p50Date}
-                                p90Date={displayForecast.p90Date}
-                                height={120}
-                            />
-                        </div>
-                    </div>
+                <div>
+                    <div className="fw-bold text-muted" style={{ fontSize: '0.85rem' }}>{p90Str}</div>
+                    <div className="text-muted" style={{ fontSize: '0.65rem' }}>Conservative</div>
                 </div>
             </div>
 
             {/* What-If Levers Section */}
             {showLevers && simulationParams && (
                 <div
-                    className="mt-4 pt-4"
+                    className="pt-3 mt-2"
                     style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
                 >
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <div>
-                            <div className="stat-label">What-If Analysis</div>
-                            <div className="text-muted small mt-1">
-                                Adjust the levers to see how changes could impact the fill date
-                            </div>
-                        </div>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                        <span className="text-muted small">Adjust levers to see impact</span>
                         {hasAdjustments && (
                             <button
                                 className="btn btn-sm"
@@ -306,24 +215,22 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                     background: 'transparent',
                                     border: '1px solid rgba(255,255,255,0.2)',
                                     color: '#94a3b8',
-                                    fontSize: '0.75rem'
+                                    fontSize: '0.65rem',
+                                    padding: '0.15rem 0.4rem'
                                 }}
                                 onClick={resetLevers}
                             >
-                                <i className="bi bi-arrow-counterclockwise me-1"></i>
                                 Reset
                             </button>
                         )}
                     </div>
 
-                    <div className="row g-4">
+                    {/* Two-column layout for sliders */}
+                    <div className="row g-3">
                         {/* Conversion Rates */}
-                        <div className="col-md-6">
-                            <div className="stat-label mb-2" style={{ fontSize: '0.7rem' }}>
-                                Pass-Through Rates
-                                <span className="text-muted ms-2" style={{ fontWeight: 'normal' }}>
-                                    (% advancing to next stage)
-                                </span>
+                        <div className="col-6">
+                            <div className="text-muted mb-2" style={{ fontSize: '0.65rem', fontWeight: 600 }}>
+                                Pass Rates
                             </div>
                             {CONTROLLABLE_STAGES.map(stage => {
                                 const baseline = (simulationParams.stageConversionRates[stage] || 0.5) * 100;
@@ -362,12 +269,9 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                         </div>
 
                         {/* Stage Durations */}
-                        <div className="col-md-6">
-                            <div className="stat-label mb-2" style={{ fontSize: '0.7rem' }}>
-                                Stage Durations
-                                <span className="text-muted ms-2" style={{ fontWeight: 'normal' }}>
-                                    (days in each stage)
-                                </span>
+                        <div className="col-6">
+                            <div className="text-muted mb-2" style={{ fontSize: '0.65rem', fontWeight: 600 }}>
+                                Durations
                             </div>
                             {CONTROLLABLE_STAGES.map(stage => {
                                 const dist = simulationParams.stageDurations[stage];
@@ -409,44 +313,28 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                         </div>
                     </div>
 
-                    {/* Impact Summary - Always rendered to reserve space */}
-                    <div
-                        className="mt-3 p-3 rounded-3"
-                        style={{
-                            background: hasAdjustments && p50Delta !== null
-                                ? (p50Delta < 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)')
-                                : 'rgba(100, 116, 139, 0.05)',
-                            border: hasAdjustments && p50Delta !== null
-                                ? `1px solid ${p50Delta < 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
-                                : '1px solid rgba(100, 116, 139, 0.1)',
-                            opacity: hasAdjustments && p50Delta !== null ? 1 : 0.5,
-                            minHeight: '48px'
-                        }}
-                    >
-                        <div className="d-flex align-items-center gap-2">
-                            <i
-                                className={`bi ${hasAdjustments && p50Delta !== null && p50Delta < 0 ? 'bi-graph-down-arrow' : 'bi-graph-up-arrow'}`}
-                                style={{ color: hasAdjustments && p50Delta !== null ? (p50Delta < 0 ? '#10b981' : '#ef4444') : '#64748b' }}
-                            ></i>
-                            <span style={{ fontSize: '0.85rem' }}>
-                                {hasAdjustments && p50Delta !== null ? (
-                                    p50Delta < 0 ? (
-                                        <>
-                                            These changes could <strong style={{ color: '#10b981' }}>speed up hiring by {Math.abs(p50Delta)} days</strong>
-                                        </>
-                                    ) : p50Delta > 0 ? (
-                                        <>
-                                            These changes would <strong style={{ color: '#ef4444' }}>delay hiring by {p50Delta} days</strong>
-                                        </>
-                                    ) : (
-                                        <span className="text-muted">No net impact on timeline</span>
-                                    )
-                                ) : (
-                                    <span className="text-muted">Adjust levers above to see impact</span>
-                                )}
-                            </span>
+                    {/* Impact Summary */}
+                    {hasAdjustments && p50Delta !== null && p50Delta !== 0 && (
+                        <div
+                            className="mt-3 p-2 rounded-2 text-center"
+                            style={{
+                                background: p50Delta < 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                fontSize: '0.8rem'
+                            }}
+                        >
+                            {p50Delta < 0 ? (
+                                <span style={{ color: '#10b981' }}>
+                                    <i className="bi bi-arrow-down me-1"></i>
+                                    {Math.abs(p50Delta)} days faster
+                                </span>
+                            ) : (
+                                <span style={{ color: '#ef4444' }}>
+                                    <i className="bi bi-arrow-up me-1"></i>
+                                    {p50Delta} days slower
+                                </span>
+                            )}
                         </div>
-                    </div>
+                    )}
                 </div>
             )}
         </div>
