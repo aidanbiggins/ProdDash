@@ -3670,3 +3670,234 @@ input[type="time"] {
 .repairs-chip .count {
     font-weight: 600;
 }
+
+/* ============================================
+   ORACLE FLIP CARD SYSTEM
+   3D card flip animation for explainability
+   ============================================ */
+
+/* Container - provides 3D perspective */
+.oracle-flip-container {
+    perspective: 1000px;
+    position: relative;
+}
+
+/* Inner card that flips */
+.oracle-flip-inner {
+    position: relative;
+    width: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+/* Flipped state */
+.oracle-flip-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+/* Both front and back faces */
+.oracle-flip-front,
+.oracle-flip-back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+/* Front face (default view) */
+.oracle-flip-front {
+    position: relative;
+}
+
+/* Back face (explain view) */
+.oracle-flip-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotateY(180deg);
+    overflow-y: auto;
+}
+
+/* Reduced motion: Use fade instead of flip */
+@media (prefers-reduced-motion: reduce) {
+    .oracle-flip-inner {
+        transition: opacity 0.3s ease;
+        transform: none !important;
+    }
+
+    .oracle-flip-inner.flipped .oracle-flip-front {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .oracle-flip-inner.flipped .oracle-flip-back {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .oracle-flip-front,
+    .oracle-flip-back {
+        backface-visibility: visible;
+        -webkit-backface-visibility: visible;
+        transform: none !important;
+    }
+
+    .oracle-flip-back {
+        opacity: 0;
+        visibility: hidden;
+        position: absolute;
+    }
+}
+
+/* Info icon button */
+.oracle-info-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 0.25rem;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    line-height: 1;
+}
+
+.oracle-info-btn:hover {
+    color: var(--accent);
+}
+
+.oracle-info-btn.active {
+    color: var(--accent);
+}
+
+/* Oracle Backside Styles */
+.oracle-backside {
+    padding: 0.75rem;
+}
+
+.oracle-backside-section {
+    margin-bottom: 1rem;
+}
+
+.oracle-backside-section:last-child {
+    margin-bottom: 0;
+}
+
+.oracle-backside-section-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+/* Compact data table for backside */
+.oracle-data-table {
+    font-size: 0.7rem;
+    width: 100%;
+}
+
+.oracle-data-table th,
+.oracle-data-table td {
+    padding: 0.25rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.oracle-data-table th {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.oracle-data-table td {
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+}
+
+.oracle-data-table tr:last-child td,
+.oracle-data-table tr:last-child th {
+    border-bottom: none;
+}
+
+/* Knob sliders */
+.oracle-knob {
+    margin-bottom: 0.75rem;
+}
+
+.oracle-knob-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    margin-bottom: 0.25rem;
+}
+
+.oracle-knob-name {
+    color: var(--text-secondary);
+}
+
+.oracle-knob-value {
+    font-family: var(--font-mono);
+    color: var(--accent);
+}
+
+.oracle-knob-presets {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.oracle-knob-preset {
+    font-size: 0.6rem;
+    padding: 0.125rem 0.375rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.oracle-knob-preset:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.oracle-knob-preset.active {
+    background: rgba(6, 182, 212, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Performance warning */
+.oracle-perf-warning {
+    font-size: 0.65rem;
+    color: var(--color-warn);
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Calibration CTA */
+.oracle-calibration-cta {
+    font-size: 0.7rem;
+    padding: 0.5rem;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: var(--color-warn);
+    text-align: center;
+}
+
+/* Adjusted assumptions chip */
+.oracle-adjusted-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6rem;
+    padding: 0.125rem 0.375rem;
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
