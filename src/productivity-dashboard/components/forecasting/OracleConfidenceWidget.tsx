@@ -200,6 +200,23 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                 </div>
             </div>
 
+            {/* What-If Toggle Button */}
+            {simulationParams && (
+                <button
+                    className="btn btn-sm w-100"
+                    style={{
+                        background: showLevers ? 'rgba(212, 163, 115, 0.15)' : 'transparent',
+                        border: `1px solid ${showLevers ? 'rgba(212, 163, 115, 0.4)' : 'rgba(255,255,255,0.15)'}`,
+                        color: showLevers ? '#d4a373' : '#94a3b8',
+                        fontSize: '0.75rem'
+                    }}
+                    onClick={() => setShowLevers(!showLevers)}
+                >
+                    <i className={`bi ${showLevers ? 'bi-chevron-up' : 'bi-sliders2'} me-1`}></i>
+                    {showLevers ? 'Hide What-If' : 'What-If Analysis'}
+                </button>
+            )}
+
             {/* What-If Levers Section */}
             {showLevers && simulationParams && (
                 <div
