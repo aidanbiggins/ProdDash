@@ -148,45 +148,37 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
 
     return (
         <div className={`glass-panel p-4 ${className || ''}`}>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="d-flex align-items-center gap-2">
-                    <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                        The Oracle
-                        {hasAdjustments && (
-                            <span
-                                className="badge rounded-pill"
-                                style={{ fontSize: '0.6rem', background: 'rgba(45, 212, 191, 0.2)', color: '#2dd4bf' }}
-                            >
-                                ADJUSTED
-                            </span>
-                        )}
-                    </h5>
+            <div className="d-flex justify-content-between align-items-center mb-3" style={{ flexWrap: 'nowrap', minHeight: '32px' }}>
+                <div className="d-flex align-items-center gap-2" style={{ flexWrap: 'nowrap', flexShrink: 0 }}>
+                    <h5 className="mb-0 fw-bold" style={{ whiteSpace: 'nowrap' }}>The Oracle</h5>
                     <span
                         className="badge rounded-pill text-uppercase"
-                        style={{ fontSize: '0.65rem', ...badgeStyle }}
+                        style={{ fontSize: '0.65rem', whiteSpace: 'nowrap', ...badgeStyle }}
                     >
-                        {displayForecast.confidenceLevel} Confidence
+                        {displayForecast.confidenceLevel}
                     </span>
                 </div>
-                <div className="d-flex align-items-center gap-3">
+                <div className="d-flex align-items-center gap-2" style={{ flexWrap: 'nowrap', flexShrink: 0 }}>
                     {simulationParams && (
                         <button
                             className="btn btn-sm"
                             style={{
-                                background: showLevers ? 'rgba(212, 163, 115, 0.2)' : 'transparent',
-                                border: '1px solid rgba(255,255,255,0.2)',
+                                background: showLevers ? 'rgba(212, 163, 115, 0.15)' : 'transparent',
+                                border: `1px solid ${showLevers ? 'rgba(212, 163, 115, 0.4)' : 'rgba(255,255,255,0.15)'}`,
                                 color: showLevers ? '#d4a373' : '#94a3b8',
-                                fontSize: '0.75rem'
+                                fontSize: '0.7rem',
+                                padding: '0.25rem 0.5rem',
+                                whiteSpace: 'nowrap'
                             }}
                             onClick={() => setShowLevers(!showLevers)}
                         >
-                            <i className={`bi bi-sliders me-1`}></i>
+                            <i className="bi bi-sliders2 me-1"></i>
                             What-If
                         </button>
                     )}
-                    <div className="text-muted small">
-                        {displayForecast.debug.iterations} simulations
-                    </div>
+                    <span className="text-muted" style={{ fontSize: '0.7rem', whiteSpace: 'nowrap' }}>
+                        {displayForecast.debug.iterations} runs
+                    </span>
                 </div>
             </div>
 
@@ -196,21 +188,19 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     <div
                         className="text-center p-3 rounded-3 mb-3"
                         style={{
-                            background: hasAdjustments ? 'rgba(45, 212, 191, 0.1)' : 'rgba(212, 163, 115, 0.1)',
-                            borderLeft: `4px solid ${hasAdjustments ? '#2dd4bf' : 'var(--color-accent-primary, #d4a373)'}`
+                            background: 'rgba(212, 163, 115, 0.1)',
+                            borderLeft: '4px solid var(--color-accent-primary, #d4a373)'
                         }}
                     >
                         <div className="stat-label mb-1">Most Likely (P50)</div>
                         <div className="stat-value" style={{ fontSize: '1.75rem' }}>{p50Str}</div>
-                        <div className="text-muted small mt-1" style={{ whiteSpace: 'nowrap' }}>
-                            {differenceInDays(displayForecast.p50Date, startDate)} days from today
+                        <div className="small mt-1" style={{ whiteSpace: 'nowrap' }}>
+                            <span className="text-muted">{differenceInDays(displayForecast.p50Date, startDate)} days from today</span>
                             <span style={{
                                 color: p50Delta !== null && p50Delta < 0 ? '#10b981' : p50Delta !== null && p50Delta > 0 ? '#ef4444' : 'transparent',
-                                marginLeft: '6px',
-                                display: 'inline-block',
-                                minWidth: '70px'
+                                marginLeft: '6px'
                             }}>
-                                ({p50Delta !== null && p50Delta > 0 ? '+' : ''}{p50Delta ?? 0} days)
+                                {p50Delta !== null && p50Delta !== 0 ? `(${p50Delta > 0 ? '+' : ''}${p50Delta}d)` : ''}
                             </span>
                         </div>
                     </div>
@@ -341,33 +331,21 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                 const current = baseline + adjustment;
 
                                 return (
-                                    <div key={stage} className="mb-3">
+                                    <div key={stage} className="mb-2">
                                         <div className="d-flex justify-content-between align-items-center mb-1">
-                                            <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{STAGE_LABELS[stage]}</span>
-                                            <span
-                                                style={{
-                                                    fontSize: '0.75rem',
-                                                    fontFamily: 'var(--font-mono)',
-                                                    color: adjustment !== 0 ? '#2dd4bf' : 'inherit',
-                                                    minWidth: '85px',
-                                                    textAlign: 'right',
-                                                    whiteSpace: 'nowrap'
-                                                }}
-                                            >
-                                                {current.toFixed(0)}%
-                                                <span style={{
-                                                    color: adjustment > 0 ? '#10b981' : adjustment < 0 ? '#ef4444' : 'transparent',
-                                                    marginLeft: '4px',
-                                                    display: 'inline-block',
-                                                    minWidth: '40px'
-                                                }}>
-                                                    ({adjustment > 0 ? '+' : ''}{adjustment.toFixed(0)})
-                                                </span>
+                                            <span style={{ fontSize: '0.75rem' }}>{STAGE_LABELS[stage]}</span>
+                                            <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', minWidth: '50px', textAlign: 'right' }}>
+                                                <span style={{ color: adjustment !== 0 ? '#2dd4bf' : 'inherit' }}>{current.toFixed(0)}%</span>
+                                                {adjustment !== 0 && (
+                                                    <span style={{ color: adjustment > 0 ? '#10b981' : '#ef4444', fontSize: '0.65rem', marginLeft: '2px' }}>
+                                                        {adjustment > 0 ? '+' : ''}{adjustment}
+                                                    </span>
+                                                )}
                                             </span>
                                         </div>
                                         <input
                                             type="range"
-                                            className="form-range"
+                                            className="form-range form-range-sm"
                                             min={-30}
                                             max={30}
                                             step={5}
@@ -376,15 +354,8 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                                 ...prev,
                                                 [stage]: Number(e.target.value)
                                             }))}
-                                            style={{
-                                                accentColor: '#d4a373'
-                                            }}
+                                            style={{ accentColor: '#d4a373' }}
                                         />
-                                        <div className="d-flex justify-content-between text-muted" style={{ fontSize: '0.65rem' }}>
-                                            <span>-30%</span>
-                                            <span>Baseline: {baseline.toFixed(0)}%</span>
-                                            <span>+30%</span>
-                                        </div>
                                     </div>
                                 );
                             })}
@@ -407,33 +378,21 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                 const currentDays = Math.round(baselineDays * (1 + pctChange / 100));
 
                                 return (
-                                    <div key={stage} className="mb-3">
+                                    <div key={stage} className="mb-2">
                                         <div className="d-flex justify-content-between align-items-center mb-1">
-                                            <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{STAGE_LABELS[stage]}</span>
-                                            <span
-                                                style={{
-                                                    fontSize: '0.75rem',
-                                                    fontFamily: 'var(--font-mono)',
-                                                    color: pctChange !== 0 ? '#2dd4bf' : 'inherit',
-                                                    minWidth: '85px',
-                                                    textAlign: 'right',
-                                                    whiteSpace: 'nowrap'
-                                                }}
-                                            >
-                                                {currentDays}d
-                                                <span style={{
-                                                    color: pctChange < 0 ? '#10b981' : pctChange > 0 ? '#ef4444' : 'transparent',
-                                                    marginLeft: '4px',
-                                                    display: 'inline-block',
-                                                    minWidth: '45px'
-                                                }}>
-                                                    ({pctChange > 0 ? '+' : ''}{pctChange}%)
-                                                </span>
+                                            <span style={{ fontSize: '0.75rem' }}>{STAGE_LABELS[stage]}</span>
+                                            <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', minWidth: '50px', textAlign: 'right' }}>
+                                                <span style={{ color: pctChange !== 0 ? '#2dd4bf' : 'inherit' }}>{currentDays}d</span>
+                                                {pctChange !== 0 && (
+                                                    <span style={{ color: pctChange < 0 ? '#10b981' : '#ef4444', fontSize: '0.65rem', marginLeft: '2px' }}>
+                                                        {pctChange > 0 ? '+' : ''}{pctChange}%
+                                                    </span>
+                                                )}
                                             </span>
                                         </div>
                                         <input
                                             type="range"
-                                            className="form-range"
+                                            className="form-range form-range-sm"
                                             min={-50}
                                             max={50}
                                             step={10}
@@ -442,15 +401,8 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                                 ...prev,
                                                 [stage]: Number(e.target.value)
                                             }))}
-                                            style={{
-                                                accentColor: '#d4a373'
-                                            }}
+                                            style={{ accentColor: '#d4a373' }}
                                         />
-                                        <div className="d-flex justify-content-between text-muted" style={{ fontSize: '0.65rem' }}>
-                                            <span>-50%</span>
-                                            <span>Baseline: {baselineDays}d</span>
-                                            <span>+50%</span>
-                                        </div>
                                     </div>
                                 );
                             })}
