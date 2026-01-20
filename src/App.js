@@ -7,6 +7,7 @@ import { RecruiterProductivityDashboard } from './productivity-dashboard';
 import { InviteAcceptPage } from './components/InviteAcceptPage';
 import OnboardingPage from './components/OnboardingPage';
 import { LandingPage } from './components/landing/LandingPage';
+import { AboutPage } from './components/landing/AboutPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Login route that redirects logged-in users to returnUrl or home
@@ -76,6 +77,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginRoute />} />
+      <Route path="/about" element={<AboutPage />} />
 
       {/* Invite Accept Page - accessible without login but requires login to accept */}
       <Route path="/invite/:token" element={<InviteAcceptPage />} />

@@ -67,6 +67,9 @@ export function LandingPage() {
             >
               Features
             </button>
+            <Link to="/about" className="landing-nav-link">
+              About
+            </Link>
           </div>
           <Link to="/login" className="landing-nav-cta">
             Sign In

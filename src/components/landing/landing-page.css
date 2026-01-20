@@ -3,8 +3,8 @@
    Interactive, story-driven landing experience
    ============================================ */
 
-/* Space Grotesk for marketing headers */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+/* Inter for body text, Space Grotesk for headers, JetBrains Mono for metrics */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* ============================================
    LANDING PAGE VARIABLES
@@ -36,6 +36,7 @@
   color: var(--landing-text);
   overflow-x: hidden;
   position: relative;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* Network background sits above page bg, below content */
@@ -215,6 +216,7 @@
 }
 
 .landing-section-header p {
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 1.125rem;
   color: var(--landing-text-muted);
   line-height: 1.7;
@@ -531,7 +533,7 @@
 }
 
 .landing-problem-stat .stat-value {
-  font-family: 'Space Mono', 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--landing-red);
@@ -1465,7 +1467,9 @@
   border: 1px solid var(--landing-border);
   border-radius: 8px !important;
   color: var(--landing-text-muted);
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1489,8 +1493,10 @@
 
 .metrics-intro {
   text-align: center;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 1rem;
   color: var(--landing-text-muted);
+  line-height: 1.6;
   margin-bottom: 2rem;
 }
 
@@ -2467,6 +2473,297 @@
 
 .bg-data-element:nth-child(5n) {
   animation-timing-function: ease-out;
+}
+
+/* ============================================
+   ABOUT PAGE
+   ============================================ */
+.about-page-content {
+  padding-top: 6rem;
+  max-width: var(--landing-max-width);
+  margin: 0 auto;
+}
+
+.about-hero {
+  text-align: center;
+  padding: 4rem 2rem 3rem;
+}
+
+.about-hero h1 {
+  font-family: var(--landing-font-heading) !important;
+  font-size: clamp(1.75rem, 4vw, 2.75rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.2 !important;
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+
+.about-section {
+  padding: 3rem 2rem;
+}
+
+.about-section-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-section h2 {
+  font-family: var(--landing-font-heading) !important;
+  font-size: clamp(1.5rem, 3vw, 2rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: #ffffff !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.about-section h3 {
+  font-family: var(--landing-font-heading) !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.about-section p {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.0625rem;
+  color: var(--landing-text-muted);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.about-lead {
+  font-size: 1.25rem !important;
+  color: var(--landing-text) !important;
+  font-weight: 500;
+}
+
+.about-emphasis {
+  font-size: 1.25rem !important;
+  color: var(--landing-gold) !important;
+  font-weight: 600;
+  margin-top: 2rem !important;
+}
+
+.about-note {
+  font-style: italic;
+  padding: 1rem 1.5rem;
+  background: rgba(245, 158, 11, 0.1);
+  border-left: 3px solid var(--landing-gold);
+  border-radius: 0 8px 8px 0 !important;
+  margin-top: 1.5rem;
+}
+
+/* Feature list with icons */
+.about-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.about-feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--landing-border);
+}
+
+.about-feature-list li:last-child {
+  border-bottom: none;
+}
+
+.about-feature-list li i {
+  color: var(--landing-gold);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  width: 2rem;
+  text-align: center;
+}
+
+.about-feature-list li span {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1rem;
+  color: var(--landing-text-muted);
+  line-height: 1.6;
+}
+
+.about-feature-list li strong {
+  color: var(--landing-text);
+}
+
+/* Difference cards grid */
+.about-diff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.about-diff-card {
+  padding: 1.5rem;
+  background: var(--landing-surface);
+  border: 1px solid var(--landing-border);
+  border-radius: 12px !important;
+}
+
+.about-diff-card h3 {
+  margin-top: 0 !important;
+}
+
+.about-diff-card p {
+  margin-bottom: 0;
+}
+
+/* Audience list */
+.about-audience-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.about-audience-list li {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1rem;
+  color: var(--landing-text-muted);
+  line-height: 1.6;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--landing-border);
+}
+
+.about-audience-list li:last-child {
+  border-bottom: none;
+}
+
+.about-audience-list li strong {
+  color: var(--landing-text);
+}
+
+/* Beliefs section */
+.about-beliefs {
+  background: rgba(15, 23, 42, 0.5);
+  margin: 2rem 0;
+  padding: 3rem 2rem !important;
+}
+
+.about-beliefs-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+}
+
+.about-beliefs-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--landing-border);
+}
+
+.about-beliefs-list li:last-child {
+  border-bottom: none;
+}
+
+.belief-title {
+  font-family: var(--landing-font-heading);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--landing-text);
+}
+
+.belief-desc {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.9375rem;
+  color: var(--landing-text-muted);
+}
+
+/* Vision section */
+.about-vision {
+  text-align: center;
+  padding-bottom: 4rem !important;
+}
+
+.about-vision-statement {
+  font-size: 1.125rem !important;
+  color: var(--landing-text) !important;
+  margin-bottom: 1rem !important;
+}
+
+.about-vision-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+}
+
+.about-vision-list li {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 1.0625rem;
+  color: var(--landing-gold);
+  line-height: 2;
+}
+
+.about-cta-text {
+  font-size: 1.125rem !important;
+  color: var(--landing-text) !important;
+  margin-bottom: 2rem !important;
+}
+
+.about-cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Nav active state for About page */
+.landing-nav-link.active {
+  color: var(--landing-gold);
+}
+
+/* About page responsive */
+@media (max-width: 768px) {
+  .about-hero {
+    padding: 3rem 1.5rem 2rem;
+  }
+
+  .about-section {
+    padding: 2rem 1.5rem;
+  }
+
+  .about-diff-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-beliefs-list li {
+    gap: 0.5rem;
+  }
+
+  .about-cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .about-cta-buttons a {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-hero h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .about-feature-list li {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .about-feature-list li i {
+    width: auto;
+  }
 }
 
 /* ============================================
