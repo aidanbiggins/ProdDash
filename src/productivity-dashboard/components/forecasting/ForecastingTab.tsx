@@ -247,6 +247,15 @@ export function ForecastingTab({
     return roleHealthMetrics.find(r => r.reqId === selectedHealthReq);
   }, [selectedHealthReq, roleHealthMetrics]);
 
+  // Pipeline candidates for selected req (for What-If analysis)
+  const selectedReqPipelineCandidates = useMemo(() => {
+    if (!selectedHealthReq) return [];
+    return candidates.filter(c =>
+      c.req_id === selectedHealthReq &&
+      ['Screen', 'HM Screen', 'Onsite', 'Offer'].includes(c.current_stage)
+    );
+  }, [selectedHealthReq, candidates]);
+
   // Run Oracle when selecting a health req
   React.useEffect(() => {
     if (selectedHealthReq && selectedHealthDetails) {
@@ -1078,6 +1087,8 @@ export function ForecastingTab({
         forecast={probForecast}
         preMortem={selectedHealthReq ? preMortemByReqId.get(selectedHealthReq) : null}
         simulationParams={simParams}
+        pipelineCandidates={selectedReqPipelineCandidates}
+        reqId={selectedHealthReq || undefined}
       />
     </div>
   );

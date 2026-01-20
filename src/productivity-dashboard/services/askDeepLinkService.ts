@@ -324,6 +324,7 @@ function tabToUrlPath(tab: TabType): string {
     'source-mix': '/diagnose/sources',
     'velocity': '/diagnose/velocity',
     'capacity': '/plan/capacity',
+    'capacity-rebalancer': '/plan/rebalancer',
     'forecasting': '/plan/forecast',
     'scenarios': '/plan/scenarios',
     'data-health': '/settings/data-health',

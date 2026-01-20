@@ -79,7 +79,7 @@ export function DataTransformSection() {
         <span className="landing-section-eyebrow">The Transformation</span>
         <h2>From Chaos to Clarity in Seconds</h2>
         <p>
-          Watch how ProdDash transforms a messy ATS export into decision-grade intelligence.
+          Watch how PlatoVue transforms a messy ATS export into decision-grade intelligence.
         </p>
       </div>
 

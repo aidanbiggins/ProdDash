@@ -19,8 +19,9 @@
   --landing-green: #22c55e;
   --landing-red: #ef4444;
   --landing-bg: #0f172a;
-  --landing-surface: rgba(30, 41, 59, 0.7);
-  --landing-border: rgba(255, 255, 255, 0.1);
+  --landing-surface: rgba(15, 23, 42, 0.4);
+  --landing-surface-solid: rgba(30, 41, 59, 0.85);
+  --landing-border: rgba(255, 255, 255, 0.08);
   --landing-text: #F8FAFC;
   /* Increased from #94A3B8 to #B0BEC5 for better WCAG AA contrast (5.2:1) */
   --landing-text-muted: #B0BEC5;
@@ -34,6 +35,25 @@
   background: var(--landing-bg);
   color: var(--landing-text);
   overflow-x: hidden;
+  position: relative;
+}
+
+/* Network background sits above page bg, below content */
+.landing-page > canvas {
+  z-index: 1;
+}
+
+/* All content sections sit above the network */
+.landing-page > *:not(canvas) {
+  position: relative;
+  z-index: 2;
+}
+
+/* Glass effect utility - add to any card/panel */
+.landing-page [class*="-card"],
+.landing-page [class*="-panel"] {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 /* ============================================
@@ -65,7 +85,7 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.25);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--landing-border);
@@ -351,10 +371,13 @@
 .hero-no-credit-card {
   font-size: 0.875rem;
   color: var(--landing-text-muted);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 100px;
 }
 
 .hero-no-credit-card i {
@@ -434,7 +457,7 @@
    ============================================ */
 .landing-problem {
   padding: var(--landing-section-padding);
-  background: linear-gradient(180deg, var(--landing-bg) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: transparent;
   position: relative;
 }
 
@@ -458,19 +481,15 @@
 }
 
 .landing-problem-card {
-  background: var(--landing-surface);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--landing-border);
-  border-radius: 12px !important;
+  display: flex;
+  flex-direction: column;
   padding: 1.5rem;
-  transition: all 0.3s ease;
   cursor: default;
 }
 
 .landing-problem-card:hover,
 .landing-problem-card.active {
   border-color: rgba(239, 68, 68, 0.3);
-  transform: translateY(-4px);
 }
 
 .landing-problem-icon {
@@ -499,27 +518,38 @@
   color: var(--landing-text-muted);
   line-height: 1.6;
   margin-bottom: 1rem;
+  flex-grow: 1;
 }
 
 .landing-problem-stat {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 1rem;
   padding-top: 1rem;
+  margin-top: auto;
   border-top: 1px solid var(--landing-border);
 }
 
 .landing-problem-stat .stat-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.5rem;
+  font-family: 'Space Mono', 'JetBrains Mono', monospace;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--landing-red);
   white-space: nowrap;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  min-width: 5.5rem;
+  flex-shrink: 0;
 }
 
 .landing-problem-stat .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
   color: var(--landing-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  text-align: left;
 }
 
 .landing-problem-quote {
@@ -538,19 +568,21 @@
 }
 
 .landing-problem-quote blockquote::before {
-  content: '"';
+  content: '\201C';
   color: var(--landing-gold);
 }
 
 .landing-problem-quote blockquote::after {
-  content: '"';
+  content: '\201D';
   color: var(--landing-gold);
 }
 
 .landing-problem-answer {
   font-size: 1rem;
   color: var(--landing-text);
-  background: var(--landing-surface);
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 1rem 1.5rem;
   border-radius: 8px !important;
   border-left: 3px solid var(--landing-gold);
@@ -561,7 +593,7 @@
    ============================================ */
 .landing-transform {
   padding: var(--landing-section-padding);
-  background: var(--landing-bg);
+  background: transparent;
 }
 
 .landing-transform-container {
@@ -620,13 +652,17 @@
 }
 
 .landing-transform-visual {
-  min-height: 350px;
+  height: 380px;
   background: var(--landing-surface);
   border: 1px solid var(--landing-border);
   border-radius: 16px !important;
   padding: 2rem;
   margin-bottom: 2rem;
   transition: opacity 0.3s;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .landing-transform-visual.animating {
@@ -655,6 +691,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .csv-table {
@@ -729,6 +766,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+  width: 100%;
 }
 
 .parsed-detection {
@@ -791,6 +829,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .normalization-header {
@@ -875,6 +914,7 @@
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  width: 100%;
 }
 
 .cleaned-header {
@@ -965,6 +1005,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 
 .insights-kpis {
@@ -1044,7 +1085,7 @@
    ============================================ */
 .landing-how-it-works {
   padding: var(--landing-section-padding);
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, var(--landing-bg) 100%);
+  background: transparent;
 }
 
 .landing-steps {
@@ -1126,9 +1167,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 3rem;
-  color: var(--landing-text-muted);
-  font-size: 1.5rem;
+  padding-top: 2rem;
+  flex-shrink: 0;
+}
+
+.connector-chevron {
+  width: 48px;
+  height: 80px;
+  color: var(--landing-gold);
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
+}
+
+.connector-chevron .chevron-bg {
+  opacity: 0.3;
+}
+
+.connector-chevron .chevron-glow {
+  opacity: 0.8;
+  animation: chevronPulse 2s ease-in-out infinite;
+}
+
+@keyframes chevronPulse {
+  0%, 100% {
+    opacity: 0.5;
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 16px currentColor);
+  }
 }
 
 .landing-supported-systems {
@@ -1162,7 +1229,7 @@
    ============================================ */
 .landing-features {
   padding: var(--landing-section-padding);
-  background: var(--landing-bg);
+  background: transparent;
   position: relative;
 }
 
@@ -1186,6 +1253,8 @@
 }
 
 .landing-feature-card {
+  display: flex;
+  flex-direction: column;
   background: var(--landing-surface);
   backdrop-filter: blur(12px);
   border: 1px solid var(--landing-border);
@@ -1343,6 +1412,7 @@
 
 .feature-card-footer {
   padding-top: 1rem;
+  margin-top: auto;
   border-top: 1px solid var(--landing-border);
 }
 
@@ -1376,7 +1446,7 @@
    ============================================ */
 .landing-metrics {
   padding: var(--landing-section-padding);
-  background: linear-gradient(180deg, var(--landing-bg) 0%, rgba(15, 23, 42, 0.95) 100%);
+  background: transparent;
 }
 
 .metrics-tabs {
@@ -1813,7 +1883,7 @@
    ============================================ */
 .landing-screenshots {
   padding: var(--landing-section-padding);
-  background: var(--landing-bg);
+  background: transparent;
   position: relative;
   overflow: hidden;
 }
@@ -1942,10 +2012,7 @@
 .landing-final-cta {
   padding: var(--landing-section-padding);
   text-align: center;
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 30% at 80% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
-    var(--landing-bg);
+  background: transparent;
   position: relative;
 }
 
@@ -2038,8 +2105,8 @@
 
 .bg-data-element {
   position: absolute;
-  filter: blur(2px);
-  opacity: 0.18;
+  filter: blur(3px);
+  opacity: 0.06;
   animation: bgFloat 8s ease-in-out infinite;
   transition: opacity 0.3s;
 }
@@ -2227,24 +2294,24 @@
 .bg-data-element.mid-mid-right { top: 48%; right: 22%; }
 
 /* Outer positions - further from content, more blurred */
-.bg-data-element.outer-top-left { top: 5%; left: 12%; filter: blur(3px); opacity: 0.12; }
-.bg-data-element.outer-top-right { top: 6%; right: 15%; filter: blur(3px); opacity: 0.12; }
-.bg-data-element.outer-mid-left { top: 38%; left: 1%; filter: blur(3px); opacity: 0.12; }
-.bg-data-element.outer-mid-right { top: 40%; right: 1%; filter: blur(3px); opacity: 0.12; }
-.bg-data-element.outer-bottom-left { bottom: 8%; left: 8%; filter: blur(3px); opacity: 0.12; }
-.bg-data-element.outer-bottom-right { bottom: 5%; right: 12%; filter: blur(3px); opacity: 0.12; }
+.bg-data-element.outer-top-left { top: 5%; left: 12%; filter: blur(4px); opacity: 0.04; }
+.bg-data-element.outer-top-right { top: 6%; right: 15%; filter: blur(4px); opacity: 0.04; }
+.bg-data-element.outer-mid-left { top: 38%; left: 1%; filter: blur(4px); opacity: 0.04; }
+.bg-data-element.outer-mid-right { top: 40%; right: 1%; filter: blur(4px); opacity: 0.04; }
+.bg-data-element.outer-bottom-left { bottom: 8%; left: 8%; filter: blur(4px); opacity: 0.04; }
+.bg-data-element.outer-bottom-right { bottom: 5%; right: 12%; filter: blur(4px); opacity: 0.04; }
 
 /* Deep positions - very edge of viewport, most blurred */
-.bg-data-element.deep-left-1 { top: 20%; left: -1%; filter: blur(4px); opacity: 0.1; }
-.bg-data-element.deep-left-2 { top: 75%; left: 0%; filter: blur(4px); opacity: 0.1; }
-.bg-data-element.deep-right-1 { top: 18%; right: -1%; filter: blur(4px); opacity: 0.1; }
-.bg-data-element.deep-right-2 { top: 78%; right: 0%; filter: blur(4px); opacity: 0.1; }
+.bg-data-element.deep-left-1 { top: 20%; left: -1%; filter: blur(5px); opacity: 0.03; }
+.bg-data-element.deep-left-2 { top: 75%; left: 0%; filter: blur(5px); opacity: 0.03; }
+.bg-data-element.deep-right-1 { top: 18%; right: -1%; filter: blur(5px); opacity: 0.03; }
+.bg-data-element.deep-right-2 { top: 78%; right: 0%; filter: blur(5px); opacity: 0.03; }
 
 /* Corner positions - extreme corners */
-.bg-data-element.corner-top-left { top: 2%; left: 3%; filter: blur(3.5px); opacity: 0.1; }
-.bg-data-element.corner-top-right { top: 3%; right: 3%; filter: blur(3.5px); opacity: 0.1; }
-.bg-data-element.corner-bottom-left { bottom: 3%; left: 4%; filter: blur(3.5px); opacity: 0.1; }
-.bg-data-element.corner-bottom-right { bottom: 2%; right: 5%; filter: blur(3.5px); opacity: 0.1; }
+.bg-data-element.corner-top-left { top: 2%; left: 3%; filter: blur(5px); opacity: 0.03; }
+.bg-data-element.corner-top-right { top: 3%; right: 3%; filter: blur(5px); opacity: 0.03; }
+.bg-data-element.corner-bottom-left { bottom: 3%; left: 4%; filter: blur(5px); opacity: 0.03; }
+.bg-data-element.corner-bottom-right { bottom: 2%; right: 5%; filter: blur(5px); opacity: 0.03; }
 
 /* Swirling tornado animation for background elements */
 @keyframes bgSwirl {

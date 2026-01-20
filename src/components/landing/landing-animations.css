@@ -308,8 +308,8 @@
 .glass-card {
   background: linear-gradient(
     135deg,
-    rgba(30, 41, 59, 0.8) 0%,
-    rgba(30, 41, 59, 0.4) 100%
+    rgba(30, 41, 59, 0.95) 0%,
+    rgba(30, 41, 59, 0.88) 100%
   );
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);

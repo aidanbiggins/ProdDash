@@ -68,7 +68,7 @@ const features: Feature[] = [
   },
   {
     icon: 'bi-chat-dots',
-    title: 'Ask ProdDash',
+    title: 'Ask PlatoVue',
     tagline: 'Just ask',
     description: 'Natural language interface to query your recruiting data. Ask questions in plain English, get instant answers with citations.',
     whyItMatters: '"Why did that take so long?" shouldn\'t require a data analyst and 2 weeks. Ask the question, get the answer.',
@@ -104,7 +104,7 @@ export function FeaturesSection({ sectionRef }: FeaturesSectionProps) {
         <span className="landing-section-eyebrow">Features</span>
         <h2>Everything You Need to Run Recruiting</h2>
         <p>
-          From high-level KPIs to individual candidate tracking, ProdDash gives you
+          From high-level KPIs to individual candidate tracking, PlatoVue gives you
           complete visibility into your recruiting operation.
         </p>
       </div>

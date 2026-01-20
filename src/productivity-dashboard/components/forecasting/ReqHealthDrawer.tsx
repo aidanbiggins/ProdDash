@@ -4,6 +4,7 @@ import { RoleHealthMetrics } from '../../types/forecastingTypes';
 import { ForecastResult, SimulationParameters } from '../../services/probabilisticEngine';
 import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../types/preMortemTypes';
 import { OracleConfidenceWidget } from './OracleConfidenceWidget';
+import { Candidate } from '../../types';
 
 // Health status badge styling
 function getHealthBadgeStyle(status: string) {
@@ -67,6 +68,10 @@ interface ReqHealthDrawerProps {
   forecast: ForecastResult | null;
   preMortem: PreMortemResult | null | undefined;
   simulationParams?: SimulationParameters | null;
+  /** Pipeline candidates for this req - required for What-If analysis to work correctly */
+  pipelineCandidates?: Candidate[];
+  /** Req ID for caching */
+  reqId?: string;
 }
 
 export function ReqHealthDrawer({
@@ -76,6 +81,8 @@ export function ReqHealthDrawer({
   forecast,
   preMortem,
   simulationParams,
+  pipelineCandidates = [],
+  reqId,
 }: ReqHealthDrawerProps) {
   if (!isOpen || !healthData) return null;
 
@@ -197,6 +204,8 @@ export function ReqHealthDrawer({
                 forecast={forecast}
                 startDate={new Date()}
                 simulationParams={simulationParams || undefined}
+                pipelineCandidates={pipelineCandidates}
+                reqId={reqId}
               />
             </div>
           ) : (

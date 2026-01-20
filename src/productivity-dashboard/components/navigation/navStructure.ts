@@ -53,6 +53,7 @@ export const NAV_STRUCTURE: NavStructure = {
     route: '/plan',
     submenu: [
       { id: 'capacity', label: 'Capacity Planning', route: '/plan/capacity' },
+      { id: 'rebalancer', label: 'Capacity Rebalancer', route: '/plan/rebalancer' },
       { id: 'forecast', label: 'Hiring Forecast', route: '/plan/forecast' },
       { id: 'scenarios', label: 'What-If Scenarios', route: '/plan/scenarios' }
     ]
@@ -143,6 +144,7 @@ export function getActiveItem(pathname: string): string | null {
     '/diagnose/sources': 'sources',
     '/diagnose/velocity': 'velocity',
     '/plan/capacity': 'capacity',
+    '/plan/rebalancer': 'rebalancer',
     '/plan/forecast': 'forecast',
     '/plan/scenarios': 'scenarios',
     '/settings/data-health': 'data-health',

@@ -8,6 +8,7 @@ import { NAV_STRUCTURE, NavBucket, getActiveBucket, getActiveItem } from './navS
 import { getTabFromPath, TabType } from '../../routes';
 import { useDataMasking } from '../../contexts/DataMaskingContext';
 import { useDashboard } from '../../hooks/useDashboardContext';
+import { LogoHero } from 'components/LogoHero';
 import './navigation.css';
 
 export interface TopNavProps {
@@ -124,9 +125,7 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
             >
               <i className="bi bi-list" />
             </button>
-            <span className="top-nav-logo" onClick={() => handleNavigation('/')}>
-              ProdDash
-            </span>
+            <LogoHero onClick={() => handleNavigation('/')} />
             <OrgSwitcher
               onCreateOrg={onCreateOrg}
               onOrgSettings={onOrgSettings}

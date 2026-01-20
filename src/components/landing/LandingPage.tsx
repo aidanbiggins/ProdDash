@@ -8,7 +8,9 @@ import { FeaturesSection } from './FeaturesSection';
 import { MetricsShowcase } from './MetricsShowcase';
 import { ScreenshotsSection } from './ScreenshotsSection';
 import { CTASection } from './CTASection';
+import { NetworkBackground } from './NetworkBackground';
 import { useScrollProgress } from './hooks/useScrollAnimations';
+import { LogoHero } from '../LogoHero';
 import './landing-page.css';
 import './landing-animations.css';
 
@@ -38,6 +40,9 @@ export function LandingPage() {
 
   return (
     <div className="landing-page">
+      {/* Network background - connects segments as you scroll */}
+      <NetworkBackground scrollProgress={scrollProgress} />
+
       {/* Scroll progress indicator */}
       <div
         className="scroll-progress-bar"
@@ -46,18 +51,15 @@ export function LandingPage() {
       {/* Navigation */}
       <nav className={`landing-nav ${navScrolled ? 'nav-scrolled' : ''}`}>
         <div className="landing-nav-inner">
-          <Link to="/" className="landing-logo">
-            <span className="landing-logo-icon">
-              <i className="bi bi-speedometer2" />
-            </span>
-            ProdDash
+          <Link to="/" className="landing-logo" style={{ textDecoration: 'none' }}>
+            <LogoHero size="sm" />
           </Link>
           <div className="landing-nav-links">
             <button
               className="landing-nav-link"
               onClick={() => problemRef.current?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Why ProdDash
+              Why PlatoVue
             </button>
             <button
               className="landing-nav-link"
@@ -102,10 +104,7 @@ export function LandingPage() {
       <footer className="landing-footer">
         <div className="landing-footer-inner">
           <div className="footer-brand">
-            <span className="landing-logo-icon small">
-              <i className="bi bi-speedometer2" />
-            </span>
-            <span>ProdDash</span>
+            <LogoHero size="sm" />
           </div>
           <p className="footer-tagline">
             Recruiting Intelligence for Modern TA Teams

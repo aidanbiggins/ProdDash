@@ -22,6 +22,7 @@ import { ForecastingTab } from './forecasting';
 import { DataHealthTab } from './data-health';
 import { ControlTowerTab } from './control-tower';
 import { CapacityTab } from './capacity/CapacityTab';
+import { CapacityRebalancerTab } from './capacity-rebalancer/CapacityRebalancerTab';
 import { AskProdDashTab } from './ask-proddash';
 import ScenarioLibraryTab from './scenarios/ScenarioLibraryTab';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
@@ -973,6 +974,11 @@ export function ProductivityDashboard() {
               {/* Capacity Tab */}
               {activeTab === 'capacity' && (
                 <CapacityTab />
+              )}
+
+              {/* Capacity Rebalancer Tab */}
+              {activeTab === 'capacity-rebalancer' && (
+                <CapacityRebalancerTab />
               )}
 
               {/* Velocity Tab */}

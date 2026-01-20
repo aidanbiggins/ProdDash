@@ -19,7 +19,7 @@ const steps: Step[] = [
   },
   {
     number: 2,
-    title: 'Import to ProdDash',
+    title: 'Import to PlatoVue',
     description: 'Drag and drop your file. We auto-detect columns, report type, and date formats. No manual mapping.',
     time: '30 sec',
     icon: 'bi-cloud-upload'
@@ -74,7 +74,29 @@ export function HowItWorksSection() {
                 className={`step-connector animate-fade-up ${stepsInView ? 'in-view' : ''}`}
                 style={{ transitionDelay: `${index * 150 + 75}ms` }}
               >
-                <i className="bi bi-arrow-right" />
+                <svg
+                  className="connector-chevron"
+                  viewBox="0 0 48 80"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    className="chevron-bg"
+                    d="M4 4L40 40L4 76"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    className="chevron-glow"
+                    d="M4 4L40 40L4 76"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </div>
             )}
           </React.Fragment>

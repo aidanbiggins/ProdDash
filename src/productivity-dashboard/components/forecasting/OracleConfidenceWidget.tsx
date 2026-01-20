@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { format, differenceInDays, isValid } from 'date-fns';
-import { ForecastResult, SimulationParameters, runSimulation, shrinkRate, DurationDistribution } from '../../services/probabilisticEngine';
-import { CanonicalStage, Candidate } from '../../types';
+import { format, differenceInDays, isValid, subWeeks } from 'date-fns';
+import { ForecastResult, SimulationParameters, runSimulation, runPipelineSimulation, runCapacityAwareForecast, shrinkRate, DurationDistribution, PipelineCandidate } from '../../services/probabilisticEngine';
+import { CanonicalStage, Candidate, Event, Requisition, User } from '../../types';
 import { OracleBackside } from './OracleBackside';
 import {
     OracleKnobSettings,
@@ -10,6 +10,7 @@ import {
     StageRateInfo,
     StageDurationInfo,
     ConfidenceReason,
+    CapacityExplainData,
     DEFAULT_KNOB_SETTINGS,
     PRIOR_WEIGHT_VALUES,
     MIN_N_VALUES,
@@ -17,6 +18,39 @@ import {
     generateCacheKey,
     hashPipelineCounts
 } from './oracleTypes';
+import { inferCapacity } from '../../services/capacityInferenceService';
+import { applyCapacityPenalty, computeGlobalDemand, applyCapacityPenaltyV11 } from '../../services/capacityPenaltyModel';
+import {
+    OracleCapacityProfile,
+    OracleCapacityAwareForecastResult,
+    OraclePipelineByStage,
+    OracleGlobalDemand,
+    OracleCapacityPenaltyResultV11,
+    OracleCapacityRecommendation,
+    ConfidenceLevel,
+    ORACLE_CAPACITY_STAGE_LABELS
+} from '../../types/capacityTypes';
+
+/**
+ * Convert title-case or any-case stage name to CanonicalStage
+ * Handles: 'Screen' -> 'SCREEN', 'HM Screen' -> 'HM_SCREEN', etc.
+ */
+function toCanonicalStage(stage: string | null | undefined): CanonicalStage | null {
+    if (!stage) return null;
+
+    // If already canonical (all uppercase enum value), return directly
+    if (Object.values(CanonicalStage).includes(stage as CanonicalStage)) {
+        return stage as CanonicalStage;
+    }
+
+    // Map common title-case variations to canonical by uppercasing and replacing spaces with underscores
+    const normalized = stage.toUpperCase().replace(/\s+/g, '_');
+    if (Object.values(CanonicalStage).includes(normalized as CanonicalStage)) {
+        return normalized as CanonicalStage;
+    }
+
+    return null;
+}
 
 interface OracleConfidenceWidgetProps {
     forecast: ForecastResult;
@@ -36,6 +70,18 @@ interface OracleConfidenceWidgetProps {
     observedRates?: Record<string, number>;
     /** Prior rates used (for explainability) */
     priorRates?: Record<string, number>;
+    /** Events for capacity inference (optional - enables capacity-aware mode) */
+    events?: Event[];
+    /** Requisitions for capacity inference */
+    requisitions?: Requisition[];
+    /** Users for name lookup */
+    users?: User[];
+    /** Recruiter ID for capacity inference */
+    recruiterId?: string;
+    /** HM ID for capacity inference */
+    hmId?: string;
+    /** All candidates (v1.1) - for global demand computation across recruiter/HM workload */
+    allCandidates?: Candidate[];
 }
 
 const CONTROLLABLE_STAGES = [
@@ -71,7 +117,13 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
     pipelineCandidates = [],
     reqId = 'unknown',
     observedRates = {},
-    priorRates = {}
+    priorRates = {},
+    events = [],
+    requisitions = [],
+    users = [],
+    recruiterId,
+    hmId,
+    allCandidates = []
 }) => {
     const [userTargetDate, setUserTargetDate] = useState<Date | null>(initialTargetDate || null);
     const [showLevers, setShowLevers] = useState(false);
@@ -79,6 +131,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
     const [knobSettings, setKnobSettings] = useState<OracleKnobSettings>(DEFAULT_KNOB_SETTINGS);
     const frontRef = useRef<HTMLDivElement>(null);
     const [frontHeight, setFrontHeight] = useState<number | undefined>(undefined);
+    const [showCapacityView, setShowCapacityView] = useState(false);
 
     // State for user-adjusted levers (deltas from baseline)
     const [conversionAdjustments, setConversionAdjustments] = useState<Record<string, number>>({});
@@ -111,6 +164,98 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
             count: counts[stage] || 0
         }));
     }, [pipelineCandidates]);
+
+    // Pipeline by stage for capacity model (selected req only)
+    const pipelineByStage = useMemo((): OraclePipelineByStage => {
+        const counts: OraclePipelineByStage = {};
+        for (const cand of pipelineCandidates) {
+            const stage = cand.current_stage;
+            counts[stage] = (counts[stage] || 0) + 1;
+        }
+        return counts;
+    }, [pipelineCandidates]);
+
+    // v1.1: Compute global demand across recruiter/HM's full workload
+    const globalDemand = useMemo((): OracleGlobalDemand | null => {
+        // Use allCandidates if provided, otherwise fall back to pipelineCandidates
+        const candidatesForDemand = allCandidates.length > 0 ? allCandidates : pipelineCandidates;
+
+        return computeGlobalDemand({
+            selectedReqId: reqId,
+            recruiterId: recruiterId || null,
+            hmId: hmId || null,
+            allCandidates: candidatesForDemand,
+            allRequisitions: requisitions,
+            users
+        });
+    }, [reqId, recruiterId, hmId, allCandidates, pipelineCandidates, requisitions, users]);
+
+    // Check if capacity-aware mode is available (v1.1: relaxed - works with partial data)
+    const capacityModeAvailable = events.length > 0 && simulationParams && (recruiterId || hmId);
+
+    // Infer capacity profile (memoized) - v1.1: works with partial data
+    const capacityProfile = useMemo((): OracleCapacityProfile | null => {
+        if (!capacityModeAvailable) return null;
+
+        const dateRange = {
+            start: subWeeks(startDate, 12), // Look back 12 weeks
+            end: startDate
+        };
+
+        return inferCapacity({
+            reqId,
+            recruiterId: recruiterId || '',
+            hmId: hmId || '',
+            dateRange,
+            events,
+            candidates: pipelineCandidates,
+            requisitions,
+            users
+        });
+    }, [capacityModeAvailable, reqId, recruiterId, hmId, startDate, events, pipelineCandidates, requisitions, users]);
+
+    // v1.1: Compute penalty result with global demand
+    const capacityPenaltyV11 = useMemo((): OracleCapacityPenaltyResultV11 | null => {
+        if (!capacityProfile || !simulationParams || !globalDemand) return null;
+
+        return applyCapacityPenaltyV11(
+            simulationParams.stageDurations,
+            globalDemand,
+            capacityProfile
+        );
+    }, [capacityProfile, simulationParams, globalDemand]);
+
+    // Run capacity-aware forecast (memoized) - v1.1: use global demand for penalties
+    const capacityAwareForecast = useMemo((): OracleCapacityAwareForecastResult | null => {
+        if (!capacityProfile || !simulationParams || pipelineCandidates.length === 0 || !globalDemand) return null;
+
+        const pipelineCandidatesForSim: PipelineCandidate[] = pipelineCandidates
+            .map(c => ({
+                candidateId: c.candidate_id,
+                currentStage: toCanonicalStage(c.current_stage)
+            }))
+            .filter((c): c is PipelineCandidate => c.currentStage !== null);
+
+        // v1.1: Pass global demand-derived pipeline counts for capacity penalty
+        // but keep per-req candidates for pipeline-only forecast
+        const globalDemandPipeline: OraclePipelineByStage = {};
+        for (const stage of CONTROLLABLE_STAGES) {
+            // Use max of recruiter and HM demand for each stage
+            const recruiterDemand = globalDemand.recruiter_demand[stage] || 0;
+            const hmDemand = globalDemand.hm_demand[stage] || 0;
+            globalDemandPipeline[stage] = Math.max(recruiterDemand, hmDemand);
+        }
+
+        return runCapacityAwareForecast(
+            pipelineCandidatesForSim,
+            globalDemandPipeline, // v1.1: Use global demand
+            simulationParams,
+            capacityProfile,
+            startDate,
+            forecast.debug.seed,
+            knobSettings.iterations
+        );
+    }, [capacityProfile, simulationParams, pipelineCandidates, globalDemand, startDate, forecast.debug.seed, knobSettings.iterations]);
 
     // Generate cache key - must include ALL adjustment factors
     const cacheKey = useMemo(() => {
@@ -152,21 +297,29 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
 
         const priorWeight = PRIOR_WEIGHT_VALUES[knobSettings.priorWeight];
         const minN = MIN_N_VALUES[knobSettings.minNThreshold];
+        const priorWeightChanged = knobSettings.priorWeight !== DEFAULT_KNOB_SETTINGS.priorWeight;
 
-        // Re-apply shrinkage with new prior weight
+        // Apply rate adjustments
         for (const stage of CONTROLLABLE_STAGES) {
-            const obs = observedRates[stage] ?? simulationParams.stageConversionRates[stage] ?? 0.5;
-            const prior = priorRates[stage] ?? 0.5;
-            const n = simulationParams.sampleSizes[`${stage}_rate`] || 0;
-
-            // Apply shrinkage with adjusted prior weight
-            let shrunk = shrinkRate(obs, prior, n, priorWeight);
+            // Start from the BASELINE rate (what the original forecast used)
+            // Only re-apply shrinkage if the prior weight knob has been changed
+            let baseRate: number;
+            if (priorWeightChanged) {
+                // User changed prior weight - recalculate shrinkage with new m
+                const obs = observedRates[stage] ?? simulationParams.stageConversionRates[stage] ?? 0.5;
+                const prior = priorRates[stage] ?? 0.5;
+                const n = simulationParams.sampleSizes[`${stage}_rate`] || 0;
+                baseRate = shrinkRate(obs, prior, n, priorWeight);
+            } else {
+                // Use the same rate as the baseline forecast
+                baseRate = simulationParams.stageConversionRates[stage] ?? 0.5;
+            }
 
             // Apply lever adjustments (percentage points)
             const delta = conversionAdjustments[stage] || 0;
-            shrunk = Math.max(0.05, Math.min(0.99, shrunk + delta / 100));
+            const adjusted = Math.max(0.05, Math.min(0.99, baseRate + delta / 100));
 
-            adjustedParams.stageConversionRates[stage] = shrunk;
+            adjustedParams.stageConversionRates[stage] = adjusted;
         }
 
         // Apply duration adjustments (percentage change) and min_n threshold
@@ -198,11 +351,29 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
             }
         }
 
-        // Run simulation with adjusted params
-        const result = runSimulation(
-            { currentStage, startDate, seed: `adjusted-${cacheKey}`, iterations: knobSettings.iterations },
-            adjustedParams
-        );
+        // Run PIPELINE-AWARE simulation with adjusted params
+        // This is critical: we simulate all candidates in parallel and take the FIRST success
+        // This makes pass rates meaningful - lower rates = fewer candidates succeed = longer fill time
+        const pipelineCandidatesForSim: PipelineCandidate[] = pipelineCandidates
+            .map(c => ({
+                candidateId: c.candidate_id,
+                currentStage: toCanonicalStage(c.current_stage)
+            }))
+            .filter((c): c is PipelineCandidate => c.currentStage !== null);
+
+        // Fall back to single-candidate simulation if no pipeline (backward compatibility)
+        const result = pipelineCandidatesForSim.length > 0
+            ? runPipelineSimulation(
+                pipelineCandidatesForSim,
+                adjustedParams,
+                startDate,
+                `adjusted-${cacheKey}`,
+                knobSettings.iterations
+            )
+            : runSimulation(
+                { currentStage, startDate, seed: `adjusted-${cacheKey}`, iterations: knobSettings.iterations },
+                adjustedParams
+            );
 
         // Cache the result
         simulationCache.set(cacheKey, result);
@@ -325,6 +496,47 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
 
         const displayForecast = adjustedForecast || forecast;
 
+        // Build capacity explain data if available (v1.1: use global demand)
+        let capacityData: CapacityExplainData | undefined;
+        if (capacityProfile && simulationParams && globalDemand) {
+            // v1.1: Use global demand-based penalty calculation
+            const penaltyResultV11 = capacityPenaltyV11;
+
+            // Also compute legacy penalty result for backward compatibility
+            const legacyPenaltyResult = applyCapacityPenalty(
+                simulationParams.stageDurations,
+                pipelineByStage,
+                capacityProfile
+            );
+
+            const inferenceWindow = {
+                start: subWeeks(startDate, 12),
+                end: startDate
+            };
+
+            capacityData = {
+                isAvailable: true,
+                profile: capacityProfile,
+                penaltyResult: legacyPenaltyResult,
+                totalQueueDelayDays: penaltyResultV11?.total_queue_delay_days || legacyPenaltyResult.total_queue_delay_days,
+                inferenceWindow,
+                // v1.1 additions
+                globalDemand,
+                penaltyResultV11,
+                recommendations: penaltyResultV11?.recommendations || []
+            };
+        } else if (!capacityModeAvailable) {
+            capacityData = {
+                isAvailable: false,
+                profile: null,
+                penaltyResult: null,
+                totalQueueDelayDays: 0,
+                inferenceWindow: null,
+                globalDemand: null,
+                recommendations: []
+            };
+        }
+
         return {
             pipelineCounts,
             stageRates,
@@ -338,9 +550,10 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                 score: null,
                 bias: null,
                 isAvailable: false
-            }
+            },
+            capacity: capacityData
         };
-    }, [simulationParams, pipelineCounts, knobSettings, observedRates, priorRates, adjustedForecast, forecast]);
+    }, [simulationParams, pipelineCounts, pipelineByStage, knobSettings, observedRates, priorRates, adjustedForecast, forecast, capacityProfile, capacityModeAvailable, startDate, globalDemand, capacityPenaltyV11]);
 
     // Calculate probability of hitting user target date
     const activeForecast = adjustedForecast || forecast;
@@ -442,6 +655,151 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                             <div className="text-muted" style={{ fontSize: '0.65rem' }}>Conservative</div>
                         </div>
                     </div>
+
+                    {/* Capacity Comparison View */}
+                    {capacityAwareForecast && capacityAwareForecast.capacity_constrained && (
+                        <div
+                            className="mb-3 p-2 rounded-2"
+                            style={{
+                                background: 'rgba(245, 158, 11, 0.1)',
+                                border: '1px solid rgba(245, 158, 11, 0.2)'
+                            }}
+                        >
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <div className="d-flex align-items-center gap-2">
+                                    <i className="bi bi-speedometer2" style={{ color: '#f59e0b' }}></i>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Capacity Impact</span>
+                                    <span
+                                        className="badge rounded-pill"
+                                        style={{
+                                            fontSize: '0.55rem',
+                                            background: capacityAwareForecast.capacity_confidence === 'HIGH'
+                                                ? 'rgba(16, 185, 129, 0.15)'
+                                                : capacityAwareForecast.capacity_confidence === 'MED'
+                                                    ? 'rgba(245, 158, 11, 0.15)'
+                                                    : 'rgba(239, 68, 68, 0.15)',
+                                            color: capacityAwareForecast.capacity_confidence === 'HIGH'
+                                                ? '#10b981'
+                                                : capacityAwareForecast.capacity_confidence === 'MED'
+                                                    ? '#f59e0b'
+                                                    : '#ef4444'
+                                        }}
+                                    >
+                                        {capacityAwareForecast.capacity_confidence}
+                                    </span>
+                                </div>
+                                <button
+                                    className="btn btn-sm"
+                                    style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        padding: '0',
+                                        color: showCapacityView ? '#d4a373' : '#94a3b8',
+                                        fontSize: '0.7rem'
+                                    }}
+                                    onClick={() => setShowCapacityView(!showCapacityView)}
+                                >
+                                    {showCapacityView ? 'Hide' : 'Details'}
+                                    <i className={`bi bi-chevron-${showCapacityView ? 'up' : 'down'} ms-1`}></i>
+                                </button>
+                            </div>
+
+                            {/* Quick Summary */}
+                            <div className="d-flex justify-content-between align-items-center" style={{ fontSize: '0.75rem' }}>
+                                <div>
+                                    <span className="text-muted">Pipeline-only: </span>
+                                    <span style={{ fontFamily: 'var(--font-mono)' }}>
+                                        {format(capacityAwareForecast.pipeline_only.p50_date, 'MMM d')}
+                                    </span>
+                                </div>
+                                <div>
+                                    <i className="bi bi-arrow-right mx-2" style={{ color: '#f59e0b' }}></i>
+                                </div>
+                                <div>
+                                    <span className="text-muted">With capacity: </span>
+                                    <span style={{ fontFamily: 'var(--font-mono)', color: '#f59e0b' }}>
+                                        {format(capacityAwareForecast.capacity_aware.p50_date, 'MMM d')}
+                                    </span>
+                                    {capacityAwareForecast.p50_delta_days > 0 && (
+                                        <span style={{ color: '#ef4444', fontSize: '0.65rem', marginLeft: '4px' }}>
+                                            +{capacityAwareForecast.p50_delta_days}d
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Expanded Details */}
+                            {showCapacityView && (
+                                <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                                    {/* Bottlenecks */}
+                                    {capacityAwareForecast.capacity_bottlenecks.length > 0 && (
+                                        <div className="mb-2">
+                                            <div className="text-muted mb-1" style={{ fontSize: '0.65rem' }}>Bottlenecks</div>
+                                            {capacityAwareForecast.capacity_bottlenecks.slice(0, 3).map((b, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="d-flex justify-content-between align-items-center mb-1"
+                                                    style={{ fontSize: '0.7rem' }}
+                                                >
+                                                    <div className="d-flex align-items-center gap-1">
+                                                        <span
+                                                            className="badge"
+                                                            style={{
+                                                                fontSize: '0.55rem',
+                                                                background: b.bottleneck_owner_type === 'hm'
+                                                                    ? 'rgba(139, 92, 246, 0.15)'
+                                                                    : 'rgba(59, 130, 246, 0.15)',
+                                                                color: b.bottleneck_owner_type === 'hm'
+                                                                    ? '#8b5cf6'
+                                                                    : '#3b82f6'
+                                                            }}
+                                                        >
+                                                            {b.bottleneck_owner_type === 'hm' ? 'HM' : 'RC'}
+                                                        </span>
+                                                        <span>{b.stage_name}</span>
+                                                    </div>
+                                                    <div style={{ fontFamily: 'var(--font-mono)', color: '#f59e0b' }}>
+                                                        +{Math.round(b.queue_delay_days)}d
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Capacity Reasons */}
+                                    {capacityAwareForecast.capacity_reasons.length > 0 && (
+                                        <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>
+                                            {capacityAwareForecast.capacity_reasons.slice(0, 2).map((r, i) => (
+                                                <div key={i} className="d-flex align-items-start gap-1 mb-1">
+                                                    <i
+                                                        className={`bi ${r.impact === 'positive'
+                                                            ? 'bi-check-circle-fill'
+                                                            : r.impact === 'negative'
+                                                                ? 'bi-exclamation-circle-fill'
+                                                                : 'bi-info-circle-fill'
+                                                            }`}
+                                                        style={{
+                                                            fontSize: '0.55rem',
+                                                            color: r.impact === 'positive'
+                                                                ? '#10b981'
+                                                                : r.impact === 'negative'
+                                                                    ? '#f59e0b'
+                                                                    : '#94a3b8'
+                                                        }}
+                                                    ></i>
+                                                    <span>{r.message}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="text-muted mt-2" style={{ fontSize: '0.6rem', fontStyle: 'italic' }}>
+                                        Based on observed throughput over past 12 weeks
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* What-If Toggle Button */}
                     {simulationParams && (

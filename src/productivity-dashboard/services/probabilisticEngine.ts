@@ -229,3 +229,268 @@ export function shrinkRate(
     // Weighted average: (n*obs + m*prior) / (n+m)
     return (n * observedRate + priorWeight * priorRate) / (n + priorWeight);
 }
+
+/**
+ * Pipeline-Aware Simulation for What-If Analysis
+ *
+ * This runs a Monte Carlo simulation that answers: "When will this req be filled
+ * given the current pipeline of candidates?"
+ *
+ * Key difference from single-candidate simulation:
+ * - Pass rates DIRECTLY affect time-to-fill because lower rates mean fewer
+ *   candidates succeed, extending the expected time to get ANY hire
+ * - We simulate all candidates in parallel and take the FIRST success
+ *
+ * This makes the What-If sliders defensible:
+ * - Higher pass rates → More candidates likely to succeed → Faster fill
+ * - Lower pass rates → Fewer candidates succeed → Longer wait
+ *
+ * @param pipelineCandidates Array of candidates with their current stages
+ * @param params Simulation parameters (conversion rates, durations)
+ * @param seed RNG seed for determinism
+ * @param iterations Number of Monte Carlo iterations (default 1000)
+ */
+export interface PipelineCandidate {
+    candidateId: string;
+    currentStage: CanonicalStage;
+}
+
+export function runPipelineSimulation(
+    pipelineCandidates: PipelineCandidate[],
+    params: SimulationParameters,
+    startDate: Date,
+    seed: string,
+    iterations: number = 1000
+): ForecastResult {
+    const rng = seedrandom(seed);
+
+    // Track outcomes: for each iteration, what's the time to FIRST hire?
+    const firstHireDays: number[] = [];
+
+    // Edge case: empty pipeline
+    if (pipelineCandidates.length === 0) {
+        const dummyDate = new Date(startDate);
+        dummyDate.setDate(dummyDate.getDate() + 365);
+        return {
+            p10Date: dummyDate,
+            p50Date: dummyDate,
+            p90Date: dummyDate,
+            simulatedDays: [],
+            confidenceLevel: 'LOW',
+            debug: { iterations, seed }
+        };
+    }
+
+    // Filter to only active candidates (not already hired/rejected)
+    const activeCandidates = pipelineCandidates.filter(c =>
+        c.currentStage !== CanonicalStage.HIRED &&
+        c.currentStage !== CanonicalStage.REJECTED &&
+        c.currentStage !== CanonicalStage.WITHDREW
+    );
+
+    if (activeCandidates.length === 0) {
+        const dummyDate = new Date(startDate);
+        dummyDate.setDate(dummyDate.getDate() + 365);
+        return {
+            p10Date: dummyDate,
+            p50Date: dummyDate,
+            p90Date: dummyDate,
+            simulatedDays: [],
+            confidenceLevel: 'LOW',
+            debug: { iterations, seed }
+        };
+    }
+
+    for (let i = 0; i < iterations; i++) {
+        let minHireDays = Infinity;
+
+        // Simulate each candidate in parallel
+        for (const cand of activeCandidates) {
+            const days = simulateCandidateJourney(cand.currentStage, params, rng);
+            if (days !== null && days < minHireDays) {
+                minHireDays = days;
+            }
+        }
+
+        // If at least one candidate was hired, record the time
+        if (minHireDays !== Infinity) {
+            firstHireDays.push(minHireDays);
+        }
+        // If NO candidate was hired in this iteration, we DON'T add anything
+        // This represents a "failed" fill - pipeline exhausted without a hire
+    }
+
+    // Calculate percentiles
+    if (firstHireDays.length === 0) {
+        // No successful fills in any iteration - very low conversion rates
+        const dummyDate = new Date(startDate);
+        dummyDate.setDate(dummyDate.getDate() + 365);
+        return {
+            p10Date: dummyDate,
+            p50Date: dummyDate,
+            p90Date: dummyDate,
+            simulatedDays: [],
+            confidenceLevel: 'LOW',
+            debug: { iterations, seed }
+        };
+    }
+
+    firstHireDays.sort((a, b) => a - b);
+
+    const p10Index = Math.floor(firstHireDays.length * 0.1);
+    const p50Index = Math.floor(firstHireDays.length * 0.5);
+    const p90Index = Math.floor(firstHireDays.length * 0.9);
+
+    // Calculate confidence based on success rate
+    const successRate = firstHireDays.length / iterations;
+    let confidenceLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+    if (successRate >= 0.8) {
+        confidenceLevel = calculateConfidenceLevel(params.sampleSizes);
+    } else if (successRate >= 0.5) {
+        confidenceLevel = 'MEDIUM';
+    } else {
+        confidenceLevel = 'LOW';
+    }
+
+    return {
+        p10Date: addDaysToDate(startDate, firstHireDays[p10Index]),
+        p50Date: addDaysToDate(startDate, firstHireDays[p50Index]),
+        p90Date: addDaysToDate(startDate, firstHireDays[p90Index]),
+        simulatedDays: firstHireDays,
+        confidenceLevel,
+        debug: { iterations, seed }
+    };
+}
+
+// ============================================
+// CAPACITY-AWARE FORECAST
+// ============================================
+
+import {
+    OracleCapacityProfile,
+    OracleCapacityAwareForecastResult,
+    OraclePipelineByStage,
+    ConfidenceLevel
+} from '../types/capacityTypes';
+import { applyCapacityPenalty, createCapacityAdjustedParams } from './capacityPenaltyModel';
+
+/**
+ * Run capacity-aware forecast that shows both pipeline-only and capacity-aware results
+ *
+ * This is the main entry point for the Oracle's capacity-aware mode.
+ * It runs two parallel simulations:
+ * 1. Pipeline-only: Pure statistical model (pass rates + durations)
+ * 2. Capacity-aware: Adds queue delays based on capacity constraints
+ *
+ * @param pipelineCandidates Candidates in the pipeline with their stages
+ * @param pipelineByStage Count of candidates at each stage
+ * @param params Base simulation parameters (rates, durations)
+ * @param capacityProfile Inferred capacity profile
+ * @param startDate Forecast start date
+ * @param seed RNG seed for determinism
+ * @param iterations Number of Monte Carlo iterations
+ * @param targetDate Optional target date for probability calculation
+ */
+export function runCapacityAwareForecast(
+    pipelineCandidates: PipelineCandidate[],
+    pipelineByStage: OraclePipelineByStage,
+    params: SimulationParameters,
+    capacityProfile: OracleCapacityProfile,
+    startDate: Date,
+    seed: string,
+    iterations: number = 1000,
+    targetDate?: Date
+): OracleCapacityAwareForecastResult {
+    // 1. Run pipeline-only forecast
+    const pipelineOnlyResult = runPipelineSimulation(
+        pipelineCandidates,
+        params,
+        startDate,
+        `${seed}-pipeline`,
+        iterations
+    );
+
+    // 2. Apply capacity penalties
+    const penaltyResult = applyCapacityPenalty(
+        params.stageDurations,
+        pipelineByStage,
+        capacityProfile
+    );
+
+    // 3. Create adjusted params with queue delays
+    const capacityAdjustedParams = createCapacityAdjustedParams(params, penaltyResult);
+
+    // 4. Run capacity-aware forecast
+    const capacityAwareResult = runPipelineSimulation(
+        pipelineCandidates,
+        capacityAdjustedParams,
+        startDate,
+        `${seed}-capacity`,
+        iterations
+    );
+
+    // 5. Calculate delta
+    const p50DeltaDays = Math.round(
+        (capacityAwareResult.p50Date.getTime() - pipelineOnlyResult.p50Date.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    // 6. Calculate probability by target date if provided
+    let pipelineProbByTarget: number | undefined;
+    let capacityProbByTarget: number | undefined;
+
+    if (targetDate) {
+        const targetDays = Math.round(
+            (targetDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (pipelineOnlyResult.simulatedDays.length > 0) {
+            const successesByTarget = pipelineOnlyResult.simulatedDays.filter(d => d <= targetDays).length;
+            pipelineProbByTarget = successesByTarget / pipelineOnlyResult.simulatedDays.length;
+        }
+
+        if (capacityAwareResult.simulatedDays.length > 0) {
+            const successesByTarget = capacityAwareResult.simulatedDays.filter(d => d <= targetDays).length;
+            capacityProbByTarget = successesByTarget / capacityAwareResult.simulatedDays.length;
+        }
+    }
+
+    // 7. Determine if capacity constraints significantly affect the forecast
+    const capacityConstrained = p50DeltaDays >= 3 || penaltyResult.total_queue_delay_days >= 5;
+
+    // 8. Map confidence level
+    const mapConfidence = (c: ConfidenceLevel): ConfidenceLevel => {
+        if (c === 'INSUFFICIENT') return 'LOW';
+        return c;
+    };
+
+    return {
+        pipeline_only: {
+            p10_date: pipelineOnlyResult.p10Date,
+            p50_date: pipelineOnlyResult.p50Date,
+            p90_date: pipelineOnlyResult.p90Date,
+            probability_by_target: pipelineProbByTarget,
+            simulated_days: pipelineOnlyResult.simulatedDays
+        },
+        capacity_aware: {
+            p10_date: capacityAwareResult.p10Date,
+            p50_date: capacityAwareResult.p50Date,
+            p90_date: capacityAwareResult.p90Date,
+            probability_by_target: capacityProbByTarget,
+            simulated_days: capacityAwareResult.simulatedDays
+        },
+        p50_delta_days: p50DeltaDays,
+        capacity_bottlenecks: penaltyResult.top_bottlenecks,
+        capacity_confidence: mapConfidence(penaltyResult.confidence),
+        capacity_reasons: capacityProfile.confidence_reasons,
+        capacity_constrained: capacityConstrained,
+        capacity_profile: capacityProfile,
+        debug: {
+            iterations,
+            seed,
+            queue_model_version: 'v1.0'
+        }
+    };
+}
+
+// Export helper for external use
+export { addDaysToDate, calculateConfidenceLevel, simulateCandidateJourney, sampleDuration };

@@ -64,7 +64,7 @@ export function ProblemSection() {
         {painPoints.map((point, index) => (
           <div
             key={point.title}
-            className={`landing-problem-card glass-card-interactive animate-fade-up ${activeIndex === index ? 'active' : ''} ${gridInView ? 'in-view' : ''}`}
+            className={`landing-problem-card glass-card glass-card-interactive animate-fade-up ${activeIndex === index ? 'active' : ''} ${gridInView ? 'in-view' : ''}`}
             style={{ transitionDelay: `${index * 100}ms` }}
             onMouseEnter={() => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(null)}

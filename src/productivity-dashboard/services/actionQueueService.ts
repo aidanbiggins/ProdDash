@@ -144,6 +144,10 @@ export function generateActionsFromHMQueue(
       'SLA_BREACH_ONSITE': 'SLA breach: Onsite',
       'SLA_BREACH_FINAL': 'SLA breach: Final round',
       'SLA_BREACH_OFFER': 'SLA breach: Offer stage',
+      // Capacity Rebalancer Actions
+      'REASSIGN_REQ': 'Reassign requisition',
+      'NOTIFY_HM_REASSIGN': 'Notify HM of reassignment',
+      'RECRUITER_HANDOFF': 'Complete recruiter handoff',
     };
 
     const req = reqMap.get(hma.reqId);

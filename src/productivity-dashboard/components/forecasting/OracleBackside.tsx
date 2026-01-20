@@ -1,9 +1,12 @@
 /**
  * OracleBackside - Back face of the Oracle flip card
- * Shows simulation inputs, confidence reasoning, and what-if knobs
+ * Shows simulation inputs, confidence reasoning, capacity analysis, and what-if knobs
+ *
+ * v1.1: Added global demand workload context, bottleneck attribution, and prescriptive recommendations
  */
 
 import React from 'react';
+import { format } from 'date-fns';
 import {
     OracleExplainData,
     OracleKnobSettings,
@@ -14,6 +17,7 @@ import {
     ITERATIONS_RANGE,
     STAGE_LABELS
 } from './oracleTypes';
+import { ORACLE_CAPACITY_STAGE_LABELS, OracleCapacityRecommendation } from '../../types/capacityTypes';
 
 interface OracleBacksideProps {
     explainData: OracleExplainData;
@@ -21,6 +25,22 @@ interface OracleBacksideProps {
     onKnobChange: (settings: OracleKnobSettings) => void;
     hasKnobChanges: boolean;
     onClose: () => void;
+}
+
+/** Helper function to get icon and color for recommendation types */
+function getRecommendationIcon(type: OracleCapacityRecommendation['type']): { icon: string; color: string } {
+    switch (type) {
+        case 'increase_throughput':
+            return { icon: 'bi-speedometer2', color: '#3b82f6' };
+        case 'reassign_workload':
+            return { icon: 'bi-arrow-left-right', color: '#8b5cf6' };
+        case 'reduce_demand':
+            return { icon: 'bi-funnel', color: '#f59e0b' };
+        case 'improve_data':
+            return { icon: 'bi-database-check', color: '#10b981' };
+        default:
+            return { icon: 'bi-lightbulb', color: '#10b981' };
+    }
 }
 
 export const OracleBackside: React.FC<OracleBacksideProps> = ({
@@ -209,6 +229,373 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                     </div>
                 )}
             </div>
+
+            {/* Section: Capacity Analysis (v1.1 with global workload context) */}
+            {explainData.capacity && (
+                <div className="oracle-backside-section">
+                    <div className="oracle-backside-section-title">
+                        <span>Capacity Analysis</span>
+                        <span
+                            className="badge rounded-pill ms-2"
+                            style={{
+                                fontSize: '0.5rem',
+                                background: explainData.capacity.isAvailable ? 'rgba(16, 185, 129, 0.15)' : 'rgba(107, 114, 128, 0.15)',
+                                color: explainData.capacity.isAvailable ? '#10b981' : '#6b7280'
+                            }}
+                        >
+                            {explainData.capacity.isAvailable ? 'ACTIVE' : 'UNAVAILABLE'}
+                        </span>
+                    </div>
+
+                    {explainData.capacity.isAvailable && explainData.capacity.profile ? (
+                        <div style={{ fontSize: '0.65rem' }}>
+                            {/* Inference Window */}
+                            {explainData.capacity.inferenceWindow && (
+                                <div className="text-muted mb-2" style={{ fontSize: '0.6rem' }}>
+                                    Based on {format(explainData.capacity.inferenceWindow.start, 'MMM d')} – {format(explainData.capacity.inferenceWindow.end, 'MMM d, yyyy')}
+                                </div>
+                            )}
+
+                            {/* v1.1: Global Workload Context */}
+                            {explainData.capacity.globalDemand && (
+                                <div
+                                    className="mb-2 p-2 rounded"
+                                    style={{
+                                        background: 'rgba(59, 130, 246, 0.08)',
+                                        border: '1px solid rgba(59, 130, 246, 0.15)'
+                                    }}
+                                >
+                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                        <i className="bi bi-people" style={{ fontSize: '0.6rem', color: '#3b82f6' }}></i>
+                                        <span style={{ fontWeight: 600 }}>Workload Context</span>
+                                    </div>
+                                    <div className="d-flex gap-3" style={{ fontSize: '0.6rem' }}>
+                                        <div>
+                                            <span className="text-muted">Recruiter: </span>
+                                            <span style={{ fontFamily: 'var(--font-mono)' }}>
+                                                {explainData.capacity.globalDemand.recruiter_context.open_req_count} reqs,{' '}
+                                                {explainData.capacity.globalDemand.recruiter_context.total_candidates_in_flight} in-flight
+                                            </span>
+                                        </div>
+                                        {explainData.capacity.globalDemand.hm_context.hm_id && (
+                                            <div>
+                                                <span className="text-muted">HM: </span>
+                                                <span style={{ fontFamily: 'var(--font-mono)' }}>
+                                                    {explainData.capacity.globalDemand.hm_context.open_req_count} reqs,{' '}
+                                                    {explainData.capacity.globalDemand.hm_context.total_candidates_in_flight} in-flight
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {explainData.capacity.globalDemand.demand_scope !== 'single_req' && (
+                                        <div className="text-muted mt-1" style={{ fontSize: '0.55rem', fontStyle: 'italic' }}>
+                                            Demand computed from {explainData.capacity.globalDemand.demand_scope === 'global_by_recruiter' ? "recruiter's" : "HM's"} full portfolio
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Recruiter Capacity */}
+                            {explainData.capacity.profile.recruiter && (
+                                <div className="mb-2">
+                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                        <i className="bi bi-person-badge" style={{ fontSize: '0.6rem', color: '#3b82f6' }}></i>
+                                        <span style={{ fontWeight: 600 }}>Recruiter Throughput</span>
+                                        <span
+                                            className="badge rounded-pill"
+                                            style={{
+                                                fontSize: '0.5rem',
+                                                background: explainData.capacity.profile.recruiter.overall_confidence === 'HIGH'
+                                                    ? 'rgba(16, 185, 129, 0.15)'
+                                                    : explainData.capacity.profile.recruiter.overall_confidence === 'MED'
+                                                        ? 'rgba(245, 158, 11, 0.15)'
+                                                        : 'rgba(239, 68, 68, 0.15)',
+                                                color: explainData.capacity.profile.recruiter.overall_confidence === 'HIGH'
+                                                    ? '#10b981'
+                                                    : explainData.capacity.profile.recruiter.overall_confidence === 'MED'
+                                                        ? '#f59e0b'
+                                                        : '#ef4444'
+                                            }}
+                                        >
+                                            {explainData.capacity.profile.recruiter.overall_confidence}
+                                        </span>
+                                    </div>
+                                    <table className="oracle-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Stage</th>
+                                                <th>/wk</th>
+                                                <th>n</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th>Screen</th>
+                                                <td>{explainData.capacity.profile.recruiter.screens_per_week.throughput_per_week.toFixed(1)}</td>
+                                                <td style={{ color: 'var(--text-muted)' }}>{explainData.capacity.profile.recruiter.screens_per_week.n_transitions}</td>
+                                            </tr>
+                                            {explainData.capacity.profile.recruiter.hm_screens_per_week && (
+                                                <tr>
+                                                    <th>HM Screen</th>
+                                                    <td>{explainData.capacity.profile.recruiter.hm_screens_per_week.throughput_per_week.toFixed(1)}</td>
+                                                    <td style={{ color: 'var(--text-muted)' }}>{explainData.capacity.profile.recruiter.hm_screens_per_week.n_transitions}</td>
+                                                </tr>
+                                            )}
+                                            {explainData.capacity.profile.recruiter.onsites_per_week && (
+                                                <tr>
+                                                    <th>Onsite</th>
+                                                    <td>{explainData.capacity.profile.recruiter.onsites_per_week.throughput_per_week.toFixed(1)}</td>
+                                                    <td style={{ color: 'var(--text-muted)' }}>{explainData.capacity.profile.recruiter.onsites_per_week.n_transitions}</td>
+                                                </tr>
+                                            )}
+                                            {explainData.capacity.profile.recruiter.offers_per_week && (
+                                                <tr>
+                                                    <th>Offer</th>
+                                                    <td>{explainData.capacity.profile.recruiter.offers_per_week.throughput_per_week.toFixed(1)}</td>
+                                                    <td style={{ color: 'var(--text-muted)' }}>{explainData.capacity.profile.recruiter.offers_per_week.n_transitions}</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* HM Capacity */}
+                            {explainData.capacity.profile.hm && explainData.capacity.profile.hm.interviews_per_week && (
+                                <div className="mb-2">
+                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                        <i className="bi bi-person-workspace" style={{ fontSize: '0.6rem', color: '#8b5cf6' }}></i>
+                                        <span style={{ fontWeight: 600 }}>HM Throughput</span>
+                                        <span
+                                            className="badge rounded-pill"
+                                            style={{
+                                                fontSize: '0.5rem',
+                                                background: explainData.capacity.profile.hm.overall_confidence === 'HIGH'
+                                                    ? 'rgba(16, 185, 129, 0.15)'
+                                                    : explainData.capacity.profile.hm.overall_confidence === 'MED'
+                                                        ? 'rgba(245, 158, 11, 0.15)'
+                                                        : 'rgba(239, 68, 68, 0.15)',
+                                                color: explainData.capacity.profile.hm.overall_confidence === 'HIGH'
+                                                    ? '#10b981'
+                                                    : explainData.capacity.profile.hm.overall_confidence === 'MED'
+                                                        ? '#f59e0b'
+                                                        : '#ef4444'
+                                            }}
+                                        >
+                                            {explainData.capacity.profile.hm.overall_confidence}
+                                        </span>
+                                    </div>
+                                    <table className="oracle-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Stage</th>
+                                                <th>/wk</th>
+                                                <th>n</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <th>Interviews</th>
+                                                <td>{explainData.capacity.profile.hm.interviews_per_week.throughput_per_week.toFixed(1)}</td>
+                                                <td style={{ color: 'var(--text-muted)' }}>{explainData.capacity.profile.hm.interviews_per_week.n_transitions}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* v1.1: Queue Delays with Bottleneck Attribution */}
+                            {explainData.capacity.penaltyResultV11 && explainData.capacity.penaltyResultV11.top_bottlenecks.length > 0 ? (
+                                <div className="mb-2">
+                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                        <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: '#f59e0b' }}></i>
+                                        <span style={{ fontWeight: 600 }}>Bottlenecks</span>
+                                    </div>
+                                    <table className="oracle-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Stage</th>
+                                                <th>Owner</th>
+                                                <th>Demand</th>
+                                                <th>Delay</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {explainData.capacity.penaltyResultV11.top_bottlenecks.map(b => (
+                                                <tr key={b.stage}>
+                                                    <th>{b.stage_name}</th>
+                                                    <td>
+                                                        <span
+                                                            className="badge"
+                                                            style={{
+                                                                fontSize: '0.5rem',
+                                                                background: b.bottleneck_owner_type === 'hm'
+                                                                    ? 'rgba(139, 92, 246, 0.15)'
+                                                                    : 'rgba(59, 130, 246, 0.15)',
+                                                                color: b.bottleneck_owner_type === 'hm'
+                                                                    ? '#8b5cf6'
+                                                                    : '#3b82f6'
+                                                            }}
+                                                        >
+                                                            {b.bottleneck_owner_type === 'hm' ? 'HM' : b.bottleneck_owner_type === 'recruiter' ? 'RC' : 'Both'}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ fontFamily: 'var(--font-mono)' }}>{b.demand}</td>
+                                                    <td style={{ color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>+{b.queue_delay_days.toFixed(1)}d</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    <div className="d-flex justify-content-between mt-1" style={{ fontWeight: 600 }}>
+                                        <span>Total Queue Delay:</span>
+                                        <span style={{ color: '#f59e0b' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
+                                    </div>
+                                </div>
+                            ) : explainData.capacity.penaltyResult && explainData.capacity.penaltyResult.top_bottlenecks.length > 0 ? (
+                                /* Fallback to v1 display if v1.1 not available */
+                                <div className="mb-2">
+                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                        <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: '#f59e0b' }}></i>
+                                        <span style={{ fontWeight: 600 }}>Queue Delays</span>
+                                    </div>
+                                    <table className="oracle-data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Stage</th>
+                                                <th>Demand</th>
+                                                <th>Rate</th>
+                                                <th>Delay</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {explainData.capacity.penaltyResult.stage_diagnostics
+                                                .filter(d => d.queue_delay_days > 0)
+                                                .sort((a, b) => b.queue_delay_days - a.queue_delay_days)
+                                                .slice(0, 4)
+                                                .map(d => (
+                                                    <tr key={d.stage}>
+                                                        <th>{d.stage_name}</th>
+                                                        <td>{d.demand}</td>
+                                                        <td>{d.service_rate.toFixed(1)}/wk</td>
+                                                        <td style={{ color: '#f59e0b' }}>+{d.queue_delay_days.toFixed(1)}d</td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                    <div className="d-flex justify-content-between mt-1" style={{ fontWeight: 600 }}>
+                                        <span>Total Queue Delay:</span>
+                                        <span style={{ color: '#f59e0b' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            {/* v1.1: Prescriptive Recommendations with confidence badge */}
+                            {explainData.capacity.recommendations && explainData.capacity.recommendations.length > 0 && (
+                                <div
+                                    className="mb-2 p-2 rounded"
+                                    style={{
+                                        background: 'rgba(16, 185, 129, 0.08)',
+                                        border: '1px solid rgba(16, 185, 129, 0.15)'
+                                    }}
+                                >
+                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                        <i className="bi bi-lightbulb" style={{ fontSize: '0.6rem', color: '#10b981' }}></i>
+                                        <span style={{ fontWeight: 600 }}>To Improve</span>
+                                        <span
+                                            className="badge rounded-pill ms-1"
+                                            style={{
+                                                fontSize: '0.45rem',
+                                                background: explainData.capacity.profile?.overall_confidence === 'HIGH'
+                                                    ? 'rgba(16, 185, 129, 0.15)'
+                                                    : explainData.capacity.profile?.overall_confidence === 'MED'
+                                                        ? 'rgba(245, 158, 11, 0.15)'
+                                                        : 'rgba(239, 68, 68, 0.15)',
+                                                color: explainData.capacity.profile?.overall_confidence === 'HIGH'
+                                                    ? '#10b981'
+                                                    : explainData.capacity.profile?.overall_confidence === 'MED'
+                                                        ? '#f59e0b'
+                                                        : '#ef4444'
+                                            }}
+                                        >
+                                            {explainData.capacity.profile?.overall_confidence || 'LOW'}
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.6rem' }}>
+                                        {explainData.capacity.recommendations.slice(0, 2).map((rec, idx) => (
+                                            <div key={idx} className="d-flex align-items-start gap-1 mb-1">
+                                                <span style={{ color: getRecommendationIcon(rec.type).color }}>
+                                                    <i className={`bi ${getRecommendationIcon(rec.type).icon}`} style={{ fontSize: '0.55rem' }}></i>
+                                                </span>
+                                                <div>
+                                                    <span>{rec.description}</span>
+                                                    {rec.estimated_impact_days > 0 && (
+                                                        <span style={{ color: '#10b981', marginLeft: '4px', fontStyle: 'italic' }}>
+                                                            (est. ~{rec.estimated_impact_days}d faster)
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Cohort Fallback Notice */}
+                            {explainData.capacity.profile.used_cohort_fallback && (
+                                <div
+                                    className="mt-2 p-1 rounded"
+                                    style={{
+                                        background: 'rgba(245, 158, 11, 0.1)',
+                                        fontSize: '0.6rem',
+                                        color: '#f59e0b'
+                                    }}
+                                >
+                                    <i className="bi bi-info-circle me-1"></i>
+                                    Using cohort averages (insufficient individual data)
+                                </div>
+                            )}
+
+                            {/* Confidence Reasons (v1.1: includes global demand reasons) */}
+                            {((explainData.capacity.profile.confidence_reasons.length > 0) ||
+                              (explainData.capacity.globalDemand?.confidence_reasons.length ?? 0) > 0) && (
+                                <div className="mt-2" style={{ fontSize: '0.6rem' }}>
+                                    {[
+                                        ...(explainData.capacity.globalDemand?.confidence_reasons || []),
+                                        ...explainData.capacity.profile.confidence_reasons
+                                    ].slice(0, 3).map((r, i) => (
+                                        <div key={i} className="d-flex align-items-start gap-1 mb-1">
+                                            <i
+                                                className={`bi ${r.impact === 'positive'
+                                                    ? 'bi-check-circle-fill'
+                                                    : r.impact === 'negative'
+                                                        ? 'bi-exclamation-circle-fill'
+                                                        : 'bi-info-circle-fill'
+                                                    }`}
+                                                style={{
+                                                    fontSize: '0.55rem',
+                                                    color: r.impact === 'positive'
+                                                        ? '#10b981'
+                                                        : r.impact === 'negative'
+                                                            ? '#f59e0b'
+                                                            : '#94a3b8'
+                                                }}
+                                            ></i>
+                                            <span className="text-muted">{r.message}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="oracle-calibration-cta">
+                            <i className="bi bi-info-circle me-1"></i>
+                            {!explainData.capacity.profile
+                                ? 'Capacity data not available'
+                                : 'No capacity constraints detected'}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Section: What-If Knobs */}
             <div className="oracle-backside-section">

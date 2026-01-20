@@ -19,6 +19,7 @@ const ALL_TABS: TabType[] = [
   'hm-friction',
   'hiring-managers',
   'capacity',
+  'capacity-rebalancer',
   'quality',
   'source-mix',
   'velocity',
@@ -40,6 +41,7 @@ const ALL_ROUTES = [
   '/diagnose/sources',
   '/diagnose/velocity',
   '/plan/capacity',
+  '/plan/rebalancer',
   '/plan/forecast',
   '/settings/data-health',
   '/settings/ai',
@@ -129,7 +131,7 @@ describe('Route Smoke Tests', () => {
 
     it('should have all Plan routes in plan bucket', () => {
       const planRoutes = ROUTE_CONFIG.filter(r => r.bucket === 'plan');
-      expect(planRoutes.length).toBe(3);
+      expect(planRoutes.length).toBe(4);
       planRoutes.forEach(r => {
         expect(r.path).toMatch(/^\/plan\//);
       });

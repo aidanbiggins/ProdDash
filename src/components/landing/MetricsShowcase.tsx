@@ -162,7 +162,7 @@ export function MetricsShowcase() {
         <span className="landing-section-eyebrow">The Difference</span>
         <h2>See What's Really Happening</h2>
         <p>
-          ProdDash doesn't just show you numbers - it reveals the story behind them
+          PlatoVue doesn't just show you numbers - it reveals the story behind them
           and tells you exactly what to do next.
         </p>
       </div>
@@ -210,7 +210,7 @@ export function MetricsShowcase() {
         {activeCategory === 'before-after' && (
           <div className="metrics-before-after">
             <p className="metrics-intro">
-              Standard reports inflate metrics with bad data. ProdDash shows you the truth.
+              Standard reports inflate metrics with bad data. PlatoVue shows you the truth.
             </p>
             <div className="before-after-grid">
               {beforeAfterData.map((item, index) => (
@@ -262,7 +262,7 @@ export function MetricsShowcase() {
                     </div>
                     <div className="insight-reality">
                       <span className="insight-label">
-                        <i className="bi bi-search" /> ProdDash reveals:
+                        <i className="bi bi-search" /> PlatoVue reveals:
                       </span>
                       <p>{insight.reality}</p>
                     </div>

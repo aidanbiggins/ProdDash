@@ -53,3 +53,4 @@ export * from './ActionDetailDrawer';
 export * from './UnifiedActionQueue';
 export * from './HelpDrawer';
 export * from './HelpButton';
+export * from './GlassDrawer';

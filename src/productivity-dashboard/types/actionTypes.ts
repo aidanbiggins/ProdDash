@@ -45,7 +45,11 @@ export type ActionType =
   | 'SLA_BREACH_HM_SCREEN'
   | 'SLA_BREACH_ONSITE'
   | 'SLA_BREACH_FINAL'
-  | 'SLA_BREACH_OFFER';
+  | 'SLA_BREACH_OFFER'
+  // Capacity Rebalancer Actions
+  | 'REASSIGN_REQ'
+  | 'NOTIFY_HM_REASSIGN'
+  | 'RECRUITER_HANDOFF';
 
 /**
  * Evidence linking an action to an Explain KPI

@@ -3,7 +3,7 @@
 import React from 'react';
 
 // Tab type definition (matches ProductivityDashboard)
-export type TabType = 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'bottlenecks' | 'capacity' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'sla-settings' | 'ai-settings' | 'org-settings';
+export type TabType = 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'bottlenecks' | 'capacity' | 'capacity-rebalancer' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'sla-settings' | 'ai-settings' | 'org-settings';
 
 // Route to tab mapping
 export interface RouteConfig {
@@ -33,6 +33,7 @@ export const ROUTE_CONFIG: RouteConfig[] = [
 
   // Plan bucket
   { path: '/plan/capacity', tab: 'capacity', bucket: 'plan' },
+  { path: '/plan/rebalancer', tab: 'capacity-rebalancer', bucket: 'plan' },
   { path: '/plan/forecast', tab: 'forecasting', bucket: 'plan' },
   { path: '/plan/scenarios', tab: 'scenarios', bucket: 'plan' },
 

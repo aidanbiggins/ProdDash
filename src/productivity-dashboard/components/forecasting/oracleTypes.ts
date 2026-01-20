@@ -5,6 +5,15 @@
 
 import { CanonicalStage } from '../../types';
 import { SimulationParameters, ForecastResult, DurationDistribution } from '../../services/probabilisticEngine';
+import {
+    OracleCapacityProfile,
+    OracleCapacityPenaltyResult,
+    OracleCapacityPenaltyResultV11,
+    OracleStageQueueDiagnostic,
+    OracleGlobalDemand,
+    OracleCapacityRecommendation,
+    ConfidenceLevel
+} from '../../types/capacityTypes';
 
 /** Preset values for prior weight (m) knob */
 export type PriorWeightPreset = 'low' | 'medium' | 'high';
@@ -87,6 +96,26 @@ export interface CalibrationData {
     isAvailable: boolean;
 }
 
+/** Capacity explain data for Oracle backside */
+export interface CapacityExplainData {
+    /** Whether capacity-aware mode is available */
+    isAvailable: boolean;
+    /** Inferred capacity profile */
+    profile: OracleCapacityProfile | null;
+    /** Penalty calculation result */
+    penaltyResult: OracleCapacityPenaltyResult | null;
+    /** Total queue delay added */
+    totalQueueDelayDays: number;
+    /** Date range used for inference */
+    inferenceWindow: { start: Date; end: Date } | null;
+    /** v1.1: Global demand context */
+    globalDemand?: OracleGlobalDemand | null;
+    /** v1.1: Prescriptive recommendations */
+    recommendations?: OracleCapacityRecommendation[];
+    /** v1.1: Extended penalty result with global demand diagnostics */
+    penaltyResultV11?: OracleCapacityPenaltyResultV11 | null;
+}
+
 /** Full explainability data for Oracle backside */
 export interface OracleExplainData {
     // Inputs used
@@ -102,6 +131,9 @@ export interface OracleExplainData {
 
     // Calibration
     calibration: CalibrationData;
+
+    // Capacity (optional)
+    capacity?: CapacityExplainData;
 }
 
 /** Cache key components */
