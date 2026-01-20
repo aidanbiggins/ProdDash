@@ -1175,7 +1175,7 @@
   width: 48px;
   height: 80px;
   color: var(--landing-gold);
-  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
+  overflow: visible;
 }
 
 .connector-chevron .chevron-bg {
@@ -1189,12 +1189,10 @@
 
 @keyframes chevronPulse {
   0%, 100% {
-    opacity: 0.5;
-    filter: drop-shadow(0 0 4px currentColor);
+    opacity: 0.6;
   }
   50% {
     opacity: 1;
-    filter: drop-shadow(0 0 16px currentColor);
   }
 }
 

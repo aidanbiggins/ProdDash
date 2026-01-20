@@ -13,7 +13,7 @@ const steps: Step[] = [
   {
     number: 1,
     title: 'Export from Your ATS',
-    description: 'Pull a standard CSV export from iCIMS, Greenhouse, Lever, Workday, or any ATS. No special setup required.',
+    description: 'Pull a standard CSV or Excel export from iCIMS, Greenhouse, Lever, Workday, or any ATS. No special setup required.',
     time: '2 min',
     icon: 'bi-download'
   },
@@ -109,7 +109,7 @@ export function HowItWorksSection() {
       >
         <p className="supported-label">Works with exports from:</p>
         <div className="supported-logos">
-          {['iCIMS', 'Greenhouse', 'Lever', 'Workday', '+ Any CSV'].map((logo, i) => (
+          {['iCIMS', 'Greenhouse', 'Lever', 'Workday', '+ Any Export'].map((logo, i) => (
             <span
               key={logo}
               className={`supported-logo hover-lift animate-scale-up ${logosInView ? 'in-view' : ''}`}

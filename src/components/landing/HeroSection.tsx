@@ -51,7 +51,7 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
       <div className={`landing-hero-content ${isLoaded ? 'hero-loaded' : ''}`}>
         <div className={`hero-badge hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '0ms' }}>
           <i className="bi bi-lightning-charge-fill" />
-          <span>CSV to insights in under 5 minutes</span>
+          <span>Data to insights in under 5 minutes</span>
         </div>
 
         <h1 className={`hero-animate-item ${isLoaded ? 'visible' : ''}`} style={{ transitionDelay: '100ms' }}>

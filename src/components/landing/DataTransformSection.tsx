@@ -13,7 +13,7 @@ interface StageInfo {
 const stages: StageInfo[] = [
   {
     id: 'raw',
-    title: 'Raw CSV Export',
+    title: 'Raw ATS Export',
     description: 'Messy data with inconsistent columns, duplicate records, and custom field names from your ATS.',
     visual: 'csv'
   },
