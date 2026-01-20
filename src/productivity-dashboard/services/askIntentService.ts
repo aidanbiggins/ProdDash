@@ -1054,6 +1054,169 @@ export const mostProductiveRecruiterHandler: IntentHandler = {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Handler: Lowest Performing Recruiter (Help Struggling Recruiter)
+// ─────────────────────────────────────────────────────────────
+
+export const lowestPerformingRecruiterHandler: IntentHandler = {
+  intent_id: 'lowest_performing_recruiter',
+  patterns: [
+    /\b(worst|lowest|weakest|struggling|bottom)\s+(performing\s+)?(recruiter|performer)/i,
+    /\b(help|support|coach)\s+(my\s+)?(worst|lowest|weakest|struggling)\s+recruiter/i,
+    /\brecruiter.*(needs?\s+help|struggling|underperforming)/i,
+    /who.*(worst|lowest|weakest|bottom).*(recruiter|performer)/i,
+    /\bhelp\s+my\s+worst\s+recruiter/i,
+    /\bstruggling\s+recruiter/i,
+  ],
+  keywords: ['worst recruiter', 'lowest performing', 'struggling recruiter', 'help recruiter', 'weakest recruiter', 'bottom performer', 'underperforming'],
+  fact_keys_used: [
+    'recruiter_performance.bottom_by_productivity',
+    'recruiter_performance.team_avg_productivity',
+    'recruiter_performance.available',
+    'recruiter_performance.n',
+    'recruiter_performance.confidence',
+  ],
+  handler: (fp: AskFactPack): IntentResponse => {
+    const recruiterPerf = fp.recruiter_performance;
+    const citations: FactCitation[] = [];
+
+    // Check if data is available
+    if (!recruiterPerf.available) {
+      let md = `## Recruiter Performance\n\n`;
+      md += `**Data not available:** ${recruiterPerf.unavailable_reason || 'No recruiter data found.'}\n\n`;
+      md += `To enable recruiter performance tracking:\n`;
+      md += `- Ensure requisitions have the \`recruiter_id\` field populated\n`;
+      md += `- Import data with recruiter assignments\n`;
+
+      return {
+        answer_markdown: md,
+        citations: [{
+          ref: '[1]',
+          key_path: 'recruiter_performance.available',
+          label: 'Data Availability',
+          value: 'false',
+        }],
+        deep_links: [buildDeepLink('View Data Health', 'data-health', fp)],
+        suggested_questions: [
+          'What\'s on fire?',
+          'Show me risks',
+          'Who is the most productive recruiter?',
+        ],
+      };
+    }
+
+    const bottomPerformers = recruiterPerf.bottom_by_productivity;
+    const teamAvg = recruiterPerf.team_avg_productivity;
+
+    let md = `## Helping Your Lowest Performing Recruiter\n\n`;
+
+    if (bottomPerformers.length === 0) {
+      md += `No recruiters identified as needing support based on current data.\n`;
+      return {
+        answer_markdown: md,
+        citations: [],
+        deep_links: [buildDeepLink('View Capacity Overview', 'capacity', fp)],
+        suggested_questions: [
+          'Who is the most productive recruiter?',
+          'What\'s on fire?',
+          'Show me capacity summary',
+        ],
+      };
+    }
+
+    const lowest = bottomPerformers[0];
+
+    md += `### Recruiter Needing Support\n\n`;
+    md += `**${lowest.anonymized_label}** has the lowest productivity score: **${lowest.productivity_score}** [1]\n\n`;
+    citations.push({
+      ref: '[1]',
+      key_path: 'recruiter_performance.bottom_by_productivity[0].productivity_score',
+      label: `${lowest.anonymized_label} Productivity Score`,
+      value: lowest.productivity_score,
+    });
+
+    md += `**Current metrics:**\n`;
+    md += `- Hires in period: **${lowest.hires_in_period}** [2]\n`;
+    citations.push({
+      ref: '[2]',
+      key_path: 'recruiter_performance.bottom_by_productivity[0].hires_in_period',
+      label: 'Hires',
+      value: lowest.hires_in_period,
+    });
+
+    md += `- Offers in period: **${lowest.offers_in_period}** [3]\n`;
+    citations.push({
+      ref: '[3]',
+      key_path: 'recruiter_performance.bottom_by_productivity[0].offers_in_period',
+      label: 'Offers',
+      value: lowest.offers_in_period,
+    });
+
+    md += `- Open reqs: ${lowest.open_reqs}\n`;
+    md += `- Active candidates: ${lowest.active_candidates}\n`;
+    if (lowest.avg_ttf !== null) {
+      md += `- Avg TTF: ${lowest.avg_ttf} days\n`;
+    }
+    md += `\n`;
+
+    // Compare to team average
+    if (teamAvg !== null) {
+      md += `**Team average productivity:** ${teamAvg} [4]\n`;
+      citations.push({
+        ref: '[4]',
+        key_path: 'recruiter_performance.team_avg_productivity',
+        label: 'Team Average',
+        value: teamAvg,
+      });
+
+      const gap = teamAvg - (lowest.productivity_score ?? 0);
+      if (gap > 0) {
+        md += `\n_Gap to team average: ${gap.toFixed(1)} points_\n`;
+      }
+    }
+
+    // Actionable recommendations
+    md += `\n### Recommended Actions\n\n`;
+
+    if (lowest.open_reqs > 15) {
+      md += `1. **Reduce workload** - ${lowest.anonymized_label} has ${lowest.open_reqs} open reqs. Consider redistributing some reqs to balance the load.\n`;
+    } else if (lowest.open_reqs < 5) {
+      md += `1. **Check req assignment** - Only ${lowest.open_reqs} open reqs. May need more reqs or could be focusing on difficult roles.\n`;
+    } else {
+      md += `1. **Review pipeline quality** - Req load (${lowest.open_reqs}) is reasonable. Focus on candidate sourcing and conversion.\n`;
+    }
+
+    if (lowest.active_candidates < 10) {
+      md += `2. **Boost sourcing** - Only ${lowest.active_candidates} active candidates. Help with sourcing strategies or provide sourcer support.\n`;
+    }
+
+    if (lowest.avg_ttf !== null && lowest.avg_ttf > 60) {
+      md += `3. **Address cycle time** - Avg TTF of ${lowest.avg_ttf} days is high. Identify which stages are causing delays.\n`;
+    }
+
+    md += `4. **Schedule 1:1 coaching** - Review their process, identify blockers, and provide mentorship.\n`;
+    md += `5. **Check HM responsiveness** - Slow hiring managers can tank a recruiter's metrics unfairly.\n`;
+
+    md += `\n_Based on ${recruiterPerf.n} recruiters with activity (${recruiterPerf.confidence} confidence)_\n`;
+
+    return {
+      answer_markdown: md,
+      citations,
+      deep_links: [
+        buildDeepLink('View Recruiter Detail', 'recruiter', fp, {
+          id: lowest.anonymized_id || '',
+        }),
+        buildDeepLink('View Capacity Overview', 'capacity', fp),
+      ],
+      suggested_questions: [
+        'Who is the most productive recruiter?',
+        'Show me capacity summary',
+        'What\'s on fire?',
+      ],
+    };
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
 // Handler: HM with Most Open Reqs
 // ─────────────────────────────────────────────────────────────
 
@@ -1342,6 +1505,7 @@ export const ALL_HANDLERS: IntentHandler[] = [
   sourceMixSummaryHandler,
   capacitySummaryHandler,
   mostProductiveRecruiterHandler,
+  lowestPerformingRecruiterHandler,
   hmWithMostOpenReqsHandler,
   bottleneckAnalysisHandler,
 ];
@@ -1366,6 +1530,8 @@ export function generateHelpResponse(fp: AskFactPack): IntentResponse {
   md += `- **"Velocity"** - Funnel and stage timing\n`;
   md += `- **"Sources"** - Candidate source effectiveness\n`;
   md += `- **"Capacity"** - Team workload distribution\n`;
+  md += `- **"Top recruiter"** - Most productive recruiter\n`;
+  md += `- **"Help my worst recruiter"** - Lowest performer with coaching tips\n`;
   md += `- **"Bottlenecks"** - SLA breaches and stage delays\n`;
 
   return {
