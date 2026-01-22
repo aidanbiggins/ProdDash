@@ -193,42 +193,6 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                 </div>
             </div>
 
-            {/* Section: Calibration */}
-            <div className="oracle-backside-section">
-                <div className="oracle-backside-section-title">Calibration</div>
-                {explainData.calibration.isAvailable && explainData.calibration.score !== null ? (
-                    <div style={{ fontSize: '0.7rem' }}>
-                        <div className="d-flex justify-content-between mb-1">
-                            <span className="text-muted">Score:</span>
-                            <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>
-                                {explainData.calibration.score}/100
-                            </span>
-                        </div>
-                        {explainData.calibration.bias !== null && (
-                            <div className="d-flex justify-content-between mb-1">
-                                <span className="text-muted">Bias:</span>
-                                <span style={{
-                                    fontFamily: 'var(--font-mono)',
-                                    color: Math.abs(explainData.calibration.bias) < 3 ? 'var(--color-good)' : 'var(--color-warn)'
-                                }}>
-                                    {explainData.calibration.bias > 0 ? '+' : ''}{explainData.calibration.bias}d
-                                    {explainData.calibration.bias > 0 ? ' (late)' : explainData.calibration.bias < 0 ? ' (early)' : ''}
-                                </span>
-                            </div>
-                        )}
-                        {explainData.calibration.lastRunAt && (
-                            <div className="text-muted" style={{ fontSize: '0.6rem' }}>
-                                Last run: {explainData.calibration.lastRunAt.toLocaleDateString()}
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div className="oracle-calibration-cta">
-                        <i className="bi bi-info-circle me-1"></i>
-                        Calibration not run
-                    </div>
-                )}
-            </div>
 
             {/* Section: Capacity Analysis (v1.1 with global workload context) */}
             {explainData.capacity && (

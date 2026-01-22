@@ -8,12 +8,130 @@ import { useDashboard } from '../hooks/useDashboardContext';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
 import { ImportProgressModal } from './common/ImportProgressModal';
 import { PIIWarningModal } from './common/PIIWarningModal';
+import { UltimateDemoModal } from './common/UltimateDemoModal';
 import { ImportProgress, ClearProgress } from '../services/dbService';
 import { importCsvData } from '../services/csvParser';
 import { detectPII, PIIDetectionResult } from '../services/piiService';
 import { useAuth } from '../../contexts/AuthContext';
 import { OrgSwitcher, CreateOrgModal } from './OrgSwitcher';
 import { createOrganization } from '../services/organizationService';
+import { generateUltimateDemo } from '../services/ultimateDemoGenerator';
+import { UltimateDemoBundle, DemoCandidate } from '../types/demoTypes';
+import { Requisition, Event, User } from '../types/entities';
+import { format } from 'date-fns';
+
+// CSV conversion helpers for Ultimate Demo bundle
+function formatDateForCSV(date: Date | null | undefined): string {
+  if (!date) return '';
+  return format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+}
+
+function escapeCSV(value: string | null | undefined): string {
+  if (value == null) return '';
+  const str = String(value);
+  // Escape quotes and wrap in quotes if contains comma, quote, or newline
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function convertRequisitionsToCSV(requisitions: Requisition[]): string {
+  const headers = [
+    'req_id', 'req_title', 'function', 'job_family', 'level', 'location_type',
+    'location_region', 'location_city', 'comp_band_min', 'comp_band_max',
+    'opened_at', 'closed_at', 'status', 'hiring_manager_id', 'recruiter_id',
+    'business_unit', 'headcount_type', 'priority', 'candidate_slate_required', 'search_firm_used'
+  ];
+
+  const rows = requisitions.map(r => [
+    escapeCSV(r.req_id),
+    escapeCSV(r.req_title),
+    escapeCSV(r.function),
+    escapeCSV(r.job_family),
+    escapeCSV(r.level),
+    escapeCSV(r.location_type),
+    escapeCSV(r.location_region),
+    escapeCSV(r.location_city),
+    r.comp_band_min?.toString() || '',
+    r.comp_band_max?.toString() || '',
+    formatDateForCSV(r.opened_at),
+    formatDateForCSV(r.closed_at),
+    escapeCSV(r.status),
+    escapeCSV(r.hiring_manager_id),
+    escapeCSV(r.recruiter_id),
+    escapeCSV(r.business_unit),
+    escapeCSV(r.headcount_type),
+    escapeCSV(r.priority),
+    r.candidate_slate_required ? 'true' : 'false',
+    r.search_firm_used ? 'true' : 'false'
+  ].join(','));
+
+  return [headers.join(','), ...rows].join('\n');
+}
+
+function convertCandidatesToCSV(candidates: DemoCandidate[]): string {
+  const headers = [
+    'candidate_id', 'candidate_name', 'candidate_email', 'candidate_phone',
+    'req_id', 'source', 'applied_at', 'first_contacted_at', 'current_stage',
+    'current_stage_entered_at', 'disposition', 'hired_at', 'offer_extended_at', 'offer_accepted_at'
+  ];
+
+  const rows = candidates.map(c => [
+    escapeCSV(c.candidate_id),
+    escapeCSV(c.name),
+    escapeCSV(c.email),
+    escapeCSV(c.phone),
+    escapeCSV(c.req_id),
+    escapeCSV(c.source),
+    formatDateForCSV(c.applied_at),
+    formatDateForCSV(c.first_contacted_at),
+    escapeCSV(c.current_stage),
+    formatDateForCSV(c.current_stage_entered_at),
+    escapeCSV(c.disposition),
+    formatDateForCSV(c.hired_at),
+    formatDateForCSV(c.offer_extended_at),
+    formatDateForCSV(c.offer_accepted_at)
+  ].join(','));
+
+  return [headers.join(','), ...rows].join('\n');
+}
+
+function convertEventsToCSV(events: Event[]): string {
+  const headers = [
+    'event_id', 'candidate_id', 'req_id', 'event_type',
+    'from_stage', 'to_stage', 'actor_user_id', 'event_at', 'metadata_json'
+  ];
+
+  const rows = events.map(e => [
+    escapeCSV(e.event_id),
+    escapeCSV(e.candidate_id),
+    escapeCSV(e.req_id),
+    escapeCSV(e.event_type),
+    escapeCSV(e.from_stage),
+    escapeCSV(e.to_stage),
+    escapeCSV(e.actor_user_id),
+    formatDateForCSV(e.event_at),
+    escapeCSV(e.metadata_json)
+  ].join(','));
+
+  return [headers.join(','), ...rows].join('\n');
+}
+
+function convertUsersToCSV(users: User[]): string {
+  const headers = ['user_id', 'name', 'role', 'team', 'manager_user_id', 'email'];
+
+  const rows = users.map(u => [
+    escapeCSV(u.user_id),
+    escapeCSV(u.name),
+    escapeCSV(u.role),
+    escapeCSV(u.team),
+    escapeCSV(u.manager_user_id),
+    escapeCSV(u.email)
+  ].join(','));
+
+  return [headers.join(','), ...rows].join('\n');
+}
 
 interface CSVUploadProps {
   onUpload: (
@@ -59,6 +177,10 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const [pendingCsvData, setPendingCsvData] = useState<{ req: string; cand: string; event: string; user: string } | null>(null);
   const [pendingDemoData, setPendingDemoData] = useState<{ req: string; cand: string; event: string; user: string } | null>(null);
   const [isProcessingPII, setIsProcessingPII] = useState(false);
+
+  // Ultimate Demo state
+  const [showUltimateDemoModal, setShowUltimateDemoModal] = useState(false);
+  const [ultimateDemoBundle, setUltimateDemoBundle] = useState<UltimateDemoBundle | null>(null);
 
   const handleCreateOrg = async (name: string) => {
     if (!supabaseUser?.id) throw new Error('Not authenticated');
@@ -266,6 +388,68 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
     } finally {
       setUploading(false);
       setImportProgress(null);
+    }
+  }, [onUpload]);
+
+  // Ultimate Demo handler
+  const handleLoadUltimateDemo = useCallback(async (bundle: UltimateDemoBundle) => {
+    setShowUltimateDemoModal(false);
+    setUploading(true);
+    setErrors([]);
+    setImportProgress(null);
+
+    try {
+      // Convert bundle to CSV format for import
+      const reqCsv = convertRequisitionsToCSV(bundle.requisitions);
+      const candCsv = convertCandidatesToCSV(bundle.candidates);
+      const eventCsv = convertEventsToCSV(bundle.events);
+      const userCsv = convertUsersToCSV(bundle.users);
+
+      // Check for PII if synthetic_pii pack is enabled
+      if (bundle.packsEnabled.synthetic_pii) {
+        const candidatesForPII = bundle.candidates.map(c => ({
+          candidate_id: c.candidate_id,
+          candidate_name: c.name || '',
+          email: c.email,
+          phone: c.phone,
+        }));
+        const piiResult = detectPII(candidatesForPII);
+
+        if (piiResult.hasPII) {
+          // Store demo data and show PII warning modal
+          setPendingDemoData({
+            req: reqCsv,
+            cand: candCsv,
+            event: eventCsv,
+            user: userCsv
+          });
+          setUltimateDemoBundle(bundle);
+          setPiiDetectionResult(piiResult);
+          setShowPIIWarning(true);
+          setUploading(false);
+          return;
+        }
+      }
+
+      // No PII or not enabled, proceed with import
+      const result = await onUpload(
+        reqCsv,
+        candCsv,
+        eventCsv,
+        userCsv,
+        true, // isDemo
+        (progress) => setImportProgress(progress)
+      );
+
+      if (!result.success) {
+        setErrors(result.errors);
+      }
+    } catch (error) {
+      setErrors([error instanceof Error ? error.message : 'Error loading Ultimate Demo']);
+    } finally {
+      setUploading(false);
+      setImportProgress(null);
+      setUltimateDemoBundle(null);
     }
   }, [onUpload]);
 
@@ -520,29 +704,41 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                   Want to explore the dashboard before importing your data? Load sample data
                   to see all features in action.
                 </p>
-                <button
-                  type="button"
-                  className="btn btn-outline-primary"
-                  onClick={handleLoadDemo}
-                  disabled={uploading || isLoading}
-                >
-                  {uploading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" />
-                      Loading Demo...
-                    </>
-                  ) : (
-                    'Load Demo Data'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-outline-danger ms-2"
-                  onClick={() => setShowClearConfirm(true)}
-                  disabled={uploading || isLoading}
-                >
-                  Clear Database
-                </button>
+                <div className="d-flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setShowUltimateDemoModal(true)}
+                    disabled={uploading || isLoading}
+                    data-testid="load-ultimate-demo-btn"
+                  >
+                    <i className="bi bi-magic me-2"></i>
+                    Load Ultimate Demo
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary"
+                    onClick={handleLoadDemo}
+                    disabled={uploading || isLoading}
+                  >
+                    {uploading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      'Load Basic Demo'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-danger"
+                    onClick={() => setShowClearConfirm(true)}
+                    disabled={uploading || isLoading}
+                  >
+                    Clear Database
+                  </button>
+                </div>
               </div>
 
               {/* Clear Data Confirmation Modal */}
@@ -571,6 +767,13 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                   isProcessing={isProcessingPII}
                 />
               )}
+
+              {/* Ultimate Demo Modal */}
+              <UltimateDemoModal
+                isOpen={showUltimateDemoModal}
+                onClose={() => setShowUltimateDemoModal(false)}
+                onLoadDemo={handleLoadUltimateDemo}
+              />
 
             </div>
           </div>

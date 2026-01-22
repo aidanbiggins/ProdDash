@@ -47,6 +47,7 @@ export {
 export * from './ClearDataConfirmationModal';
 export * from './ImportProgressModal';
 export * from './PIIWarningModal';
+export * from './UltimateDemoModal';
 export * from './PreMortemDrawer';
 export * from './ExplainDrawer';
 export * from './ActionDetailDrawer';

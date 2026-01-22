@@ -37,6 +37,7 @@
     "ui:style-audit": "node scripts/ui-style-audit.js",
     "ui:overlay-audit": "node scripts/ui-overlay-audit.js",
     "route:smoke": "node scripts/route-smoke.js",
+    "demo:verify": "node scripts/demo-verify.js",
     "qa:all": "npm test -- --watchAll=false && npm run build && npm run ui:style-audit && npm run ui:overlay-audit && npm run route:smoke",
     "landing:smoke": "node scripts/landing-smoke.js",
     "landing:screenshots": "node scripts/landing-screenshots.js",
