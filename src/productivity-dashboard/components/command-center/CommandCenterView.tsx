@@ -31,6 +31,13 @@ import { AttentionV2Data } from '../../types/attentionTypes';
 import { computeTopPriority } from '../../services/priorityArbitrationService';
 import { TopPriorityRibbon } from './TopPriorityRibbon';
 import { DrawerFocus } from '../../services/attentionNavigationService';
+import {
+  CommandCenterIntent,
+  NavigationContext,
+  NavigationHelpers,
+  getCommandCenterDestination,
+  performCommandCenterDestination,
+} from '../../services/commandCenterNavigationService';
 import './CommandCenter.css';
 
 export interface CommandCenterViewProps {
@@ -141,6 +148,29 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
     setDrilldownOpen(true);
   }, []);
 
+  const navContext: NavigationContext = useMemo(() => ({
+    bottleneckDiagnosis: factPack.bottleneck.diagnosis,
+    hasAttentionDrilldown: attentionV2Data.drilldown.recruiters.length > 0 ||
+      attentionV2Data.drilldown.hiringManagers.length > 0 ||
+      attentionV2Data.drilldown.reqClusters.length > 0,
+    hasOnTrackKPIs: factPack.on_track.kpis.length > 0,
+    hasRiskGroups: factPack.risk.items.length > 0,
+    hasChanges: factPack.changes.deltas.length > 0,
+    hasScenarios: factPack.whatif.scenario_previews.length > 0,
+    defaultExplainKPI: 'median_ttf',
+  }), [factPack, attentionV2Data]);
+
+  const navHelpers: NavigationHelpers = useMemo(() => ({
+    onNavigateToTab: props.onNavigateToTab,
+    openAttentionDrilldown: handleOpenDrilldown,
+    openExplainDrawer: props.onOpenExplain,
+  }), [props.onNavigateToTab, handleOpenDrilldown, props.onOpenExplain]);
+
+  const handleCTA = useCallback((intent: CommandCenterIntent) => {
+    const destination = getCommandCenterDestination(intent, navContext);
+    performCommandCenterDestination(destination, navHelpers);
+  }, [navContext, navHelpers]);
+
   const confidenceClass = factPack.meta.confidence === 'HIGH'
     ? 'cc-header__confidence-value--high'
     : factPack.meta.confidence === 'MED'
@@ -175,8 +205,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         gate={getSectionGate('cc_attention')!}
         confidence={getSectionGate('cc_attention')?.confidence}
         confidenceType="data"
-        primaryCTA={{ label: 'Triage actions', onClick: () => props.onNavigateToTab?.('overview') }}
-        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('overview') }}
+        primaryCTA={{ label: 'Triage actions', onClick: () => handleCTA('triage_actions') }}
+        detailsCTA={{ label: 'Details', onClick: () => handleCTA('details_actions') }}
       >
         <AttentionSection data={attentionV2Data} onNavigateToTab={props.onNavigateToTab} onOpenDrilldown={handleOpenDrilldown} />
       </SectionCard>
@@ -188,8 +218,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         gate={getSectionGate('cc_on_track')!}
         confidence={getSectionGate('cc_on_track')?.confidence}
         confidenceType="data"
-        primaryCTA={{ label: 'Explain TTF', onClick: () => props.onOpenExplain?.('median_ttf') }}
-        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('overview') }}
+        primaryCTA={{ label: 'Explain TTF', onClick: () => handleCTA('explain_kpi') }}
+        detailsCTA={{ label: 'Details', onClick: () => handleCTA('kpi_details') }}
       >
         <OnTrackSection data={factPack.on_track} onExplainKPI={props.onOpenExplain} />
       </SectionCard>
@@ -201,8 +231,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         gate={getSectionGate('cc_risk')!}
         confidence={getSectionGate('cc_risk')?.confidence}
         confidenceType="risk"
-        primaryCTA={{ label: 'Triage risks', onClick: () => props.onNavigateToTab?.('forecasting') }}
-        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('forecasting') }}
+        primaryCTA={{ label: 'Triage risks', onClick: () => handleCTA('triage_risks') }}
+        detailsCTA={{ label: 'Details', onClick: () => handleCTA('risk_details') }}
       >
         <RiskSection data={factPack.risk} onRiskClick={props.onNavigateToReq} />
       </SectionCard>
@@ -214,7 +244,7 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         gate={getSectionGate('cc_changes')!}
         confidence={getSectionGate('cc_changes')?.confidence}
         confidenceType="data"
-        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('overview') }}
+        detailsCTA={{ label: 'Details', onClick: () => handleCTA('changes_details') }}
       >
         <ChangesSection data={factPack.changes} />
       </SectionCard>
@@ -226,8 +256,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         gate={getSectionGate('cc_whatif')!}
         confidence={getSectionGate('cc_whatif')?.confidence}
         confidenceType="forecast"
-        primaryCTA={{ label: 'Model scenarios', onClick: () => props.onNavigateToTab?.('scenarios') }}
-        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('scenarios') }}
+        primaryCTA={{ label: 'Model scenarios', onClick: () => handleCTA('model_scenarios') }}
+        detailsCTA={{ label: 'Details', onClick: () => handleCTA('scenario_details') }}
       >
         <WhatIfSection data={factPack.whatif} bottleneckDiagnosis={factPack.bottleneck.diagnosis} onExploreScenario={handleExploreScenario} />
       </SectionCard>
@@ -239,8 +269,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         gate={getSectionGate('cc_bottleneck')!}
         confidence={getSectionGate('cc_bottleneck')?.confidence}
         confidenceType="data"
-        primaryCTA={{ label: 'Rebalance', onClick: () => props.onNavigateToTab?.('capacity-rebalancer') }}
-        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('capacity-rebalancer') }}
+        primaryCTA={{ label: 'Rebalance', onClick: () => handleCTA('rebalance_capacity') }}
+        detailsCTA={{ label: 'Details', onClick: () => handleCTA('bottleneck_details') }}
       >
         <BottleneckSection data={factPack.bottleneck} onNavigate={handleNavigate} />
       </SectionCard>
