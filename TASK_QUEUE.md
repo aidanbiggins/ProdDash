@@ -45,7 +45,7 @@ Acceptance:
 ---
 
 ## 4) Scenario cards show 2–3 deltas
-Status: TODO
+Status: DONE
 Goal:
 - Add 2–3 small outcome deltas per scenario card if data supports it.
 Examples:

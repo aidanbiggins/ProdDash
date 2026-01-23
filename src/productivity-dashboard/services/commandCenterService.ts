@@ -16,6 +16,7 @@ import {
   DeltaItem,
   WhatIfSection,
   ScenarioPreview,
+  ScenarioDelta,
   BottleneckSection,
   BottleneckDiagnosis,
   SectionId,
@@ -23,7 +24,7 @@ import {
 } from '../types/commandCenterTypes';
 import { ActionItem } from '../types/actionTypes';
 import { CapabilityStatus, ConfidenceLevel } from '../types/capabilityTypes';
-import { Requisition, Candidate, Event, User, CanonicalStage } from '../types/entities';
+import { Requisition, Candidate, Event, User, CanonicalStage, CandidateDisposition } from '../types/entities';
 import { OverviewMetrics, MetricFilters, HiringManagerFriction } from '../types/metrics';
 import { DashboardConfig } from '../types/config';
 import { CoverageMetrics } from '../types/resilientImportTypes';
@@ -523,38 +524,87 @@ function buildWhatIf(ctx: CommandCenterContext): WhatIfSection {
   const openReqs = ctx.requisitions.filter(r => !r.closed_at);
   const pipelineGap = openReqs.length - ctx.candidates.filter(c => c.hired_at).length;
 
+  // Compute shared metrics for deltas
+  const medianTTF = ctx.overview?.medianTTF ?? null;
+  const activeCandidates = ctx.candidates.filter(c =>
+    c.disposition !== CandidateDisposition.Hired &&
+    c.disposition !== CandidateDisposition.Rejected &&
+    c.disposition !== CandidateDisposition.Withdrawn
+  ).length;
+
   // Always show "Recruiter Leaves" if overloaded recruiters exist
   if (overloadedRecruiters.length > 0 || recruiters.length >= 2) {
+    const strandedReqs = Math.round(avgLoad);
+    const newLoadPerRecruiter = recruiters.length > 1 ? Math.round((openReqs.length) / (recruiters.length - 1)) : openReqs.length;
+    const deltas: ScenarioDelta[] = [];
+    if (strandedReqs > 0) {
+      deltas.push({ label: `+${strandedReqs} reqs redistributed`, direction: 'up', sentiment: 'bad' });
+    }
+    if (medianTTF !== null) {
+      const ttfIncrease = Math.round(medianTTF * 0.25); // ~25% TTF increase with higher load
+      if (ttfIncrease > 0) deltas.push({ label: `+${ttfIncrease}d TTF`, direction: 'up', sentiment: 'bad' });
+    }
+    if (newLoadPerRecruiter > avgLoad) {
+      deltas.push({ label: `${newLoadPerRecruiter} reqs/person`, direction: 'up', sentiment: 'bad' });
+    }
+
     previews.push({
       scenario_id: 'recruiter_leaves',
       title: 'A recruiter leaves?',
       impact_summary: overloadedRecruiters.length > 0
-        ? `${overloadedRecruiters.length} recruiter${overloadedRecruiters.length > 1 ? 's' : ''} already overloaded — departure would strand ${Math.round(avgLoad)} reqs`
-        : `Team of ${recruiters.length} — losing one affects ${Math.round(avgLoad)} reqs avg`,
+        ? `${overloadedRecruiters.length} recruiter${overloadedRecruiters.length > 1 ? 's' : ''} already overloaded — departure would strand ${strandedReqs} reqs`
+        : `Team of ${recruiters.length} — losing one affects ${strandedReqs} reqs avg`,
       relevance_reason: overloadedRecruiters.length > 0 ? 'Overloaded recruiters increase departure risk' : 'Proactive capacity planning',
       decision_ask: 'Should we pre-plan redistribution?',
+      deltas: deltas.slice(0, 3),
     });
   }
 
   // Show "Hiring Freeze" if there's a pipeline gap or significant open reqs
   if (pipelineGap > 0 || openReqs.length > 5) {
+    const deltas: ScenarioDelta[] = [];
+    if (openReqs.length > 0) {
+      deltas.push({ label: `${openReqs.length} reqs stalled`, direction: 'up', sentiment: 'bad' });
+    }
+    if (activeCandidates > 0) {
+      const attrition = Math.round(activeCandidates * 0.4); // ~40% candidate attrition in 4 weeks
+      if (attrition > 0) deltas.push({ label: `-${attrition} candidates lost`, direction: 'down', sentiment: 'bad' });
+    }
+    if (pipelineGap > 0) {
+      deltas.push({ label: `${pipelineGap} gap widens`, direction: 'up', sentiment: 'bad' });
+    }
+
     previews.push({
       scenario_id: 'hiring_freeze',
       title: 'We freeze hiring for 4 weeks?',
       impact_summary: `${openReqs.length} open reqs would stall — pipeline dries up in ~3 weeks`,
       relevance_reason: pipelineGap > 0 ? 'Already behind on hiring goals' : 'Active pipeline at risk',
       decision_ask: 'What would we lose vs save?',
+      deltas: deltas.slice(0, 3),
     });
   }
 
   // Show "Spin Up Team" if more reqs than capacity
   if (previews.length < 2 && openReqs.length > recruiters.length * 8) {
+    const newLoad = recruiters.length > 0 ? Math.round(openReqs.length / (recruiters.length + 1)) : openReqs.length;
+    const loadReduction = Math.round(avgLoad - newLoad);
+    const deltas: ScenarioDelta[] = [];
+    if (loadReduction > 0) {
+      deltas.push({ label: `-${loadReduction} reqs/person`, direction: 'down', sentiment: 'good' });
+    }
+    if (medianTTF !== null) {
+      const ttfReduction = Math.round(medianTTF * 0.15); // ~15% TTF reduction
+      if (ttfReduction > 0) deltas.push({ label: `-${ttfReduction}d TTF`, direction: 'down', sentiment: 'good' });
+    }
+    deltas.push({ label: `+1 recruiter`, direction: 'up', sentiment: 'neutral' });
+
     previews.push({
       scenario_id: 'spin_up_team',
       title: 'We add a recruiter?',
       impact_summary: `Current load: ${avgLoad.toFixed(1)} reqs/recruiter — new hire takes ~${Math.round(avgLoad)} reqs`,
       relevance_reason: 'Above sustainable req load per recruiter',
       decision_ask: 'Is it time to grow the team?',
+      deltas: deltas.slice(0, 3),
     });
   }
 

@@ -4,6 +4,18 @@
 
 import { ActionItem, ActionType } from './actionTypes';
 import { CapabilityStatus, ConfidenceLevel } from './capabilityTypes';
+import { TabType } from '../routes';
+
+// ============================================
+// CONFIDENCE & ACCOUNTABILITY
+// ============================================
+
+export type ConfidenceType = 'data' | 'risk' | 'forecast';
+
+export interface Accountability {
+  owner: string;   // Role: "Recruiter", "HM", "TA Ops", "Exec"
+  due: string;     // Relative: "24h", "48h", "This week", "Today"
+}
 
 // ============================================
 // SECTION STATUSES
@@ -90,6 +102,7 @@ export interface RiskItem {
   so_what: string;
   next_move: string;
   action_type: ActionType;
+  accountability?: Accountability;
 }
 
 export interface RiskSection {
@@ -123,12 +136,19 @@ export interface ChangesSection {
 
 export type ScenarioId = 'recruiter_leaves' | 'hiring_freeze' | 'spin_up_team';
 
+export interface ScenarioDelta {
+  label: string;           // e.g., "+8 days TTF", "-12% probability"
+  direction: 'up' | 'down' | 'neutral';
+  sentiment: 'good' | 'bad' | 'neutral';  // up TTF is bad, up hires is good
+}
+
 export interface ScenarioPreview {
   scenario_id: ScenarioId;
   title: string;
   impact_summary: string;
   relevance_reason: string;
   decision_ask: string;
+  deltas?: ScenarioDelta[];  // 0-3 outcome deltas
 }
 
 export interface WhatIfSection {
@@ -150,6 +170,36 @@ export interface BottleneckSection {
     label: string;
     navigation_target: string;  // tab ID to navigate to
   };
+  accountability?: Accountability;
+}
+
+// ============================================
+// PRIORITY ARBITRATION
+// ============================================
+
+export type PriorityCategory =
+  | 'BLOCKING_ATTENTION'
+  | 'OFF_TRACK'
+  | 'CRITICAL_RISK'
+  | 'AT_RISK_ATTENTION'
+  | 'CAPACITY_BOUND'
+  | 'NONE';
+
+export type PrioritySeverity = 'critical' | 'high' | 'info';
+
+export interface TopPriority {
+  category: PriorityCategory;
+  severity: PrioritySeverity;
+  headline: string;
+  cta_label: string;
+  cta_target: TabType | 'drilldown';
+  source_section: SectionId;
+  accountability?: Accountability;  // Present when severity is critical or high
+}
+
+export interface ChangesSummary {
+  sentence: string;        // e.g. "3 material changes: TTF up, pipeline down, 2 new hires"
+  material_count: number;
 }
 
 // ============================================
