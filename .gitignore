@@ -33,3 +33,9 @@ coverage/
 # Misc
 *.log
 Submittal_export_1_9_2026_12_50_PM.csv
+
+# Automation / meta files
+CLAUDE_RUNBOOK.md
+TASK_QUEUE.md
+docs/overnight-log.md
+.claude/
