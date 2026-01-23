@@ -13,6 +13,7 @@ import { WhatIfSection } from './WhatIfSection';
 import { BottleneckSection } from './BottleneckSection';
 import { AttentionDrilldownDrawer, DrawerBackdrop } from './AttentionDrilldownDrawer';
 import { Requisition, Candidate, Event, User } from '../../types/entities';
+import { reqMatchesFilters } from '../../services/filterUtils';
 import { OverviewMetrics, MetricFilters } from '../../types/metrics';
 import { DashboardConfig } from '../../types/config';
 import { HiringManagerFriction } from '../../types/metrics';
@@ -62,17 +63,46 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
   const [drilldownOpen, setDrilldownOpen] = useState(false);
   const [drawerFocus, setDrawerFocus] = useState<DrawerFocus | undefined>(undefined);
 
-  // Compute explanations, actions, and pre-mortems from source data
+  // ── Filter data by dimensional filters ──
+  const filteredRequisitions = useMemo(() => {
+    return props.requisitions.filter(req => reqMatchesFilters(req, props.filters));
+  }, [props.requisitions, props.filters]);
+
+  const filteredReqIds = useMemo(() => {
+    return new Set(filteredRequisitions.map(r => r.req_id));
+  }, [filteredRequisitions]);
+
+  const filteredCandidates = useMemo(() => {
+    return props.candidates.filter(c => filteredReqIds.has(c.req_id));
+  }, [props.candidates, filteredReqIds]);
+
+  const filteredEvents = useMemo(() => {
+    return props.events.filter(e => filteredReqIds.has(e.req_id));
+  }, [props.events, filteredReqIds]);
+
+  const filteredHmIds = useMemo(() => {
+    return new Set(filteredRequisitions.map(r => r.hiring_manager_id).filter(Boolean));
+  }, [filteredRequisitions]);
+
+  const filteredHmFriction = useMemo(() => {
+    return props.hmFriction.filter(hm => filteredHmIds.has(hm.hmId));
+  }, [props.hmFriction, filteredHmIds]);
+
+  const filteredHmActions = useMemo(() => {
+    return props.hmActions.filter(a => filteredReqIds.has(a.reqId));
+  }, [props.hmActions, filteredReqIds]);
+
+  // Compute explanations, actions, and pre-mortems from filtered data
   const explanations = useMemo(() => {
     const context = {
-      requisitions: props.requisitions,
-      candidates: props.candidates,
-      events: props.events,
+      requisitions: filteredRequisitions,
+      candidates: filteredCandidates,
+      events: filteredEvents,
       users: props.users,
       filters: props.filters,
       config: props.config,
       overview: props.overview,
-      hmFriction: props.hmFriction,
+      hmFriction: filteredHmFriction,
     };
     const map = new Map<ExplainProviderId, any>();
     const ids: ExplainProviderId[] = ['median_ttf', 'hm_latency', 'stalled_reqs', 'offer_accept_rate', 'time_to_offer'];
@@ -80,42 +110,42 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
       map.set(id, getExplanation(id, context));
     }
     return map;
-  }, [props.requisitions, props.candidates, props.events, props.users, props.filters, props.config, props.overview, props.hmFriction]);
+  }, [filteredRequisitions, filteredCandidates, filteredEvents, props.users, props.filters, props.config, props.overview, filteredHmFriction]);
 
   const actions: ActionItem[] = useMemo(() => {
-    const datasetId = `cc_${props.requisitions.length}_${props.candidates.length}`;
+    const datasetId = `cc_${filteredRequisitions.length}_${filteredCandidates.length}`;
     return generateUnifiedActionQueue({
-      hmActions: props.hmActions,
+      hmActions: filteredHmActions,
       explanations,
-      requisitions: props.requisitions,
+      requisitions: filteredRequisitions,
       users: props.users,
       datasetId,
     });
-  }, [props.hmActions, explanations, props.requisitions, props.users]);
+  }, [filteredHmActions, explanations, filteredRequisitions, filteredCandidates.length, props.users]);
 
   const preMortems = useMemo(() => {
-    return runPreMortemBatch(props.requisitions, props.candidates, props.events, props.hmActions);
-  }, [props.requisitions, props.candidates, props.events, props.hmActions]);
+    return runPreMortemBatch(filteredRequisitions, filteredCandidates, filteredEvents, filteredHmActions);
+  }, [filteredRequisitions, filteredCandidates, filteredEvents, filteredHmActions]);
 
   const attentionV2Data: AttentionV2Data = useMemo(() => {
     return computeAttentionV2({
-      requisitions: props.requisitions,
-      candidates: props.candidates,
+      requisitions: filteredRequisitions,
+      candidates: filteredCandidates,
       users: props.users,
       overview: props.overview,
-      hmFriction: props.hmFriction,
-      hmActions: props.hmActions,
+      hmFriction: filteredHmFriction,
+      hmActions: filteredHmActions,
       coverage: props.coverage,
     });
-  }, [props.requisitions, props.candidates, props.users, props.overview, props.hmFriction, props.hmActions, props.coverage]);
+  }, [filteredRequisitions, filteredCandidates, props.users, props.overview, filteredHmFriction, filteredHmActions, props.coverage]);
 
   const { factPack, gates, isSectionBlocked, getSectionGate } = useCommandCenter({
-    requisitions: props.requisitions,
-    candidates: props.candidates,
-    events: props.events,
+    requisitions: filteredRequisitions,
+    candidates: filteredCandidates,
+    events: filteredEvents,
     users: props.users,
     overview: props.overview,
-    hmFriction: props.hmFriction,
+    hmFriction: filteredHmFriction,
     actions,
     preMortems,
     filters: props.filters,
