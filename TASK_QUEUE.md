@@ -57,7 +57,7 @@ Acceptance:
 ---
 
 ## 5) Exec Brief generation works without BYOK
-Status: TODO
+Status: DONE
 Goal:
 - Verify Exec Brief generates the 6-section brief without AI enabled.
 Acceptance:
