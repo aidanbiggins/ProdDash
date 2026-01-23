@@ -11,7 +11,6 @@ import {
 } from '../commandCenterNavigationService';
 
 const ALL_INTENTS: CommandCenterIntent[] = [
-  'triage_actions',
   'details_actions',
   'explain_kpi',
   'kpi_details',
@@ -92,14 +91,6 @@ describe('commandCenterNavigationService', () => {
 
     // ── Attention section ──
     describe('Attention intents', () => {
-      it('triage_actions opens attention drawer', () => {
-        const dest = getCommandCenterDestination('triage_actions', defaultContext);
-        expect(dest.kind).toBe('OPEN_DRAWER');
-        if (dest.kind === 'OPEN_DRAWER') {
-          expect(dest.drawerSystem).toBe('attention');
-        }
-      });
-
       it('details_actions opens attention drawer', () => {
         const dest = getCommandCenterDestination('details_actions', defaultContext);
         expect(dest.kind).toBe('OPEN_DRAWER');
@@ -164,11 +155,12 @@ describe('commandCenterNavigationService', () => {
         }
       });
 
-      it('risk_details navigates to data-health', () => {
+      it('risk_details opens explain drawer for stalled_reqs', () => {
         const dest = getCommandCenterDestination('risk_details', defaultContext);
-        expect(dest.kind).toBe('NAVIGATE');
-        if (dest.kind === 'NAVIGATE') {
-          expect(dest.tab).toBe('data-health');
+        expect(dest.kind).toBe('OPEN_DRAWER');
+        if (dest.kind === 'OPEN_DRAWER') {
+          expect(dest.drawerSystem).toBe('explain');
+          expect(dest.explainProvider).toBe('stalled_reqs');
         }
       });
     });
@@ -194,11 +186,11 @@ describe('commandCenterNavigationService', () => {
         }
       });
 
-      it('scenario_details navigates to scenarios tab', () => {
+      it('scenario_details navigates to forecasting tab', () => {
         const dest = getCommandCenterDestination('scenario_details', defaultContext);
         expect(dest.kind).toBe('NAVIGATE');
         if (dest.kind === 'NAVIGATE') {
-          expect(dest.tab).toBe('scenarios');
+          expect(dest.tab).toBe('forecasting');
         }
       });
     });
@@ -286,7 +278,7 @@ describe('commandCenterNavigationService', () => {
     describe('missing data fallbacks', () => {
       it('attention intents always use drawer (no missing data issue)', () => {
         const ctx: NavigationContext = {};
-        const dest = getCommandCenterDestination('triage_actions', ctx);
+        const dest = getCommandCenterDestination('details_actions', ctx);
         expect(dest.kind).toBe('OPEN_DRAWER');
       });
 

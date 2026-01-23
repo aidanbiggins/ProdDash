@@ -12,6 +12,7 @@ import { ChangesSection } from './ChangesSection';
 import { WhatIfSection } from './WhatIfSection';
 import { BottleneckSection } from './BottleneckSection';
 import { AttentionDrilldownDrawer, DrawerBackdrop } from './AttentionDrilldownDrawer';
+import { ExplainDrawer } from '../common/ExplainDrawer';
 import { Requisition, Candidate, Event, User } from '../../types/entities';
 import { reqMatchesFilters } from '../../services/filterUtils';
 import { OverviewMetrics, MetricFilters } from '../../types/metrics';
@@ -24,7 +25,7 @@ import { generateWeeklyBrief } from '../../services/commandCenterService';
 import { generateUnifiedActionQueue } from '../../services/actionQueueService';
 import { runPreMortemBatch } from '../../services/preMortemService';
 import { getExplanation } from '../../services/explain';
-import { ExplainProviderId } from '../../types/explainTypes';
+import { ExplainProviderId, Explanation } from '../../types/explainTypes';
 import { HMPendingAction } from '../../types/hmTypes';
 import { TabType } from '../../routes';
 import { computeAttentionV2 } from '../../services/attentionSummaryService';
@@ -55,13 +56,14 @@ export interface CommandCenterViewProps {
   onNavigateToTab?: (tab: TabType | string) => void;
   onNavigateToReq?: (reqId: string) => void;
   onOpenAction?: (actionId: string) => void;
-  onOpenExplain?: (providerId: string) => void;
 }
 
 export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
   const [briefCopied, setBriefCopied] = useState(false);
   const [drilldownOpen, setDrilldownOpen] = useState(false);
   const [drawerFocus, setDrawerFocus] = useState<DrawerFocus | undefined>(undefined);
+  const [explainOpen, setExplainOpen] = useState(false);
+  const [explainData, setExplainData] = useState<Explanation | null>(null);
 
   // ── Filter data by dimensional filters ──
   const filteredRequisitions = useMemo(() => {
@@ -178,6 +180,14 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
     setDrilldownOpen(true);
   }, []);
 
+  const handleOpenExplain = useCallback((providerId: string) => {
+    const explanation = explanations.get(providerId as ExplainProviderId);
+    if (explanation) {
+      setExplainData(explanation);
+      setExplainOpen(true);
+    }
+  }, [explanations]);
+
   const navContext: NavigationContext = useMemo(() => ({
     bottleneckDiagnosis: factPack.bottleneck.diagnosis,
     hasAttentionDrilldown: attentionV2Data.drilldown.recruiters.length > 0 ||
@@ -193,8 +203,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
   const navHelpers: NavigationHelpers = useMemo(() => ({
     onNavigateToTab: props.onNavigateToTab,
     openAttentionDrilldown: handleOpenDrilldown,
-    openExplainDrawer: props.onOpenExplain,
-  }), [props.onNavigateToTab, handleOpenDrilldown, props.onOpenExplain]);
+    openExplainDrawer: handleOpenExplain,
+  }), [props.onNavigateToTab, handleOpenDrilldown, handleOpenExplain]);
 
   const handleCTA = useCallback((intent: CommandCenterIntent) => {
     const destination = getCommandCenterDestination(intent, navContext);
@@ -235,7 +245,6 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         gate={getSectionGate('cc_attention')!}
         confidence={getSectionGate('cc_attention')?.confidence}
         confidenceType="data"
-        primaryCTA={{ label: 'Triage actions', onClick: () => handleCTA('triage_actions') }}
         detailsCTA={{ label: 'Details', onClick: () => handleCTA('details_actions') }}
       >
         <AttentionSection data={attentionV2Data} onNavigateToTab={props.onNavigateToTab} onOpenDrilldown={handleOpenDrilldown} />
@@ -251,7 +260,7 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         primaryCTA={{ label: 'Explain TTF', onClick: () => handleCTA('explain_kpi') }}
         detailsCTA={{ label: 'Details', onClick: () => handleCTA('kpi_details') }}
       >
-        <OnTrackSection data={factPack.on_track} onExplainKPI={props.onOpenExplain} />
+        <OnTrackSection data={factPack.on_track} onExplainKPI={handleOpenExplain} />
       </SectionCard>
 
       {/* Section 3: Risk */}
@@ -313,6 +322,11 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         onClose={() => setDrilldownOpen(false)}
         onNavigate={(tab) => props.onNavigateToTab?.(tab)}
         focus={drawerFocus}
+      />
+      <ExplainDrawer
+        isOpen={explainOpen}
+        onClose={() => setExplainOpen(false)}
+        explanation={explainData}
       />
     </div>
   );

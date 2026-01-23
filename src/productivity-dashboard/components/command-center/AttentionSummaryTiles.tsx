@@ -10,7 +10,6 @@ import { PressureBar } from './CCVisualPrimitives';
 interface AttentionSummaryTilesProps {
   data: AttentionSummaryData;
   onBucketAction?: (bucketId: AttentionBucketId) => void;
-  onOpenDrilldown?: () => void;
 }
 
 const SEVERITY_COLORS: Record<BucketSeverity, string> = {
@@ -30,7 +29,6 @@ const BUCKET_ICONS: Record<string, string> = {
 export const AttentionSummaryTiles: React.FC<AttentionSummaryTilesProps> = ({
   data,
   onBucketAction,
-  onOpenDrilldown,
 }) => {
   if (data.allBlocked) {
     return (
@@ -57,14 +55,6 @@ export const AttentionSummaryTiles: React.FC<AttentionSummaryTilesProps> = ({
         <span className="cc-attention__item-count">
           {data.buckets.reduce((sum, b) => sum + b.count, 0)} items need attention
         </span>
-        {onOpenDrilldown && (
-          <button
-            onClick={onOpenDrilldown}
-            className="cc-attention__drilldown-btn"
-          >
-            View details <i className="bi bi-arrow-right cc-attention__drilldown-arrow" />
-          </button>
-        )}
       </div>
 
       {/* Pressure bar */}

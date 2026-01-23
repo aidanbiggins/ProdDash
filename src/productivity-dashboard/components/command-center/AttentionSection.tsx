@@ -32,15 +32,10 @@ export const AttentionSection: React.FC<AttentionSectionProps> = ({ data, onNavi
     );
   }, [data.drilldown, onNavigateToTab, onOpenDrilldown]);
 
-  const handleOpenDrilldown = useCallback(() => {
-    onOpenDrilldown?.(undefined); // No specific focus — show all
-  }, [onOpenDrilldown]);
-
   return (
     <AttentionSummaryTiles
       data={data.summary}
       onBucketAction={handleNavigateViaBucket}
-      onOpenDrilldown={handleOpenDrilldown}
     />
   );
 };

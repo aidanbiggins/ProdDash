@@ -48,6 +48,7 @@ export function ExplainDrawer({
   useEffect(() => {
     if (!isOpen) {
       resetSummary();
+      lastExplanationId.current = null;
     }
   }, [isOpen, resetSummary]);
 

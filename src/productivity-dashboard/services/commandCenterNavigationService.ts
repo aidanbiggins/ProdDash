@@ -12,7 +12,6 @@ import { DrawerFocus } from './attentionNavigationService';
 // ═══════════════════════════════════════════
 
 export type CommandCenterIntent =
-  | 'triage_actions'
   | 'details_actions'
   | 'explain_kpi'
   | 'kpi_details'
@@ -70,15 +69,6 @@ export function getCommandCenterDestination(
 ): Destination {
   switch (intent) {
     // ── Attention section ──
-    case 'triage_actions':
-      return {
-        kind: 'OPEN_DRAWER',
-        label: 'Triage actions',
-        drawerSystem: 'attention',
-        drawerFocus: undefined,
-        reason: 'Opens attention drilldown with all sections visible for triage',
-      };
-
     case 'details_actions':
       return {
         kind: 'OPEN_DRAWER',
@@ -126,10 +116,11 @@ export function getCommandCenterDestination(
 
     case 'risk_details':
       return {
-        kind: 'NAVIGATE',
+        kind: 'OPEN_DRAWER',
         label: 'Risk details',
-        tab: 'data-health',
-        reason: 'Data Health provides detailed risk evidence',
+        drawerSystem: 'explain',
+        explainProvider: 'stalled_reqs',
+        reason: 'Explain drawer shows why requisitions are at risk',
       };
 
     // ── Changes section ──
@@ -153,9 +144,9 @@ export function getCommandCenterDestination(
     case 'scenario_details':
       return {
         kind: 'NAVIGATE',
-        label: 'Scenario details',
-        tab: 'scenarios',
-        reason: 'Scenarios tab for detailed scenario exploration',
+        label: 'Current forecast',
+        tab: 'forecasting',
+        reason: 'Forecasting tab shows current predictions before modeling changes',
       };
 
     // ── Bottleneck section ──
