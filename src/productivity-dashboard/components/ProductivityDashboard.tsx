@@ -64,7 +64,7 @@ export function ProductivityDashboard() {
   const { currentOrg, user, refreshMemberships, supabaseUser, session, canManageMembers, signOut } = useAuth();
   const isMobile = useIsMobile();
   const { showNewNav, useLegacyNav, toggleLegacyNav } = useNewNavigation();
-  const [activeTab, setActiveTab] = useState<TabType>('control-tower');
+  const [activeTab, setActiveTab] = useState<TabType>('command-center');
   const [showStageMapping, setShowStageMapping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -642,10 +642,10 @@ export function ProductivityDashboard() {
         {isMobile && !showNewNav && (
           <div className="nav-pills-bespoke mb-2" style={{ overflowX: 'auto', whiteSpace: 'nowrap', WebkitOverflowScrolling: 'touch' }}>
             <button
-              className={`nav-link ${activeTab === 'control-tower' ? 'active' : ''}`}
-              onClick={() => { selectRecruiter(null); setActiveTab('control-tower'); }}
+              className={`nav-link ${activeTab === 'command-center' ? 'active' : ''}`}
+              onClick={() => { selectRecruiter(null); setActiveTab('command-center'); }}
             >
-              Control Tower
+              Command Center
             </button>
             <button
               className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
@@ -728,10 +728,10 @@ export function ProductivityDashboard() {
             {!isMobile && !showNewNav && (
               <div className="nav-pills-bespoke mb-4">
                 <button
-                  className={`nav-link ${activeTab === 'control-tower' ? 'active' : ''}`}
-                  onClick={() => { selectRecruiter(null); setActiveTab('control-tower'); }}
+                  className={`nav-link ${activeTab === 'command-center' ? 'active' : ''}`}
+                  onClick={() => { selectRecruiter(null); setActiveTab('command-center'); }}
                 >
-                  Control Tower
+                  Command Center
                 </button>
                 <button
                   className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
