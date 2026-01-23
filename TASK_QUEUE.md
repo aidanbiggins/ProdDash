@@ -32,7 +32,7 @@ Acceptance:
 ---
 
 ## 3) Attention tiles show top offender line
-Status: TODO
+Status: DONE
 Goal:
 - Each attention bucket tile shows top offender summary line (if available).
 Examples:
