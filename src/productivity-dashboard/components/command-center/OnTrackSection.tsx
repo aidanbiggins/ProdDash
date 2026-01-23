@@ -1,8 +1,9 @@
 // Section 2: Are we on track?
-// Shows goal rows with traffic-light status and verdict.
+// Shows KPIs split into Watch (amber/red, expanded) and Outcomes (green, collapsed badge).
 
 import React from 'react';
 import { OnTrackSection as OnTrackData, KPIStatus, Verdict } from '../../types/commandCenterTypes';
+import { KPITargetBand } from './CCVisualPrimitives';
 
 interface OnTrackSectionProps {
   data: OnTrackData;
@@ -28,79 +29,69 @@ const VERDICT_COLORS: Record<Verdict, string> = {
 };
 
 export const OnTrackSection: React.FC<OnTrackSectionProps> = ({ data, onExplainKPI }) => {
+  const watchKPIs = data.kpis.filter(k => k.status !== 'green');
+  const okKPIs = data.kpis.filter(k => k.status === 'green');
+
   return (
     <div>
-      {/* KPI rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-        {data.kpis.map(kpi => (
-          <div
-            key={kpi.id}
-            onClick={() => kpi.explain_provider && onExplainKPI?.(kpi.explain_provider)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.5rem 0.75rem',
-              background: 'rgba(255,255,255,0.03)',
-              borderRadius: '8px',
-              cursor: kpi.explain_provider ? 'pointer' : 'default',
-            }}
-          >
-            <span style={{
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: STATUS_COLORS[kpi.status],
-              flexShrink: 0,
-            }} />
-            <span style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.6)', minWidth: '100px' }}>
-              {kpi.label}
-            </span>
-            <span style={{ fontSize: '0.875rem', fontFamily: 'Space Mono, monospace', fontWeight: 600, color: 'rgba(255,255,255,0.9)' }}>
-              {kpi.value !== null ? kpi.value : '—'}{kpi.unit && kpi.value !== null ? ` ${kpi.unit}` : ''}
-            </span>
-            {kpi.target > 0 && (
-              <span style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', marginLeft: 'auto' }}>
-                target: {kpi.target}{kpi.unit}
+      {/* Watch KPIs (amber/red) -- expanded with full detail */}
+      {watchKPIs.length > 0 && (
+        <div className="cc-ontrack__watch-list">
+          {watchKPIs.map(kpi => (
+            <div
+              key={kpi.id}
+              className={`cc-ontrack__kpi-row ${kpi.explain_provider ? 'cc-ontrack__kpi-row--clickable' : ''}`}
+              onClick={() => kpi.explain_provider && onExplainKPI?.(kpi.explain_provider)}
+              role={kpi.explain_provider ? 'button' : undefined}
+              tabIndex={kpi.explain_provider ? 0 : undefined}
+              onKeyDown={kpi.explain_provider ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onExplainKPI?.(kpi.explain_provider!); } } : undefined}
+            >
+              <span className={`cc-ontrack__kpi-dot cc-ontrack__kpi-dot--${kpi.status}`} />
+              <span className="cc-ontrack__kpi-label">
+                {kpi.label}
               </span>
-            )}
-            <span style={{
-              fontSize: '0.5625rem',
-              textTransform: 'uppercase',
-              fontWeight: 700,
-              color: STATUS_COLORS[kpi.status],
-              letterSpacing: '0.05em',
-              minWidth: '2.5rem',
-              textAlign: 'right',
-            }}>
-              {STATUS_LABELS[kpi.status]}
-            </span>
-          </div>
-        ))}
-      </div>
+              <span className="cc-ontrack__kpi-value">
+                {kpi.value !== null ? kpi.value : '\u2014'}{kpi.unit && kpi.value !== null ? ` ${kpi.unit}` : ''}
+              </span>
+              {kpi.value !== null && kpi.target > 0 && (
+                <KPITargetBand value={kpi.value} target={kpi.target} status={kpi.status} />
+              )}
+              {kpi.target > 0 && (
+                <span className="cc-ontrack__kpi-target">
+                  target: {kpi.target}{kpi.unit}
+                </span>
+              )}
+              <span className="cc-ontrack__kpi-status" style={{ color: STATUS_COLORS[kpi.status] }}>
+                {STATUS_LABELS[kpi.status]}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Outcomes badge (green KPIs) -- collapsed count */}
+      {okKPIs.length > 0 && (
+        <div className="cc-ontrack__ok-badge">
+          <span className="cc-ontrack__kpi-dot cc-ontrack__kpi-dot--green" />
+          <span className="cc-ontrack__ok-label">
+            {okKPIs.length} on target
+          </span>
+        </div>
+      )}
 
       {/* Verdict */}
       {data.verdict && (
-        <div style={{
-          padding: '0.625rem 0.75rem',
-          borderRadius: '8px',
-          background: `${VERDICT_COLORS[data.verdict]}11`,
-          border: `1px solid ${VERDICT_COLORS[data.verdict]}33`,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-        }}>
-          <span style={{
-            fontSize: '0.6875rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            color: VERDICT_COLORS[data.verdict],
-            letterSpacing: '0.05em',
-          }}>
+        <div
+          className="cc-ontrack__verdict"
+          style={{
+            background: `${VERDICT_COLORS[data.verdict]}11`,
+            border: `1px solid ${VERDICT_COLORS[data.verdict]}33`,
+          }}
+        >
+          <span className="cc-ontrack__verdict-label" style={{ color: VERDICT_COLORS[data.verdict] }}>
             {data.verdict.replace('_', ' ')}
           </span>
-          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>
+          <span className="cc-ontrack__verdict-reason">
             — {data.verdict_reason}
           </span>
         </div>

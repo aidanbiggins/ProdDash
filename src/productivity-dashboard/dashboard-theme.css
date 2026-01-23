@@ -697,6 +697,16 @@ td[class*="numeric"] {
     font-weight: 600;
 }
 
+/* Tab content fade-in on switch */
+@keyframes tab-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.tab-content-fade {
+    animation: tab-fade-in 0.18s ease-out;
+}
+
 /* ========================================
    STATS / KPI STYLES - Per Plan Section 2.2
    ======================================== */

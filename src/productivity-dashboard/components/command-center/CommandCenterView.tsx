@@ -11,6 +11,7 @@ import { RiskSection } from './RiskSection';
 import { ChangesSection } from './ChangesSection';
 import { WhatIfSection } from './WhatIfSection';
 import { BottleneckSection } from './BottleneckSection';
+import { AttentionDrilldownDrawer, DrawerBackdrop } from './AttentionDrilldownDrawer';
 import { Requisition, Candidate, Event, User } from '../../types/entities';
 import { OverviewMetrics, MetricFilters } from '../../types/metrics';
 import { DashboardConfig } from '../../types/config';
@@ -25,6 +26,12 @@ import { getExplanation } from '../../services/explain';
 import { ExplainProviderId } from '../../types/explainTypes';
 import { HMPendingAction } from '../../types/hmTypes';
 import { TabType } from '../../routes';
+import { computeAttentionV2 } from '../../services/attentionSummaryService';
+import { AttentionV2Data } from '../../types/attentionTypes';
+import { computeTopPriority } from '../../services/priorityArbitrationService';
+import { TopPriorityRibbon } from './TopPriorityRibbon';
+import { DrawerFocus } from '../../services/attentionNavigationService';
+import './CommandCenter.css';
 
 export interface CommandCenterViewProps {
   requisitions: Requisition[];
@@ -45,6 +52,8 @@ export interface CommandCenterViewProps {
 
 export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
   const [briefCopied, setBriefCopied] = useState(false);
+  const [drilldownOpen, setDrilldownOpen] = useState(false);
+  const [drawerFocus, setDrawerFocus] = useState<DrawerFocus | undefined>(undefined);
 
   // Compute explanations, actions, and pre-mortems from source data
   const explanations = useMemo(() => {
@@ -81,6 +90,18 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
     return runPreMortemBatch(props.requisitions, props.candidates, props.events, props.hmActions);
   }, [props.requisitions, props.candidates, props.events, props.hmActions]);
 
+  const attentionV2Data: AttentionV2Data = useMemo(() => {
+    return computeAttentionV2({
+      requisitions: props.requisitions,
+      candidates: props.candidates,
+      users: props.users,
+      overview: props.overview,
+      hmFriction: props.hmFriction,
+      hmActions: props.hmActions,
+      coverage: props.coverage,
+    });
+  }, [props.requisitions, props.candidates, props.users, props.overview, props.hmFriction, props.hmActions, props.coverage]);
+
   const { factPack, gates, isSectionBlocked, getSectionGate } = useCommandCenter({
     requisitions: props.requisitions,
     candidates: props.candidates,
@@ -94,6 +115,10 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
     config: props.config,
     coverage: props.coverage,
   });
+
+  const topPriority = useMemo(() => {
+    return computeTopPriority(attentionV2Data, factPack);
+  }, [attentionV2Data, factPack]);
 
   const handleGenerateBrief = useCallback(() => {
     const brief = generateWeeklyBrief(factPack);
@@ -111,35 +136,37 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
     props.onNavigateToTab?.(target as TabType);
   }, [props.onNavigateToTab]);
 
+  const handleOpenDrilldown = useCallback((focus?: DrawerFocus) => {
+    setDrawerFocus(focus);
+    setDrilldownOpen(true);
+  }, []);
+
+  const confidenceClass = factPack.meta.confidence === 'HIGH'
+    ? 'cc-header__confidence-value--high'
+    : factPack.meta.confidence === 'MED'
+    ? 'cc-header__confidence-value--med'
+    : 'cc-header__confidence-value--low';
+
   return (
-    <div className="command-center-view" style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="cc-view command-center-view">
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div className="cc-header">
         <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', margin: 0, fontFamily: 'Cormorant Garamond, serif' }}>
-            Command Center
-          </h1>
-          <div style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.25rem' }}>
-            Confidence: <span style={{ color: factPack.meta.confidence === 'HIGH' ? '#10b981' : factPack.meta.confidence === 'MED' ? '#f59e0b' : '#94a3b8' }}>
-              {factPack.meta.confidence}
-            </span>
+          <h1 className="cc-header__title">Command Center</h1>
+          <div className="cc-header__confidence">
+            Data confidence: <span className={confidenceClass}>{factPack.meta.confidence}</span>
           </div>
         </div>
         <button
           onClick={handleGenerateBrief}
-          className="btn btn-sm"
-          style={{
-            fontSize: '0.6875rem',
-            color: briefCopied ? '#10b981' : '#06b6d4',
-            border: `1px solid ${briefCopied ? 'rgba(16, 185, 129, 0.3)' : 'rgba(6, 182, 212, 0.3)'}`,
-            borderRadius: '6px',
-            padding: '0.375rem 0.75rem',
-            background: 'transparent',
-          }}
+          className={`cc-header__brief-btn ${briefCopied ? 'cc-header__brief-btn--copied' : 'cc-header__brief-btn--default'}`}
         >
           {briefCopied ? 'Copied!' : 'Generate Exec Brief'}
         </button>
       </div>
+
+      {/* Top Priority Ribbon */}
+      <TopPriorityRibbon priority={topPriority} onNavigate={props.onNavigateToTab} />
 
       {/* Section 1: Attention */}
       <SectionCard
@@ -147,10 +174,11 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         title="What needs attention right now?"
         gate={getSectionGate('cc_attention')!}
         confidence={getSectionGate('cc_attention')?.confidence}
-        onViewDetails={() => props.onNavigateToTab?.('overview')}
-        detailsLabel="All actions"
+        confidenceType="data"
+        primaryCTA={{ label: 'Triage actions', onClick: () => props.onNavigateToTab?.('overview') }}
+        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('overview') }}
       >
-        <AttentionSection data={factPack.attention} onActionClick={props.onOpenAction} />
+        <AttentionSection data={attentionV2Data} onNavigateToTab={props.onNavigateToTab} onOpenDrilldown={handleOpenDrilldown} />
       </SectionCard>
 
       {/* Section 2: On Track */}
@@ -159,10 +187,9 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         title="Are we on track?"
         gate={getSectionGate('cc_on_track')!}
         confidence={getSectionGate('cc_on_track')?.confidence}
-        onExplain={() => props.onOpenExplain?.('median_ttf')}
-        explainLabel="Explain TTF"
-        onViewDetails={() => props.onNavigateToTab?.('overview')}
-        detailsLabel="KPI detail"
+        confidenceType="data"
+        primaryCTA={{ label: 'Explain TTF', onClick: () => props.onOpenExplain?.('median_ttf') }}
+        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('overview') }}
       >
         <OnTrackSection data={factPack.on_track} onExplainKPI={props.onOpenExplain} />
       </SectionCard>
@@ -173,8 +200,9 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         title="What's at risk?"
         gate={getSectionGate('cc_risk')!}
         confidence={getSectionGate('cc_risk')?.confidence}
-        onViewDetails={() => props.onNavigateToTab?.('forecasting')}
-        detailsLabel="Pre-mortem"
+        confidenceType="risk"
+        primaryCTA={{ label: 'Triage risks', onClick: () => props.onNavigateToTab?.('forecasting') }}
+        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('forecasting') }}
       >
         <RiskSection data={factPack.risk} onRiskClick={props.onNavigateToReq} />
       </SectionCard>
@@ -185,8 +213,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
         title="What changed since last week?"
         gate={getSectionGate('cc_changes')!}
         confidence={getSectionGate('cc_changes')?.confidence}
-        onViewDetails={() => props.onNavigateToTab?.('overview')}
-        detailsLabel="Full changelog"
+        confidenceType="data"
+        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('overview') }}
       >
         <ChangesSection data={factPack.changes} />
       </SectionCard>
@@ -194,26 +222,38 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
       {/* Section 5: What-If */}
       <SectionCard
         sectionId="cc_whatif"
-        title="What happens if we change something?"
+        title="What if we change something?"
         gate={getSectionGate('cc_whatif')!}
         confidence={getSectionGate('cc_whatif')?.confidence}
-        onViewDetails={() => props.onNavigateToTab?.('scenarios')}
-        detailsLabel="Scenario library"
+        confidenceType="forecast"
+        primaryCTA={{ label: 'Model scenarios', onClick: () => props.onNavigateToTab?.('scenarios') }}
+        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('scenarios') }}
       >
-        <WhatIfSection data={factPack.whatif} onExploreScenario={handleExploreScenario} />
+        <WhatIfSection data={factPack.whatif} bottleneckDiagnosis={factPack.bottleneck.diagnosis} onExploreScenario={handleExploreScenario} />
       </SectionCard>
 
       {/* Section 6: Bottleneck */}
       <SectionCard
         sectionId="cc_bottleneck"
-        title="Pipeline or capacity — what do we need more of?"
+        title="Pipeline or capacity?"
         gate={getSectionGate('cc_bottleneck')!}
         confidence={getSectionGate('cc_bottleneck')?.confidence}
-        onViewDetails={() => props.onNavigateToTab?.('capacity-rebalancer')}
-        detailsLabel="Capacity plan"
+        confidenceType="data"
+        primaryCTA={{ label: 'Rebalance', onClick: () => props.onNavigateToTab?.('capacity-rebalancer') }}
+        detailsCTA={{ label: 'Details', onClick: () => props.onNavigateToTab?.('capacity-rebalancer') }}
       >
         <BottleneckSection data={factPack.bottleneck} onNavigate={handleNavigate} />
       </SectionCard>
+
+      {/* Drawer + Backdrop rendered here (outside SectionCard stacking contexts) */}
+      <DrawerBackdrop isOpen={drilldownOpen} onClose={() => setDrilldownOpen(false)} />
+      <AttentionDrilldownDrawer
+        data={attentionV2Data.drilldown}
+        isOpen={drilldownOpen}
+        onClose={() => setDrilldownOpen(false)}
+        onNavigate={(tab) => props.onNavigateToTab?.(tab)}
+        focus={drawerFocus}
+      />
     </div>
   );
 };

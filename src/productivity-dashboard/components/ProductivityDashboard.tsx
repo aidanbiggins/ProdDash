@@ -813,7 +813,7 @@ export function ProductivityDashboard() {
             )}
 
             {/* Tab Content - Progressive rendering with skeletons */}
-            <>
+            <div key={activeTab} className="tab-content-fade">
               {/* Command Center (default landing) */}
               {activeTab === 'command-center' && (
                 state.loadingState.hasOverviewMetrics && state.overview ? (
@@ -1116,7 +1116,7 @@ export function ProductivityDashboard() {
               {activeTab === 'org-settings' && (
                 <OrgSettingsTab />
               )}
-            </>
+            </div>
           </div>
 
         </div>

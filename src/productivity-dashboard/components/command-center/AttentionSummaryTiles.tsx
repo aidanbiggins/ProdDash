@@ -54,26 +54,15 @@ export const AttentionSummaryTiles: React.FC<AttentionSummaryTilesProps> = ({
     <div>
       {/* Summary header */}
       <div className="cc-attention__summary-header">
-        <div className="cc-attention__severity-counts">
-          {data.buckets.some(b => b.severity === 'blocking') && (
-            <span className="cc-attention__severity-tag" style={{ color: SEVERITY_COLORS['blocking'] }}>
-              <span className="cc-attention__severity-dot" style={{ backgroundColor: SEVERITY_COLORS['blocking'] }} />
-              {data.buckets.filter(b => b.severity === 'blocking').length} blocking
-            </span>
-          )}
-          {data.buckets.some(b => b.severity === 'at-risk') && (
-            <span className="cc-attention__severity-tag" style={{ color: SEVERITY_COLORS['at-risk'] }}>
-              <span className="cc-attention__severity-dot" style={{ backgroundColor: SEVERITY_COLORS['at-risk'] }} />
-              {data.buckets.filter(b => b.severity === 'at-risk').length} at-risk
-            </span>
-          )}
-        </div>
+        <span className="cc-attention__item-count">
+          {data.buckets.reduce((sum, b) => sum + b.count, 0)} items need attention
+        </span>
         {onOpenDrilldown && (
           <button
             onClick={onOpenDrilldown}
             className="cc-attention__drilldown-btn"
           >
-            Drilldown <i className="bi bi-arrow-right cc-attention__drilldown-arrow" />
+            View details <i className="bi bi-arrow-right cc-attention__drilldown-arrow" />
           </button>
         )}
       </div>
@@ -105,38 +94,21 @@ interface BucketTileProps {
 
 const BucketTile: React.FC<BucketTileProps> = ({ bucket, onAction }) => {
   const severityClass = `cc-tile--${bucket.severity}`;
-  const confidenceClass = bucket.confidence === 'HIGH'
-    ? 'cc-tile__confidence--high'
-    : bucket.confidence === 'MED'
-    ? 'cc-tile__confidence--med'
-    : 'cc-tile__confidence--low';
 
   return (
     <div className={`cc-tile ${severityClass}`}>
-      {/* Top row: icon + label + severity badge */}
+      {/* Top row: icon + label */}
       <div className="cc-tile__top-row">
         <i className={BUCKET_ICONS[bucket.id] || 'bi-exclamation-triangle'} style={{ color: SEVERITY_COLORS[bucket.severity] }} />
         <span className="cc-tile__label">
           {bucket.label}
         </span>
-        <span className="cc-tile__severity-badge" style={{ color: SEVERITY_COLORS[bucket.severity] }}>
-          {bucket.severity}
-        </span>
       </div>
 
-      {/* Count + confidence */}
+      {/* Count */}
       <div className="cc-tile__count-row">
         <span className="cc-tile__count">
           {bucket.count}
-        </span>
-        <span className="cc-tile__count-label">
-          impacted
-        </span>
-        <span
-          className={`cc-tile__confidence ${confidenceClass}`}
-          title={bucket.confidenceReason}
-        >
-          Data: {bucket.confidence}
         </span>
       </div>
 
@@ -144,23 +116,6 @@ const BucketTile: React.FC<BucketTileProps> = ({ bucket, onAction }) => {
       {bucket.topOffender && (
         <div className="cc-tile__top-offender">
           {bucket.topOffender}
-        </div>
-      )}
-
-      {/* Intervention + Accountability */}
-      <div className="cc-tile__intervention">
-        {bucket.intervention}
-      </div>
-      {bucket.accountability && (
-        <div className="cc-tile__accountability">
-          <span className="cc-tile__acct-owner">
-            {bucket.accountability.owner}
-          </span>
-          {bucket.accountability.due && (
-            <span className="cc-tile__acct-due" style={{ color: SEVERITY_COLORS[bucket.severity] }}>
-              {bucket.accountability.due}
-            </span>
-          )}
         </div>
       )}
 

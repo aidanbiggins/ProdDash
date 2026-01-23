@@ -1,8 +1,11 @@
 // Section 3: What's at risk?
-// Shows ranked top risks with what/why/so-what/next-move.
+// Groups risk items by failure_mode with expand/collapse.
+// Top group auto-expanded if it contains a critical item.
 
-import React from 'react';
-import { RiskSection as RiskData } from '../../types/commandCenterTypes';
+import React, { useState, useMemo } from 'react';
+import { RiskSection as RiskData, RiskItem } from '../../types/commandCenterTypes';
+import { getRiskAccountability } from '../../services/priorityArbitrationService';
+import { RiskConcentrationSpark } from './CCVisualPrimitives';
 
 interface RiskSectionProps {
   data: RiskData;
@@ -15,10 +18,26 @@ const SEVERITY_COLORS = {
   medium: '#94a3b8',
 };
 
+interface RiskGroup {
+  mode: string;
+  label: string;
+  items: RiskItem[];
+  hasCritical: boolean;
+  worstSeverity: 'critical' | 'high' | 'medium';
+}
+
 export const RiskSection: React.FC<RiskSectionProps> = ({ data, onRiskClick }) => {
+  const groups = useMemo(() => buildGroups(data.items), [data.items]);
+
+  // Auto-expand the first group that has a critical item, otherwise first group
+  const defaultExpanded = groups.findIndex(g => g.hasCritical);
+  const initialExpanded = defaultExpanded >= 0 ? defaultExpanded : (groups.length > 0 ? 0 : -1);
+
+  const [expandedIdx, setExpandedIdx] = useState<number>(initialExpanded);
+
   if (data.items.length === 0) {
     return (
-      <div style={{ padding: '1rem 0', color: 'rgba(255,255,255,0.5)', fontSize: '0.8125rem' }}>
+      <div className="cc-risk__empty">
         No high-risk requisitions identified.
       </div>
     );
@@ -26,55 +45,130 @@ export const RiskSection: React.FC<RiskSectionProps> = ({ data, onRiskClick }) =
 
   return (
     <div>
-      {/* Summary bar */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.7)' }}>
-          <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{data.total_at_risk}</strong> at risk
+      {/* Summary bar + concentration spark */}
+      <div className="cc-risk__summary-bar">
+        <span className="cc-risk__summary-text">
+          <strong className="cc-risk__summary-count">{data.total_at_risk}</strong> at risk
         </span>
-        {Object.entries(data.by_failure_mode).slice(0, 3).map(([mode, count]) => (
-          <span key={mode} style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
-            {count} {formatMode(mode)}
-          </span>
-        ))}
+        <RiskConcentrationSpark
+          distribution={groups.map(g => ({
+            mode: g.mode,
+            count: g.items.length,
+            severity: g.worstSeverity,
+          }))}
+        />
       </div>
 
-      {/* Risk items */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {data.items.map((item, i) => (
-          <div
-            key={item.req_id}
-            onClick={() => onRiskClick?.(item.req_id)}
-            style={{
-              padding: '0.625rem 0.75rem',
-              background: 'rgba(255,255,255,0.03)',
-              borderRadius: '8px',
-              cursor: onRiskClick ? 'pointer' : 'default',
-              borderLeft: `3px solid ${SEVERITY_COLORS[item.severity]}`,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-              <span style={{ fontSize: '0.625rem', fontWeight: 700, color: SEVERITY_COLORS[item.severity], textTransform: 'uppercase' }}>
-                {item.severity}
-              </span>
-              <span style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.9)' }}>
-                {item.req_title}
-              </span>
-              <span style={{ fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)', marginLeft: 'auto' }}>
-                {item.days_open}d open
-              </span>
+      {/* Grouped rows */}
+      <div className="cc-risk__groups">
+        {groups.map((group, idx) => {
+          const isExpanded = expandedIdx === idx;
+          return (
+            <div key={group.mode}>
+              {/* Group header */}
+              <div
+                className={`cc-risk__group-header ${isExpanded ? 'cc-risk__group-header--expanded' : 'cc-risk__group-header--collapsed'}`}
+                style={{ borderLeftColor: SEVERITY_COLORS[group.worstSeverity] }}
+                onClick={() => setExpandedIdx(isExpanded ? -1 : idx)}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isExpanded}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedIdx(isExpanded ? -1 : idx); } }}
+              >
+                <i
+                  className={`bi bi-chevron-right cc-risk__group-chevron ${isExpanded ? 'cc-risk__group-chevron--expanded' : ''}`}
+                />
+                <span className="cc-risk__group-label">
+                  {group.items.length} {group.label}
+                </span>
+                {group.hasCritical && (
+                  <span className="cc-risk__group-critical">
+                    CRITICAL
+                  </span>
+                )}
+              </div>
+
+              {/* Expanded items */}
+              {isExpanded && (
+                <div className="cc-risk__group-items">
+                  {group.items.map(item => (
+                    <div
+                      key={item.req_id}
+                      className={`cc-risk__item ${onRiskClick ? 'cc-risk__item--clickable' : ''}`}
+                      onClick={() => onRiskClick?.(item.req_id)}
+                      role={onRiskClick ? 'button' : undefined}
+                      tabIndex={onRiskClick ? 0 : undefined}
+                      onKeyDown={onRiskClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onRiskClick(item.req_id); } } : undefined}
+                    >
+                      <div className="cc-risk__item-header">
+                        <span className="cc-risk__item-severity" style={{ color: SEVERITY_COLORS[item.severity] }}>
+                          {item.severity}
+                        </span>
+                        <span className="cc-risk__item-title">
+                          {item.req_title}
+                        </span>
+                        <span className="cc-risk__item-days">
+                          {item.days_open}d open
+                        </span>
+                      </div>
+                      <div className="cc-risk__item-why">
+                        {item.why}
+                      </div>
+                      <div className="cc-risk__item-footer">
+                        <span className="cc-risk__item-next-move">
+                          → {item.next_move}
+                        </span>
+                        {(() => {
+                          const acct = getRiskAccountability(item);
+                          return (
+                            <span className="cc-risk__item-accountability">
+                              <span>{acct.owner}</span>
+                              <span style={{ color: SEVERITY_COLORS[item.severity] }}>{acct.due}</span>
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.25rem' }}>
-              <span style={{ color: '#f59e0b' }}>{item.failure_mode_label}</span>: {item.why}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: '#06b6d4' }}>
-              → {item.next_move}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
 };
+
+function buildGroups(items: RiskItem[]): RiskGroup[] {
+  const map = new Map<string, RiskItem[]>();
+  for (const item of items) {
+    const key = item.failure_mode;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(item);
+  }
+
+  const groups: RiskGroup[] = [];
+  for (const [mode, groupItems] of map) {
+    const hasCritical = groupItems.some(i => i.severity === 'critical');
+    const worstSeverity = hasCritical ? 'critical' : groupItems.some(i => i.severity === 'high') ? 'high' : 'medium';
+    groups.push({
+      mode,
+      label: formatMode(mode),
+      items: groupItems,
+      hasCritical,
+      worstSeverity,
+    });
+  }
+
+  // Sort: critical groups first, then by item count descending
+  groups.sort((a, b) => {
+    if (a.hasCritical !== b.hasCritical) return a.hasCritical ? -1 : 1;
+    return b.items.length - a.items.length;
+  });
+
+  return groups;
+}
 
 function formatMode(mode: string): string {
   const labels: Record<string, string> = {
@@ -85,5 +179,5 @@ function formatMode(mode: string): string {
     STALLED_PIPELINE: 'stalled',
     COMPLEXITY_MISMATCH: 'complexity',
   };
-  return labels[mode] || mode.toLowerCase();
+  return labels[mode] || mode.toLowerCase().replace(/_/g, ' ');
 }
