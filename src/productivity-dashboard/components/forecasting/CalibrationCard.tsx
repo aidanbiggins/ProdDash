@@ -1,6 +1,6 @@
 import React from 'react';
 import { CalibrationReport } from '../../services/calibrationService';
-import { StatLabel, StatValue } from '../common';
+import { StatLabel, StatValue, LogoSpinner } from '../common';
 
 interface CalibrationCardProps {
     report: CalibrationReport | null;
@@ -19,8 +19,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
         return (
             <div className={`card-bespoke p-3 ${className || ''}`}>
                 <div className="d-flex align-items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
-                    <div className="spinner-border spinner-border-sm" role="status"></div>
-                    <span style={{ fontSize: '0.75rem' }}>Running backtest...</span>
+                    <LogoSpinner size={24} message="Running backtest..." />
                 </div>
             </div>
         );

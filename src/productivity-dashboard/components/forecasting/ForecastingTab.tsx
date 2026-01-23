@@ -40,7 +40,7 @@ import {
 import { HMPendingAction } from '../../types/hmTypes';
 import { runPreMortemBatch, convertToActionItems } from '../../services/preMortemService';
 import { PreMortemDrawer } from '../common/PreMortemDrawer';
-import { SectionHeader, StatLabel, StatValue, HelpButton, HelpDrawer } from '../common';
+import { SectionHeader, StatLabel, StatValue, HelpButton, HelpDrawer, LogoSpinner } from '../common';
 import { ActionItem } from '../../types/actionTypes';
 import { PageHeader } from '../layout';
 import { FORECASTING_PAGE_HELP } from './forecastingHelpContent';
@@ -645,7 +645,7 @@ export function ForecastingTab({
                     />
                   ) : (
                     <div className="card-bespoke text-center h-100 d-flex align-items-center justify-content-center">
-                      <div className="spinner-border text-primary" role="status"></div>
+                      <LogoSpinner size={40} layout="stacked" />
                     </div>
                   )}
                 </div>

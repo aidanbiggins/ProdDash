@@ -111,18 +111,13 @@ export function MultiSelect({
   const dropdownContent = isOpen ? ReactDOM.createPortal(
     <div
       ref={dropdownRef}
+      className="multiselect-portal-dropdown"
       style={{
         position: 'absolute',
         top: position.top,
         left: position.left,
-        width: position.width,
+        minWidth: Math.max(position.width, 200),
         zIndex: 99999,
-        backgroundColor: '#141414',
-        border: '1px solid #27272a',
-        borderRadius: '2px',
-        boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
-        maxHeight: '280px',
-        overflowY: 'auto'
       }}
     >
       {/* Quick actions */}
@@ -157,41 +152,20 @@ export function MultiSelect({
           const isDisabled = option.disabled;
 
           return (
-            <label
+            <div
               key={option.value}
-              className="d-flex align-items-center gap-2 px-3 py-2"
-              style={{
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                opacity: isDisabled ? 0.5 : 1,
-                backgroundColor: isSelected ? 'rgba(45, 212, 191, 0.15)' : undefined,
-                margin: 0,
-                color: '#94A3B8'
-              }}
-              onMouseEnter={(e) => {
-                if (!isDisabled && !isSelected) {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = '#27272a';
-                }
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = isSelected ? 'rgba(45, 212, 191, 0.15)' : '';
-              }}
+              className={`multiselect-option ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+              onClick={() => !isDisabled && toggleOption(option.value)}
             >
               <input
                 type="checkbox"
-                className="form-check-input m-0"
                 checked={isSelected}
                 disabled={isDisabled}
-                onChange={() => !isDisabled && toggleOption(option.value)}
-                style={{ cursor: isDisabled ? 'not-allowed' : 'pointer' }}
+                readOnly
+                className="multiselect-checkbox"
               />
-              <span
-                className="flex-grow-1 text-truncate"
-                style={{ fontSize: '0.875rem', color: isDisabled ? '#aaa' : undefined }}
-              >
-                {option.label}
-                {isDisabled && <span className="text-muted ms-1">(no data)</span>}
-              </span>
-            </label>
+              {option.label || option.value}{isDisabled && ' (no data)'}
+            </div>
           );
         })}
       </div>

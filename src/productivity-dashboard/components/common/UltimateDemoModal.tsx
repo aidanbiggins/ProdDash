@@ -11,7 +11,9 @@ import {
   MINIMAL_PACK_CONFIG,
   getMissingDependencies,
 } from '../../types/demoTypes';
-import { generateUltimateDemo, getDemoStoryPatterns, DemoStoryPattern } from '../../services/ultimateDemoGenerator';
+import { generateUltimateDemo, getDemoStoryPatterns, computeDemoCoverage, DemoStoryPattern } from '../../services/ultimateDemoGenerator';
+import { evaluateCapabilities, FEATURE_REGISTRY } from '../../services/capabilityEngine';
+import { CapabilityStatus, FeatureCoverageEntry } from '../../types/capabilityTypes';
 
 interface UltimateDemoModalProps {
   isOpen: boolean;
@@ -55,12 +57,19 @@ export function UltimateDemoModal({
     setPackConfig((prev) => {
       const newConfig = { ...prev, [packId]: !prev[packId] };
 
-      // If enabling a pack, auto-enable its dependencies
       if (newConfig[packId]) {
+        // If enabling a pack, auto-enable its dependencies
         const packInfo = DEMO_PACK_INFO.find((p) => p.id === packId);
         if (packInfo) {
           for (const dep of packInfo.dependencies) {
             newConfig[dep] = true;
+          }
+        }
+      } else {
+        // If disabling a pack, also disable packs that depend on it
+        for (const pack of DEMO_PACK_INFO) {
+          if (pack.dependencies.includes(packId) && newConfig[pack.id]) {
+            newConfig[pack.id] = false;
           }
         }
       }
@@ -392,7 +401,7 @@ function PackToggle({
           onChange={onToggle}
           disabled={disabled}
           style={{
-            background: enabled ? 'var(--accent-primary)' : 'rgba(15, 23, 42, 0.8)',
+            backgroundColor: enabled ? 'var(--accent-primary)' : 'rgba(15, 23, 42, 0.8)',
             borderColor: enabled ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.2)',
           }}
         />
@@ -506,14 +515,96 @@ function DemoStoryPanel() {
   );
 }
 
-// Capability preview component
+// Direct pack-to-feature gates for the demo preview.
+// The capability engine only understands data coverage metrics, not pack states.
+// This mapping ensures toggling a pack immediately reflects in the feature preview.
+const PACK_FEATURE_GATES: Partial<Record<keyof DemoPackConfig, string[]>> = {
+  recruiter_hm: [
+    'ct_actions', 'ov_recruiter_table',
+    'hm_kpi_tiles', 'hm_latency_heatmap', 'hm_decay_curve', 'hm_scorecard', 'hm_hiring_cycle',
+    'q_acceptance_by_recruiter',
+    'cap_load_table',
+    'sla_owner_attribution',
+    'sc_recruiter_leaves',
+    'export_exec_brief',
+    'explain_hm_latency',
+  ],
+  offers_outcomes: [
+    'ct_accept_rate',
+    'hm_decay_curve',
+    'q_acceptance_by_recruiter',
+    'vi_decay_candidate',
+    'dh_ttf_comparison',
+    'explain_accept_rate',
+  ],
+  snapshots_diffs: [
+    'sla_dwell_times', 'sla_breach_detection', 'sla_owner_attribution',
+  ],
+  capacity_history: [
+    'cap_fit_matrix', 'cap_rebalance',
+    'sc_recruiter_leaves', 'sc_spin_up_team',
+  ],
+  calibration_history: [
+    'fc_oracle',
+  ],
+  scenarios: [
+    'sc_recruiter_leaves', 'sc_spin_up_team',
+  ],
+};
+
+// Capability preview component - uses the capability engine for live status
 function CapabilityPreview({
   bundle,
 }: {
   bundle: ReturnType<typeof generateUltimateDemo>;
 }) {
-  const { enabled, disabled, disabledReasons } = bundle.capabilityPreview;
   const [expandedFeature, setExpandedFeature] = React.useState<string | null>(null);
+
+  // Evaluate capabilities using the engine
+  const coverage = computeDemoCoverage(bundle);
+  const engineResult = evaluateCapabilities(coverage);
+
+  // Build set of features blocked by disabled packs
+  const packBlockedFeatures = new Set<string>();
+  for (const [packId, featureKeys] of Object.entries(PACK_FEATURE_GATES)) {
+    if (!bundle.packsEnabled[packId as keyof DemoPackConfig]) {
+      for (const fk of featureKeys!) {
+        packBlockedFeatures.add(fk);
+      }
+    }
+  }
+
+  // Group features by effective status (engine result + pack overrides)
+  const enabledFeatures: FeatureCoverageEntry[] = [];
+  const limitedFeatures: FeatureCoverageEntry[] = [];
+  const blockedFeatures: FeatureCoverageEntry[] = [];
+
+  for (const [key, entry] of engineResult.feature_coverage) {
+    if (packBlockedFeatures.has(key)) {
+      blockedFeatures.push({ ...entry, status: 'BLOCKED', blocked_by: [`pack_disabled`] });
+    } else if (entry.status === 'ENABLED') {
+      enabledFeatures.push(entry);
+    } else if (entry.status === 'LIMITED') {
+      limitedFeatures.push(entry);
+    } else {
+      blockedFeatures.push(entry);
+    }
+  }
+
+  // Compute effective summary
+  const totalFeatures = enabledFeatures.length + limitedFeatures.length + blockedFeatures.length;
+  const summary = {
+    features_enabled: enabledFeatures.length,
+    features_limited: limitedFeatures.length,
+    features_blocked: blockedFeatures.length,
+    total_features: totalFeatures,
+  };
+
+  const STATUS_CONFIG: Record<CapabilityStatus, { icon: string; color: string; bg: string; border: string }> = {
+    ENABLED: { icon: 'bi-check-circle', color: '#86efac', bg: 'rgba(34, 197, 94, 0.15)', border: 'rgba(34, 197, 94, 0.3)' },
+    LIMITED: { icon: 'bi-exclamation-triangle', color: '#fcd34d', bg: 'rgba(234, 179, 8, 0.15)', border: 'rgba(234, 179, 8, 0.3)' },
+    BLOCKED: { icon: 'bi-x-circle', color: '#fca5a5', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.3)' },
+  };
 
   return (
     <div
@@ -523,165 +614,138 @@ function CapabilityPreview({
         border: '1px solid rgba(255, 255, 255, 0.1)',
       }}
     >
-      <h6
-        className="mb-3"
-        style={{
-          color: '#e2e8f0',
-          fontSize: '0.75rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-        }}
-      >
-        Features Preview
-      </h6>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <h6
+          className="mb-0"
+          style={{
+            color: '#e2e8f0',
+            fontSize: '0.75rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+          }}
+        >
+          Live Feature Preview
+        </h6>
+        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+          {summary.features_enabled}/{summary.total_features} enabled
+          {summary.features_limited > 0 && `, ${summary.features_limited} limited`}
+          {summary.features_blocked > 0 && `, ${summary.features_blocked} blocked`}
+        </span>
+      </div>
 
       {/* Enabled features */}
-      {enabled.length > 0 && (
-        <div className="mb-3">
-          <div
-            className="d-flex flex-wrap gap-2"
-            style={{ marginBottom: '0.5rem' }}
-          >
-            {enabled.slice(0, 10).map((feature) => (
-              <span
-                key={feature}
-                className="badge"
-                style={{
-                  background: 'rgba(34, 197, 94, 0.15)',
-                  color: '#86efac',
-                  border: '1px solid rgba(34, 197, 94, 0.3)',
-                  fontSize: '0.7rem',
-                  fontWeight: 500,
-                }}
-              >
-                <i className="bi bi-check-circle me-1"></i>
-                {feature}
+      {enabledFeatures.length > 0 && (
+        <div className="mb-2">
+          <div className="d-flex flex-wrap gap-1">
+            {enabledFeatures.slice(0, 12).map((feat) => (
+              <span key={feat.feature_key} className="badge" style={{ ...STATUS_CONFIG.ENABLED, fontSize: '0.65rem', fontWeight: 500 }}>
+                <i className={`${STATUS_CONFIG.ENABLED.icon} me-1`}></i>
+                {feat.display_name}
               </span>
             ))}
-            {enabled.length > 10 && (
-              <span
-                className="badge"
-                style={{
-                  background: 'rgba(34, 197, 94, 0.1)',
-                  color: '#86efac',
-                  fontSize: '0.7rem',
-                }}
-              >
-                +{enabled.length - 10} more
+            {enabledFeatures.length > 12 && (
+              <span className="badge" style={{ background: STATUS_CONFIG.ENABLED.bg, color: STATUS_CONFIG.ENABLED.color, fontSize: '0.65rem' }}>
+                +{enabledFeatures.length - 12} more
               </span>
             )}
           </div>
         </div>
       )}
 
-      {/* Disabled features */}
-      {disabled.length > 0 && (
-        <div>
-          <div className="d-flex flex-wrap gap-2 mb-2">
-            {disabled.slice(0, 5).map((feature) => (
+      {/* Limited features */}
+      {limitedFeatures.length > 0 && (
+        <div className="mb-2">
+          <div className="d-flex flex-wrap gap-1">
+            {limitedFeatures.map((feat) => (
               <button
-                key={feature}
+                key={feat.feature_key}
                 type="button"
                 className="badge border-0"
-                onClick={() => setExpandedFeature(expandedFeature === feature ? null : feature)}
+                onClick={() => setExpandedFeature(expandedFeature === feat.feature_key ? null : feat.feature_key)}
                 style={{
-                  background: expandedFeature === feature
-                    ? 'rgba(239, 68, 68, 0.25)'
-                    : 'rgba(239, 68, 68, 0.1)',
-                  color: '#fca5a5',
-                  border: expandedFeature === feature
-                    ? '1px solid rgba(239, 68, 68, 0.5)'
-                    : '1px solid rgba(239, 68, 68, 0.2)',
-                  fontSize: '0.7rem',
+                  ...STATUS_CONFIG.LIMITED,
+                  fontSize: '0.65rem',
                   fontWeight: 500,
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
                 }}
               >
-                <i className="bi bi-x-circle me-1"></i>
-                {feature}
-                <i
-                  className={`bi bi-chevron-${expandedFeature === feature ? 'up' : 'down'} ms-1`}
-                  style={{ fontSize: '0.6rem' }}
-                ></i>
+                <i className={`${STATUS_CONFIG.LIMITED.icon} me-1`}></i>
+                {feat.display_name}
               </button>
             ))}
-            {disabled.length > 5 && (
-              <span
-                className="badge"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  color: '#fca5a5',
-                  fontSize: '0.7rem',
-                }}
-              >
-                +{disabled.length - 5} more
-              </span>
-            )}
           </div>
-
-          {/* Expanded explanation */}
-          {expandedFeature && disabledReasons[expandedFeature] && (
-            <div
-              className="rounded-2 p-2 mt-2"
-              style={{
-                background: 'rgba(239, 68, 68, 0.08)',
-                border: '1px solid rgba(239, 68, 68, 0.15)',
-              }}
-            >
-              <div className="d-flex align-items-start gap-2">
-                <i
-                  className="bi bi-info-circle"
-                  style={{ color: '#fca5a5', marginTop: '2px' }}
-                ></i>
-                <div>
-                  <div
-                    style={{
-                      color: '#fca5a5',
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      marginBottom: '4px',
-                    }}
-                  >
-                    Why "{expandedFeature}" is disabled:
-                  </div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.7rem', lineHeight: 1.4 }}>
-                    {disabledReasons[expandedFeature]}
-                  </div>
-                  <div
-                    className="mt-2 pt-2"
-                    style={{
-                      borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                      color: '#64748b',
-                      fontSize: '0.65rem',
-                    }}
-                  >
-                    <i className="bi bi-lightbulb me-1"></i>
-                    Enable the required pack above to unlock this feature.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
+      {/* Blocked features */}
+      {blockedFeatures.length > 0 && (
+        <div className="mb-2">
+          <div className="d-flex flex-wrap gap-1">
+            {blockedFeatures.slice(0, 8).map((feat) => (
+              <button
+                key={feat.feature_key}
+                type="button"
+                className="badge border-0"
+                onClick={() => setExpandedFeature(expandedFeature === feat.feature_key ? null : feat.feature_key)}
+                style={{
+                  ...STATUS_CONFIG.BLOCKED,
+                  fontSize: '0.65rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                <i className={`${STATUS_CONFIG.BLOCKED.icon} me-1`}></i>
+                {feat.display_name}
+              </button>
+            ))}
+            {blockedFeatures.length > 8 && (
+              <span className="badge" style={{ background: STATUS_CONFIG.BLOCKED.bg, color: STATUS_CONFIG.BLOCKED.color, fontSize: '0.65rem' }}>
+                +{blockedFeatures.length - 8} more blocked
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Expanded explanation */}
+      {expandedFeature && (() => {
+        const feat = engineResult.feature_coverage.get(expandedFeature);
+        if (!feat) return null;
+        const isPackBlocked = packBlockedFeatures.has(expandedFeature);
+        const effectiveStatus: CapabilityStatus = isPackBlocked ? 'BLOCKED' : feat.status;
+        if (effectiveStatus === 'ENABLED') return null;
+        const cfg = STATUS_CONFIG[effectiveStatus];
+        return (
+          <div className="rounded-2 p-2 mt-2" style={{ background: `${cfg.bg}`, border: `1px solid ${cfg.border}` }}>
+            <div className="d-flex align-items-start gap-2">
+              <i className="bi bi-info-circle" style={{ color: cfg.color, marginTop: '2px' }}></i>
+              <div>
+                <div style={{ color: cfg.color, fontSize: '0.75rem', fontWeight: 500, marginBottom: '4px' }}>
+                  {feat.display_name} — {effectiveStatus === 'BLOCKED' ? 'Blocked' : 'Limited'}
+                </div>
+                {isPackBlocked ? (
+                  <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>• Enable the required data pack to unlock this feature</div>
+                ) : (
+                  feat.reasons.map((r, i) => (
+                    <div key={i} style={{ color: '#94a3b8', fontSize: '0.7rem' }}>• {r}</div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* All enabled message */}
-      {disabled.length === 0 && (
-        <div
-          className="text-center py-2"
-          style={{ color: '#86efac', fontSize: '0.8rem' }}
-        >
+      {blockedFeatures.length === 0 && limitedFeatures.length === 0 && (
+        <div className="text-center py-2" style={{ color: '#86efac', fontSize: '0.8rem' }}>
           <i className="bi bi-stars me-2"></i>
-          All features enabled with this configuration!
+          All {summary.total_features} features enabled with this configuration!
         </div>
       )}
 
       {/* Data summary */}
-      <div
-        className="d-flex gap-4 mt-3 pt-3"
-        style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}
-      >
+      <div className="d-flex gap-4 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
         <DataStat label="Requisitions" value={bundle.requisitions.length} />
         <DataStat label="Candidates" value={bundle.candidates.length} />
         <DataStat label="Events" value={bundle.events.length} />

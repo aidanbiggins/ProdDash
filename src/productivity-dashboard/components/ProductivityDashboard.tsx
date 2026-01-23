@@ -9,6 +9,7 @@ import { DataHealthBadge } from './common/DataHealthBadge';
 import { ProgressIndicator, ProgressPill } from './common/ProgressIndicator';
 import { TabSkeleton, KPISkeleton, ChartSkeleton, TableSkeleton } from './common/Skeletons';
 import { ClearDataConfirmationModal } from './common/ClearDataConfirmationModal';
+import { LogoSpinner } from './common/LogoSpinner';
 import { OverviewTab } from './overview/OverviewTab';
 import { RecruiterDetailTab } from './recruiter-detail/RecruiterDetailTab';
 import { HMFrictionTab } from './hm-friction/HMFrictionTab';
@@ -21,6 +22,7 @@ import { VelocityInsightsTab } from './velocity-insights/VelocityInsightsTab';
 import { ForecastingTab } from './forecasting';
 import { DataHealthTab } from './data-health';
 import { ControlTowerTab } from './control-tower';
+import { CommandCenterView } from './command-center';
 import { CapacityTab } from './capacity/CapacityTab';
 import { CapacityRebalancerTab } from './capacity-rebalancer/CapacityRebalancerTab';
 import { AskProdDashTab } from './ask-proddash';
@@ -51,6 +53,9 @@ import { AiSettingsTab } from './settings/AiSettingsTab';
 import { OrgSettingsTab } from './settings/OrgSettingsTab';
 import { SlaSettingsTab } from './settings/SlaSettingsTab';
 import { ActionItem } from '../types/actionTypes';
+import { useCapabilityEngine } from '../hooks/useCapabilityEngine';
+import { CoverageBanner } from './common/CoverageBanner';
+import { CoverageMapPanel } from './common/CoverageMapPanel';
 
 export function ProductivityDashboard() {
   const { state, importCSVs, updateFilters, selectRecruiter, refreshMetrics, refetchData, updateConfig, reset, clearPersistedData, generateEvents, needsEventGeneration, canImportData, clearOperations, aiConfig, setAiConfig, isAiEnabled } = useDashboard();
@@ -73,6 +78,10 @@ export function ProductivityDashboard() {
   const [showSuperAdminPanel, setShowSuperAdminPanel] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showImportReview, setShowImportReview] = useState(false);
+  const [showCoverageMap, setShowCoverageMap] = useState(false);
+
+  // Capability Engine - single source of truth for feature gating
+  const capability = useCapabilityEngine(state.dataStore.coverageMetrics);
 
   // AI Keys - auto-load on sign-in
   const { keyState, loadKeys, getEffectiveKey } = useAiKeys();
@@ -501,7 +510,7 @@ export function ProductivityDashboard() {
                 <div className="d-flex justify-content-between align-items-start mb-3">
                   <div>
                     <h5 className="mb-1 d-flex align-items-center gap-2" style={{ color: '#ffffff' }}>
-                      <span className="spinner-grow spinner-grow-sm" style={{ color: '#ffc107' }} />
+                      <LogoSpinner size={24} />
                       {persistProgress?.phase === 'persisting' ? 'Saving to Database' : 'Generating Events'}
                     </h5>
                     <p className="mb-0" style={{ color: 'rgba(255,255,255,0.6)' }}>
@@ -787,9 +796,60 @@ export function ProductivityDashboard() {
               </div>
             )}
 
+            {/* Coverage Banner - shows data status */}
+            {state.dataStore.lastImportAt && capability.summary && (
+              <CoverageBanner
+                summary={capability.summary}
+                onViewCoverageMap={() => setShowCoverageMap(true)}
+              />
+            )}
+
+            {/* Coverage Map Panel (overlay) */}
+            {showCoverageMap && (
+              <CoverageMapPanel
+                result={capability.result}
+                onClose={() => setShowCoverageMap(false)}
+              />
+            )}
+
             {/* Tab Content - Progressive rendering with skeletons */}
             <>
-              {/* Control Tower Tab */}
+              {/* Command Center (default landing) */}
+              {activeTab === 'command-center' && (
+                state.loadingState.hasOverviewMetrics && state.overview ? (
+                  <CommandCenterView
+                    requisitions={state.dataStore.requisitions}
+                    candidates={state.dataStore.candidates}
+                    events={state.dataStore.events}
+                    users={state.dataStore.users}
+                    overview={state.overview}
+                    hmFriction={state.hmFriction}
+                    hmActions={(() => {
+                      const factTables = buildHMFactTables(
+                        state.dataStore.requisitions,
+                        state.dataStore.candidates,
+                        state.dataStore.events,
+                        state.dataStore.users,
+                        state.dataStore.config.stageMapping,
+                        state.dataStore.lastImportAt || new Date()
+                      );
+                      return calculatePendingActions(factTables, state.dataStore.users, DEFAULT_HM_RULES);
+                    })()}
+                    filters={state.filters}
+                    config={state.dataStore.config}
+                    coverage={state.dataStore.coverageMetrics}
+                    onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
+                    onNavigateToReq={(reqId) => {
+                      selectRecruiter(null);
+                      setActiveTab('recruiter');
+                    }}
+                  />
+                ) : (
+                  <TabSkeleton showKPIs showChart={false} showTable kpiCount={4} tableRows={6} />
+                )
+              )}
+
+              {/* Control Tower Tab (Ops view at /ops) */}
               {activeTab === 'control-tower' && (
                 state.loadingState.hasOverviewMetrics && state.overview ? (
                   <ControlTowerTab

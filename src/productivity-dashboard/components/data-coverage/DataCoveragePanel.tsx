@@ -12,7 +12,7 @@ import {
   getUnlockedCapabilities,
   getPendingCapabilities
 } from '../../services/dataCoverageService';
-import { GlassPanel, SectionHeader } from '../common';
+import { GlassPanel, SectionHeader, LogoSpinner } from '../common';
 
 interface DataCoveragePanelProps {
   orgId: string;
@@ -52,9 +52,7 @@ export const DataCoveragePanel: React.FC<DataCoveragePanelProps> = ({
       <GlassPanel>
         <SectionHeader title="Data Coverage" />
         <div className="text-center py-4">
-          <div className="spinner-border spinner-border-sm text-secondary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
+          <LogoSpinner size={32} layout="stacked" />
         </div>
       </GlassPanel>
     );

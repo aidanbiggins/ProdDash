@@ -42,7 +42,7 @@ export function AboutPage() {
       <nav className={`landing-nav ${navScrolled ? 'nav-scrolled' : ''}`}>
         <div className="landing-nav-inner">
           <Link to="/" className="landing-logo" style={{ textDecoration: 'none' }}>
-            <LogoHero size="sm" />
+            <LogoHero />
           </Link>
           <div className="landing-nav-links">
             <Link to="/" className="landing-nav-link">

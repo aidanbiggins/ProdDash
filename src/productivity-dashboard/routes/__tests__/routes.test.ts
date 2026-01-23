@@ -14,7 +14,17 @@ describe('Route Configuration', () => {
     it('should have a route for the root path', () => {
       const rootRoute = ROUTE_CONFIG.find(r => r.path === '/');
       expect(rootRoute).toBeDefined();
-      expect(rootRoute?.tab).toBe('control-tower');
+      expect(rootRoute?.tab).toBe('command-center');
+    });
+
+    it('should have command-center and ops routes', () => {
+      const ccRoute = ROUTE_CONFIG.find(r => r.path === '/command-center');
+      expect(ccRoute).toBeDefined();
+      expect(ccRoute?.tab).toBe('command-center');
+
+      const opsRoute = ROUTE_CONFIG.find(r => r.path === '/ops');
+      expect(opsRoute).toBeDefined();
+      expect(opsRoute?.tab).toBe('control-tower');
     });
 
     it('should have all expected diagnose routes', () => {
@@ -91,8 +101,12 @@ describe('Route Configuration', () => {
 });
 
 describe('getTabFromPath', () => {
-  it('should return control-tower for root path', () => {
-    expect(getTabFromPath('/')).toBe('control-tower');
+  it('should return command-center for root path', () => {
+    expect(getTabFromPath('/')).toBe('command-center');
+  });
+
+  it('should return control-tower for /ops path', () => {
+    expect(getTabFromPath('/ops')).toBe('control-tower');
   });
 
   it('should return correct tab for new bucket paths', () => {
@@ -121,15 +135,16 @@ describe('getTabFromPath', () => {
     expect(getTabFromPath('/diagnose/recruiter/abc-def-ghi')).toBe('recruiter');
   });
 
-  it('should return control-tower for unknown paths', () => {
-    expect(getTabFromPath('/unknown')).toBe('control-tower');
-    expect(getTabFromPath('/foo/bar/baz')).toBe('control-tower');
+  it('should return command-center for unknown paths', () => {
+    expect(getTabFromPath('/unknown')).toBe('command-center');
+    expect(getTabFromPath('/foo/bar/baz')).toBe('command-center');
   });
 });
 
 describe('getPathFromTab', () => {
   it('should return correct path for each tab', () => {
-    expect(getPathFromTab('control-tower')).toBe('/');
+    expect(getPathFromTab('command-center')).toBe('/');
+    expect(getPathFromTab('control-tower')).toBe('/ops');
     expect(getPathFromTab('overview')).toBe('/diagnose/overview');
     expect(getPathFromTab('recruiter')).toBe('/diagnose/recruiter');
     expect(getPathFromTab('hm-friction')).toBe('/diagnose/hm-friction');
@@ -173,7 +188,8 @@ describe('parseUrl', () => {
   it('should extract tab from path', () => {
     expect(parseUrl('/diagnose/overview', '').tab).toBe('overview');
     expect(parseUrl('/plan/forecast', '').tab).toBe('forecasting');
-    expect(parseUrl('/', '').tab).toBe('control-tower');
+    expect(parseUrl('/', '').tab).toBe('command-center');
+    expect(parseUrl('/ops', '').tab).toBe('control-tower');
   });
 
   it('should extract recruiter ID from path', () => {
@@ -198,7 +214,7 @@ describe('parseUrl', () => {
 describe('Route bidirectionality', () => {
   it('should have consistent tab-to-path and path-to-tab mapping', () => {
     const tabs = [
-      'control-tower', 'overview', 'recruiter', 'hm-friction',
+      'command-center', 'control-tower', 'overview', 'recruiter', 'hm-friction',
       'hiring-managers', 'quality', 'source-mix', 'velocity',
       'capacity', 'forecasting', 'data-health'
     ] as const;

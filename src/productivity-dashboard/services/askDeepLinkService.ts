@@ -313,7 +313,8 @@ export function keyPathToDeepLinkWithFallback(keyPath: string): DeepLinkResult {
  */
 function tabToUrlPath(tab: TabType): string {
   const tabPaths: Record<TabType, string> = {
-    'control-tower': '/control-tower',
+    'command-center': '/command-center',
+    'control-tower': '/ops',
     'ask': '/ask',
     'overview': '/diagnose/overview',
     'recruiter': '/diagnose/recruiter',

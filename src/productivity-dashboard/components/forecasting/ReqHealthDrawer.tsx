@@ -1,5 +1,6 @@
 // ReqHealthDrawer - Unified slide-in drawer showing requisition health, Oracle prediction, and Pre-Mortem analysis
 import React from 'react';
+import { LogoSpinner } from '../common/LogoSpinner';
 import { RoleHealthMetrics } from '../../types/forecastingTypes';
 import { ForecastResult, SimulationParameters } from '../../services/probabilisticEngine';
 import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../types/preMortemTypes';
@@ -213,8 +214,7 @@ export function ReqHealthDrawer({
               className="glass-panel p-4 text-center mb-4"
               style={{ color: 'var(--text-tertiary)' }}
             >
-              <div className="spinner-border spinner-border-sm me-2" />
-              Running Oracle Simulation...
+              <LogoSpinner size={32} message="Running Oracle Simulation..." layout="stacked" />
             </div>
           )}
 

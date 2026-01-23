@@ -11,6 +11,7 @@ import {
   removeSuperAdmin
 } from '../services/organizationService';
 import { supabase } from '../../lib/supabase';
+import { LogoSpinner } from './common/LogoSpinner';
 
 interface SuperAdminPanelProps {
   isOpen: boolean;
@@ -165,9 +166,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
               <div>
                 {isLoading ? (
                   <div className="text-center py-4">
-                    <div className="spinner-border" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
+                    <LogoSpinner size={40} layout="stacked" />
                   </div>
                 ) : organizations.length === 0 ? (
                   <p className="text-muted">No organizations found</p>

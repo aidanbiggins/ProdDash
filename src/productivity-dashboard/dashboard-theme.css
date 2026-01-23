@@ -1549,6 +1549,51 @@ small, .small {
     z-index: 99999 !important;
 }
 
+/* MultiSelect Portal Dropdown - Explicit styling for body-level portal */
+.multiselect-portal-dropdown {
+    background-color: #141414 !important;
+    border: 1px solid #27272a !important;
+    border-radius: 2px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4) !important;
+    max-height: 280px !important;
+    overflow-y: auto !important;
+    color: #e2e8f0 !important;
+    min-width: 200px !important;
+}
+
+.multiselect-portal-dropdown .multiselect-option {
+    padding: 0.5rem 0.75rem !important;
+    cursor: pointer !important;
+    color: #e2e8f0 !important;
+    font-size: 0.8125rem !important;
+}
+
+.multiselect-portal-dropdown .multiselect-option:hover {
+    background-color: #27272a !important;
+}
+
+.multiselect-portal-dropdown .multiselect-option.disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    color: #666 !important;
+}
+
+.multiselect-portal-dropdown .multiselect-option.selected {
+    background-color: rgba(45, 212, 191, 0.15) !important;
+}
+
+.multiselect-portal-dropdown .multiselect-checkbox {
+    width: 14px !important;
+    height: 14px !important;
+    margin-right: 0.5rem !important;
+    vertical-align: middle !important;
+    accent-color: #2dd4bf !important;
+    cursor: pointer !important;
+    -webkit-appearance: checkbox !important;
+    -moz-appearance: checkbox !important;
+    appearance: checkbox !important;
+}
+
 /* Date preset buttons */
 .date-preset-group {
     display: flex;
@@ -1934,6 +1979,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 
 .animate-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes logoBreathe {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+    50% { transform: scale(1.15) rotate(180deg); opacity: 1; }
+    100% { transform: scale(1) rotate(360deg); opacity: 0.7; }
 }
 
 /* ========================================

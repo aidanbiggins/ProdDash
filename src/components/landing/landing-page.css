@@ -86,11 +86,48 @@
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(15, 23, 42, 0.25);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--landing-border);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
   padding: 1rem 2rem;
+  transition: all 0.4s ease;
+  isolation: isolate;
+  box-shadow:
+    0 1px 0 0 rgba(45, 212, 191, 0.15),
+    0 4px 20px -4px rgba(99, 102, 241, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+/* AI shimmer sweep animation */
+.landing-nav::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.06) 25%,
+    rgba(45, 212, 191, 0.06) 50%,
+    rgba(139, 92, 246, 0.06) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: landing-nav-shimmer 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes landing-nav-shimmer {
+  0%, 100% {
+    background-position: 200% 0;
+  }
+  50% {
+    background-position: -200% 0;
+  }
 }
 
 .landing-nav-inner {
@@ -144,6 +181,7 @@
   transition: color 0.2s ease, transform 0.2s ease;
   padding: 0.5rem;
   border-radius: 4px;
+  text-decoration: none;
 }
 
 .landing-nav-link:hover {
@@ -184,6 +222,20 @@
 }
 
 /* ============================================
+   GLOBAL HEADING FONT
+   Ensures all headings in the landing page use
+   Space Grotesk consistently, regardless of
+   specificity from other loaded stylesheets.
+   ============================================ */
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page h4 {
+  font-family: var(--landing-font-heading) !important;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================
    SECTION HEADERS
    ============================================ */
 .landing-section-header {
@@ -207,10 +259,8 @@
 }
 
 .landing-section-header h2 {
-  font-family: var(--landing-font-heading) !important;
   font-size: clamp(1.75rem, 4vw, 2.5rem) !important;
   font-weight: 700 !important;
-  letter-spacing: -0.02em !important;
   margin-bottom: 1rem !important;
   color: #ffffff !important;
 }
@@ -270,7 +320,6 @@
 }
 
 .landing-hero h1 {
-  font-family: var(--landing-font-heading) !important;
   font-size: clamp(2.5rem, 7vw, 4.5rem) !important;
   font-weight: 700 !important;
   letter-spacing: -0.03em !important;
@@ -508,7 +557,6 @@
 }
 
 .landing-problem-card h3 {
-  font-family: var(--landing-font-heading) !important;
   font-size: 1.125rem !important;
   font-weight: 600 !important;
   margin-bottom: 0.75rem !important;
@@ -676,8 +724,7 @@
 }
 
 .landing-transform-description h3 {
-  font-family: var(--landing-font-heading) !important;
-  font-size: 1.25rem !important;
+  font-size: 1.125rem !important;
   font-weight: 600 !important;
   margin-bottom: 0.5rem !important;
   color: #ffffff !important;
@@ -1140,7 +1187,6 @@
 }
 
 .landing-step h3 {
-  font-family: var(--landing-font-heading) !important;
   font-size: 1.125rem !important;
   font-weight: 600 !important;
   margin-bottom: 0.75rem !important;
@@ -1329,7 +1375,6 @@
 }
 
 .feature-title-group h3 {
-  font-family: var(--landing-font-heading) !important;
   font-size: 1.125rem !important;
   font-weight: 600 !important;
   margin-bottom: 0.25rem !important;
@@ -1515,7 +1560,6 @@
 }
 
 .before-after-card h4 {
-  font-family: var(--landing-font-heading) !important;
   font-size: 1rem !important;
   font-weight: 600 !important;
   margin-bottom: 1.5rem !important;
@@ -1796,7 +1840,6 @@
 }
 
 .scenario-header h4 {
-  font-family: var(--landing-font-heading);
   font-size: 1.125rem;
   font-weight: 600;
   margin: 0 0 0.25rem 0;
@@ -2036,10 +2079,8 @@
 }
 
 .landing-final-cta h2 {
-  font-family: var(--landing-font-heading) !important;
   font-size: clamp(1.75rem, 4vw, 2.5rem) !important;
   font-weight: 700 !important;
-  letter-spacing: -0.02em !important;
   margin-bottom: 1rem !important;
   color: #ffffff !important;
 }
@@ -2490,10 +2531,8 @@
 }
 
 .about-hero h1 {
-  font-family: var(--landing-font-heading) !important;
   font-size: clamp(1.75rem, 4vw, 2.75rem) !important;
   font-weight: 700 !important;
-  letter-spacing: -0.02em !important;
   line-height: 1.2 !important;
   color: #ffffff !important;
   margin: 0 !important;
@@ -2509,17 +2548,14 @@
 }
 
 .about-section h2 {
-  font-family: var(--landing-font-heading) !important;
   font-size: clamp(1.5rem, 3vw, 2rem) !important;
   font-weight: 700 !important;
-  letter-spacing: -0.02em !important;
   color: #ffffff !important;
   margin-bottom: 1.5rem !important;
 }
 
 .about-section h3 {
-  font-family: var(--landing-font-heading) !important;
-  font-size: 1.25rem !important;
+  font-size: 1.125rem !important;
   font-weight: 600 !important;
   color: #ffffff !important;
   margin-bottom: 0.75rem !important;

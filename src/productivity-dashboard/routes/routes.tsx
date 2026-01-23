@@ -3,7 +3,7 @@
 import React from 'react';
 
 // Tab type definition (matches ProductivityDashboard)
-export type TabType = 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'bottlenecks' | 'capacity' | 'capacity-rebalancer' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'sla-settings' | 'ai-settings' | 'org-settings';
+export type TabType = 'command-center' | 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'bottlenecks' | 'capacity' | 'capacity-rebalancer' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'sla-settings' | 'ai-settings' | 'org-settings';
 
 // Route to tab mapping
 export interface RouteConfig {
@@ -14,9 +14,12 @@ export interface RouteConfig {
 
 // New route structure mapped to existing tab IDs
 export const ROUTE_CONFIG: RouteConfig[] = [
-  // Control Tower (default)
-  { path: '/', tab: 'control-tower', bucket: 'control-tower' },
-  { path: '/control-tower', tab: 'control-tower', bucket: 'control-tower' },
+  // Command Center (default landing)
+  { path: '/', tab: 'command-center', bucket: 'control-tower' },
+  { path: '/command-center', tab: 'command-center', bucket: 'control-tower' },
+
+  // Ops view (legacy Control Tower)
+  { path: '/ops', tab: 'control-tower', bucket: 'control-tower' },
 
   // Ask ProdDash (top-level)
   { path: '/ask', tab: 'ask', bucket: 'control-tower' },
@@ -84,8 +87,8 @@ export function getTabFromPath(pathname: string): TabType {
     return getTabFromPath(legacyRedirect);
   }
 
-  // Default to control tower
-  return 'control-tower';
+  // Default to command center
+  return 'command-center';
 }
 
 // Get new path from tab ID (for URL updates)

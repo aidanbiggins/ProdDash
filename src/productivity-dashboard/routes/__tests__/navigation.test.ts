@@ -1,5 +1,5 @@
 // Navigation Regression Tests
-// Verifies: Control Tower loads by default, bucket switching works, legacy toggle works
+// Verifies: Command Center loads by default, bucket switching works, legacy toggle works
 
 import {
   ROUTE_CONFIG,
@@ -9,32 +9,42 @@ import {
 } from '../routes';
 
 describe('Navigation Regression Tests', () => {
-  describe('Control Tower loads by default', () => {
-    it('should map root path to control-tower tab', () => {
-      expect(getTabFromPath('/')).toBe('control-tower');
+  describe('Command Center loads by default', () => {
+    it('should map root path to command-center tab', () => {
+      expect(getTabFromPath('/')).toBe('command-center');
     });
 
-    it('should have control-tower as first route in config', () => {
+    it('should have command-center as root route in config', () => {
       const rootRoute = ROUTE_CONFIG.find(r => r.path === '/');
       expect(rootRoute).toBeDefined();
-      expect(rootRoute?.tab).toBe('control-tower');
+      expect(rootRoute?.tab).toBe('command-center');
       expect(rootRoute?.bucket).toBe('control-tower');
     });
 
-    it('should map /control-tower path to control-tower tab', () => {
-      expect(getTabFromPath('/control-tower')).toBe('control-tower');
+    it('should map /command-center path to command-center tab', () => {
+      expect(getTabFromPath('/command-center')).toBe('command-center');
+    });
+
+    it('should map /ops path to control-tower tab', () => {
+      expect(getTabFromPath('/ops')).toBe('control-tower');
     });
   });
 
   describe('Switching buckets works', () => {
-    it('should navigate from Control Tower to Diagnose bucket', () => {
+    it('should navigate from Command Center to Diagnose bucket', () => {
       const diagnosePath = '/diagnose/overview';
       const tab = getTabFromPath(diagnosePath);
       expect(tab).toBe('overview');
 
-      // Verify we can get back to control tower
+      // Verify we can get back to command center
+      const ccPath = getPathFromTab('command-center');
+      expect(ccPath).toBe('/');
+      expect(getTabFromPath(ccPath)).toBe('command-center');
+    });
+
+    it('should navigate to control-tower via /ops', () => {
       const ctPath = getPathFromTab('control-tower');
-      expect(ctPath).toBe('/');
+      expect(ctPath).toBe('/ops');
       expect(getTabFromPath(ctPath)).toBe('control-tower');
     });
 
@@ -126,16 +136,16 @@ describe('Navigation Regression Tests', () => {
     });
 
     it('should handle unknown paths gracefully', () => {
-      // Unknown paths should fall back to control tower
-      expect(getTabFromPath('/unknown/path')).toBe('control-tower');
-      expect(getTabFromPath('/diagnose/unknown')).toBe('control-tower');
+      // Unknown paths should fall back to command-center
+      expect(getTabFromPath('/unknown/path')).toBe('command-center');
+      expect(getTabFromPath('/diagnose/unknown')).toBe('command-center');
     });
   });
 
   describe('Round-trip navigation consistency', () => {
     it('should maintain consistency when navigating through all tabs', () => {
       const allTabs = [
-        'control-tower', 'overview', 'recruiter', 'hm-friction',
+        'command-center', 'control-tower', 'overview', 'recruiter', 'hm-friction',
         'hiring-managers', 'quality', 'source-mix', 'velocity',
         'capacity', 'forecasting', 'data-health'
       ] as const;

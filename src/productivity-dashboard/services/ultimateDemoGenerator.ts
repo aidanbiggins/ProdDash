@@ -734,6 +734,16 @@ function generateCoreATS(
         if (stage.stage === CanonicalStage.HIRED) stats.hires++;
       }
 
+      // Determine current_stage: for terminated candidates, reflect terminal state
+      let currentStage = journey.finalStage;
+      if (journey.disposition === CandidateDisposition.Rejected &&
+          (journey.finalStage === CanonicalStage.ONSITE || journey.finalStage === CanonicalStage.OFFER)) {
+        currentStage = CanonicalStage.REJECTED;
+      } else if (journey.disposition === CandidateDisposition.Withdrawn &&
+                 journey.finalStage === CanonicalStage.OFFER) {
+        currentStage = CanonicalStage.WITHDREW;
+      }
+
       // Create candidate record
       const candidate: DemoCandidate = {
         candidate_id: candId,
@@ -741,8 +751,8 @@ function generateCoreATS(
         req_id: reqConfig.reqId,
         source: seededItem(SOURCES, random),
         applied_at: appliedAt,
-        first_contacted_at: journey.stages.length > 1 ? journey.stages[1]?.enteredAt : null,
-        current_stage: journey.finalStage,
+        first_contacted_at: journey.stages.length > 2 ? journey.stages[2]?.enteredAt : null,
+        current_stage: currentStage,
         current_stage_entered_at: journey.stages[journey.stages.length - 1]?.enteredAt || appliedAt,
         disposition: journey.disposition,
         hired_at: journey.hiredAt,
@@ -769,6 +779,55 @@ function generateCoreATS(
           actor_user_id: stage.actorId,
           metadata_json: null,
         });
+
+        // Emit OFFER_EXTENDED when candidate reaches OFFER stage (denominator for fallout rates)
+        if (stage.stage === CanonicalStage.OFFER) {
+          events.push({
+            event_id: `evt_${sessionId}_${String(eventIndex++).padStart(6, '0')}`,
+            candidate_id: candId,
+            req_id: reqConfig.reqId,
+            event_type: EventType.OFFER_EXTENDED,
+            from_stage: stage.fromStage,
+            to_stage: CanonicalStage.OFFER,
+            event_at: stage.enteredAt,
+            actor_user_id: stage.actorId,
+            metadata_json: null,
+          });
+        }
+      }
+
+      // Generate terminal events for late-stage failures (populates Quality Guardrails metrics)
+      if (journey.disposition === CandidateDisposition.Rejected || journey.disposition === CandidateDisposition.Withdrawn) {
+        const terminalDate = journey.rejectedAt || journey.withdrawnAt || addDays(journey.stages[journey.stages.length - 1].enteredAt, 2);
+        const lastStage = journey.finalStage;
+
+        if (lastStage === CanonicalStage.OFFER) {
+          // Offer → Decline or Offer → Withdraw
+          events.push({
+            event_id: `evt_${sessionId}_${String(eventIndex++).padStart(6, '0')}`,
+            candidate_id: candId,
+            req_id: reqConfig.reqId,
+            event_type: journey.disposition === CandidateDisposition.Rejected ? EventType.OFFER_DECLINED : EventType.CANDIDATE_WITHDREW,
+            from_stage: CanonicalStage.OFFER,
+            to_stage: journey.disposition === CandidateDisposition.Rejected ? CanonicalStage.REJECTED : CanonicalStage.WITHDREW,
+            event_at: terminalDate,
+            actor_user_id: journey.stages[journey.stages.length - 1].actorId,
+            metadata_json: null,
+          });
+        } else if (lastStage === CanonicalStage.ONSITE && journey.disposition === CandidateDisposition.Rejected) {
+          // Onsite → Reject
+          events.push({
+            event_id: `evt_${sessionId}_${String(eventIndex++).padStart(6, '0')}`,
+            candidate_id: candId,
+            req_id: reqConfig.reqId,
+            event_type: EventType.STAGE_CHANGE,
+            from_stage: CanonicalStage.ONSITE,
+            to_stage: CanonicalStage.REJECTED,
+            event_at: terminalDate,
+            actor_user_id: journey.stages[journey.stages.length - 1].actorId,
+            metadata_json: null,
+          });
+        }
       }
     }
   }
@@ -1114,6 +1173,7 @@ function computeCapabilityPreview(bundle: Partial<UltimateDemoBundle>, config: D
       hasTimestamps: true,
       hasTerminalTimestamps: config.offers_outcomes,
       hasMultipleSnapshots: config.snapshots_diffs,
+      hasCapacityHistory: config.capacity_history,
     },
     sampleSizes: {
       hires: bundle.candidates?.filter(c => c.disposition === 'Hired').length || 0,
@@ -1263,6 +1323,7 @@ export function computeDemoCoverage(bundle: UltimateDemoBundle): CoverageMetrics
       hasTimestamps: true,
       hasTerminalTimestamps: bundle.packsEnabled.offers_outcomes,
       hasMultipleSnapshots: bundle.packsEnabled.snapshots_diffs,
+      hasCapacityHistory: bundle.packsEnabled.capacity_history,
     },
     sampleSizes: {
       hires: bundle.candidates.filter(c => c.disposition === 'Hired').length,

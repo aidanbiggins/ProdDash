@@ -2,6 +2,7 @@
 // Shows ideal vs actual pipeline performance with insights
 
 import React, { useMemo } from 'react';
+import { LogoSpinner } from '../common/LogoSpinner';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine, Cell
@@ -61,10 +62,7 @@ export function PipelineHealthCard({
     return (
       <div className="card-bespoke">
         <div className="card-body text-center py-5">
-          <div className="spinner-border spinner-border-sm text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <div className="mt-2 text-muted small">Calculating pipeline health...</div>
+          <LogoSpinner size={32} message="Calculating pipeline health..." layout="stacked" />
         </div>
       </div>
     );

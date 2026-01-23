@@ -13,6 +13,7 @@ import {
 
 // All tabs that should be renderable
 const ALL_TABS: TabType[] = [
+  'command-center',
   'control-tower',
   'overview',
   'recruiter',
@@ -32,7 +33,8 @@ const ALL_TABS: TabType[] = [
 // All routes that should be accessible
 const ALL_ROUTES = [
   '/',
-  '/control-tower',
+  '/command-center',
+  '/ops',
   '/diagnose/overview',
   '/diagnose/recruiter',
   '/diagnose/hm-friction',
@@ -116,9 +118,13 @@ describe('Route Smoke Tests', () => {
       });
     });
 
-    it('should have Control Tower at root and /control-tower', () => {
-      expect(getTabFromPath('/')).toBe('control-tower');
-      expect(getTabFromPath('/control-tower')).toBe('control-tower');
+    it('should have Command Center at root and /command-center', () => {
+      expect(getTabFromPath('/')).toBe('command-center');
+      expect(getTabFromPath('/command-center')).toBe('command-center');
+    });
+
+    it('should have Control Tower at /ops', () => {
+      expect(getTabFromPath('/ops')).toBe('control-tower');
     });
 
     it('should have all Diagnose routes in diagnose bucket', () => {
@@ -147,7 +153,7 @@ describe('Route Smoke Tests', () => {
   });
 
   describe('Unknown Path Handling', () => {
-    it('should default to control-tower for unknown paths', () => {
+    it('should default to command-center for unknown paths', () => {
       const unknownPaths = [
         '/unknown',
         '/foo/bar',
@@ -158,7 +164,7 @@ describe('Route Smoke Tests', () => {
 
       unknownPaths.forEach(path => {
         const tab = getTabFromPath(path);
-        expect(tab).toBe('control-tower');
+        expect(tab).toBe('command-center');
       });
     });
   });

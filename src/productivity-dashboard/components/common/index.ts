@@ -32,6 +32,7 @@ export * from './MultiSelect';
 export * from './FilterActiveIndicator';
 
 // Progress and loading
+export * from './LogoSpinner';
 export * from './ProgressIndicator';
 export {
   SkeletonBlock,

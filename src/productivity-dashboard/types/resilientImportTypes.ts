@@ -174,6 +174,7 @@ export interface CoverageMetrics {
     hasHMAssignment: boolean;
     hasSourceData: boolean;
     hasMultipleSnapshots: boolean;
+    hasCapacityHistory?: boolean;
   };
 
   // Sample sizes for threshold checks

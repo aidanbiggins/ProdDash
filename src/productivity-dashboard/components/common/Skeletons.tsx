@@ -1,6 +1,7 @@
 // Skeleton Components for Progressive Loading
 
 import React from 'react';
+import { LogoSpinner } from './LogoSpinner';
 
 // Shimmer animation keyframes (inline style)
 const shimmerStyle: React.CSSProperties = {
@@ -267,11 +268,7 @@ interface LoadingMessageProps {
 export function LoadingMessage({ message = 'Loading...' }: LoadingMessageProps) {
   return (
     <div className="d-flex align-items-center gap-2 p-3">
-      <span
-        className="spinner-border spinner-border-sm"
-        style={{ color: '#818cf8' }}
-      />
-      <span style={{ color: 'rgba(255,255,255,0.7)' }}>{message}</span>
+      <LogoSpinner size={24} message={message} />
     </div>
   );
 }

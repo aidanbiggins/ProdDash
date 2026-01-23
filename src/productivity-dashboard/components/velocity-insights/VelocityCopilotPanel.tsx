@@ -16,6 +16,7 @@ import { VelocityMetrics, Requisition, Candidate, Event, MetricFilters, Velocity
 import { AiProviderConfig } from '../../types/aiTypes';
 import { ActionItem } from '../../types/actionTypes';
 import { SectionHeader } from '../common/SectionHeader';
+import { LogoSpinner } from '../common/LogoSpinner';
 import {
   buildVelocityFactPack,
   generateAIInsights,
@@ -271,8 +272,7 @@ function DraftMessageModal({
 
         {isLoading ? (
           <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>
-            <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-            Generating draft...
+            <LogoSpinner size={32} message="Generating draft..." layout="stacked" />
           </div>
         ) : draftMessage ? (
           <>
@@ -598,8 +598,7 @@ export function VelocityCopilotPanel({
       {/* Loading state */}
       {isLoading && (
         <div className="text-center py-4" style={{ color: 'var(--text-secondary)' }}>
-          <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-          Analyzing velocity data...
+          <LogoSpinner size={32} message="Analyzing velocity data..." layout="stacked" />
         </div>
       )}
 

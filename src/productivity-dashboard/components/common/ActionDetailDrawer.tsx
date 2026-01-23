@@ -3,6 +3,7 @@
 // Includes AI Draft Message feature (requires AI provider to be configured)
 
 import React, { useState, useCallback } from 'react';
+import { LogoSpinner } from './LogoSpinner';
 import { format } from 'date-fns';
 import {
   ActionItem,
@@ -452,16 +453,7 @@ function DraftMessageSection({
       {/* Loading State */}
       {isLoading && (
         <div className="d-flex align-items-center gap-2 py-2">
-          <div
-            className="spinner-border spinner-border-sm"
-            role="status"
-            style={{ color: '#a78bfa' }}
-          >
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <span className="small" style={{ color: 'var(--text-secondary)' }}>
-            Drafting message...
-          </span>
+          <LogoSpinner size={32} message="Drafting message..." />
         </div>
       )}
 

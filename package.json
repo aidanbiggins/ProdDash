@@ -41,7 +41,8 @@
     "qa:all": "npm test -- --watchAll=false && npm run build && npm run ui:style-audit && npm run ui:overlay-audit && npm run route:smoke",
     "landing:smoke": "node scripts/landing-smoke.js",
     "landing:screenshots": "node scripts/landing-screenshots.js",
-    "landing:check": "npm run build && npm run landing:smoke && npm run landing:screenshots"
+    "landing:check": "npm run build && npm run landing:smoke && npm run landing:screenshots",
+    "demo:check": "react-scripts test --watchAll=false --testPathPattern=demoCheck.test"
   },
   "browserslist": {
     "production": [
