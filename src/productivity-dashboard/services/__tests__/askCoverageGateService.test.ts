@@ -1,5 +1,5 @@
 // Unit tests for Ask Coverage Gate Service
-// Tests the minimum Fact Pack capability requirements for Ask ProdDash
+// Tests the minimum Fact Pack capability requirements for Ask PlatoVue
 
 import {
   checkAskCoverage,

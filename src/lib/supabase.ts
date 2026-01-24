@@ -20,7 +20,7 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
             persistSession: true,
             detectSessionInUrl: true,
             flowType: 'implicit',
-            storageKey: 'prod-dash-auth',
+            storageKey: 'plato-vue-auth',
             lock: noOpLock,
         }
     } as SupabaseClientOptions<'public'>)

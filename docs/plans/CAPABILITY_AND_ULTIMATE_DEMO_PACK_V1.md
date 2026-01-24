@@ -247,7 +247,7 @@ These are the atomic data "ingredients" that features require.
 | `sc_hiring_freeze` | Hiring Freeze | `cap_requisitions` (≥10), `cap_candidates`, `cap_stage_events` | Scenario disabled |
 | `sc_spin_up_team` | Spin Up Team | `cap_recruiter_assignment`, `cap_capacity_history` | Scenario disabled |
 
-#### Tab: Ask ProdDash (`tab_ask`)
+#### Tab: Ask PlatoVue (`tab_ask`)
 | Feature Key | Feature Name | Required Capabilities | When BLOCKED |
 |-------------|-------------|----------------------|--------------|
 | `ask_deterministic` | AI-OFF Intents | `cap_requisitions`, `cap_candidates` | Tab shows AskBlockedState |

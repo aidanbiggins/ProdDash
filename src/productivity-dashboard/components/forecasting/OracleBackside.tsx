@@ -31,15 +31,15 @@ interface OracleBacksideProps {
 function getRecommendationIcon(type: OracleCapacityRecommendation['type']): { icon: string; color: string } {
     switch (type) {
         case 'increase_throughput':
-            return { icon: 'bi-speedometer2', color: '#3b82f6' };
+            return { icon: 'bi-speedometer2', color: 'var(--color-blue)' };
         case 'reassign_workload':
-            return { icon: 'bi-arrow-left-right', color: '#8b5cf6' };
+            return { icon: 'bi-arrow-left-right', color: 'var(--color-purple)' };
         case 'reduce_demand':
-            return { icon: 'bi-funnel', color: '#f59e0b' };
+            return { icon: 'bi-funnel', color: 'var(--color-warn)' };
         case 'improve_data':
-            return { icon: 'bi-database-check', color: '#10b981' };
+            return { icon: 'bi-database-check', color: 'var(--color-good)' };
         default:
-            return { icon: 'bi-lightbulb', color: '#10b981' };
+            return { icon: 'bi-lightbulb', color: 'var(--color-good)' };
     }
 }
 
@@ -166,10 +166,10 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                         className="badge rounded-pill"
                         style={{
                             fontSize: '0.6rem',
-                            background: explainData.confidenceLevel === 'HIGH' ? 'rgba(34, 197, 94, 0.15)' :
-                                explainData.confidenceLevel === 'MEDIUM' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                            color: explainData.confidenceLevel === 'HIGH' ? '#22c55e' :
-                                explainData.confidenceLevel === 'MEDIUM' ? '#f59e0b' : '#ef4444'
+                            background: explainData.confidenceLevel === 'HIGH' ? 'var(--color-success-light)' :
+                                explainData.confidenceLevel === 'MEDIUM' ? 'var(--color-warning-light)' : 'var(--color-danger-light)',
+                            color: explainData.confidenceLevel === 'HIGH' ? 'var(--color-good)' :
+                                explainData.confidenceLevel === 'MEDIUM' ? 'var(--color-warn)' : 'var(--color-bad)'
                         }}
                     >
                         {explainData.confidenceLevel}
@@ -203,8 +203,8 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             className="badge rounded-pill ms-2"
                             style={{
                                 fontSize: '0.5rem',
-                                background: explainData.capacity.isAvailable ? 'rgba(16, 185, 129, 0.15)' : 'rgba(107, 114, 128, 0.15)',
-                                color: explainData.capacity.isAvailable ? '#10b981' : '#6b7280'
+                                background: explainData.capacity.isAvailable ? 'var(--color-success-light)' : 'var(--color-neutral-bg)',
+                                color: explainData.capacity.isAvailable ? 'var(--color-good)' : 'var(--text-muted)'
                             }}
                         >
                             {explainData.capacity.isAvailable ? 'ACTIVE' : 'UNAVAILABLE'}
@@ -225,12 +225,12 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                 <div
                                     className="mb-2 p-2 rounded"
                                     style={{
-                                        background: 'rgba(59, 130, 246, 0.08)',
-                                        border: '1px solid rgba(59, 130, 246, 0.15)'
+                                        background: 'var(--color-blue-light)',
+                                        border: '1px solid var(--color-blue-light)'
                                     }}
                                 >
                                     <div className="d-flex align-items-center gap-1 mb-1">
-                                        <i className="bi bi-people" style={{ fontSize: '0.6rem', color: '#3b82f6' }}></i>
+                                        <i className="bi bi-people" style={{ fontSize: '0.6rem', color: 'var(--color-blue)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Workload Context</span>
                                     </div>
                                     <div className="d-flex gap-3" style={{ fontSize: '0.6rem' }}>
@@ -263,22 +263,22 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             {explainData.capacity.profile.recruiter && (
                                 <div className="mb-2">
                                     <div className="d-flex align-items-center gap-1 mb-1">
-                                        <i className="bi bi-person-badge" style={{ fontSize: '0.6rem', color: '#3b82f6' }}></i>
+                                        <i className="bi bi-person-badge" style={{ fontSize: '0.6rem', color: 'var(--color-blue)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Recruiter Throughput</span>
                                         <span
                                             className="badge rounded-pill"
                                             style={{
                                                 fontSize: '0.5rem',
                                                 background: explainData.capacity.profile.recruiter.overall_confidence === 'HIGH'
-                                                    ? 'rgba(16, 185, 129, 0.15)'
+                                                    ? 'var(--color-success-light)'
                                                     : explainData.capacity.profile.recruiter.overall_confidence === 'MED'
-                                                        ? 'rgba(245, 158, 11, 0.15)'
-                                                        : 'rgba(239, 68, 68, 0.15)',
+                                                        ? 'var(--color-warning-light)'
+                                                        : 'var(--color-danger-light)',
                                                 color: explainData.capacity.profile.recruiter.overall_confidence === 'HIGH'
-                                                    ? '#10b981'
+                                                    ? 'var(--color-good)'
                                                     : explainData.capacity.profile.recruiter.overall_confidence === 'MED'
-                                                        ? '#f59e0b'
-                                                        : '#ef4444'
+                                                        ? 'var(--color-warn)'
+                                                        : 'var(--color-bad)'
                                             }}
                                         >
                                             {explainData.capacity.profile.recruiter.overall_confidence}
@@ -328,22 +328,22 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             {explainData.capacity.profile.hm && explainData.capacity.profile.hm.interviews_per_week && (
                                 <div className="mb-2">
                                     <div className="d-flex align-items-center gap-1 mb-1">
-                                        <i className="bi bi-person-workspace" style={{ fontSize: '0.6rem', color: '#8b5cf6' }}></i>
+                                        <i className="bi bi-person-workspace" style={{ fontSize: '0.6rem', color: 'var(--color-purple)' }}></i>
                                         <span style={{ fontWeight: 600 }}>HM Throughput</span>
                                         <span
                                             className="badge rounded-pill"
                                             style={{
                                                 fontSize: '0.5rem',
                                                 background: explainData.capacity.profile.hm.overall_confidence === 'HIGH'
-                                                    ? 'rgba(16, 185, 129, 0.15)'
+                                                    ? 'var(--color-success-light)'
                                                     : explainData.capacity.profile.hm.overall_confidence === 'MED'
-                                                        ? 'rgba(245, 158, 11, 0.15)'
-                                                        : 'rgba(239, 68, 68, 0.15)',
+                                                        ? 'var(--color-warning-light)'
+                                                        : 'var(--color-danger-light)',
                                                 color: explainData.capacity.profile.hm.overall_confidence === 'HIGH'
-                                                    ? '#10b981'
+                                                    ? 'var(--color-good)'
                                                     : explainData.capacity.profile.hm.overall_confidence === 'MED'
-                                                        ? '#f59e0b'
-                                                        : '#ef4444'
+                                                        ? 'var(--color-warn)'
+                                                        : 'var(--color-bad)'
                                             }}
                                         >
                                             {explainData.capacity.profile.hm.overall_confidence}
@@ -372,7 +372,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             {explainData.capacity.penaltyResultV11 && explainData.capacity.penaltyResultV11.top_bottlenecks.length > 0 ? (
                                 <div className="mb-2">
                                     <div className="d-flex align-items-center gap-1 mb-1">
-                                        <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: '#f59e0b' }}></i>
+                                        <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: 'var(--color-warn)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Bottlenecks</span>
                                     </div>
                                     <table className="oracle-data-table">
@@ -394,32 +394,32 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                                             style={{
                                                                 fontSize: '0.5rem',
                                                                 background: b.bottleneck_owner_type === 'hm'
-                                                                    ? 'rgba(139, 92, 246, 0.15)'
-                                                                    : 'rgba(59, 130, 246, 0.15)',
+                                                                    ? 'var(--color-purple-light)'
+                                                                    : 'var(--color-blue-light)',
                                                                 color: b.bottleneck_owner_type === 'hm'
-                                                                    ? '#8b5cf6'
-                                                                    : '#3b82f6'
+                                                                    ? 'var(--color-purple)'
+                                                                    : 'var(--color-blue)'
                                                             }}
                                                         >
                                                             {b.bottleneck_owner_type === 'hm' ? 'HM' : b.bottleneck_owner_type === 'recruiter' ? 'RC' : 'Both'}
                                                         </span>
                                                     </td>
                                                     <td style={{ fontFamily: 'var(--font-mono)' }}>{b.demand}</td>
-                                                    <td style={{ color: '#f59e0b', fontFamily: 'var(--font-mono)' }}>+{b.queue_delay_days.toFixed(1)}d</td>
+                                                    <td style={{ color: 'var(--color-warn)', fontFamily: 'var(--font-mono)' }}>+{b.queue_delay_days.toFixed(1)}d</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                     <div className="d-flex justify-content-between mt-1" style={{ fontWeight: 600 }}>
                                         <span>Total Queue Delay:</span>
-                                        <span style={{ color: '#f59e0b' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
+                                        <span style={{ color: 'var(--color-warn)' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
                                     </div>
                                 </div>
                             ) : explainData.capacity.penaltyResult && explainData.capacity.penaltyResult.top_bottlenecks.length > 0 ? (
                                 /* Fallback to v1 display if v1.1 not available */
                                 <div className="mb-2">
                                     <div className="d-flex align-items-center gap-1 mb-1">
-                                        <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: '#f59e0b' }}></i>
+                                        <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: 'var(--color-warn)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Queue Delays</span>
                                     </div>
                                     <table className="oracle-data-table">
@@ -441,14 +441,14 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                                         <th>{d.stage_name}</th>
                                                         <td>{d.demand}</td>
                                                         <td>{d.service_rate.toFixed(1)}/wk</td>
-                                                        <td style={{ color: '#f59e0b' }}>+{d.queue_delay_days.toFixed(1)}d</td>
+                                                        <td style={{ color: 'var(--color-warn)' }}>+{d.queue_delay_days.toFixed(1)}d</td>
                                                     </tr>
                                                 ))}
                                         </tbody>
                                     </table>
                                     <div className="d-flex justify-content-between mt-1" style={{ fontWeight: 600 }}>
                                         <span>Total Queue Delay:</span>
-                                        <span style={{ color: '#f59e0b' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
+                                        <span style={{ color: 'var(--color-warn)' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
                                     </div>
                                 </div>
                             ) : null}
@@ -458,27 +458,27 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                 <div
                                     className="mb-2 p-2 rounded"
                                     style={{
-                                        background: 'rgba(16, 185, 129, 0.08)',
-                                        border: '1px solid rgba(16, 185, 129, 0.15)'
+                                        background: 'var(--color-good-bg)',
+                                        border: '1px solid var(--color-success-light)'
                                     }}
                                 >
                                     <div className="d-flex align-items-center gap-1 mb-1">
-                                        <i className="bi bi-lightbulb" style={{ fontSize: '0.6rem', color: '#10b981' }}></i>
+                                        <i className="bi bi-lightbulb" style={{ fontSize: '0.6rem', color: 'var(--color-good)' }}></i>
                                         <span style={{ fontWeight: 600 }}>To Improve</span>
                                         <span
                                             className="badge rounded-pill ms-1"
                                             style={{
                                                 fontSize: '0.45rem',
                                                 background: explainData.capacity.profile?.overall_confidence === 'HIGH'
-                                                    ? 'rgba(16, 185, 129, 0.15)'
+                                                    ? 'var(--color-success-light)'
                                                     : explainData.capacity.profile?.overall_confidence === 'MED'
-                                                        ? 'rgba(245, 158, 11, 0.15)'
-                                                        : 'rgba(239, 68, 68, 0.15)',
+                                                        ? 'var(--color-warning-light)'
+                                                        : 'var(--color-danger-light)',
                                                 color: explainData.capacity.profile?.overall_confidence === 'HIGH'
-                                                    ? '#10b981'
+                                                    ? 'var(--color-good)'
                                                     : explainData.capacity.profile?.overall_confidence === 'MED'
-                                                        ? '#f59e0b'
-                                                        : '#ef4444'
+                                                        ? 'var(--color-warn)'
+                                                        : 'var(--color-bad)'
                                             }}
                                         >
                                             {explainData.capacity.profile?.overall_confidence || 'LOW'}
@@ -493,7 +493,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                                 <div>
                                                     <span>{rec.description}</span>
                                                     {rec.estimated_impact_days > 0 && (
-                                                        <span style={{ color: '#10b981', marginLeft: '4px', fontStyle: 'italic' }}>
+                                                        <span style={{ color: 'var(--color-good)', marginLeft: '4px', fontStyle: 'italic' }}>
                                                             (est. ~{rec.estimated_impact_days}d faster)
                                                         </span>
                                                     )}
@@ -509,9 +509,9 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                 <div
                                     className="mt-2 p-1 rounded"
                                     style={{
-                                        background: 'rgba(245, 158, 11, 0.1)',
+                                        background: 'var(--color-warn-bg)',
                                         fontSize: '0.6rem',
-                                        color: '#f59e0b'
+                                        color: 'var(--color-warn)'
                                     }}
                                 >
                                     <i className="bi bi-info-circle me-1"></i>
@@ -538,10 +538,10 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                                 style={{
                                                     fontSize: '0.55rem',
                                                     color: r.impact === 'positive'
-                                                        ? '#10b981'
+                                                        ? 'var(--color-good)'
                                                         : r.impact === 'negative'
-                                                            ? '#f59e0b'
-                                                            : '#94a3b8'
+                                                            ? 'var(--color-warn)'
+                                                            : 'var(--text-secondary)'
                                                 }}
                                             ></i>
                                             <span className="text-muted">{r.message}</span>

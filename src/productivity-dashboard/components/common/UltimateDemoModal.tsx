@@ -90,7 +90,7 @@ export function UltimateDemoModal({
       {/* Backdrop */}
       <div
         className="modal-backdrop fade show"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+        style={{ backgroundColor: 'var(--glass-shadow-backdrop)' }}
         onClick={onClose}
       />
 
@@ -105,10 +105,10 @@ export function UltimateDemoModal({
           <div
             className="modal-content"
             style={{
-              background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
-              border: '1px solid rgba(212, 163, 115, 0.3)',
+              background: 'linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-base) 100%)',
+              border: '1px solid var(--accent-border)',
               borderRadius: '16px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+              boxShadow: 'var(--glass-shadow-elevated)',
             }}
           >
             {/* Header */}
@@ -123,8 +123,8 @@ export function UltimateDemoModal({
                     width: '48px',
                     height: '48px',
                     borderRadius: '12px',
-                    background: 'rgba(212, 163, 115, 0.15)',
-                    color: 'var(--accent-primary)',
+                    background: 'var(--accent-bg)',
+                    color: 'var(--accent)',
                   }}
                 >
                   <i className="bi bi-magic" style={{ fontSize: '1.5rem' }}></i>
@@ -132,11 +132,11 @@ export function UltimateDemoModal({
                 <div>
                   <h5
                     className="modal-title mb-1"
-                    style={{ color: '#f8fafc', fontWeight: 600 }}
+                    style={{ color: 'var(--text-primary)', fontWeight: 600 }}
                   >
                     Load Ultimate Demo
                   </h5>
-                  <p className="mb-0 small" style={{ color: '#94a3b8' }}>
+                  <p className="mb-0 small" style={{ color: 'var(--text-secondary)' }}>
                     Load synthetic data to explore all PlatoVue features
                   </p>
                 </div>
@@ -156,7 +156,7 @@ export function UltimateDemoModal({
                 <h6
                   className="mb-3"
                   style={{
-                    color: '#e2e8f0',
+                    color: 'var(--text-label)',
                     fontSize: '0.75rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
@@ -191,7 +191,7 @@ export function UltimateDemoModal({
                 <h6
                   className="mb-3"
                   style={{
-                    color: '#e2e8f0',
+                    color: 'var(--text-label)',
                     fontSize: '0.75rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
@@ -202,8 +202,8 @@ export function UltimateDemoModal({
                 <div
                   className="rounded-3 p-3"
                   style={{
-                    background: 'rgba(15, 23, 42, 0.5)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'var(--glass-bg)',
+                    border: '1px solid var(--glass-border)',
                   }}
                 >
                   <div className="row g-2">
@@ -227,7 +227,7 @@ export function UltimateDemoModal({
                 <label
                   className="form-label"
                   style={{
-                    color: '#e2e8f0',
+                    color: 'var(--text-label)',
                     fontSize: '0.75rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
@@ -242,14 +242,14 @@ export function UltimateDemoModal({
                   onChange={(e) => setSeed(e.target.value)}
                   placeholder="ultimate-demo-v1"
                   style={{
-                    background: 'rgba(15, 23, 42, 0.8)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    color: '#e2e8f0',
+                    background: 'var(--color-bg-surface)',
+                    border: '1px solid var(--glass-border)',
+                    color: 'var(--text-label)',
                     fontFamily: 'var(--font-mono)',
                     fontSize: '0.875rem',
                   }}
                 />
-                <small style={{ color: '#64748b' }}>
+                <small style={{ color: 'var(--text-muted)' }}>
                   Same seed always produces identical data
                 </small>
               </div>
@@ -320,11 +320,11 @@ function PresetButton({
       onClick={onClick}
       style={{
         background: selected
-          ? 'rgba(212, 163, 115, 0.15)'
-          : 'rgba(15, 23, 42, 0.5)',
+          ? 'var(--accent-bg)'
+          : 'var(--glass-bg)',
         border: selected
-          ? '1px solid var(--accent-primary)'
-          : '1px solid rgba(255, 255, 255, 0.1)',
+          ? '1px solid var(--accent)'
+          : '1px solid var(--glass-border)',
         transition: 'all 0.2s ease',
       }}
     >
@@ -335,9 +335,9 @@ function PresetButton({
             height: '16px',
             borderRadius: '50%',
             border: selected
-              ? '2px solid var(--accent-primary)'
-              : '2px solid rgba(255, 255, 255, 0.3)',
-            background: selected ? 'var(--accent-primary)' : 'transparent',
+              ? '2px solid var(--accent)'
+              : '2px solid var(--glass-border-strong)',
+            background: selected ? 'var(--accent)' : 'transparent',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -349,16 +349,16 @@ function PresetButton({
                 width: '6px',
                 height: '6px',
                 borderRadius: '50%',
-                background: '#0f172a',
+                background: 'var(--color-bg-base)',
               }}
             />
           )}
         </div>
-        <span style={{ color: '#f8fafc', fontWeight: 500, fontSize: '0.875rem' }}>
+        <span style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>
           {label}
         </span>
       </div>
-      <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{description}</span>
+      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{description}</span>
     </button>
   );
 }
@@ -383,7 +383,7 @@ function PackToggle({
     <div
       className="d-flex align-items-start gap-2 p-2 rounded-2"
       style={{
-        background: enabled ? 'rgba(212, 163, 115, 0.08)' : 'transparent',
+        background: enabled ? 'var(--accent-bg)' : 'transparent',
         opacity: disabled ? 0.5 : 1,
         cursor: disabled ? 'not-allowed' : 'pointer',
       }}
@@ -401,15 +401,15 @@ function PackToggle({
           onChange={onToggle}
           disabled={disabled}
           style={{
-            backgroundColor: enabled ? 'var(--accent-primary)' : 'rgba(15, 23, 42, 0.8)',
-            borderColor: enabled ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.2)',
+            backgroundColor: enabled ? 'var(--accent)' : 'var(--color-bg-surface)',
+            borderColor: enabled ? 'var(--accent)' : 'var(--glass-border-strong)',
           }}
         />
       </div>
       <div className="flex-grow-1" style={{ minWidth: 0 }}>
         <div
           style={{
-            color: enabled ? '#f8fafc' : '#94a3b8',
+            color: enabled ? 'var(--text-primary)' : 'var(--text-secondary)',
             fontSize: '0.8125rem',
             fontWeight: 500,
           }}
@@ -418,7 +418,7 @@ function PackToggle({
         </div>
         <div
           style={{
-            color: '#64748b',
+            color: 'var(--text-muted)',
             fontSize: '0.7rem',
             lineHeight: 1.3,
           }}
@@ -428,7 +428,7 @@ function PackToggle({
         {hasMissingDeps && (
           <div
             style={{
-              color: '#f59e0b',
+              color: 'var(--color-warn)',
               fontSize: '0.65rem',
               marginTop: '2px',
             }}
@@ -451,8 +451,8 @@ function DemoStoryPanel() {
     <div
       className="rounded-3 p-3 mb-4"
       style={{
-        background: 'rgba(45, 212, 191, 0.08)',
-        border: '1px solid rgba(45, 212, 191, 0.2)',
+        background: 'var(--accent-bg)',
+        border: '1px solid var(--accent-border)',
       }}
     >
       <div
@@ -461,14 +461,14 @@ function DemoStoryPanel() {
         style={{ cursor: 'pointer' }}
       >
         <div className="d-flex align-items-center gap-2">
-          <i className="bi bi-lightbulb" style={{ color: '#2dd4bf' }}></i>
-          <span style={{ color: '#e2e8f0', fontSize: '0.8125rem', fontWeight: 500 }}>
+          <i className="bi bi-lightbulb" style={{ color: 'var(--accent)' }}></i>
+          <span style={{ color: 'var(--text-label)', fontSize: '0.8125rem', fontWeight: 500 }}>
             What You'll Find in This Demo
           </span>
         </div>
         <i
           className={`bi bi-chevron-${expanded ? 'up' : 'down'}`}
-          style={{ color: '#64748b', fontSize: '0.75rem' }}
+          style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}
         ></i>
       </div>
 
@@ -479,11 +479,11 @@ function DemoStoryPanel() {
               <div key={pattern.id} className="col-6">
                 <div
                   className="p-2 rounded-2"
-                  style={{ background: 'rgba(15, 23, 42, 0.4)' }}
+                  style={{ background: 'var(--glass-bg)' }}
                 >
                   <div
                     style={{
-                      color: '#f8fafc',
+                      color: 'var(--text-primary)',
                       fontSize: '0.75rem',
                       fontWeight: 500,
                       marginBottom: '2px',
@@ -491,7 +491,7 @@ function DemoStoryPanel() {
                   >
                     {pattern.name}
                   </div>
-                  <div style={{ color: '#64748b', fontSize: '0.65rem' }}>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>
                     {pattern.description}
                   </div>
                 </div>
@@ -501,8 +501,8 @@ function DemoStoryPanel() {
           <div
             className="mt-2 pt-2"
             style={{
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#64748b',
+              borderTop: '1px solid var(--glass-border)',
+              color: 'var(--text-muted)',
               fontSize: '0.65rem',
             }}
           >
@@ -601,24 +601,24 @@ function CapabilityPreview({
   };
 
   const STATUS_CONFIG: Record<CapabilityStatus, { icon: string; color: string; bg: string; border: string }> = {
-    ENABLED: { icon: 'bi-check-circle', color: '#86efac', bg: 'rgba(34, 197, 94, 0.15)', border: 'rgba(34, 197, 94, 0.3)' },
-    LIMITED: { icon: 'bi-exclamation-triangle', color: '#fcd34d', bg: 'rgba(234, 179, 8, 0.15)', border: 'rgba(234, 179, 8, 0.3)' },
-    BLOCKED: { icon: 'bi-x-circle', color: '#fca5a5', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.3)' },
+    ENABLED: { icon: 'bi-check-circle', color: 'var(--color-good-text)', bg: 'var(--color-good-bg)', border: 'var(--color-good-border)' },
+    LIMITED: { icon: 'bi-exclamation-triangle', color: 'var(--color-warn-text)', bg: 'var(--color-warn-bg)', border: 'var(--color-warn-border)' },
+    BLOCKED: { icon: 'bi-x-circle', color: 'var(--color-bad-text)', bg: 'var(--color-bad-bg)', border: 'var(--color-bad-border)' },
   };
 
   return (
     <div
       className="rounded-3 p-3"
       style={{
-        background: 'rgba(15, 23, 42, 0.5)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
       }}
     >
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h6
           className="mb-0"
           style={{
-            color: '#e2e8f0',
+            color: 'var(--text-label)',
             fontSize: '0.75rem',
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
@@ -626,7 +626,7 @@ function CapabilityPreview({
         >
           Live Feature Preview
         </h6>
-        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
           {summary.features_enabled}/{summary.total_features} enabled
           {summary.features_limited > 0 && `, ${summary.features_limited} limited`}
           {summary.features_blocked > 0 && `, ${summary.features_blocked} blocked`}
@@ -724,10 +724,10 @@ function CapabilityPreview({
                   {feat.display_name} — {effectiveStatus === 'BLOCKED' ? 'Blocked' : 'Limited'}
                 </div>
                 {isPackBlocked ? (
-                  <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>• Enable the required data pack to unlock this feature</div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>• Enable the required data pack to unlock this feature</div>
                 ) : (
                   feat.reasons.map((r, i) => (
-                    <div key={i} style={{ color: '#94a3b8', fontSize: '0.7rem' }}>• {r}</div>
+                    <div key={i} style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>• {r}</div>
                   ))
                 )}
               </div>
@@ -738,14 +738,14 @@ function CapabilityPreview({
 
       {/* All enabled message */}
       {blockedFeatures.length === 0 && limitedFeatures.length === 0 && (
-        <div className="text-center py-2" style={{ color: '#86efac', fontSize: '0.8rem' }}>
+        <div className="text-center py-2" style={{ color: 'var(--color-good-text)', fontSize: '0.8rem' }}>
           <i className="bi bi-stars me-2"></i>
           All {summary.total_features} features enabled with this configuration!
         </div>
       )}
 
       {/* Data summary */}
-      <div className="d-flex gap-4 mt-3 pt-3" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+      <div className="d-flex gap-4 mt-3 pt-3" style={{ borderTop: '1px solid var(--glass-border)' }}>
         <DataStat label="Requisitions" value={bundle.requisitions.length} />
         <DataStat label="Candidates" value={bundle.candidates.length} />
         <DataStat label="Events" value={bundle.events.length} />
@@ -761,7 +761,7 @@ function DataStat({ label, value }: { label: string; value: number }) {
     <div>
       <div
         style={{
-          color: '#f8fafc',
+          color: 'var(--text-primary)',
           fontSize: '1.125rem',
           fontFamily: 'var(--font-mono)',
           fontWeight: 600,
@@ -769,7 +769,7 @@ function DataStat({ label, value }: { label: string; value: number }) {
       >
         {value.toLocaleString()}
       </div>
-      <div style={{ color: '#64748b', fontSize: '0.65rem' }}>{label}</div>
+      <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{label}</div>
     </div>
   );
 }

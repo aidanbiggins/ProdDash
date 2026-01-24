@@ -95,7 +95,7 @@ function RequirementsTab() {
       <h5 className="mb-4">What Data Enables What Features?</h5>
 
       <p className="text-muted mb-4">
-        ProdDash analyzes your recruiting data to surface insights. The more complete your data,
+        PlatoVue analyzes your recruiting data to surface insights. The more complete your data,
         the more features you unlock. Here's exactly what you need for each capability.
       </p>
 
@@ -310,7 +310,7 @@ function RequirementsTab() {
       </div>
 
       <div className="alert alert-info mt-4">
-        <strong>Pro Tip:</strong> Export more columns than you think you need. ProdDash will ignore
+        <strong>Pro Tip:</strong> Export more columns than you think you need. PlatoVue will ignore
         columns it doesn't recognize, but having extra data means you won't need to re-export later.
       </div>
     </div>
@@ -382,14 +382,14 @@ function ICIMSTab() {
             Click <strong>Search</strong>, then <strong>Export &gt; Excel</strong>
           </li>
           <li>
-            Drop the exported file into ProdDash
+            Drop the exported file into PlatoVue
           </li>
         </ol>
       </div>
 
       <h6 className="mb-3">iCIMS Column Mapping</h6>
       <p className="small text-muted">
-        ProdDash automatically recognizes these iCIMS column names:
+        PlatoVue automatically recognizes these iCIMS column names:
       </p>
       <div className="table-responsive">
         <table className="table table-dark table-sm">
@@ -543,7 +543,7 @@ function GenericTab() {
       <h5 className="mb-4">Any ATS / Custom Export</h5>
 
       <p className="text-muted mb-4">
-        ProdDash works with any ATS that can export to CSV or Excel. Here's how to prepare your data.
+        PlatoVue works with any ATS that can export to CSV or Excel. Here's how to prepare your data.
       </p>
 
       <div className="glass-panel p-4 mb-4">

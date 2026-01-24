@@ -12,7 +12,7 @@ import { handleDeterministicQuery } from './askIntentService';
 // ─────────────────────────────────────────────────────────────
 
 function buildSystemPrompt(factPack: AskFactPack): string {
-  return `You are an AI assistant for ProdDash, a recruiting analytics dashboard. Your role is to answer questions about the user's recruiting data using ONLY the Fact Pack provided below.
+  return `You are an AI assistant for PlatoVue, a recruiting analytics dashboard. Your role is to answer questions about the user's recruiting data using ONLY the Fact Pack provided below.
 ${AI_WRITING_GUIDELINES}
 ## CRITICAL RULES
 
@@ -130,7 +130,7 @@ export async function sendAskQuery(
     // Send request to AI
     const aiResponse = await sendAiRequest(aiConfig, messages, {
       systemPrompt,
-      taskType: 'ask_proddash',
+      taskType: 'ask_platovue',
     });
 
     // Check for errors

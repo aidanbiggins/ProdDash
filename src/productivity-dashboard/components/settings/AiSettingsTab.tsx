@@ -33,7 +33,7 @@ export function AiSettingsTab() {
             <div className="ai-settings-intro">
               <h3>Bring Your Own Key (BYOK)</h3>
               <p>
-                ProdDash supports AI-powered features like summaries and draft messages.
+                PlatoVue supports AI-powered features like summaries and draft messages.
                 Configure your preferred AI provider below. Your API keys are encrypted
                 and can optionally be synced across devices using a secure vault.
               </p>

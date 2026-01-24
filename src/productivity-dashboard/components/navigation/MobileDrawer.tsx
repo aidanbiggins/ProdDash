@@ -106,7 +106,7 @@ export function MobileDrawer({
       >
         {/* Header */}
         <div className="mobile-drawer-header">
-          <span className="mobile-drawer-title">ProdDash</span>
+          <span className="mobile-drawer-title">PlatoVue</span>
           <button
             className="mobile-drawer-close"
             onClick={onClose}

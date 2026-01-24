@@ -914,7 +914,7 @@ export function generateSlaBreachActions(
 }
 ```
 
-### 4.3 Ask ProdDash Integration
+### 4.3 Ask PlatoVue Integration
 
 Add to `AskFactPack`:
 
@@ -1290,7 +1290,7 @@ src/productivity-dashboard/
 - [ ] Computation rules explicit: dwell time, regression handling, attribution, confidence
 - [ ] Thresholds defined: MIN_SNAPSHOTS=2, MIN_DAYS=7, MAX_GAP=3, MIN_COVERAGE=50%
 - [ ] UI mockups: Coverage banner, Top stages, Breach table, Owner leaderboard, Drilldown
-- [ ] Integration points: Explain Engine provider, Action Queue types, Ask ProdDash fact pack
+- [ ] Integration points: Explain Engine provider, Action Queue types, Ask PlatoVue fact pack
 - [ ] Config plan: V1 hardcoded defaults, V2 Supabase org_settings
 - [ ] Test plan: Unit tests for computation, UI smoke tests, fixtures provided
 

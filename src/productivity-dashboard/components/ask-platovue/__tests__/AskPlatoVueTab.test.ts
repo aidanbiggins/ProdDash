@@ -1,4 +1,4 @@
-// Smoke Tests for Ask ProdDash Tab
+// Smoke Tests for Ask PlatoVue Tab
 // Tests component structure, intent routing, and AI/deterministic mode logic
 
 import {
@@ -103,7 +103,7 @@ function createTestFactPack(): AskFactPack {
 // AI-OFF Mode Tests
 // ─────────────────────────────────────────────────────────────
 
-describe('Ask ProdDash - AI-OFF Mode', () => {
+describe('Ask PlatoVue - AI-OFF Mode', () => {
   const factPack = createTestFactPack();
 
   describe('suggested question handling', () => {
@@ -173,7 +173,7 @@ describe('Ask ProdDash - AI-OFF Mode', () => {
     it('returns help response for random queries', () => {
       const response = handleDeterministicQuery('gibberish xyz random', factPack);
 
-      expect(response.answer_markdown).toContain('Ask ProdDash');
+      expect(response.answer_markdown).toContain('Ask PlatoVue');
       expect(response.suggested_questions).toBeDefined();
       expect(response.suggested_questions!.length).toBeGreaterThan(0);
     });
@@ -224,7 +224,7 @@ describe('Ask ProdDash - AI-OFF Mode', () => {
 // AI-ON Mode Tests (Validation)
 // ─────────────────────────────────────────────────────────────
 
-describe('Ask ProdDash - AI-ON Mode', () => {
+describe('Ask PlatoVue - AI-ON Mode', () => {
   const factPack = createTestFactPack();
 
   describe('valid AI response handling', () => {

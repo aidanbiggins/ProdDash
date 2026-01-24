@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-ProdDash must ingest messy CSV/XLS/XLSX data from various ATS systems without punishing users for data quality issues. This plan defines a self-healing import pipeline that repairs data when possible, logs all repairs for auditability, and enables/disables dashboard features based on measured data coverage.
+PlatoVue must ingest messy CSV/XLS/XLSX data from various ATS systems without punishing users for data quality issues. This plan defines a self-healing import pipeline that repairs data when possible, logs all repairs for auditability, and enables/disables dashboard features based on measured data coverage.
 
 **Core Principles:**
 1. **Never block on non-fatal errors** - Import what we can, warn about what we can't

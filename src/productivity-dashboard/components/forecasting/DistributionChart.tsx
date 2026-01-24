@@ -81,10 +81,10 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
         <div style={{ width: '100%', height: height }}>
             <ResponsiveContainer>
                 <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }} barCategoryGap={1}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" />
                     <XAxis
                         dataKey="dateStr"
-                        tick={{ fontSize: 11, fill: '#6B7280' }}
+                        tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
                         interval="preserveStartEnd"
                     />
                     <YAxis hide />
@@ -108,7 +108,7 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
                         {chartData.map((entry, index) => (
                             <Cell
                                 key={`cell-${index}`}
-                                fill={entry.isWithinBand ? '#6366f1' : '#E5E7EB'} // Indigo if in band, gray otherwise
+                                fill={entry.isWithinBand ? 'var(--accent)' : 'var(--text-muted)'}
                                 fillOpacity={entry.isWithinBand ? 0.6 : 0.4}
                             />
                         ))}

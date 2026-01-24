@@ -1,9 +1,9 @@
-// Ask ProdDash Cache Service
+// Ask PlatoVue Cache Service
 // Persists query responses to localStorage for session continuity
 
 import { IntentResponse } from '../types/askTypes';
 
-const CACHE_KEY = 'proddash_ask_cache';
+const CACHE_KEY = 'platovue_ask_cache';
 const CACHE_VERSION = 1;
 
 export interface AskCacheEntry {

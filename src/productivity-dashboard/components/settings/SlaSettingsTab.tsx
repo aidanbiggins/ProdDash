@@ -6,7 +6,7 @@ import { SectionHeader } from '../common/SectionHeader';
 import { SlaPolicy, SlaOwnerType, DEFAULT_SLA_POLICIES } from '../../types/slaTypes';
 
 // Storage key for SLA policies
-const SLA_POLICIES_KEY = 'proddash_sla_policies';
+const SLA_POLICIES_KEY = 'platovue_sla_policies';
 
 // Load SLA policies from localStorage, falling back to defaults
 function loadSlaPolicies(): SlaPolicy[] {

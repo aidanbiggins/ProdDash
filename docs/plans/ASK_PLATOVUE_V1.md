@@ -1,8 +1,8 @@
-# Ask ProdDash v1 - Design Plan
+# Ask PlatoVue v1 - Design Plan
 
 ## Overview
 
-Ask ProdDash is a new **top-level tab** that serves as the front door for executives and operators. It provides a conversational interface for querying recruiting data with two modes:
+Ask PlatoVue is a new **top-level tab** that serves as the front door for executives and operators. It provides a conversational interface for querying recruiting data with two modes:
 
 - **AI-OFF** (no BYOK): Guided Q&A using deterministic intent handlers over a pre-computed Fact Pack
 - **AI-ON** (BYOK enabled): Free-form Q&A using the existing multi-provider AI integration, grounded in the same Fact Pack with mandatory citations
@@ -25,7 +25,7 @@ The Fact Pack is a deterministic snapshot computed from dashboard state. All val
 
 ```typescript
 /**
- * Complete Fact Pack structure for Ask ProdDash
+ * Complete Fact Pack structure for Ask PlatoVue
  * All keys are addressable via dot notation for citations
  */
 interface AskFactPack {
@@ -299,7 +299,7 @@ function redactReqTitle(title: string): string {
 
 ## 2. Intent Handlers (AI-OFF Mode)
 
-When AI is disabled, Ask ProdDash uses deterministic handlers matched by intent.
+When AI is disabled, Ask PlatoVue uses deterministic handlers matched by intent.
 
 ### Intent List (10 Intents)
 
@@ -552,7 +552,7 @@ function calculateKeywordScore(query: string, keywords: string[]): number {
 ### System Prompt
 
 ```
-You are Ask ProdDash, an AI assistant for a recruiting analytics dashboard.
+You are Ask PlatoVue, an AI assistant for a recruiting analytics dashboard.
 
 CRITICAL RULES - VIOLATIONS WILL CAUSE REJECTION:
 1. You CANNOT compute metrics. All numbers MUST come from the Fact Pack.
@@ -782,7 +782,7 @@ async function handleAskQuery(
     }
 
     // AI failed validation - log and fall back
-    console.warn('[AskProdDash] AI response failed validation:', validation.errors);
+    console.warn('[AskPlatoVue] AI response failed validation:', validation.errors);
 
     // Return a graceful fallback
     return {
@@ -794,7 +794,7 @@ async function handleAskQuery(
       suggested_questions: ['What\'s on fire?', 'Show me top risks', 'Why is TTF high?'],
     };
   } catch (error) {
-    console.error('[AskProdDash] AI call failed:', error);
+    console.error('[AskPlatoVue] AI call failed:', error);
     return generateHelpResponse(factPack);
   }
 }
@@ -894,20 +894,20 @@ function keyPathToDeepLink(
 
 ## 5. UI Component Layout
 
-Ask ProdDash is a **top-level tab**, not a drawer.
+Ask PlatoVue is a **top-level tab**, not a drawer.
 
 ### Layout
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ [Logo] ProdDash                                      [Settings] [User] │
+│ [Logo] PlatoVue                                      [Settings] [User] │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ [Ask] [Control Tower] [Velocity] [HM Friction] [Sources] [Forecasting] │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌──────────────────────┐  ┌─────────────────────────────────────────┐ │
 │  │  Suggested Questions │  │                                         │ │
-│  │  ─────────────────── │  │  💬 Ask ProdDash                        │ │
+│  │  ─────────────────── │  │  💬 Ask PlatoVue                        │ │
 │  │                      │  │                                         │ │
 │  │  🔥 What's on fire?  │  │  ┌─────────────────────────────────────┐│ │
 │  │  ⚠️ Top risks        │  │  │ Ask a question about your data...   ││ │
@@ -951,7 +951,7 @@ Ask ProdDash is a **top-level tab**, not a drawer.
 ### Component Hierarchy
 
 ```
-AskProdDashTab (top-level tab component)
+AskPlatoVueTab (top-level tab component)
 ├── AskLeftRail
 │   ├── SuggestedQuestions (clickable chips)
 │   ├── FollowUpQuestions (dynamic based on last answer)
@@ -976,8 +976,8 @@ AskProdDashTab (top-level tab component)
 ### File Paths
 
 ```
-src/productivity-dashboard/components/ask-proddash/
-├── AskProdDashTab.tsx           # Main tab container
+src/productivity-dashboard/components/ask-platovue/
+├── AskPlatoVueTab.tsx           # Main tab container
 ├── AskLeftRail.tsx              # Sidebar with questions
 ├── AskMainPanel.tsx             # Right panel with input/response
 ├── AskInput.tsx                 # Query input
@@ -987,7 +987,7 @@ src/productivity-dashboard/components/ask-proddash/
 ├── AskSuggestedQuestion.tsx     # Clickable question chip
 ├── AskAIStatus.tsx              # AI ON/OFF indicator
 ├── index.ts                     # Barrel exports
-└── ask-proddash.css             # Component styles
+└── ask-platovue.css             # Component styles
 ```
 
 ---
@@ -1028,7 +1028,7 @@ Commit 5: Implement remaining 5 intent handlers
 
 ```
 Commit 6: Create tab structure
-- Create AskProdDashTab.tsx
+- Create AskPlatoVueTab.tsx
 - Add to ProductivityDashboard tab list
 - Basic layout with left rail and main panel
 - CSS styles
@@ -1045,7 +1045,7 @@ Commit 8: Build AskMainPanel
 - Basic state management
 
 Commit 9: Wire up intent handlers to UI
-- useAskProdDash hook
+- useAskPlatoVue hook
 - Connect input to intent matching
 - Display responses in AskResponse
 - AI-OFF mode fully functional
@@ -1081,7 +1081,7 @@ Commit 13: Add AI response validation
 - Unit tests for validation rules
 
 Commit 14: Integrate with aiService
-- Add task_type='ask_proddash'
+- Add task_type='ask_platovue'
 - System prompt and user prompt templates
 - Call AI and parse response
 - Fallback on validation failure
@@ -1369,27 +1369,27 @@ describe('resolveKeyPath', () => {
 ### 7.4 UI Smoke Tests
 
 ```typescript
-// File: src/productivity-dashboard/components/ask-proddash/__tests__/AskProdDashTab.test.tsx
+// File: src/productivity-dashboard/components/ask-platovue/__tests__/AskPlatoVueTab.test.tsx
 
-describe('AskProdDashTab', () => {
+describe('AskPlatoVueTab', () => {
   describe('AI-OFF mode', () => {
     beforeEach(() => {
       mockAIContext({ enabled: false });
     });
 
     it('renders suggested questions', () => {
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       expect(screen.getByText(/What's on fire/i)).toBeInTheDocument();
       expect(screen.getByText(/Top risks/i)).toBeInTheDocument();
     });
 
     it('shows AI-OFF indicator', () => {
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       expect(screen.getByText(/AI: OFF/i)).toBeInTheDocument();
     });
 
     it('handles suggested question click', async () => {
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       fireEvent.click(screen.getByText(/What's on fire/i));
 
       await waitFor(() => {
@@ -1398,7 +1398,7 @@ describe('AskProdDashTab', () => {
     });
 
     it('handles text input query', async () => {
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
 
       const input = screen.getByPlaceholderText(/Ask a question/i);
       fireEvent.change(input, { target: { value: 'show me risks' } });
@@ -1410,7 +1410,7 @@ describe('AskProdDashTab', () => {
     });
 
     it('displays citations with key paths', async () => {
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       fireEvent.click(screen.getByText(/What's on fire/i));
 
       await waitFor(() => {
@@ -1422,7 +1422,7 @@ describe('AskProdDashTab', () => {
       const navigate = jest.fn();
       mockNavigation(navigate);
 
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       fireEvent.click(screen.getByText(/What's on fire/i));
 
       await waitFor(() => {
@@ -1438,14 +1438,14 @@ describe('AskProdDashTab', () => {
     });
 
     it('shows AI-ON indicator', () => {
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       expect(screen.getByText(/AI: ON/i)).toBeInTheDocument();
     });
 
     it('falls back to deterministic on validation failure', async () => {
       mockAIResponse({ valid: false });
 
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       const input = screen.getByPlaceholderText(/Ask a question/i);
       fireEvent.change(input, { target: { value: 'complex question' } });
       fireEvent.click(screen.getByRole('button', { name: /Send/i }));
@@ -1466,7 +1466,7 @@ describe('AskProdDashTab', () => {
         },
       });
 
-      render(<AskProdDashTab />);
+      render(<AskPlatoVueTab />);
       const input = screen.getByPlaceholderText(/Ask a question/i);
       fireEvent.change(input, { target: { value: 'what is our TTF' } });
       fireEvent.click(screen.getByRole('button', { name: /Send/i }));

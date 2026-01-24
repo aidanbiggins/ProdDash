@@ -72,7 +72,7 @@ export function CapabilitiesSummary({
       </div>
 
       <p className="capabilities-intro">
-        With your data, ProdDash can:
+        With your data, PlatoVue can:
       </p>
 
       {/* Enabled Features */}

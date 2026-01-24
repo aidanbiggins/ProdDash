@@ -2,7 +2,7 @@
 import React from 'react';
 import './navigation.css';
 
-const LEGACY_NAV_KEY = 'proddash_use_legacy_nav';
+const LEGACY_NAV_KEY = 'platovue_use_legacy_nav';
 
 export interface LegacyToggleProps {
   useLegacyNav: boolean;

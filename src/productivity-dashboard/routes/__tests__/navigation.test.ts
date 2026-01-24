@@ -162,8 +162,8 @@ describe('Navigation Regression Tests', () => {
 
 describe('Legacy Navigation Toggle', () => {
   // These test the localStorage keys and default values
-  const FEATURE_FLAG_KEY = 'proddash_feature_new_nav';
-  const LEGACY_NAV_KEY = 'proddash_use_legacy_nav';
+  const FEATURE_FLAG_KEY = 'platovue_feature_new_nav';
+  const LEGACY_NAV_KEY = 'platovue_use_legacy_nav';
 
   beforeEach(() => {
     // Clear localStorage before each test
@@ -172,8 +172,8 @@ describe('Legacy Navigation Toggle', () => {
 
   it('should use correct localStorage keys', () => {
     // Verify the keys match what useNewNavigation hook uses
-    expect(FEATURE_FLAG_KEY).toBe('proddash_feature_new_nav');
-    expect(LEGACY_NAV_KEY).toBe('proddash_use_legacy_nav');
+    expect(FEATURE_FLAG_KEY).toBe('platovue_feature_new_nav');
+    expect(LEGACY_NAV_KEY).toBe('platovue_use_legacy_nav');
   });
 
   it('should default to new navigation enabled', () => {

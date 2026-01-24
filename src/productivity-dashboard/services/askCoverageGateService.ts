@@ -1,5 +1,5 @@
 // Ask Coverage Gate Service
-// Validates minimum Fact Pack capabilities for Ask ProdDash to be enabled
+// Validates minimum Fact Pack capabilities for Ask PlatoVue to be enabled
 
 import { AskFactPack } from '../types/askTypes';
 
@@ -23,7 +23,7 @@ export interface CoverageGateResult {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Check if the Fact Pack has minimum required capabilities for Ask ProdDash
+ * Check if the Fact Pack has minimum required capabilities for Ask PlatoVue
  *
  * Required capabilities:
  * 1. Total requisitions > 0
@@ -85,13 +85,13 @@ export function checkAskCoverage(factPack: AskFactPack): CoverageGateResult {
  */
 export function getCoverageIssueSummary(result: CoverageGateResult): string {
   if (result.enabled) {
-    return 'Ask ProdDash is ready to use.';
+    return 'Ask PlatoVue is ready to use.';
   }
 
   const issueCount = result.issues.length;
   const issueList = result.issues.map(i => `• ${i.message}`).join('\n');
 
-  return `Ask ProdDash requires ${issueCount} data issue${issueCount > 1 ? 's' : ''} to be resolved:\n\n${issueList}`;
+  return `Ask PlatoVue requires ${issueCount} data issue${issueCount > 1 ? 's' : ''} to be resolved:\n\n${issueList}`;
 }
 
 /**

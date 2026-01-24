@@ -22,7 +22,7 @@ export function FeatureBlockedState({
   if (variant === 'inline') {
     return (
       <span className="feature-blocked-inline text-muted" style={{ fontSize: '0.8rem' }}>
-        <i className="bi bi-lock-fill me-1" style={{ color: '#ef4444' }}></i>
+        <i className="bi bi-lock-fill me-1" style={{ color: 'var(--color-bad)' }}></i>
         {name}: Not enough data
       </span>
     );
@@ -33,14 +33,14 @@ export function FeatureBlockedState({
       <div className="feature-blocked-card" style={{
         padding: '1rem',
         borderRadius: '4px',
-        border: '1px solid rgba(239, 68, 68, 0.3)',
-        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+        border: '1px solid var(--color-bad-bg)',
+        backgroundColor: 'var(--color-bad-bg)',
       }}>
         <div className="d-flex align-items-center gap-2 mb-2">
-          <i className="bi bi-lock-fill" style={{ color: '#ef4444' }}></i>
-          <strong style={{ color: '#e2e8f0', fontSize: '0.875rem' }}>{name}</strong>
+          <i className="bi bi-lock-fill" style={{ color: 'var(--color-bad)' }}></i>
+          <strong style={{ color: 'var(--text-heading)', fontSize: '0.875rem' }}>{name}</strong>
         </div>
-        <p className="mb-2" style={{ color: '#94a3b8', fontSize: '0.8rem', margin: 0 }}>
+        <p className="mb-2" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
           {featureEntry.reasons[0] || 'Not enough data to display this feature.'}
         </p>
         {repairs.length > 0 && (
@@ -55,25 +55,25 @@ export function FeatureBlockedState({
     <div className="feature-blocked-panel" style={{
       padding: '1.5rem',
       borderRadius: '4px',
-      border: '1px solid rgba(239, 68, 68, 0.2)',
-      backgroundColor: 'rgba(239, 68, 68, 0.03)',
+      border: '1px solid var(--color-bad-bg)',
+      backgroundColor: 'var(--color-bad-bg)',
       margin: '0.5rem 0',
     }}>
       <div className="d-flex align-items-center gap-2 mb-3">
-        <i className="bi bi-lock-fill" style={{ color: '#ef4444', fontSize: '1.25rem' }}></i>
-        <h5 style={{ color: '#e2e8f0', margin: 0, fontSize: '1rem' }}>
+        <i className="bi bi-lock-fill" style={{ color: 'var(--color-bad)', fontSize: '1.25rem' }}></i>
+        <h5 style={{ color: 'var(--text-heading)', margin: 0, fontSize: '1rem' }}>
           {name} — Not Enough Data
         </h5>
       </div>
 
       {featureEntry.reasons.length > 0 && (
         <div className="mb-3">
-          <p style={{ color: '#94a3b8', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
             <strong>Why it's blocked:</strong>
           </p>
           <ul style={{ paddingLeft: '1.25rem', margin: 0 }}>
             {featureEntry.reasons.map((reason, i) => (
-              <li key={i} style={{ color: '#94a3b8', fontSize: '0.8125rem', marginBottom: '0.25rem' }}>
+              <li key={i} style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', marginBottom: '0.25rem' }}>
                 {reason}
               </li>
             ))}
@@ -96,11 +96,11 @@ function RepairList({ repairs, compact = false }: { repairs: RepairSuggestionEnt
   if (compact) {
     return (
       <div>
-        <span style={{ color: '#2dd4bf', fontSize: '0.75rem', fontWeight: 600 }}>
+        <span style={{ color: 'var(--accent)', fontSize: '0.75rem', fontWeight: 600 }}>
           To unlock:
         </span>
         {repairs.slice(0, 2).map((r, i) => (
-          <span key={i} style={{ color: '#94a3b8', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
+          <span key={i} style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
             {r.ui_copy.short_title}
             {i < Math.min(repairs.length, 2) - 1 && ','}
           </span>
@@ -111,29 +111,29 @@ function RepairList({ repairs, compact = false }: { repairs: RepairSuggestionEnt
 
   return (
     <div>
-      <p style={{ color: '#2dd4bf', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+      <p style={{ color: 'var(--accent)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.5rem' }}>
         How to fix:
       </p>
       {repairs.map((repair, i) => (
         <div key={i} className="repair-item mb-2" style={{
           padding: '0.75rem',
           borderRadius: '3px',
-          backgroundColor: 'rgba(45, 212, 191, 0.05)',
-          border: '1px solid rgba(45, 212, 191, 0.15)',
+          backgroundColor: 'var(--accent-bg)',
+          border: '1px solid var(--accent-bg)',
         }}>
-          <div style={{ color: '#e2e8f0', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+          <div style={{ color: 'var(--text-heading)', fontSize: '0.8125rem', fontWeight: 600, marginBottom: '0.25rem' }}>
             {repair.ui_copy.short_title}
           </div>
-          <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
             {repair.why_it_matters}
           </div>
-          <div style={{ color: '#64748b', fontSize: '0.7rem' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>
             <strong>Columns needed:</strong> {repair.required_columns.join(', ')}
             {repair.column_aliases.length > 0 && (
               <span> (also accepts: {repair.column_aliases.slice(0, 3).join(', ')})</span>
             )}
           </div>
-          <div style={{ color: '#64748b', fontSize: '0.7rem', marginTop: '0.25rem' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', marginTop: '0.25rem' }}>
             <strong>Unlocks:</strong> {repair.what_it_unlocks.join(', ')}
           </div>
         </div>

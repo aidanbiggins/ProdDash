@@ -49,7 +49,7 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
             </div>
 
             {/* Move Direction */}
-            <div className="d-flex align-items-center justify-content-center gap-3 mb-4 p-3 rounded" style={{ background: 'rgba(6, 182, 212, 0.05)', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
+            <div className="d-flex align-items-center justify-content-center gap-3 mb-4 p-3 rounded" style={{ background: 'var(--accent-bg)', border: '1px solid var(--glass-border-accent)' }}>
                 <div className="text-center">
                     <div className="text-muted small">From</div>
                     <div className="fw-semibold">{displayFromName}</div>
@@ -73,8 +73,8 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
                             className="badge"
                             style={{
                                 fontSize: '0.7rem',
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)'
+                                background: 'var(--color-bg-overlay)',
+                                border: '1px solid var(--glass-border)'
                             }}
                         >
                             {count} at {ORACLE_CAPACITY_STAGE_LABELS[stage] || stage}
@@ -90,7 +90,7 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
                 </div>
 
                 {/* Source Impact */}
-                <div className="p-3 rounded mb-2" style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                <div className="p-3 rounded mb-2" style={{ background: 'var(--color-good-bg)', border: '1px solid var(--color-good-border)' }}>
                     <div className="d-flex justify-content-between align-items-center mb-2">
                         <span className="text-muted small">{displayFromName} (Source)</span>
                         <span className="text-success small">
@@ -123,7 +123,7 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
                         </div>
                         <div className="col-4 text-center">
                             <div className="text-muted small">Queue Delay</div>
-                            <div style={{ fontFamily: 'var(--font-mono)', color: '#10b981' }}>
+                            <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-good)' }}>
                                 -{(impact.beforeSource.queueDelayDays - impact.afterSource.queueDelayDays).toFixed(1)}d
                             </div>
                         </div>
@@ -131,7 +131,7 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
                 </div>
 
                 {/* Target Impact */}
-                <div className="p-3 rounded" style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                <div className="p-3 rounded" style={{ background: 'var(--color-warn-bg)', border: '1px solid var(--color-warn-border)' }}>
                     <div className="d-flex justify-content-between align-items-center mb-2">
                         <span className="text-muted small">{displayToName} (Target)</span>
                         <span className="text-warning small">
@@ -164,7 +164,7 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
                         </div>
                         <div className="col-4 text-center">
                             <div className="text-muted small">Queue Delay</div>
-                            <div style={{ fontFamily: 'var(--font-mono)', color: '#f59e0b' }}>
+                            <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-warn)' }}>
                                 +{(impact.afterTarget.queueDelayDays - impact.beforeTarget.queueDelayDays).toFixed(1)}d
                             </div>
                         </div>
@@ -173,11 +173,11 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
             </div>
 
             {/* Net Impact */}
-            <div className="p-3 rounded mb-4" style={{ background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
+            <div className="p-3 rounded mb-4" style={{ background: 'var(--accent-bg)', border: '1px solid var(--glass-border-accent)' }}>
                 <div className="d-flex justify-content-between align-items-center">
                     <div>
                         <div className="text-muted small">Net System Improvement</div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 700, color: '#06b6d4' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent)' }}>
                             {impact.netImpact.delayReductionDays > 0 ? '-' : '+'}
                             {Math.abs(impact.netImpact.delayReductionDays).toFixed(1)}d
                         </div>
@@ -187,15 +187,15 @@ export function MoveDetailDrawer({ suggestion, impact, privacyMode, onClose, onA
                         style={{
                             fontSize: '0.65rem',
                             background: impact.confidence === 'HIGH'
-                                ? 'rgba(16, 185, 129, 0.15)'
+                                ? 'var(--color-good-bg)'
                                 : impact.confidence === 'MED'
-                                    ? 'rgba(245, 158, 11, 0.15)'
-                                    : 'rgba(148, 163, 184, 0.15)',
+                                    ? 'var(--color-warn-bg)'
+                                    : 'var(--color-bg-overlay)',
                             color: impact.confidence === 'HIGH'
-                                ? '#10b981'
+                                ? 'var(--color-good)'
                                 : impact.confidence === 'MED'
-                                    ? '#f59e0b'
-                                    : '#94a3b8'
+                                    ? 'var(--color-warn)'
+                                    : 'var(--text-secondary)'
                         }}
                     >
                         {impact.confidence}

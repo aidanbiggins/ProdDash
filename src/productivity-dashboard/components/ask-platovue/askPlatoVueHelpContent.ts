@@ -1,10 +1,10 @@
-// askProdDashHelpContent.ts
-// Help content for the Ask ProdDash tab
+// askPlatoVueHelpContent.ts
+// Help content for the Ask PlatoVue tab
 // Written at a 5th grade reading level for clarity
 
 import { HelpContent } from '../common/HelpDrawer';
 
-export const ASK_PRODDASH_PAGE_HELP: HelpContent = {
+export const ASK_PLATOVUE_PAGE_HELP: HelpContent = {
   whatYouSee:
     'A conversational way to explore your recruiting data. Ask questions in plain English and get answers with supporting evidence.',
 

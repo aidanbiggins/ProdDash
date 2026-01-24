@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-ProdDash is a React + TypeScript Recruiter Productivity Dashboard for recruitment analytics, hiring manager performance tracking, and capacity planning. Data is imported via CSV and persisted to Supabase.
+PlatoVue is a React + TypeScript Recruiter Productivity Dashboard for recruitment analytics, hiring manager performance tracking, and capacity planning. Data is imported via CSV and persisted to Supabase.
 
 ## Commands
 
@@ -133,7 +133,7 @@ interface ActionItem {
 
 **Deduplication:** Same owner_type + owner_id + req_id + action_type keeps highest priority action.
 
-**Persistence:** localStorage keyed by `proddash_action_states_{datasetId}`:
+**Persistence:** localStorage keyed by `platovue_action_states_{datasetId}`:
 - `saveActionState(datasetId, actionId, status)` - Marks action as DONE/DISMISSED
 - `loadActionStates(datasetId)` - Loads persisted states
 - `applyPersistedStates(actions, datasetId)` - Applies stored states to generated actions
@@ -396,9 +396,9 @@ User enters API key → Client encrypts with passphrase (PBKDF2 + AES-GCM)
 - `VaultLockedBanner` - Banner shown when vault has keys but is locked
 - `useAiVault` hook - Manages vault state and operations
 
-### Ask ProdDash (Conversational Interface)
+### Ask PlatoVue (Conversational Interface)
 
-The Ask ProdDash tab (`/components/ask-proddash/`) provides a conversational interface for querying recruiting data with two modes:
+The Ask PlatoVue tab (`/components/ask-platovue/`) provides a conversational interface for querying recruiting data with two modes:
 
 **AI-OFF Mode (Deterministic):**
 - Uses pre-computed Fact Pack with all dashboard metrics
@@ -444,7 +444,7 @@ interface AskFactPack {
 - `askActionService.ts` - Create actions from citations with deduplication
 
 **UI Components:**
-- `AskProdDashTab.tsx` - Main tab container
+- `AskPlatoVueTab.tsx` - Main tab container
 - `AskLeftRail.tsx` - Suggested questions, conversation history
 - `AskMainPanel.tsx` - Input, response display, citations
 

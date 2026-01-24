@@ -19,7 +19,7 @@ import { Requisition, User, UserRole } from '../types/entities';
 
 // ===== CONSTANTS =====
 
-const STORAGE_KEY_PREFIX = 'proddash_action_states_';
+const STORAGE_KEY_PREFIX = 'platovue_action_states_';
 
 // Map RecommendedAction priority to ActionPriority
 function mapRecommendedPriority(priority: 'high' | 'medium' | 'low'): ActionPriority {

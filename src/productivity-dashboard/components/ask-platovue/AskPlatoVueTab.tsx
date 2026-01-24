@@ -1,4 +1,4 @@
-// Ask ProdDash Tab - Conversational interface for dashboard insights
+// Ask PlatoVue Tab - Conversational interface for dashboard insights
 // AI OFF: Deterministic intent handlers over pre-computed Fact Pack
 // AI ON: Free-form Q&A with BYOK, citation validation, fallback
 
@@ -22,10 +22,10 @@ import { AskMainPanel, ActionPlanFeedback } from './AskMainPanel';
 import { AskBlockedState } from './AskBlockedState';
 import { PageHeader } from '../common/PageHeader';
 import { HelpButton, HelpDrawer } from '../common';
-import { ASK_PRODDASH_PAGE_HELP } from './askProdDashHelpContent';
-import './ask-proddash.css';
+import { ASK_PLATOVUE_PAGE_HELP } from './askPlatoVueHelpContent';
+import './ask-platovue.css';
 
-export interface AskProdDashTabProps {
+export interface AskPlatoVueTabProps {
   requisitions: Requisition[];
   candidates: Candidate[];
   events: Event[];
@@ -62,7 +62,7 @@ const SUGGESTED_QUESTIONS = [
   { category: 'Team', question: 'How is recruiter capacity looking?' },
 ];
 
-export function AskProdDashTab({
+export function AskPlatoVueTab({
   requisitions,
   candidates,
   events,
@@ -80,7 +80,7 @@ export function AskProdDashTab({
   onAddActions,
   snapshots = [],
   snapshotEvents = [],
-}: AskProdDashTabProps) {
+}: AskPlatoVueTabProps) {
   const [showPageHelp, setShowPageHelp] = useState(false);
   const [query, setQuery] = useState('');
   const [currentQuery, setCurrentQuery] = useState<string>(''); // The query that generated the current response
@@ -253,7 +253,7 @@ export function AskProdDashTab({
   // If coverage gate fails, show blocked state
   if (!coverageResult.enabled) {
     return (
-      <div className="ask-proddash-container">
+      <div className="ask-platovue-container">
         <AskBlockedState
           issues={coverageResult.issues}
           onNavigateToTab={onNavigateToTab}
@@ -263,20 +263,20 @@ export function AskProdDashTab({
   }
 
   return (
-    <div className="ask-proddash-container">
+    <div className="ask-platovue-container">
       <PageHeader
-        title="Ask ProdDash"
+        title="Ask PlatoVue"
         subtitle="Ask questions about your recruiting data in plain English"
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer
         isOpen={showPageHelp}
         onClose={() => setShowPageHelp(false)}
-        title="Ask ProdDash"
-        content={ASK_PRODDASH_PAGE_HELP}
+        title="Ask PlatoVue"
+        content={ASK_PLATOVUE_PAGE_HELP}
       />
 
-      <div className="ask-proddash-layout">
+      <div className="ask-platovue-layout">
         {/* Left Rail - Suggested Questions */}
         <AskLeftRail
           suggestedQuestions={SUGGESTED_QUESTIONS}
@@ -312,4 +312,4 @@ export function AskProdDashTab({
   );
 }
 
-export default AskProdDashTab;
+export default AskPlatoVueTab;

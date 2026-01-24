@@ -11,9 +11,9 @@ interface ChangesSectionProps {
 }
 
 const DIRECTION_STYLES: Record<DeltaDirection, { color: string; arrow: string }> = {
-  up: { color: '#10b981', arrow: '\u25B2' },
-  down: { color: '#ef4444', arrow: '\u25BC' },
-  flat: { color: '#94a3b8', arrow: '\u2014' },
+  up: { color: 'var(--color-good)', arrow: '\u25B2' },
+  down: { color: 'var(--color-bad)', arrow: '\u25BC' },
+  flat: { color: 'var(--text-secondary)', arrow: '\u2014' },
 };
 
 export const ChangesSection: React.FC<ChangesSectionProps> = ({ data }) => {

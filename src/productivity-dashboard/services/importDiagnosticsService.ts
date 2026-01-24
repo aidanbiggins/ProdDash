@@ -207,7 +207,7 @@ export function analyzeImportData(
 }
 
 // Storage key for diagnostics
-const DIAGNOSTICS_KEY = 'proddash_import_diagnostics';
+const DIAGNOSTICS_KEY = 'platovue_import_diagnostics';
 
 /**
  * Save import diagnostics to localStorage

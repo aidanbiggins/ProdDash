@@ -1,4 +1,4 @@
-# ProdDash: Recruiting Intelligence Platform
+# PlatoVue: Recruiting Intelligence Platform
 ## Executive Presentation Guide
 
 ---
@@ -29,7 +29,7 @@
 
 # Section 2: The Solution
 
-## ProdDash: Decision-Grade Recruiting Analytics
+## PlatoVue: Decision-Grade Recruiting Analytics
 
 ### Core Value Proposition
 
@@ -54,7 +54,7 @@
 
 ### Key Differentiators
 
-| Traditional Reporting | ProdDash |
+| Traditional Reporting | PlatoVue |
 |----------------------|----------|
 | Shows what happened | Shows what to do next |
 | Historical snapshots | Real-time risk alerts |
@@ -142,7 +142,7 @@ Due dates derived from:
 
 **Why This Data Didn't Exist Before:**
 - ATS tracks when things happen, not when they should have happened
-- ProdDash infers SLAs from stage transitions and flags violations
+- PlatoVue infers SLAs from stage transitions and flags violations
 - Aggregates by HM to show patterns, not one-off incidents
 
 ---
@@ -190,7 +190,7 @@ Action: Disposition or re-engage
 
 ---
 
-## 3.4 Ask ProdDash (Conversational Interface)
+## 3.4 Ask PlatoVue (Conversational Interface)
 
 ### What It Does
 Natural language interface to query your recruiting data. Ask questions in plain English, get instant answers with citations.
@@ -459,30 +459,30 @@ Unified Action Queue:
 
 # Section 5: Sample Insights
 
-## Real Examples of What ProdDash Reveals
+## Real Examples of What PlatoVue Reveals
 
 ### Example 1: The Hidden Bottleneck
 
-**Before ProdDash:**
+**Before PlatoVue:**
 > "Our TTF is 52 days. Industry average is 45. We need to source faster."
 
-**After ProdDash:**
+**After PlatoVue:**
 > "Your sourcing is fine - candidates reach HM review in 8 days (good). But HM review takes 18 days average. Mike Johnson and Sarah Lee are 3x slower than other HMs. Fix that, TTF drops to 38 days."
 
 ### Example 2: The Zombie Problem
 
-**Before ProdDash:**
+**Before PlatoVue:**
 > "We have 120 open reqs but keep missing hiring goals."
 
-**After ProdDash:**
+**After PlatoVue:**
 > "34 of those 120 reqs are zombies - no activity in 45+ days. Real open reqs: 86. Close the zombies, focus the team, hit your goals."
 
 ### Example 3: The Offer Bleed
 
-**Before ProdDash:**
+**Before PlatoVue:**
 > "We're making enough offers but not hitting hire targets."
 
-**After ProdDash:**
+**After PlatoVue:**
 > "Your accept rate dropped from 88% to 71% over 3 months. Candidates are declining due to 'other offer accepted' (competing faster) and 'compensation' (market moved). Time to offer is 6 days - cut to 3 and revisit comp bands."
 
 ---
@@ -523,7 +523,7 @@ Unified Action Queue:
 
 ## Data Protection
 
-| Concern | How ProdDash Addresses It |
+| Concern | How PlatoVue Addresses It |
 |---------|---------------------------|
 | **Data storage** | Supabase (SOC2 compliant), encrypted at rest |
 | **Access control** | Row-level security, org isolation |

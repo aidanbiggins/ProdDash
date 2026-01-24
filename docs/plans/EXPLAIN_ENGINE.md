@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Explain Engine provides transparent, auditable explanations for KPI metrics in ProdDash. Starting with the 5 Health KPIs in Control Tower, each KPI card gets an "Explain" button that opens a drawer showing:
+The Explain Engine provides transparent, auditable explanations for KPI metrics in PlatoVue. Starting with the 5 Health KPIs in Control Tower, each KPI card gets an "Explain" button that opens a drawer showing:
 - What the metric measures
 - How it was calculated (formula)
 - What data was included/excluded

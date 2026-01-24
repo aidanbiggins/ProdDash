@@ -1,8 +1,8 @@
 // Hook to manage the new navigation feature flag and legacy toggle
 import { useState, useEffect, useCallback } from 'react';
 
-const FEATURE_FLAG_KEY = 'proddash_feature_new_nav';
-const LEGACY_NAV_KEY = 'proddash_use_legacy_nav';
+const FEATURE_FLAG_KEY = 'platovue_feature_new_nav';
+const LEGACY_NAV_KEY = 'platovue_use_legacy_nav';
 
 // Feature flag for new navigation (can be overridden for testing)
 const DEFAULT_NEW_NAV_ENABLED = true;

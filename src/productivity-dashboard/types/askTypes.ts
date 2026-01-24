@@ -1,5 +1,5 @@
-// Ask ProdDash Types
-// Types for the Ask ProdDash conversational interface
+// Ask PlatoVue Types
+// Types for the Ask PlatoVue conversational interface
 
 // ─────────────────────────────────────────────────────────────
 // Risk Types

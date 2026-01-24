@@ -63,7 +63,7 @@ export const KPITargetBand: React.FC<KPITargetBandProps> = ({ value, target, sta
       <div className="cc-kpi-band__target-line" />
       <div className={`cc-kpi-band__dot cc-kpi-band__dot--${status}`} style={{ left: `${pct}%` }} />
       {exceeds && (
-        <div className="cc-kpi-band__exceeds" style={{ color: status === 'green' ? '#10b981' : status === 'amber' ? '#f59e0b' : '#ef4444' }}>
+        <div className="cc-kpi-band__exceeds" style={{ color: status === 'green' ? 'var(--color-good)' : status === 'amber' ? 'var(--color-warn)' : 'var(--color-bad)' }}>
           &gt;
         </div>
       )}
@@ -87,9 +87,9 @@ interface RiskConcentrationSparkProps {
 }
 
 const SPARK_SEVERITY_COLORS: Record<string, string> = {
-  critical: '#ef4444',
-  high: '#f59e0b',
-  medium: '#94a3b8',
+  critical: 'var(--color-bad)',
+  high: 'var(--color-warn)',
+  medium: 'var(--text-secondary)',
 };
 
 export const RiskConcentrationSpark: React.FC<RiskConcentrationSparkProps> = ({ distribution }) => {
@@ -114,7 +114,7 @@ export const RiskConcentrationSpark: React.FC<RiskConcentrationSparkProps> = ({ 
           className="cc-risk-spark__segment"
           style={{
             width: `${(seg.count / total) * 100}%`,
-            background: SPARK_SEVERITY_COLORS[seg.severity] || '#94a3b8',
+            background: SPARK_SEVERITY_COLORS[seg.severity] || 'var(--text-secondary)',
           }}
         />
       ))}
@@ -134,9 +134,9 @@ interface NetDirectionBadgeProps {
 type NetDirection = 'positive' | 'negative' | 'mixed';
 
 const NET_STYLES: Record<NetDirection, { symbol: string; color: string }> = {
-  positive: { symbol: '\u25B2', color: '#10b981' },
-  negative: { symbol: '\u25BC', color: '#ef4444' },
-  mixed: { symbol: '\u25AC', color: '#94a3b8' },
+  positive: { symbol: '\u25B2', color: 'var(--color-good)' },
+  negative: { symbol: '\u25BC', color: 'var(--color-bad)' },
+  mixed: { symbol: '\u25AC', color: 'var(--text-secondary)' },
 };
 
 // Leader semantics: direction meaning depends on the metric
@@ -210,9 +210,12 @@ export const BottleneckDiagram: React.FC<BottleneckDiagramProps> = ({ diagnosis 
     <div data-testid="cc-bottleneck-diagram" className="cc-bottleneck-diagram">
       {BLOCK_LABELS.map((block, idx) => {
         const isHighlighted = block.id === 'pipeline' ? isPipelineHighlighted : isCapacityHighlighted;
-        const color = isHighlighted
-          ? (block.id === 'pipeline' ? '#f59e0b' : '#ef4444')
-          : 'rgba(255,255,255,0.15)';
+        const borderColor = isHighlighted
+          ? (block.id === 'pipeline' ? 'var(--color-warn)' : 'var(--color-bad)')
+          : 'var(--glass-border)';
+        const bgColor = isHighlighted
+          ? (block.id === 'pipeline' ? 'var(--color-warn-bg)' : 'var(--color-bad-bg)')
+          : 'transparent';
 
         return (
           <React.Fragment key={block.id}>
@@ -222,12 +225,12 @@ export const BottleneckDiagram: React.FC<BottleneckDiagramProps> = ({ diagnosis 
             <div
               className="cc-bottleneck-diagram__block"
               style={{
-                border: `1.5px solid ${color}`,
-                background: isHighlighted ? `${color}15` : 'transparent',
+                border: `1.5px solid ${borderColor}`,
+                background: bgColor,
               }}
             >
               <span className={`cc-bottleneck-diagram__label ${isHighlighted ? 'cc-bottleneck-diagram__label--highlighted' : 'cc-bottleneck-diagram__label--dim'}`}
-                style={{ color: isHighlighted ? color : undefined }}
+                style={{ color: isHighlighted ? borderColor : undefined }}
               >
                 {block.label}
               </span>

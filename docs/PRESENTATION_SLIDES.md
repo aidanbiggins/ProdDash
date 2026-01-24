@@ -1,4 +1,4 @@
-# ProdDash Presentation Slides
+# PlatoVue Presentation Slides
 ## Slide-by-Slide Guide with Speaker Notes
 
 ---
@@ -6,7 +6,7 @@
 ## SLIDE 1: Title
 
 ### Visual
-- **Title:** ProdDash
+- **Title:** PlatoVue
 - **Subtitle:** Recruiting Intelligence for Modern TA Teams
 - **Tagline:** "Turn ATS exports into actionable insights"
 
@@ -63,7 +63,7 @@ Two pie charts:
 ## SLIDE 5: The Solution
 
 ### Visual
-**Headline:** "ProdDash: Decision-Grade Recruiting Analytics"
+**Headline:** "PlatoVue: Decision-Grade Recruiting Analytics"
 
 Three-step flow:
 ```
@@ -72,7 +72,7 @@ CSV Export → Smart Processing → Actionable Insights
 ```
 
 ### Speaker Notes
-> "ProdDash takes the raw exports you're already pulling from your ATS and transforms them into decision-grade intelligence. No IT integration required. Import a CSV, get insights in seconds."
+> "PlatoVue takes the raw exports you're already pulling from your ATS and transforms them into decision-grade intelligence. No IT integration required. Import a CSV, get insights in seconds."
 
 ---
 
@@ -173,7 +173,7 @@ Show Data Health dashboard with:
 - "True TTF" vs "Raw TTF" comparison (e.g., 41 days vs 65 days)
 
 ### Speaker Notes
-> "Here's a question: What's your real TTF? If you're including zombie reqs that have been dead for 6 months but never closed, your number is wrong. ProdDash automatically identifies data quality issues and shows you the TRUE metric alongside the raw one."
+> "Here's a question: What's your real TTF? If you're including zombie reqs that have been dead for 6 months but never closed, your number is wrong. PlatoVue automatically identifies data quality issues and shows you the TRUE metric alongside the raw one."
 
 ---
 
@@ -199,14 +199,14 @@ Impact: Inflates TTF by 15-40%
 
 ---
 
-## SLIDE 13: Demo - Ask ProdDash
+## SLIDE 13: Demo - Ask PlatoVue
 
 ### Visual
 Screenshot of conversational interface:
 
 **User:** "Why is time to offer so high this quarter?"
 
-**ProdDash:** "Time to offer increased from 18 days (Q2) to 26 days (Q3).
+**PlatoVue:** "Time to offer increased from 18 days (Q2) to 26 days (Q3).
 The primary driver is HM Review stage, which averaged 11 days vs 5 days last quarter.
 
 Top contributors:
@@ -216,7 +216,7 @@ Top contributors:
 [Citation: explain.time_to_offer.stage_breakdown]"
 
 ### Speaker Notes
-> "Ask ProdDash lets you query your data in plain English. Ask 'what's on fire?' and get the top risks. Ask 'why is TTF high?' and get a stage-by-stage breakdown with specific HMs called out. Every number cites its source - no hallucinated metrics."
+> "Ask PlatoVue lets you query your data in plain English. Ask 'what's on fire?' and get the top risks. Ask 'why is TTF high?' and get a stage-by-stage breakdown with specific HMs called out. Every number cites its source - no hallucinated metrics."
 
 ---
 
@@ -280,7 +280,7 @@ Flow diagram:
 ### Visual
 Table showing mapping:
 
-| Your ATS Says | ProdDash Maps To |
+| Your ATS Says | PlatoVue Maps To |
 |---------------|------------------|
 | "Recruiter Phone Screen" | SCREEN |
 | "Initial Phone Interview" | SCREEN |

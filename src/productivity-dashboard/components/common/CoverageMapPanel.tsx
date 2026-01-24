@@ -30,16 +30,16 @@ const AREA_LABELS: Record<FeatureArea, string> = {
   data_health: 'Data Health',
   capacity: 'Capacity',
   bottlenecks: 'Bottlenecks & SLA',
-  ask: 'Ask ProdDash',
+  ask: 'Ask PlatoVue',
   scenarios: 'Scenarios',
   exports: 'Exports',
   engine: 'Engines',
 };
 
 const STATUS_BADGE: Record<CapStatus, { color: string; bg: string; label: string }> = {
-  ENABLED: { color: '#22c55e', bg: 'rgba(34, 197, 94, 0.15)', label: 'Enabled' },
-  LIMITED: { color: '#eab308', bg: 'rgba(234, 179, 8, 0.15)', label: 'Limited' },
-  BLOCKED: { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', label: 'Blocked' },
+  ENABLED: { color: 'var(--color-good)', bg: 'var(--color-good-bg)', label: 'Enabled' },
+  LIMITED: { color: 'var(--color-warn)', bg: 'var(--color-warn-bg)', label: 'Limited' },
+  BLOCKED: { color: 'var(--color-bad)', bg: 'var(--color-bad-bg)', label: 'Blocked' },
 };
 
 type FilterType = 'all' | 'blocked' | 'limited' | 'enabled';
@@ -63,22 +63,22 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
 
   return (
     <div className="coverage-map-panel" style={{
-      backgroundColor: '#1a1a1a',
-      border: '1px solid #27272a',
+      backgroundColor: 'var(--color-bg-base)',
+      border: '1px solid var(--glass-border)',
       borderRadius: '4px',
       overflow: 'hidden',
     }}>
       {/* Header */}
       <div style={{
         padding: '1rem 1.25rem',
-        borderBottom: '1px solid #27272a',
+        borderBottom: '1px solid var(--glass-border)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
         <div>
-          <h5 style={{ color: '#e2e8f0', margin: 0, fontSize: '1rem' }}>Coverage Map</h5>
-          <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+          <h5 style={{ color: 'var(--text-label)', margin: 0, fontSize: '1rem' }}>Coverage Map</h5>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>
             {summary.features_enabled} enabled, {summary.features_limited} limited, {summary.features_blocked} blocked
           </span>
         </div>
@@ -98,7 +98,7 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
               type="button"
               className="btn btn-outline-primary btn-sm"
               onClick={onNavigateToDemo}
-              style={{ fontSize: '0.75rem', borderColor: '#2dd4bf', color: '#2dd4bf' }}
+              style={{ fontSize: '0.75rem', borderColor: 'var(--accent)', color: 'var(--accent)' }}
             >
               Load Demo
             </button>
@@ -107,7 +107,7 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
             <button
               type="button"
               onClick={onClose}
-              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.25rem' }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '1.25rem' }}
             >
               &times;
             </button>
@@ -118,7 +118,7 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
       {/* Filter tabs */}
       <div style={{
         padding: '0.5rem 1.25rem',
-        borderBottom: '1px solid #27272a',
+        borderBottom: '1px solid var(--glass-border)',
         display: 'flex',
         gap: '0.75rem',
       }}>
@@ -130,12 +130,12 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
             style={{
               background: 'none',
               border: 'none',
-              color: filter === f ? '#2dd4bf' : '#64748b',
+              color: filter === f ? 'var(--accent)' : 'var(--text-muted)',
               fontSize: '0.75rem',
               fontWeight: filter === f ? 600 : 400,
               cursor: 'pointer',
               padding: '0.25rem 0',
-              borderBottom: filter === f ? '2px solid #2dd4bf' : '2px solid transparent',
+              borderBottom: filter === f ? '2px solid var(--accent)' : '2px solid transparent',
             }}
           >
             {f === 'all' ? `All (${summary.total_features})` :
@@ -152,7 +152,7 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
           <div key={area} style={{ marginBottom: '0.5rem' }}>
             <div style={{
               padding: '0.375rem 1.25rem',
-              color: '#94a3b8',
+              color: 'var(--text-secondary)',
               fontSize: '0.6875rem',
               fontWeight: 600,
               textTransform: 'uppercase',
@@ -166,7 +166,7 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
           </div>
         ))}
         {featuresByArea.size === 0 && (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b', fontSize: '0.8rem' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
             No features match the current filter.
           </div>
         )}
@@ -176,14 +176,14 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
       {repair_suggestions.length > 0 && filter !== 'enabled' && (
         <div style={{
           padding: '0.75rem 1.25rem',
-          borderTop: '1px solid #27272a',
-          backgroundColor: 'rgba(45, 212, 191, 0.03)',
+          borderTop: '1px solid var(--glass-border)',
+          backgroundColor: 'var(--accent-bg)',
         }}>
-          <div style={{ color: '#2dd4bf', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+          <div style={{ color: 'var(--accent)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.5rem' }}>
             Top actions to unlock more features:
           </div>
           {repair_suggestions.slice(0, 3).map((r, i) => (
-            <div key={i} style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+            <div key={i} style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
               {i + 1}. <strong>{r.ui_copy.short_title}</strong> — unlocks {r.what_it_unlocks.length} features
             </div>
           ))}
@@ -216,7 +216,7 @@ function FeatureRow({ feature }: { feature: FeatureCoverageEntry }) {
           backgroundColor: badge.color,
           flexShrink: 0,
         }} />
-        <span style={{ color: '#e2e8f0', fontSize: '0.8rem', flex: 1 }}>
+        <span style={{ color: 'var(--text-label)', fontSize: '0.8rem', flex: 1 }}>
           {feature.display_name}
         </span>
         <span style={{
@@ -230,7 +230,7 @@ function FeatureRow({ feature }: { feature: FeatureCoverageEntry }) {
           {badge.label}
         </span>
         {feature.status !== 'ENABLED' && (
-          <i className={`bi bi-chevron-${expanded ? 'up' : 'down'}`} style={{ color: '#64748b', fontSize: '0.7rem' }}></i>
+          <i className={`bi bi-chevron-${expanded ? 'up' : 'down'}`} style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}></i>
         )}
       </div>
       {expanded && feature.status !== 'ENABLED' && (
@@ -239,12 +239,12 @@ function FeatureRow({ feature }: { feature: FeatureCoverageEntry }) {
           fontSize: '0.75rem',
         }}>
           {feature.reasons.length > 0 && (
-            <div style={{ color: '#94a3b8', marginBottom: '0.25rem' }}>
+            <div style={{ color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
               {feature.reasons.map((r, i) => <div key={i}>• {r}</div>)}
             </div>
           )}
           {feature.repair_suggestions.length > 0 && (
-            <div style={{ color: '#64748b', marginTop: '0.25rem' }}>
+            <div style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>
               Fix: {feature.repair_suggestions.map(r => r.ui_copy.short_title).join(', ')}
             </div>
           )}

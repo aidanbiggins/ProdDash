@@ -593,9 +593,9 @@ An explicit "Ops View" toggle or separate route provides the operational recruit
 - **Purpose**: Day-to-day operational monitoring for TA coordinators
 - **NOT the default**: Leaders see Command Center; Ops is opt-in
 
-### 5.4 Ask ProdDash
+### 5.4 Ask PlatoVue
 
-Ask ProdDash remains accessible via a persistent affordance (floating button or header icon) from any view. It is not a navigation bucket — it's a cross-cutting interface.
+Ask PlatoVue remains accessible via a persistent affordance (floating button or header icon) from any view. It is not a navigation bucket — it's a cross-cutting interface.
 
 ---
 

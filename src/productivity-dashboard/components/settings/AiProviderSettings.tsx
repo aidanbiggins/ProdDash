@@ -201,7 +201,7 @@ export function AiProviderSettings({
     };
 
     // Clear the "cleared" flag since user is saving new config
-    localStorage.removeItem('proddash_ai_cleared');
+    localStorage.removeItem('platovue_ai_cleared');
 
     // Save config immediately so AI works right away
     onSave(config);
@@ -230,7 +230,7 @@ export function AiProviderSettings({
 
   const handleClear = () => {
     // Set the "cleared" flag to prevent auto-restore from vault
-    localStorage.setItem('proddash_ai_cleared', 'true');
+    localStorage.setItem('platovue_ai_cleared', 'true');
 
     // Clear config immediately so AI is disabled right away
     onClear();

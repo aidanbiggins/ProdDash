@@ -27,7 +27,7 @@ export const NAV_STRUCTURE: NavStructure = {
     submenu: null
   },
   'ask': {
-    label: 'Ask ProdDash',
+    label: 'Ask PlatoVue',
     icon: 'bi-chat-dots',
     route: '/ask',
     submenu: null

@@ -39,3 +39,4 @@ CLAUDE_RUNBOOK.md
 TASK_QUEUE.md
 docs/overnight-log.md
 .claude/
+.claude.json

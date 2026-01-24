@@ -1,4 +1,4 @@
-# ProdDash Presentation Visual Assets
+# PlatoVue Presentation Visual Assets
 ## Diagrams, Charts, and Copy-Paste Elements
 
 ---
@@ -52,7 +52,7 @@ flowchart LR
         CT[Control Tower]
         HM[HM Friction]
         DH[Data Health]
-        Ask[Ask ProdDash]
+        Ask[Ask PlatoVue]
         Vel[Velocity]
         FC[Forecast]
     end
@@ -98,7 +98,7 @@ flowchart TD
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         ProdDash Flow                           │
+│                         PlatoVue Flow                           │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │   ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐ │
@@ -257,7 +257,7 @@ Hired           ███  77
 
 ### Before/After
 
-| Before ProdDash | After ProdDash |
+| Before PlatoVue | After PlatoVue |
 |-----------------|----------------|
 | 4-8 hrs/week building reports | 5 min CSV import |
 | Stale weekly snapshots | Real-time risk alerts |
@@ -268,13 +268,13 @@ Hired           ███  77
 
 ### Feature Comparison
 
-| Capability | Spreadsheets | Basic ATS Reports | ProdDash |
+| Capability | Spreadsheets | Basic ATS Reports | PlatoVue |
 |------------|--------------|-------------------|----------|
 | TTF calculation | Manual | Basic | True TTF (excludes zombies) |
 | HM latency tracking | None | None | Full scorecard |
 | Zombie detection | None | None | Automatic |
 | Risk prioritization | None | None | P0/P1/P2 queue |
-| Natural language queries | None | None | Ask ProdDash |
+| Natural language queries | None | None | Ask PlatoVue |
 | Forecasting | Manual | None | Probability-weighted |
 
 ---
@@ -289,7 +289,7 @@ For presentation software, use these icons:
 | HM Friction | People | `bi-people` |
 | Data Health | Database check | `bi-database-check` |
 | AI Copilot | Robot | `bi-robot` |
-| Ask ProdDash | Chat dots | `bi-chat-dots` |
+| Ask PlatoVue | Chat dots | `bi-chat-dots` |
 | Forecasting | Graph up | `bi-graph-up-arrow` |
 | Risk (P0) | Exclamation circle | `bi-exclamation-circle-fill` |
 | Risk (P1) | Exclamation triangle | `bi-exclamation-triangle-fill` |
@@ -346,7 +346,7 @@ background:
 │  "Your TTF looks like 65 days, but 30% of your reqs are     │
 │   zombies. True TTF is actually 41 days."                   │
 │                                                              │
-│                              — ProdDash Data Health Engine   │
+│                              — PlatoVue Data Health Engine   │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```

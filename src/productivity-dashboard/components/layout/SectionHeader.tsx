@@ -3,21 +3,28 @@ import React, { useState } from 'react';
 import './layout.css';
 
 export interface SectionHeaderProps {
-  title: string;
+  /** Title text or ReactNode. If omitted, children string is used as title (backwards compat). */
+  title?: React.ReactNode;
   subtitle?: string;
+  /** Optional badge to display next to title */
+  badge?: React.ReactNode;
   collapsible?: boolean;
   defaultExpanded?: boolean;
   actions?: React.ReactNode;
+  /** When title is provided, children render as collapsible content. When title is omitted, children string is used as the title. */
   children?: React.ReactNode;
+  className?: string;
 }
 
 export function SectionHeader({
   title,
   subtitle,
+  badge,
   collapsible = false,
   defaultExpanded = true,
   actions,
-  children
+  children,
+  className = ''
 }: SectionHeaderProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -27,8 +34,14 @@ export function SectionHeader({
     }
   };
 
+  // If no title prop but children is a string, use children as title (backwards compat)
+  const resolvedTitle = title || (typeof children === 'string' ? children : undefined);
+  const hasContent = title ? children : undefined;
+
+  if (!resolvedTitle) return null;
+
   return (
-    <div className="section-wrapper">
+    <div className={`section-wrapper ${className}`.trim()}>
       <div
         className={`section-header ${collapsible ? 'section-header-collapsible' : ''}`}
         onClick={collapsible ? handleToggle : undefined}
@@ -47,7 +60,8 @@ export function SectionHeader({
             {collapsible && (
               <i className={`bi ${isExpanded ? 'bi-chevron-down' : 'bi-chevron-right'} section-collapse-icon`} />
             )}
-            {title}
+            {resolvedTitle}
+            {badge && <span className="ms-2">{badge}</span>}
           </h2>
           {subtitle && (
             <p className="section-header-subtitle">{subtitle}</p>
@@ -64,9 +78,9 @@ export function SectionHeader({
           </div>
         )}
       </div>
-      {(!collapsible || isExpanded) && children && (
+      {(!collapsible || isExpanded) && hasContent && (
         <div className="section-content">
-          {children}
+          {hasContent}
         </div>
       )}
     </div>

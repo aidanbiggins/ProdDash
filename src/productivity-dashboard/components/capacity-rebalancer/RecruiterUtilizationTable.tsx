@@ -100,7 +100,7 @@ export function RecruiterUtilizationTable({ rows, privacyMode, onRowClick, selec
                             style={{
                                 cursor: 'pointer',
                                 background: selectedRecruiterId === row.recruiterId
-                                    ? 'rgba(6, 182, 212, 0.1)'
+                                    ? 'var(--accent-bg)'
                                     : 'transparent'
                             }}
                             className="hover-highlight"
@@ -156,15 +156,15 @@ export function RecruiterUtilizationTable({ rows, privacyMode, onRowClick, selec
                                     style={{
                                         fontSize: '0.6rem',
                                         background: row.confidence === 'HIGH'
-                                            ? 'rgba(16, 185, 129, 0.15)'
+                                            ? 'var(--color-good-bg)'
                                             : row.confidence === 'MED'
-                                                ? 'rgba(245, 158, 11, 0.15)'
-                                                : 'rgba(148, 163, 184, 0.15)',
+                                                ? 'var(--color-warn-bg)'
+                                                : 'var(--color-bg-overlay)',
                                         color: row.confidence === 'HIGH'
-                                            ? '#10b981'
+                                            ? 'var(--color-good)'
                                             : row.confidence === 'MED'
-                                                ? '#f59e0b'
-                                                : '#94a3b8'
+                                                ? 'var(--color-warn)'
+                                                : 'var(--text-secondary)'
                                     }}
                                 >
                                     {row.confidence}

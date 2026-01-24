@@ -133,7 +133,7 @@ export function CapacityRebalancerTab() {
             <div className="container-fluid py-4">
                 <GlassPanel elevated padding="lg">
                     <div className="text-center py-5">
-                        <i className="bi bi-arrow-left-right text-muted" style={{ fontSize: '3rem' }}></i>
+                        <i className="bi bi-arrow-left-right text-muted empty-state-icon"></i>
                         <h5 className="mt-3">No Data Available</h5>
                         <p className="text-muted">
                             Load data to view capacity rebalancing analysis.
@@ -155,7 +155,7 @@ export function CapacityRebalancerTab() {
                     <h4 className="mb-1" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
                         Capacity Rebalancer
                     </h4>
-                    <p className="text-muted mb-0" style={{ fontSize: '0.875rem' }}>
+                    <p className="text-muted mb-0 small">
                         Identify overloaded recruiters and suggest workload rebalancing
                     </p>
                 </div>
@@ -164,11 +164,11 @@ export function CapacityRebalancerTab() {
                         className="badge rounded-pill"
                         style={{
                             fontSize: '0.7rem',
-                            background: confidence === 'HIGH' ? 'rgba(16, 185, 129, 0.15)' :
-                                confidence === 'MED' ? 'rgba(245, 158, 11, 0.15)' :
-                                    'rgba(239, 68, 68, 0.15)',
-                            color: confidence === 'HIGH' ? '#10b981' :
-                                confidence === 'MED' ? '#f59e0b' : '#ef4444'
+                            background: confidence === 'HIGH' ? 'var(--color-good-bg)' :
+                                confidence === 'MED' ? 'var(--color-warn-bg)' :
+                                    'var(--color-bad-bg)',
+                            color: confidence === 'HIGH' ? 'var(--color-good)' :
+                                confidence === 'MED' ? 'var(--color-warn)' : 'var(--color-bad)'
                         }}
                     >
                         {confidence}
@@ -179,8 +179,8 @@ export function CapacityRebalancerTab() {
             {/* Degraded Mode Banner */}
             {utilizationResult.dataQuality.recruiterIdCoverage < 0.5 && (
                 <div className="alert alert-warning mb-4" style={{
-                    background: 'rgba(245, 158, 11, 0.1)',
-                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    background: 'var(--color-warn-bg)',
+                    border: '1px solid var(--color-warn-border)',
                     borderRadius: '0.5rem'
                 }}>
                     <div className="d-flex align-items-start gap-2">
@@ -227,17 +227,17 @@ export function CapacityRebalancerTab() {
                         <StatLabel>Status</StatLabel>
                         <div className="d-flex flex-wrap gap-2 mt-1">
                             {utilizationResult.summary.criticalCount > 0 && (
-                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.critical, color: '#fff' }}>
+                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.critical, color: 'var(--text-heading)' }}>
                                     {utilizationResult.summary.criticalCount} Critical
                                 </span>
                             )}
                             {utilizationResult.summary.overloadedCount > 0 && (
-                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.overloaded, color: '#fff' }}>
+                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.overloaded, color: 'var(--text-heading)' }}>
                                     {utilizationResult.summary.overloadedCount} Overloaded
                                 </span>
                             )}
                             {utilizationResult.summary.availableCount > 0 && (
-                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.available, color: '#fff' }}>
+                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.available, color: 'var(--text-heading)' }}>
                                     {utilizationResult.summary.availableCount} Available
                                 </span>
                             )}
@@ -281,7 +281,7 @@ export function CapacityRebalancerTab() {
 
                         {isBalanced ? (
                             <div className="text-center py-4">
-                                <i className="bi bi-check-circle text-success" style={{ fontSize: '2rem' }}></i>
+                                <i className="bi bi-check-circle text-success empty-state-icon"></i>
                                 <h6 className="mt-2 text-success">Capacity Balanced</h6>
                                 <p className="text-muted small mb-0">
                                     No recruiters are currently overloaded. All recruiters are operating within capacity.
@@ -289,7 +289,7 @@ export function CapacityRebalancerTab() {
                             </div>
                         ) : suggestions.length === 0 ? (
                             <div className="text-center py-4">
-                                <i className="bi bi-dash-circle text-muted" style={{ fontSize: '2rem' }}></i>
+                                <i className="bi bi-dash-circle text-muted empty-state-icon"></i>
                                 <h6 className="mt-2">No Moves Suggested</h6>
                                 <p className="text-muted small mb-0">
                                     {hedgeMessage}
@@ -314,7 +314,7 @@ export function CapacityRebalancerTab() {
                                     ))}
                                 </div>
 
-                                <div className="d-flex gap-2 mt-4 pt-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                                <div className="d-flex gap-2 mt-4 pt-3 border-top" style={{ borderColor: 'var(--glass-border)' }}>
                                     <button
                                         className="btn btn-primary flex-grow-1"
                                         onClick={() => handleApplyPlan(suggestions)}

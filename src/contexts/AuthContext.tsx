@@ -287,7 +287,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem('dev-auth-bypass');
         localStorage.removeItem(CURRENT_ORG_KEY);
         // Also clear Supabase session storage directly as backup
-        localStorage.removeItem('prod-dash-auth');
+        localStorage.removeItem('plato-vue-auth');
 
         // Clear local state immediately to prevent UI flicker
         setUser(null);

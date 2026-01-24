@@ -970,7 +970,7 @@ describe('handleDeterministicQuery', () => {
 
   it('should return help response for unmatched queries', () => {
     const response = handleDeterministicQuery('random unrelated question', factPack);
-    expect(response.answer_markdown).toContain('Ask ProdDash');
+    expect(response.answer_markdown).toContain('Ask PlatoVue');
     expect(response.answer_markdown).toContain('Try asking');
   });
 

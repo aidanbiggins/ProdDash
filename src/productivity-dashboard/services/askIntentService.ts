@@ -1518,7 +1518,7 @@ export const ALL_HANDLERS: IntentHandler[] = [
  * Generate a help response when no intent matches
  */
 export function generateHelpResponse(fp: AskFactPack): IntentResponse {
-  let md = `## Ask ProdDash\n\n`;
+  let md = `## Ask PlatoVue\n\n`;
   md += `I can help you understand your recruiting data. Try asking:\n\n`;
   md += `- **"What's on fire?"** - Critical issues needing attention\n`;
   md += `- **"Show me risks"** - At-risk requisitions\n`;
@@ -1553,7 +1553,7 @@ export function generateHelpResponse(fp: AskFactPack): IntentResponse {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Handle an Ask ProdDash query (deterministic mode)
+ * Handle an Ask PlatoVue query (deterministic mode)
  */
 export function handleDeterministicQuery(
   query: string,

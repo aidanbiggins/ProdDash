@@ -49,8 +49,8 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
 
     // Determine colors based on accuracy
     const isAccurate = report.accuracy >= 0.7;
-    const accuracyColor = isAccurate ? '#10b981' : '#f59e0b';
-    const biasColor = Math.abs(report.bias) <= 3 ? '#10b981' : report.bias > 0 ? '#ef4444' : '#f59e0b';
+    const accuracyColor = isAccurate ? 'var(--color-good)' : 'var(--color-warn)';
+    const biasColor = Math.abs(report.bias) <= 3 ? 'var(--color-good)' : report.bias > 0 ? 'var(--color-bad)' : 'var(--color-warn)';
 
     return (
         <div className={`card-bespoke p-3 ${className || ''}`}>
@@ -59,7 +59,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
                 <span
                     className="badge rounded-pill"
                     style={{
-                        background: 'rgba(100, 116, 139, 0.15)',
+                        background: 'var(--color-neutral-bg)',
                         color: 'var(--text-secondary)',
                         fontSize: '0.6rem'
                     }}
@@ -75,7 +75,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
                 <div style={{
                     width: '1px',
                     height: '2rem',
-                    background: 'rgba(255, 255, 255, 0.1)'
+                    background: 'var(--glass-border)'
                 }}></div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', lineHeight: 1.3 }}>
                     of recent forecasts<br />were accurate
@@ -84,7 +84,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
 
             <div
                 style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
+                    background: 'var(--color-bg-overlay)',
                     borderRadius: 'var(--radius-sm)',
                     padding: '0.75rem',
                     fontSize: '0.7rem'
@@ -112,11 +112,11 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
                     style={{
                         marginTop: '0.75rem',
                         padding: '0.5rem 0.75rem',
-                        background: 'rgba(245, 158, 11, 0.1)',
+                        background: 'var(--color-warn-bg)',
                         borderRadius: 'var(--radius-sm)',
-                        borderLeft: '3px solid #f59e0b',
+                        borderLeft: '3px solid var(--color-warn)',
                         fontSize: '0.7rem',
-                        color: '#f59e0b'
+                        color: 'var(--color-warn)'
                     }}
                 >
                     <i className="bi bi-exclamation-triangle me-1"></i>

@@ -6,7 +6,7 @@ This plan defines a system for computing **true dwell time, regressions, and SLA
 
 ### Problem Statement
 
-Currently, ProdDash relies on:
+Currently, PlatoVue relies on:
 1. **Current-state timestamps** (`current_stage_entered_at`) which only tell us when a candidate entered their *current* stage
 2. **Inferred events** from explicit timestamp columns (e.g., `Date First Interviewed: Phone Screen`)
 

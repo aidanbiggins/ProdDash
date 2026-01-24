@@ -7,7 +7,7 @@
 :root {
   /* Layout dimensions */
   --page-max-width: 1600px;
-  --header-height: 56px;
+  --header-height: 52px;
   --mobile-drawer-width: 280px;
 
   /* Z-index layers */
@@ -87,12 +87,12 @@
 
 .page-header-title {
   font-family: var(--font-heading);
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  color: var(--text-heading);
+  font-size: 1.375rem;
+  font-weight: var(--font-semibold);
+  color: #f8fafc;
   margin: 0;
   line-height: var(--leading-tight);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: -0.025em;
 }
 
 .page-header-description {
@@ -127,9 +127,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   padding-bottom: var(--space-2);
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .section-header-collapsible {
@@ -156,13 +156,14 @@
 
 .section-header-title {
   font-family: var(--font-heading);
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #e2e8f0;
   margin: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  letter-spacing: -0.01em;
 }
 
 .section-collapse-icon {
@@ -198,12 +199,12 @@
 
 /* GlassPanel - Per Plan Section 2.2 */
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--glass-shadow);
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Padding variants */
@@ -216,33 +217,35 @@
 }
 
 .glass-panel-lg {
-  padding: var(--space-6);
+  padding: var(--space-5, 1.25rem);
 }
 
 /* Elevated variant */
 .glass-panel-elevated,
 .glass-panel.elevated {
-  background: var(--glass-bg-elevated);
-  box-shadow: var(--glass-shadow-elevated);
+  background: rgba(30, 41, 59, 0.65);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Interactive glass panel */
 .glass-panel.interactive,
 .glass-panel[role="button"] {
   cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 }
 
 .glass-panel.interactive:hover,
 .glass-panel[role="button"]:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--glass-border-strong);
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
 }
 
 .glass-panel.interactive:focus-visible,
 .glass-panel[role="button"]:focus-visible {
   outline: none;
-  box-shadow: var(--glass-glow-focus);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.3);
 }
 
 /* EmptyState - Per Plan Section 2.2 */

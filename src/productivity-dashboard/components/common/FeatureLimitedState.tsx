@@ -28,25 +28,25 @@ export function FeatureLimitedState({
     <div className="feature-limited-banner" style={{
       padding: '0.5rem 0.75rem',
       borderRadius: '3px',
-      border: '1px solid rgba(234, 179, 8, 0.3)',
-      backgroundColor: 'rgba(234, 179, 8, 0.05)',
+      border: '1px solid var(--color-warn-bg)',
+      backgroundColor: 'var(--color-warn-bg)',
       marginBottom: '0.75rem',
       display: 'flex',
       alignItems: 'flex-start',
       gap: '0.5rem',
     }}>
-      <i className="bi bi-exclamation-triangle-fill" style={{ color: '#eab308', fontSize: '0.875rem', flexShrink: 0, marginTop: '0.1rem' }}></i>
+      <i className="bi bi-exclamation-triangle-fill" style={{ color: 'var(--color-warn)', fontSize: '0.875rem', flexShrink: 0, marginTop: '0.1rem' }}></i>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ color: '#e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
+        <span style={{ color: 'var(--text-heading)', fontSize: '0.8rem', fontWeight: 600 }}>
           {name}: Partial data
         </span>
         {limitedReasons.length > 0 && (
-          <span style={{ color: '#94a3b8', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginLeft: '0.5rem' }}>
             — {limitedReasons[0]}
           </span>
         )}
         {repairs.length > 0 && (
-          <span style={{ color: '#64748b', fontSize: '0.75rem', display: 'block', marginTop: '0.125rem' }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '0.125rem' }}>
             Fix: {repairs[0].ui_copy.short_title}
           </span>
         )}
@@ -58,7 +58,7 @@ export function FeatureLimitedState({
           style={{
             background: 'none',
             border: 'none',
-            color: '#64748b',
+            color: 'var(--text-muted)',
             cursor: 'pointer',
             fontSize: '1rem',
             padding: 0,

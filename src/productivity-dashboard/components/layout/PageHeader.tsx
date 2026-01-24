@@ -11,11 +11,14 @@ export interface Breadcrumb {
 export interface PageHeaderProps {
   title: string;
   description?: string;
+  /** Alias for description (backwards compat) */
+  subtitle?: string;
   actions?: React.ReactNode;
   breadcrumbs?: Breadcrumb[];
 }
 
-export function PageHeader({ title, description, actions, breadcrumbs }: PageHeaderProps) {
+export function PageHeader({ title, description, subtitle, actions, breadcrumbs }: PageHeaderProps) {
+  const desc = description || subtitle;
   // Only show parent breadcrumbs (exclude the last one since title already shows current page)
   const parentBreadcrumbs = breadcrumbs && breadcrumbs.length > 1
     ? breadcrumbs.slice(0, -1)
@@ -49,8 +52,8 @@ export function PageHeader({ title, description, actions, breadcrumbs }: PageHea
               </div>
             )}
           </div>
-          {description && (
-            <p className="page-header-description">{description}</p>
+          {desc && (
+            <p className="page-header-description">{desc}</p>
           )}
         </div>
       </div>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This plan defines a Bring-Your-Own-Key (BYOK) architecture for integrating multiple AI providers into ProdDash. Users can connect their own API keys to enable AI-powered features (e.g., Pre-Mortem analysis, recommendations) without ProdDash storing or managing API keys server-side.
+This plan defines a Bring-Your-Own-Key (BYOK) architecture for integrating multiple AI providers into PlatoVue. Users can connect their own API keys to enable AI-powered features (e.g., Pre-Mortem analysis, recommendations) without PlatoVue storing or managing API keys server-side.
 
 ## 1. Internal Contracts
 
@@ -215,7 +215,7 @@ interface AiKeyStore {
 }
 
 // Storage implementation
-const AI_KEY_STORAGE_KEY = 'proddash_ai_keys';
+const AI_KEY_STORAGE_KEY = 'platovue_ai_keys';
 
 function storeKey(config: AiKeyStore): void {
   const existing = getStoredKeys();
@@ -791,7 +791,7 @@ describe('AI Service', () => {
       });
 
       // Set up session key
-      sessionStorage.setItem('proddash_ai_keys', JSON.stringify({
+      sessionStorage.setItem('platovue_ai_keys', JSON.stringify({
         openai: { provider: 'openai', apiKey: 'test-key' }
       }));
 

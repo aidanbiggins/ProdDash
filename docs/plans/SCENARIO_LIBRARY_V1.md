@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Scenario Library provides deterministic "What happens if…" recruiting scenario planning that builds on existing ProdDash modules (Forecasting, Capacity/Fit, Velocity, Action Queue). It enables exec-grade decision support with full explainability and optional BYOK AI narration.
+The Scenario Library provides deterministic "What happens if…" recruiting scenario planning that builds on existing PlatoVue modules (Forecasting, Capacity/Fit, Velocity, Action Queue). It enables exec-grade decision support with full explainability and optional BYOK AI narration.
 
 **Design Principles:**
 - **Deterministic engine is source of truth** — AI never computes metrics or invents numbers
@@ -1566,7 +1566,7 @@ interface ScenarioNarrationInput {
 ### 5.4 System Prompt
 
 ```typescript
-const SCENARIO_NARRATION_PROMPT = `You are an executive communication assistant for ProdDash, a recruiting analytics platform. Your task is to narrate scenario planning results for executive stakeholders.
+const SCENARIO_NARRATION_PROMPT = `You are an executive communication assistant for PlatoVue, a recruiting analytics platform. Your task is to narrate scenario planning results for executive stakeholders.
 
 ## CRITICAL RULES
 

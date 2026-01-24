@@ -1,5 +1,5 @@
 // Ask Action Service
-// Create actions from Ask ProdDash suggestions with deduplication and evidence attachment
+// Create actions from Ask PlatoVue suggestions with deduplication and evidence attachment
 
 import { ActionItem, ActionPriority, ActionOwnerType, ActionType, ActionEvidence, generateActionId } from '../types/actionTypes';
 import { AskFactPack, FactCitation } from '../types/askTypes';
@@ -99,7 +99,7 @@ export function checkActionDuplicate(
 // ─────────────────────────────────────────────────────────────
 
 /**
- * Create a new action from an Ask ProdDash suggestion
+ * Create a new action from an Ask PlatoVue suggestion
  * Includes evidence from the citations
  */
 export function createActionFromSuggestion(
@@ -272,7 +272,7 @@ export function extractActionFromCitation(
 
         return {
           title: action.title,
-          description: `Action from Ask ProdDash: ${action.title}`,
+          description: `Action from Ask PlatoVue: ${action.title}`,
           ownerType: action.owner_type,
           ownerId: realOwnerId,
           ownerName: action.owner_label,

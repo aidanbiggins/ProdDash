@@ -43,10 +43,10 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
         <div
             className="card-bespoke p-3"
             style={{
-                background: isApplied ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                background: isApplied ? 'var(--color-good-bg)' : 'var(--color-bg-overlay)',
                 border: isApplied
-                    ? '1px solid rgba(16, 185, 129, 0.3)'
-                    : '1px solid rgba(255, 255, 255, 0.08)',
+                    ? '1px solid var(--color-good-border)'
+                    : '1px solid var(--glass-border)',
                 borderRadius: '0.5rem'
             }}
         >
@@ -81,15 +81,15 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
                         style={{
                             fontSize: '0.6rem',
                             background: confidence === 'HIGH'
-                                ? 'rgba(16, 185, 129, 0.15)'
+                                ? 'var(--color-good-bg)'
                                 : confidence === 'MED'
-                                    ? 'rgba(245, 158, 11, 0.15)'
-                                    : 'rgba(148, 163, 184, 0.15)',
+                                    ? 'var(--color-warn-bg)'
+                                    : 'var(--color-bg-overlay)',
                             color: confidence === 'HIGH'
-                                ? '#10b981'
+                                ? 'var(--color-good)'
                                 : confidence === 'MED'
-                                    ? '#f59e0b'
-                                    : '#94a3b8'
+                                    ? 'var(--color-warn)'
+                                    : 'var(--text-secondary)'
                         }}
                     >
                         {confidence}
@@ -133,7 +133,7 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
                             <td style={{
                                 textAlign: 'center',
                                 fontFamily: 'var(--font-mono)',
-                                color: '#10b981'
+                                color: 'var(--color-good)'
                             }}>
                                 -{sourceRelief}% <i className="bi bi-arrow-down"></i>
                             </td>
@@ -157,7 +157,7 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
                             <td style={{
                                 textAlign: 'center',
                                 fontFamily: 'var(--font-mono)',
-                                color: '#f59e0b'
+                                color: 'var(--color-warn)'
                             }}>
                                 +{targetImpact}% <i className="bi bi-arrow-up"></i>
                             </td>
@@ -169,7 +169,7 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
                                 <td style={{
                                     textAlign: 'center',
                                     fontFamily: 'var(--font-mono)',
-                                    color: '#10b981',
+                                    color: 'var(--color-good)',
                                     fontWeight: 600
                                 }}>
                                     -{estimatedImpact.delayReductionDays.toFixed(1)}d

@@ -1,5 +1,5 @@
 // Ask Fact Pack Service
-// Builds the deterministic Fact Pack for Ask ProdDash from dashboard state
+// Builds the deterministic Fact Pack for Ask PlatoVue from dashboard state
 
 import {
   AskFactPack,

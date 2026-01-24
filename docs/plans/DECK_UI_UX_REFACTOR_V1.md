@@ -1,6 +1,6 @@
 # DECK_UI_UX_REFACTOR_V1
 
-## ProdDash Design Language Specification & Refactor Plan
+## PlatoVue Design Language Specification & Refactor Plan
 
 **Version:** 1.0
 **Status:** Planning
@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-This document defines a unified, production-ready design language for ProdDash inspired by the deck aesthetic (dark cockpit + glass panels + teal accent), but optimized for daily use: minimal glow, high readability, consistent spacing, and centralized UI primitives.
+This document defines a unified, production-ready design language for PlatoVue inspired by the deck aesthetic (dark cockpit + glass panels + teal accent), but optimized for daily use: minimal glow, high readability, consistent spacing, and centralized UI primitives.
 
 ### Goals
 1. Eliminate visual drift across pages
@@ -631,16 +631,16 @@ className="text-good"
 - [ ] Standardize all KPIs to use KPICard primitive
 - [ ] Add PageHeader with proper title/description
 
-### 3.2 Ask ProdDash (`/ask`)
+### 3.2 Ask PlatoVue (`/ask`)
 **Current Issues:**
-- [ ] Custom CSS file (`ask-proddash.css`) with unique styling
+- [ ] Custom CSS file (`ask-platovue.css`) with unique styling
 - [ ] Chat-style layout doesn't use GlassPanel
 - [ ] Typography uses custom sizing
 - [ ] No PageHeader
 
 **Required Changes:**
 - [ ] Wrap response cards in GlassPanel
-- [ ] Add PageHeader with "Ask ProdDash" title
+- [ ] Add PageHeader with "Ask PlatoVue" title
 - [ ] Consolidate custom CSS into theme or primitives
 - [ ] Ensure StatValue used for metrics in responses
 
@@ -952,7 +952,7 @@ Before marking refactor complete:
 ### Phase 3: Route Migration (Week 2-4)
 Priority order (by usage/visibility):
 1. Control Tower
-2. Ask ProdDash
+2. Ask PlatoVue
 3. Velocity Insights
 4. Scenario Library
 5. Source Effectiveness
@@ -1029,7 +1029,7 @@ Priority order (by usage/visibility):
 - `src/productivity-dashboard/components/layout/layout.css` - Primitives
 
 ### CSS Files to Consolidate/Remove
-- `src/productivity-dashboard/components/ask-proddash/ask-proddash.css`
+- `src/productivity-dashboard/components/ask-platovue/ask-platovue.css`
 - `src/productivity-dashboard/components/scenarios/scenario-library.css`
 
 ### Component Files to Update

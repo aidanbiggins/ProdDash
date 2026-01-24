@@ -25,7 +25,7 @@ import { ControlTowerTab } from './control-tower';
 import { CommandCenterView } from './command-center';
 import { CapacityTab } from './capacity/CapacityTab';
 import { CapacityRebalancerTab } from './capacity-rebalancer/CapacityRebalancerTab';
-import { AskProdDashTab } from './ask-proddash';
+import { AskPlatoVueTab } from './ask-platovue';
 import ScenarioLibraryTab from './scenarios/ScenarioLibraryTab';
 import { exportAllRawData, calculateSourceEffectiveness, normalizeEventStages, calculateVelocityMetrics } from '../services';
 import { ClearProgress } from '../services/dbService';
@@ -90,7 +90,7 @@ export function ProductivityDashboard() {
   // Shared manual actions state - persisted to localStorage
   const [manualActions, setManualActions] = useState<ActionItem[]>(() => {
     try {
-      const stored = localStorage.getItem('proddash_manual_actions');
+      const stored = localStorage.getItem('platovue_manual_actions');
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -100,13 +100,13 @@ export function ProductivityDashboard() {
   // Persist manual actions to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('proddash_manual_actions', JSON.stringify(manualActions));
+      localStorage.setItem('platovue_manual_actions', JSON.stringify(manualActions));
     } catch (e) {
       console.warn('Failed to persist manual actions:', e);
     }
   }, [manualActions]);
 
-  // Handler to add manual actions (from Ask ProdDash)
+  // Handler to add manual actions (from Ask PlatoVue)
   const handleAddManualActions = useCallback((actions: ActionItem[]) => {
     setManualActions(prev => {
       const existingIds = new Set(prev.map(a => a.action_id));
@@ -129,13 +129,13 @@ export function ProductivityDashboard() {
   useEffect(() => {
     if (aiKeysLoaded && !keyState.isLoading && !aiConfig) {
       // Check if user has explicitly cleared the config (don't restore)
-      const wasCleared = localStorage.getItem('proddash_ai_cleared') === 'true';
+      const wasCleared = localStorage.getItem('platovue_ai_cleared') === 'true';
       if (wasCleared) {
         return; // User cleared config, don't auto-restore
       }
 
       // Check if user has explicitly disabled AI mode
-      const storedAiEnabled = localStorage.getItem('proddash_ai_enabled');
+      const storedAiEnabled = localStorage.getItem('platovue_ai_enabled');
       const aiEnabled = storedAiEnabled === null ? true : storedAiEnabled === 'true';
 
       // Try to get the effective key for default provider (openai)
@@ -892,10 +892,10 @@ export function ProductivityDashboard() {
                 )
               )}
 
-              {/* Ask ProdDash Tab */}
+              {/* Ask PlatoVue Tab */}
               {activeTab === 'ask' && (
                 state.loadingState.hasOverviewMetrics && state.overview ? (
-                  <AskProdDashTab
+                  <AskPlatoVueTab
                     requisitions={state.dataStore.requisitions}
                     candidates={state.dataStore.candidates}
                     events={state.dataStore.events}
@@ -1174,7 +1174,7 @@ export function ProductivityDashboard() {
           canSetOrgKey={canManageMembers}
           onAiEnabledChange={(enabled) => {
             // Persist AI enabled preference to localStorage
-            localStorage.setItem('proddash_ai_enabled', String(enabled));
+            localStorage.setItem('platovue_ai_enabled', String(enabled));
             // Also update the current config if it exists
             if (aiConfig) {
               setAiConfig({ ...aiConfig, aiEnabled: enabled });

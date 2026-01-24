@@ -1,4 +1,4 @@
-// Ask Blocked State - Displayed when Ask ProdDash is blocked due to missing data
+// Ask Blocked State - Displayed when Ask PlatoVue is blocked due to missing data
 import React from 'react';
 import { CoverageIssue } from '../../services/askCoverageGateService';
 
@@ -15,10 +15,10 @@ export function AskBlockedState({ issues, onNavigateToTab }: AskBlockedStateProp
           <i className="bi bi-exclamation-triangle-fill" />
         </div>
 
-        <div className="ask-blocked-title section-header-title">Ask ProdDash Requires More Data</div>
+        <div className="ask-blocked-title section-header-title">Ask PlatoVue Requires More Data</div>
 
         <p className="ask-blocked-description">
-          To enable intelligent insights, Ask ProdDash needs the following data to be available:
+          To enable intelligent insights, Ask PlatoVue needs the following data to be available:
         </p>
 
         <div className="ask-blocked-issues">
@@ -49,7 +49,7 @@ export function AskBlockedState({ issues, onNavigateToTab }: AskBlockedStateProp
 
         <div className="ask-blocked-help">
           <p>
-            <strong>Why is this required?</strong> Ask ProdDash uses deterministic analytics
+            <strong>Why is this required?</strong> Ask PlatoVue uses deterministic analytics
             to answer questions about your recruiting data. Without recruiter and hiring manager
             assignments, it cannot provide accurate insights about team performance and ownership.
           </p>

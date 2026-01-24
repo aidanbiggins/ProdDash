@@ -1,320 +1,268 @@
-# UI_INVENTORY.md - Exhaustive UI Element Inventory
+# UI_INVENTORY.md - Complete UI Element Inventory
 
-**Version:** 1.0
-**Status:** ✅ Complete
-**Created:** 2026-01-18
-**Updated:** 2026-01-18
-
----
-
-## Purpose
-
-This document provides an exhaustive inventory of every UI element in ProdDash to ensure 100% design system compliance during the DECK_UI_UX_REFACTOR_V1_BUILD_EXHAUSTIVE implementation.
-
-**Legend:**
-- [ ] Not started
-- [~] In progress
-- [x] Completed and verified
+**Version:** 2.0
+**Status:** Complete
+**Created:** 2026-01-23
+**Purpose:** Exhaustive inventory of every route, tab, page, component, drawer, modal, and state in PlatoVue for UI_REFRESH_V0_LANGUAGE_SYSTEM_V1.
 
 ---
 
-## 1. Routes & Views Inventory
+## Routes & Navigation Structure
 
-### 1.1 Control Tower Bucket
+### Public Routes
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/` (unauth) | `LandingPage` | Marketing landing page |
+| `/login` | `Login` | Authentication page |
+| `/about` | `AboutPage` | About page |
+| `/invite/:token` | `InviteAcceptPage` | Invite acceptance flow |
+| `/onboarding` | `OnboardingPage` | Post-sign-in org selection |
 
-| Route | Component | Status | Notes |
-|-------|-----------|--------|-------|
-| `/` | ControlTowerTab | [x] | Default landing page - uses themed cards |
-| `/control-tower` | ControlTowerTab | [x] | Alias - same as above |
-| `/ask` | AskProdDashTab | [x] | Conversational interface - themed glass panels |
-
-### 1.2 Diagnose Bucket
-
-| Route | Component | Status | Notes |
-|-------|-----------|--------|-------|
-| `/diagnose/overview` | OverviewTab | [x] | KPIs, trends - uses KPICard + card-bespoke |
-| `/diagnose/recruiter` | RecruiterDetailTab | [x] | Individual performance - themed |
-| `/diagnose/hm-friction` | HMFrictionTab | [x] | HM latency - glass panels + chart colors |
-| `/diagnose/hiring-managers` | HiringManagersTab | [x] | HM scorecard - card-bespoke themed |
-| `/diagnose/bottlenecks` | BottlenecksTab | [x] | SLA breaches - themed table + badges |
-| `/diagnose/quality` | QualityTab | [x] | Quality metrics - chart palette |
-| `/diagnose/sources` | SourceEffectivenessTab | [x] | Channel ROI - semantic colors |
-| `/diagnose/velocity` | VelocityInsightsTab | [x] | Decay analysis - themed charts |
-
-### 1.3 Plan Bucket
-
-| Route | Component | Status | Notes |
-|-------|-----------|--------|-------|
-| `/plan/capacity` | CapacityTab | [x] | Fit matrix - card-bespoke + semantic colors |
-| `/plan/forecast` | ForecastingTab | [x] | Role forecasting - themed panels |
-| `/plan/scenarios` | ScenarioLibraryTab | [x] | What-if - glass panels |
-
-### 1.4 Settings Bucket
-
-| Route | Component | Status | Notes |
-|-------|-----------|--------|-------|
-| `/settings/data-health` | DataHealthTab | [x] | Data hygiene - card-bespoke + badges |
-| `/settings/sla` | SlaSettingsTab | [x] | SLA config - form controls themed |
-| `/settings/ai` | AiSettingsTab | [x] | AI provider - modal themed |
-| `/settings/org` | OrgSettingsTab | [x] | Organization - member table themed |
+### Authenticated Routes (Dashboard)
+| Route | Tab Type | Component | Bucket |
+|-------|----------|-----------|--------|
+| `/` | `command-center` | `CommandCenterView` | control-tower |
+| `/command-center` | `command-center` | `CommandCenterView` | control-tower |
+| `/ops` | `control-tower` | `ControlTowerTab` | control-tower |
+| `/ask` | `ask` | `AskPlatoVueTab` | control-tower |
+| `/diagnose/overview` | `overview` | `OverviewTab` | diagnose |
+| `/diagnose/recruiter` | `recruiter` | `RecruiterDetailTab` | diagnose |
+| `/diagnose/hm-friction` | `hm-friction` | `HMFrictionTab` | diagnose |
+| `/diagnose/hiring-managers` | `hiring-managers` | `HiringManagersTab` | diagnose |
+| `/diagnose/bottlenecks` | `bottlenecks` | `BottlenecksTab` | diagnose |
+| `/diagnose/quality` | `quality` | `QualityTab` | diagnose |
+| `/diagnose/sources` | `source-mix` | `SourceEffectivenessTab` | diagnose |
+| `/diagnose/velocity` | `velocity` | `VelocityInsightsTab` | diagnose |
+| `/plan/capacity` | `capacity` | `CapacityTab` | plan |
+| `/plan/rebalancer` | `capacity-rebalancer` | `CapacityRebalancerTab` | plan |
+| `/plan/forecast` | `forecasting` | `ForecastingTab` | plan |
+| `/plan/scenarios` | `scenarios` | `ScenarioLibraryTab` | plan |
+| `/settings/data-health` | `data-health` | `DataHealthTab` | settings |
+| `/settings/sla` | `sla-settings` | `SlaSettingsTab` | settings |
+| `/settings/ai` | `ai-settings` | `AiSettingsTab` | settings |
+| `/settings/org` | `org-settings` | `OrgSettingsTab` | settings |
 
 ---
 
-## 2. Overlay Components Inventory
+## Tab Components (19 Total)
 
-### 2.1 Drawers (Slide-over Panels)
+### Control Tower Bucket
+1. **CommandCenterView** (`command-center/CommandCenterView.tsx`)
+   - Sub-components: AttentionSection, AttentionSummaryTiles, RiskSection, BottleneckSection, OnTrackSection, ChangesSection, WhatIfSection, TopPriorityRibbon, CCVisualPrimitives
+   - Drawers: AttentionDrilldownDrawer
+   - States: Loading (skeleton), No data (EmptyState)
 
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| ExplainDrawer | `common/ExplainDrawer.tsx` | glass-drawer | [x] | Dark theme with blur backdrop |
-| ActionDetailDrawer | `common/ActionDetailDrawer.tsx` | glass-drawer | [x] | Dark theme |
-| HelpDrawer | `common/HelpDrawer.tsx` | glass-drawer | [x] | Dark theme |
-| PreMortemDrawer | `common/PreMortemDrawer.tsx` | glass-drawer | [x] | Risk analysis |
-| HMDetailDrawer | `hm-friction/HMDetailDrawer.tsx` | glass-drawer | [x] | HM details |
-| ReqDrilldownDrawer | `bottlenecks/ReqDrilldownDrawer.tsx` | glass-drawer | [x] | Req details |
-| FitExplainDrawer | `capacity/FitExplainDrawer.tsx` | Themed | [x] | Fit analysis |
-| OverloadExplainDrawer | `capacity/OverloadExplainDrawer.tsx` | Themed | [x] | Overload explanation |
-| CitationsDrawer | `scenarios/output/CitationsDrawer.tsx` | glass-drawer | [x] | Citations list |
-| MobileDrawer | `navigation/MobileDrawer.tsx` | mobile-drawer | [x] | Mobile navigation |
+2. **ControlTowerTab** (`control-tower/ControlTowerTab.tsx`)
+   - Sub-components: Health KPIs, Risk list, Action queue, Forecast panel
+   - States: Loading, No data
 
-### 2.2 Modals
+3. **AskPlatoVueTab** (`ask-platovue/AskPlatoVueTab.tsx`)
+   - Sub-components: AskMainPanel, AskLeftRail
+   - States: AskBlockedState (no AI key), Loading, Empty conversation
 
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| DataDrillDownModal | `common/DataDrillDownModal.tsx` | CSS themed | [x] | Dark modal-content |
-| ClearDataConfirmationModal | `common/ClearDataConfirmationModal.tsx` | danger-styled | [x] | Danger variant |
-| ImportProgressModal | `common/ImportProgressModal.tsx` | custom dark | [x] | Import progress |
-| PIIWarningModal | `common/PIIWarningModal.tsx` | CSS themed | [x] | Privacy warning |
-| StageMappingModal | `StageMappingModal.tsx` | CSS themed | [x] | Stage mapping |
-| BenchmarkConfigModal | `pipeline-health/BenchmarkConfigModal.tsx` | CSS themed | [x] | Benchmark config |
-| CreateOrgModal | `OrgSwitcher.tsx` | CSS themed | [x] | Org creation |
+### Diagnose Bucket
+4. **OverviewTab** (`overview/OverviewTab.tsx`)
+   - States: No data, Loading
 
-### 2.3 Dropdowns
+5. **RecruiterDetailTab** (`recruiter-detail/RecruiterDetailTab.tsx`)
+   - States: No recruiter selected, Loading
 
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| OrgSwitcher | `OrgSwitcher.tsx` | CSS themed | [x] | dropdown-menu dark |
-| NavDropdown | `navigation/NavDropdown.tsx` | CSS themed | [x] | Navigation dropdown |
-| MultiSelect | `common/MultiSelect.tsx` | CSS themed | [x] | Multi-select dropdown |
-| FilterBar dropdowns | `common/FilterBar.tsx` | CSS themed | [x] | Filter dropdowns |
+6. **HMFrictionTab** (`hm-friction/HMFrictionTab.tsx`)
+   - Drawers: HMDetailDrawer
+   - States: No data, Loading
 
-### 2.4 Alerts/Banners
+7. **HiringManagersTab** (`hiring-managers/HiringManagersTab.tsx`)
+   - Sub-components: HMScorecard, HMOverview, HMActionQueue, HMForecastsTab, StallReasonBadge
+   - States: No data, Loading
 
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| CoverageBanner | `bottlenecks/CoverageBanner.tsx` | custom | [x] | SLA coverage |
-| LimitedDataBanner | `velocity-insights/VelocityInsightsTab.tsx` | alert class | [x] | Insufficient data |
-| VaultLockedBanner | `settings/AiProviderSettings.tsx` | custom | [x] | Vault locked |
-| InfoAlert (SLA) | `settings/SlaSettingsTab.tsx` | alert class | [x] | Information |
-| ErrorAlert (Org) | `settings/OrgSettingsTab.tsx` | alert-danger | [x] | Error feedback |
-| SuccessAlert (Org) | `settings/OrgSettingsTab.tsx` | alert-success | [x] | Success feedback |
-| SuperAdminAlerts | `SuperAdminPanel.tsx` | alert classes | [x] | Admin ops |
-| CSVUploadAlerts | `CSVUpload.tsx` | alert-warning/info | [x] | Import guidance |
+8. **BottlenecksTab** (`bottlenecks/BottlenecksTab.tsx`)
+   - Sub-components: BottleneckStagesPanel, BreachTable, OwnerLeaderboard, CoverageBanner
+   - Drawers: ReqDrilldownDrawer
+   - States: No SLA data, No coverage, Loading
 
-### 2.5 Tooltips (Native HTML title attributes)
+9. **QualityTab** (`quality/QualityTab.tsx`)
+   - States: No data, Loading
 
-| Location | Usage | Status | Notes |
-|----------|-------|--------|-------|
-| RecruiterDetailTab | Stalled indicator | [x] | Native title (warning logged) |
-| DataHealthTab | Truncated text | [x] | Native title (warning logged) |
-| AskMainPanel | Various | [x] | Native title (warning logged) |
-| VelocityInsightsTab | Sample size | [x] | Native title (warning logged) |
-| HMDetailDrawer | Stage breakdown | [x] | Native title (warning logged) |
-| ReqDrilldownDrawer | Stage names | [x] | Native title (warning logged) |
+10. **SourceEffectivenessTab** (`source-effectiveness/SourceEffectivenessTab.tsx`)
+    - States: No source data, Loading
 
-**Note:** 115 native title attributes logged as warnings. These work with browser default tooltips. A themed Tooltip component could be added in a future iteration.
+11. **VelocityInsightsTab** (`velocity-insights/VelocityInsightsTab.tsx`)
+    - Sub-components: MiniCharts, VelocityCopilotPanel, WhatIfSimulatorPanel
+    - States: Insufficient data (LimitedDataBanner), No stage timing, Loading
 
----
+### Plan Bucket
+12. **CapacityTab** (`capacity/CapacityTab.tsx`)
+    - Sub-components: FitMatrix, RecruiterLoadTable, TeamCapacitySummary, RebalanceRecommendations
+    - Drawers: FitExplainDrawer, OverloadExplainDrawer
+    - States: No data, Loading
 
-## 3. Interactive Elements Inventory
+13. **CapacityRebalancerTab** (`capacity-rebalancer/CapacityRebalancerTab.tsx`)
+    - Sub-components: RecruiterUtilizationTable, SuggestedMoveCard
+    - Drawers: RecruiterWorkloadDrawer, MoveDetailDrawer
+    - States: No data, Loading
 
-### 3.1 Buttons
+14. **ForecastingTab** (`forecasting/ForecastingTab.tsx`)
+    - Sub-components: OracleBackside, OracleConfidenceWidget, DistributionChart, CalibrationCard
+    - Drawers: ReqHealthDrawer
+    - States: Insufficient data, Loading
 
-| Type | Classes | Themed | Status | Notes |
-|------|---------|--------|--------|-------|
-| Primary | `.btn.btn-primary` | accent color | [x] | Uses --accent |
-| Secondary | `.btn.btn-secondary` | glass bg | [x] | Dark theme |
-| Outline Primary | `.btn.btn-outline-primary` | themed | [x] | Border accent |
-| Outline Secondary | `.btn.btn-outline-secondary` | themed | [x] | Dark border |
-| Outline Danger | `.btn.btn-outline-danger` | themed | [x] | Danger color |
-| Link | `.btn.btn-link` | accent text | [x] | Uses --accent |
-| Icon Button | `.btn.p-0` | themed | [x] | Inherits |
-| Bespoke Secondary | `.btn-bespoke-secondary` | themed | [x] | Custom variant |
+15. **ScenarioLibraryTab** (`scenarios/ScenarioLibraryTab.tsx`)
+    - Sub-components: ScenarioSelector, SpinUpTeamForm, HiringFreezeForm, RecruiterLeavesForm
+    - Output: ScenarioOutputPanel, DeltasCard, FeasibilityBadge, ConfidenceCard, BottlenecksCard, ActionPlanCard
+    - Drawers: CitationsDrawer
+    - Actions: GenerateActionPlanButton, ExplainForExecsButton
+    - States: No scenario selected, Loading
 
-### 3.2 Badges/Chips
+### Settings Bucket
+16. **DataHealthTab** (`data-health/DataHealthTab.tsx`)
+    - States: No data imported, Loading
 
-| Type | Classes | Themed | Status | Notes |
-|------|---------|--------|--------|-------|
-| Bootstrap bg-* | `.badge.bg-*` | themed | [x] | Dark backgrounds |
-| Bespoke | `.badge-bespoke` | themed | [x] | Glass styling |
-| Success-soft | `.badge-success-soft` | themed | [x] | Semantic color |
-| Warning-soft | `.badge-warning-soft` | themed | [x] | Semantic color |
-| Danger-soft | `.badge-danger-soft` | themed | [x] | Semantic color |
-| DavosBadge | Component | themed | [x] | Centralized |
-| ConfidenceBadge | Component | themed | [x] | Centralized |
-| DataHealthBadge | Component | themed | [x] | Centralized |
+17. **SlaSettingsTab** (`settings/SlaSettingsTab.tsx`)
+    - States: No SLAs configured, Loading
 
-### 3.3 Form Controls
+18. **AiSettingsTab** (`settings/AiSettingsTab.tsx`)
+    - Sub-components: AiProviderSettings modal
+    - States: No key configured, Vault locked
 
-| Type | Classes | Themed | Status | Notes |
-|------|---------|--------|--------|-------|
-| Text Input | `.form-control` | CSS themed | [x] | Dark background |
-| Select | `.form-select` | CSS themed | [x] | Dark background |
-| Checkbox | `.form-check-input` | CSS themed | [x] | Accent color |
-| Radio | `.form-check-input` | CSS themed | [x] | Accent color |
-| DateRangePicker | Component | themed | [x] | Custom styling |
-| MultiSelect | Component | themed | [x] | Glass dropdown |
-
-### 3.4 Tables
-
-| Type | Classes | Themed | Status | Notes |
-|------|---------|--------|--------|-------|
-| BespokeTable | Component | themed | [x] | Swiss Modern styling |
-| Bootstrap table | `.table` | CSS themed | [x] | Dark theme |
-| Striped | `.table-striped` | CSS themed | [x] | Alternating rows |
-
-### 3.5 Charts (Recharts)
-
-| Type | Status | Notes |
-|------|--------|-------|
-| LineChart | [x] | Uses theme palette |
-| BarChart | [x] | Uses theme palette |
-| PieChart | [x] | Uses theme palette |
-| ComposedChart | [x] | Uses theme palette |
-| ScatterChart | [x] | Uses theme palette |
-| AreaChart | [x] | Uses theme palette |
-| Tooltip styling | [x] | Dark glass background |
-| Legend styling | [x] | Theme colors |
-| Axis styling | [x] | Subtle grid lines |
-
-### 3.6 Loading States
-
-| Type | Location | Themed | Status | Notes |
-|------|----------|--------|--------|-------|
-| SkeletonBlock | Skeletons.tsx | themed | [x] | Shimmer animation |
-| TabSkeleton | Skeletons.tsx | themed | [x] | Full tab loading |
-| KPISkeleton | Skeletons.tsx | themed | [x] | KPI card loading |
-| ChartSkeleton | Skeletons.tsx | themed | [x] | Chart area loading |
-| TableSkeleton | Skeletons.tsx | themed | [x] | Table loading |
-| AnimatedNumber | AnimatedNumber.tsx | themed | [x] | Value animation |
-| ProgressIndicator | ProgressIndicator.tsx | themed | [x] | Operation progress |
-| Spinner | Various | CSS themed | [x] | Bootstrap spinner |
-
-### 3.7 Empty States
-
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| EmptyState | common/EmptyState.tsx | themed | [x] | Generic empty state |
-| No data states | Various tabs | themed | [x] | Per-tab empty states |
-| Blocked states | AskProdDash | themed | [x] | Capability gated |
+19. **OrgSettingsTab** (`settings/OrgSettingsTab.tsx`)
+    - States: No org, Loading
 
 ---
 
-## 4. Shared Primitives Inventory
+## Global Components
 
-### 4.1 Layout Primitives
+### Navigation
+- `TopNav` (`navigation/TopNav.tsx`) - Main top navigation bar
+- `NavDropdown` (`navigation/NavDropdown.tsx`) - Navigation dropdown menus
+- `QuickFind` (`navigation/QuickFind.tsx`) - Quick search/find
+- `MobileDrawer` (`navigation/MobileDrawer.tsx`) - Mobile navigation drawer
+- `LegacyToggle` (`navigation/LegacyToggle.tsx`) - New/legacy nav toggle
 
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| PageShell | layout/PageShell.tsx | [x] | Page wrapper |
-| PageHeader | common/PageHeader.tsx | [x] | Page title |
-| SectionHeader | common/SectionHeader.tsx | [x] | Section title |
-| GlassPanel | common/GlassPanel.tsx | [x] | Glass container |
+### Layout Primitives
+- `PageShell` (`layout/PageShell.tsx`) - Page wrapper
+- `PageHeader` (`layout/PageHeader.tsx`) - Page header with breadcrumbs
+- `SectionHeader` (`layout/SectionHeader.tsx`) - Section title with badge/actions
+- `GlassPanel` (`layout/GlassPanel.tsx`) - Glass container
+- `EmptyState` (`layout/EmptyState.tsx`) - Empty state display
 
-### 4.2 Data Display Primitives
+### Common UI Components
+- `PageHeader` (`common/PageHeader.tsx`) - Original page header
+- `SectionHeader` (`common/SectionHeader.tsx`) - Original section header
+- `GlassPanel` (`common/GlassPanel.tsx`) - Glass panel (original)
+- `GlassDrawer` (`common/GlassDrawer.tsx`) - Glass drawer base
+- `EmptyState` (`common/EmptyState.tsx`) - Empty state (original)
+- `StatLabel` (`common/StatLabel.tsx`) - KPI labels
+- `StatValue` (`common/StatValue.tsx`) - KPI values
+- `KPICard` (`common/KPICard.tsx`) - KPI card with trend
+- `AnimatedNumber` (`common/AnimatedNumber.tsx`) - Animated number display
+- `BespokeTable` (`common/BespokeTable.tsx`) - Custom table
+- `DataTableShell` (`common/DataTableShell.tsx`) - Table skeleton
+- `FilterBar` (`common/FilterBar.tsx`) - Main filter bar
+- `DateRangePicker` (`common/DateRangePicker.tsx`) - Date range picker
+- `MultiSelect` (`common/MultiSelect.tsx`) - Multi-select dropdown
+- `FilterActiveIndicator` (`common/FilterActiveIndicator.tsx`) - Active filter badge
+- `InlineHelp` (`common/InlineHelp.tsx`) - Info icon + tooltip
+- `ChartHelp` (`common/ChartHelp.tsx`) - Chart help text
+- `HelpButton` (`common/HelpButton.tsx`) - Help button
+- `HelpDrawer` (`common/HelpDrawer.tsx`) - Help content drawer
+- `ProgressIndicator` (`common/ProgressIndicator.tsx`) - Progress indicator
+- `LogoSpinner` (`common/LogoSpinner.tsx`) - Animated spinner
+- `DataHealthPanel` (`common/DataHealthPanel.tsx`) - Data health status
+- `DataHealthBadge` (`common/DataHealthBadge.tsx`) - Compact health badge
+- `DavosBadge` (`common/DavosBadge.tsx`) - Davos event badge
+- `CoverageBanner` (`common/CoverageBanner.tsx`) - Coverage status
+- `CoverageMapPanel` (`common/CoverageMapPanel.tsx`) - Coverage detail
+- `MetricDrillDown` (`common/MetricDrillDown.tsx`) - Metric drill-down
+- `UnifiedActionQueue` (`common/UnifiedActionQueue.tsx`) - Action queue
+- `ActionDetailDrawer` (`common/ActionDetailDrawer.tsx`) - Action detail
 
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| KPICard | common/KPICard.tsx | [x] | KPI metric card |
-| StatLabel | common/StatLabel.tsx | [x] | Metric label |
-| StatValue | common/StatValue.tsx | [x] | Metric value |
-| BespokeTable | common/BespokeTable.tsx | [x] | Data table |
-| EmptyState | common/EmptyState.tsx | [x] | No data state |
+### Feature Gates
+- `FeatureGate` (`common/FeatureGate.tsx`) - Capability gate wrapper
+- `FeatureBlockedState` (`common/FeatureBlockedState.tsx`) - Feature blocked
+- `FeatureLimitedState` (`common/FeatureLimitedState.tsx`) - Feature limited
 
-### 4.3 Interactive Primitives
+### Skeletons
+- `TabSkeleton` (`common/Skeletons.tsx`) - Full tab loading
+- `KPISkeleton` (`common/Skeletons.tsx`) - KPI loading
+- `ChartSkeleton` (`common/Skeletons.tsx`) - Chart loading
+- `TableSkeleton` (`common/Skeletons.tsx`) - Table loading
+- `SkeletonBlock` (`common/Skeletons.tsx`) - Generic block
 
-| Component | Location | Themed | Status | Notes |
-|-----------|----------|--------|--------|-------|
-| InlineHelp | common/InlineHelp.tsx | [x] | Help tooltip |
-| HelpButton | common/HelpButton.tsx | [x] | Help trigger |
-| FilterBar | common/FilterBar.tsx | [x] | Global filters |
-| DateRangePicker | common/DateRangePicker.tsx | [x] | Date selection |
-| MultiSelect | common/MultiSelect.tsx | [x] | Multi-select |
-
----
-
-## 5. CSS Files Status
-
-| File | Purpose | Status | Notes |
-|------|---------|--------|-------|
-| dashboard-theme.css | Main design tokens | [x] | Complete token set |
-| layout/layout.css | Layout primitives | [x] | Consistent with theme |
-| navigation/navigation.css | Nav styling | [x] | Mobile + desktop |
-| ask-proddash/ask-proddash.css | Ask tab styling | [x] | Themed |
-| scenarios/scenario-library.css | Scenario styling | [x] | Themed |
-
----
-
-## 6. Audit Scripts Status
-
-| Script | Purpose | Status | Notes |
-|--------|---------|--------|-------|
-| ui-style-audit.js | Design system enforcement | [x] | Extended with new rules |
-| ui-overlay-audit.js | Overlay theming check | [x] | New script created |
-| route-smoke.js | Route verification | [x] | All tests passing |
-
----
-
-## 7. Verification Results
-
-### 7.1 Automated Checks
-
-| Check | Command | Status | Result |
-|-------|---------|--------|--------|
-| Tests pass | `npm test -- --watchAll=false` | [x] | 929 tests passed |
-| Build passes | `npm run build` | [x] | Success |
-| Style audit | `npm run ui:style-audit` | [x] | 0 violations |
-| Overlay audit | `npm run ui:overlay-audit` | [x] | 0 violations, 115 warnings |
-| Route smoke | `npm run route:smoke` | [x] | 15 tests passed |
-
-### 7.2 Manual Verification
-
-| Route | Overlays Checked | Status | Notes |
-|-------|------------------|--------|-------|
-| Control Tower | Drawers, modals | [x] | ExplainDrawer, ActionDetailDrawer |
-| Ask ProdDash | Blocked state | [x] | Capability gating works |
-| Overview | KPI drilldown | [x] | DataDrillDownModal themed |
-| Recruiter Detail | Help drawer | [x] | HelpDrawer themed |
-| HM Friction | HM detail drawer | [x] | HMDetailDrawer themed |
-| Hiring Managers | Action drawer | [x] | ActionDetailDrawer themed |
-| Bottlenecks | Req drilldown | [x] | ReqDrilldownDrawer themed |
-| Quality | Help drawer | [x] | HelpDrawer themed |
-| Sources | Help drawer | [x] | HelpDrawer themed |
-| Velocity | Confidence badges | [x] | Themed badges |
-| Capacity | Fit/Overload drawers | [x] | Both drawers themed |
-| Forecast | Pre-mortem drawer | [x] | PreMortemDrawer themed |
-| Scenarios | Citations drawer | [x] | CitationsDrawer themed |
-| Data Health | Ghost modal | [x] | Modal themed |
-| SLA Settings | Alerts | [x] | Alert classes themed |
-| AI Settings | Vault banner | [x] | Custom banner themed |
-| Org Settings | Alerts, modal | [x] | All themed |
+### Guidance Components
+- `CapabilitiesSummary` (`guidance/CapabilitiesSummary.tsx`)
+- `RepairSuggestions` (`guidance/RepairSuggestions.tsx`)
+- `UnavailablePanels` (`guidance/UnavailablePanels.tsx`)
 
 ---
 
-## 8. Completion Criteria
+## Modals (8)
+| Modal | File | Purpose |
+|-------|------|---------|
+| ClearDataConfirmationModal | `common/ClearDataConfirmationModal.tsx` | Confirm data clear |
+| ImportProgressModal | `common/ImportProgressModal.tsx` | Import progress |
+| PIIWarningModal | `common/PIIWarningModal.tsx` | PII masking warning |
+| UltimateDemoModal | `common/UltimateDemoModal.tsx` | Demo mode alert |
+| StageMappingModal | `StageMappingModal.tsx` | Stage mapping config |
+| BenchmarkConfigModal | `pipeline-health/BenchmarkConfigModal.tsx` | Benchmark config |
+| CreateOrgModal | `OrgSwitcher.tsx` (inline) | Create organization |
+| AiProviderSettings | `settings/AiProviderSettings.tsx` | AI settings modal |
+| DataDrillDownModal | `common/DataDrillDownModal.tsx` | Drill-down data view |
 
-All items below have been verified:
-
-- [x] All routes in Section 1 marked complete
-- [x] All overlays in Section 2 marked complete
-- [x] All interactive elements in Section 3 verified
-- [x] All primitives in Section 4 use design tokens
-- [x] All CSS files in Section 5 updated/verified
-- [x] All scripts in Section 6 created/updated
-- [x] All automated checks in Section 7.1 pass
-- [x] All manual verifications in Section 7.2 completed
-- [x] docs/QA_UI_UX_REPORT.md created with results
+## Drawers (15)
+| Drawer | File | Purpose |
+|--------|------|---------|
+| ActionDetailDrawer | `common/ActionDetailDrawer.tsx` | Action detail |
+| ExplainDrawer | `common/ExplainDrawer.tsx` | Metric explanation |
+| GlassDrawer | `common/GlassDrawer.tsx` | Glass drawer base |
+| HelpDrawer | `common/HelpDrawer.tsx` | Help content |
+| PreMortemDrawer | `common/PreMortemDrawer.tsx` | Pre-mortem analysis |
+| AttentionDrilldownDrawer | `command-center/AttentionDrilldownDrawer.tsx` | CC risk drill |
+| ReqDrilldownDrawer | `bottlenecks/ReqDrilldownDrawer.tsx` | Req details |
+| HMDetailDrawer | `hm-friction/HMDetailDrawer.tsx` | HM details |
+| FitExplainDrawer | `capacity/FitExplainDrawer.tsx` | Fit scoring |
+| OverloadExplainDrawer | `capacity/OverloadExplainDrawer.tsx` | Overload explain |
+| RecruiterWorkloadDrawer | `capacity-rebalancer/RecruiterWorkloadDrawer.tsx` | Workload detail |
+| MoveDetailDrawer | `capacity-rebalancer/MoveDetailDrawer.tsx` | Move detail |
+| ReqHealthDrawer | `forecasting/ReqHealthDrawer.tsx` | Req health |
+| CitationsDrawer | `scenarios/output/CitationsDrawer.tsx` | Scenario citations |
+| MobileDrawer | `navigation/MobileDrawer.tsx` | Mobile nav |
 
 ---
 
-*Completed: 2026-01-18*
+## Landing Page Components
+| Component | File | Purpose |
+|-----------|------|---------|
+| LandingPage | `landing/LandingPage.tsx` | Main orchestrator |
+| HeroSection | `landing/HeroSection.tsx` | Hero banner |
+| FeaturesSection | `landing/FeaturesSection.tsx` | Features overview |
+| ProblemsSection | `landing/ProblemsSection.tsx` | Problem statement |
+| HowItWorksSection | `landing/HowItWorksSection.tsx` | How it works |
+| MetricsShowcase | `landing/MetricsShowcase.tsx` | Metrics display |
+| DataTransformSection | `landing/DataTransformSection.tsx` | Data transformation |
+| ScreenshotsSection | `landing/ScreenshotsSection.tsx` | Screenshots carousel |
+| CTASection | `landing/CTASection.tsx` | Call-to-action |
+| NetworkBackground | `landing/NetworkBackground.tsx` | Animated background |
+| AnimatedSection | `landing/components/AnimatedSection.tsx` | Scroll animations |
+
+---
+
+## CSS Files
+| File | Purpose |
+|------|---------|
+| `dashboard-theme.css` | Main theme tokens and global styles |
+| `navigation/navigation.css` | Navigation styling |
+| `layout/layout.css` | Layout primitive styles |
+| `common/HelpDrawer.css` | Help drawer styling |
+| `ask-platovue/ask-platovue.css` | Ask PlatoVue styling |
+| `scenarios/scenario-library.css` | Scenario library styling |
+| `guidance/guidance.css` | Guidance component styling |
+| `command-center/CommandCenter.css` | Command center styling |
+
+---
+
+## Known Duplication Issues
+1. `PageHeader` exists in both `common/` and `layout/` - need to consolidate
+2. `SectionHeader` exists in both `common/` and `layout/` - need to consolidate
+3. `GlassPanel` exists in both `common/` and `layout/` - need to consolidate
+4. `EmptyState` exists in both `common/` and `layout/` - need to consolidate
+5. Multiple CSS files with overlapping responsibilities

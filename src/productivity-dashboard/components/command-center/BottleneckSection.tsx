@@ -12,10 +12,10 @@ interface BottleneckSectionProps {
 }
 
 const DIAGNOSIS_INFO: Record<BottleneckDiagnosis, { label: string; sentence: string; color: string }> = {
-  PIPELINE_BOUND: { label: 'Pipeline-Bound', sentence: 'Your bottleneck is pipeline \u2014 not enough candidates entering the funnel.', color: '#f59e0b' },
-  CAPACITY_BOUND: { label: 'Capacity-Bound', sentence: 'Your bottleneck is capacity \u2014 recruiters are overloaded.', color: '#ef4444' },
-  BOTH: { label: 'Pipeline + Capacity', sentence: 'Both pipeline and capacity are constrained \u2014 need more candidates and more bandwidth.', color: '#ef4444' },
-  HEALTHY: { label: 'Healthy', sentence: 'No bottleneck detected \u2014 pipeline and capacity are balanced.', color: '#10b981' },
+  PIPELINE_BOUND: { label: 'Pipeline-Bound', sentence: 'Your bottleneck is pipeline \u2014 not enough candidates entering the funnel.', color: 'var(--color-warn)' },
+  CAPACITY_BOUND: { label: 'Capacity-Bound', sentence: 'Your bottleneck is capacity \u2014 recruiters are overloaded.', color: 'var(--color-bad)' },
+  BOTH: { label: 'Pipeline + Capacity', sentence: 'Both pipeline and capacity are constrained \u2014 need more candidates and more bandwidth.', color: 'var(--color-bad)' },
+  HEALTHY: { label: 'Healthy', sentence: 'No bottleneck detected \u2014 pipeline and capacity are balanced.', color: 'var(--color-good)' },
 };
 
 export const BottleneckSection: React.FC<BottleneckSectionProps> = ({ data, onNavigate }) => {

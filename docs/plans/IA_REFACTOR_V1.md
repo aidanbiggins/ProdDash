@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-This plan reorganizes ProdDash's navigation from 11 top-level tabs into 4 intuitive buckets using progressive disclosure. The goal is to reduce cognitive load while maintaining quick access to all features for power users via a command palette.
+This plan reorganizes PlatoVue's navigation from 11 top-level tabs into 4 intuitive buckets using progressive disclosure. The goal is to reduce cognitive load while maintaining quick access to all features for power users via a command palette.
 
 ---
 
@@ -223,7 +223,7 @@ function LegacyRecruiterRedirect() {
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ [Logo] ProdDash    [Command Center] [Diagnose▾] [Plan▾] [Settings▾]  [?]│
+│ [Logo] PlatoVue    [Command Center] [Diagnose▾] [Plan▾] [Settings▾]  [?]│
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -252,7 +252,7 @@ interface NavDropdownProps {
 
 ```
 ┌─────────────────────────────────────┐
-│ [≡]  ProdDash              [Quick] │
+│ [≡]  PlatoVue              [Quick] │
 ├─────────────────────────────────────┤
 │ ▸ Command Center                    │
 │ ▸ Diagnose                          │
@@ -336,7 +336,7 @@ interface UserPreferences {
 }
 
 // Toggle stored in localStorage
-const LEGACY_NAV_KEY = 'proddash_use_legacy_nav';
+const LEGACY_NAV_KEY = 'platovue_use_legacy_nav';
 ```
 
 ### 8.3 UI Location

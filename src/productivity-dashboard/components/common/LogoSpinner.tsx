@@ -52,7 +52,7 @@ export function LogoSpinner({
           className="logo-spinner-message"
           style={{
             fontSize: size <= 28 ? '0.75rem' : '0.85rem',
-            color: 'var(--text-secondary, rgba(255,255,255,0.6))',
+            color: 'var(--text-secondary)',
             fontWeight: 500,
           }}
         >

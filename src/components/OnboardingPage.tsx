@@ -138,7 +138,7 @@ const OnboardingPage: React.FC = () => {
     <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
       <div className="card shadow-sm" style={{ maxWidth: '500px', width: '100%' }}>
         <div className="card-body p-4">
-          <h1 className="h4 mb-1 text-center">Welcome to ProdDash</h1>
+          <h1 className="h4 mb-1 text-center">Welcome to PlatoVue</h1>
           <p className="text-muted text-center mb-4">
             {hasOptions ? 'Select an organization to continue' : 'Create your first organization to get started'}
           </p>

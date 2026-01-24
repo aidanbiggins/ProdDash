@@ -107,7 +107,7 @@ export function ImportReview({ onClose }: ImportReviewProps) {
 
   if (!diagnostics) {
     return (
-      <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+      <div className="modal show d-block" style={{ backgroundColor: 'var(--color-bg-overlay)' }}>
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content glass-panel">
             <div className="modal-header border-secondary">
@@ -127,7 +127,7 @@ export function ImportReview({ onClose }: ImportReviewProps) {
   const summary = createDiagnosticsSummary(diagnostics);
 
   return (
-    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+    <div className="modal show d-block" style={{ backgroundColor: 'var(--color-bg-overlay)' }}>
       <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div className="modal-content glass-panel" style={{ maxHeight: '90vh' }}>
           <div className="modal-header border-secondary">
@@ -142,7 +142,7 @@ export function ImportReview({ onClose }: ImportReviewProps) {
                 <button
                   className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
                   onClick={() => setActiveTab('overview')}
-                  style={{ color: activeTab === 'overview' ? '#d4a373' : '#94a3b8' }}
+                  style={{ color: activeTab === 'overview' ? 'var(--accent)' : 'var(--text-secondary)' }}
                 >
                   Overview
                 </button>
@@ -151,7 +151,7 @@ export function ImportReview({ onClose }: ImportReviewProps) {
                 <button
                   className={`nav-link ${activeTab === 'requisitions' ? 'active' : ''}`}
                   onClick={() => setActiveTab('requisitions')}
-                  style={{ color: activeTab === 'requisitions' ? '#d4a373' : '#94a3b8' }}
+                  style={{ color: activeTab === 'requisitions' ? 'var(--accent)' : 'var(--text-secondary)' }}
                 >
                   Requisitions ({diagnostics.requisitions?.rowCount || 0})
                 </button>
@@ -160,7 +160,7 @@ export function ImportReview({ onClose }: ImportReviewProps) {
                 <button
                   className={`nav-link ${activeTab === 'candidates' ? 'active' : ''}`}
                   onClick={() => setActiveTab('candidates')}
-                  style={{ color: activeTab === 'candidates' ? '#d4a373' : '#94a3b8' }}
+                  style={{ color: activeTab === 'candidates' ? 'var(--accent)' : 'var(--text-secondary)' }}
                 >
                   Candidates ({diagnostics.candidates?.rowCount || 0})
                 </button>
@@ -169,7 +169,7 @@ export function ImportReview({ onClose }: ImportReviewProps) {
                 <button
                   className={`nav-link ${activeTab === 'events' ? 'active' : ''}`}
                   onClick={() => setActiveTab('events')}
-                  style={{ color: activeTab === 'events' ? '#d4a373' : '#94a3b8' }}
+                  style={{ color: activeTab === 'events' ? 'var(--accent)' : 'var(--text-secondary)' }}
                 >
                   Events ({diagnostics.events?.rowCount || 0})
                 </button>
@@ -178,7 +178,7 @@ export function ImportReview({ onClose }: ImportReviewProps) {
                 <button
                   className={`nav-link ${activeTab === 'users' ? 'active' : ''}`}
                   onClick={() => setActiveTab('users')}
-                  style={{ color: activeTab === 'users' ? '#d4a373' : '#94a3b8' }}
+                  style={{ color: activeTab === 'users' ? 'var(--accent)' : 'var(--text-secondary)' }}
                 >
                   Users ({diagnostics.users?.rowCount || 0})
                 </button>
@@ -226,7 +226,7 @@ function OverviewTab({ diagnostics, summary }: { diagnostics: ImportDiagnostics;
             <div
               className="stat-value"
               style={{
-                color: summary.score >= 80 ? '#10b981' : summary.score >= 50 ? '#f59e0b' : '#ef4444',
+                color: summary.score >= 80 ? 'var(--color-good)' : summary.score >= 50 ? 'var(--color-warn)' : 'var(--color-bad)',
               }}
             >
               {summary.score}

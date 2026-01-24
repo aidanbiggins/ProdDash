@@ -21,7 +21,7 @@ export const ROUTE_CONFIG: RouteConfig[] = [
   // Ops view (legacy Control Tower)
   { path: '/ops', tab: 'control-tower', bucket: 'control-tower' },
 
-  // Ask ProdDash (top-level)
+  // Ask PlatoVue (top-level)
   { path: '/ask', tab: 'ask', bucket: 'control-tower' },
 
   // Diagnose bucket

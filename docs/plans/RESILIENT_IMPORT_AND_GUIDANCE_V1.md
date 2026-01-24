@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-ProdDash must ingest messy CSV/XLS/XLSX data without punishing users. The system will:
+PlatoVue must ingest messy CSV/XLS/XLSX data without punishing users. The system will:
 1. **Fail-open** - Import what we can, never block on fixable issues
 2. **Self-heal** - Auto-repair common data problems with full auditability
 3. **Gate features** - Enable/disable based on measured data coverage
@@ -1031,7 +1031,7 @@ function composeTabContent(tabId: string, coverage: CoverageMetrics): ReactNode 
 
 **Header:**
 ```
-With your data, ProdDash can:
+With your data, PlatoVue can:
 ```
 
 **Enabled Features (green checkmarks):**
@@ -1088,7 +1088,7 @@ interface CapabilitiesSummaryProps {
 ┌─────────────────────────────────────────────────────────────┐
 │  ✨ Import Complete                                          │
 │                                                              │
-│  With your data, ProdDash can:                              │
+│  With your data, PlatoVue can:                              │
 │  ───────────────────────────────────────────────────────── │
 │  ✓ Track 1,247 candidates across 45 requisitions           │
 │  ✓ Calculate time-to-fill (median: 32 days)                │

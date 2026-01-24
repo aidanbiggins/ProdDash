@@ -1,10 +1,10 @@
-/* Ask ProdDash Styles - Dark Glass Theme */
+/* Ask PlatoVue Styles - Dark Glass Theme */
 
-.ask-proddash-container {
+.ask-platovue-container {
   min-height: calc(100vh - 200px);
 }
 
-.ask-proddash-layout {
+.ask-platovue-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 1.5rem;
@@ -12,7 +12,7 @@
 }
 
 @media (max-width: 992px) {
-  .ask-proddash-layout {
+  .ask-platovue-layout {
     grid-template-columns: 1fr;
   }
 

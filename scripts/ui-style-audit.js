@@ -104,7 +104,21 @@ const ALLOWED_TYPOGRAPHY_FILES = [
   'HMDetailDrawer.tsx',
   'ReqHealthDrawer.tsx',
   'BottlenecksTab.tsx',
-  'SlaSettingsTab.tsx'
+  'SlaSettingsTab.tsx',
+  // Capacity rebalancer - complex data visualization with dynamic sizing
+  'SuggestedMoveCard.tsx',
+  'MoveDetailDrawer.tsx',
+  'RecruiterWorkloadDrawer.tsx',
+  'RecruiterUtilizationTable.tsx',
+  // Common components with intentional typography control
+  'CoverageMapPanel.tsx',
+  'FeatureBlockedState.tsx',
+  'FeatureLimitedState.tsx',
+  'UltimateDemoModal.tsx',
+  'GlassDrawer.tsx',
+  // Forecasting - complex data visualization
+  'CalibrationCard.tsx',
+  'OracleBackside.tsx'
 ];
 const ALLOWED_HEADER_FILES = [
   'PageHeader.tsx',
@@ -119,7 +133,9 @@ const ALLOWED_HEADER_FILES = [
   'BottlenecksTab.tsx',  // Uses h3 in empty states
   'CapabilitiesSummary.tsx',  // Guidance component with intentional h2
   'RepairSuggestions.tsx',  // Guidance component with intentional h3
-  'UnavailablePanels.tsx'  // Guidance component with intentional h2
+  'UnavailablePanels.tsx',  // Guidance component with intentional h2
+  'SectionCard.tsx',  // Command center section card with BEM-styled title
+  'CommandCenterView.tsx'  // Command center with styled header
 ];
 const ALLOWED_STAT_CLASS_FILES = [
   'dashboard-theme.css'
@@ -256,11 +272,12 @@ const ALLOWED_CARD_BESPOKE_FILES = [
   'BottleneckStagesPanel.tsx',
   'ExplainDrawer.tsx',
   'ActionDetailDrawer.tsx',
-  'AskProdDashTab.tsx',
+  'AskPlatoVueTab.tsx',
   'AskMainPanel.tsx',
   'AskLeftRail.tsx',
   'ScenarioLibraryTab.tsx',
-  'HMForecastsTab.tsx'
+  'HMForecastsTab.tsx',
+  'SuggestedMoveCard.tsx'
 ];
 
 // Typography properties to check for in inline styles

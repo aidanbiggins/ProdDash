@@ -86,15 +86,15 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
                             style={{
                                 fontSize: '0.6rem',
                                 background: recruiter.confidence === 'HIGH'
-                                    ? 'rgba(16, 185, 129, 0.15)'
+                                    ? 'var(--color-good-bg)'
                                     : recruiter.confidence === 'MED'
-                                        ? 'rgba(245, 158, 11, 0.15)'
-                                        : 'rgba(148, 163, 184, 0.15)',
+                                        ? 'var(--color-warn-bg)'
+                                        : 'var(--color-bg-overlay)',
                                 color: recruiter.confidence === 'HIGH'
-                                    ? '#10b981'
+                                    ? 'var(--color-good)'
                                     : recruiter.confidence === 'MED'
-                                        ? '#f59e0b'
-                                        : '#94a3b8'
+                                        ? 'var(--color-warn)'
+                                        : 'var(--text-secondary)'
                             }}
                         >
                             {recruiter.confidence}
@@ -163,7 +163,7 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
                             <div
                                 key={req.reqId}
                                 className="d-flex justify-content-between align-items-center p-2 rounded"
-                                style={{ background: 'rgba(255, 255, 255, 0.03)' }}
+                                style={{ background: 'var(--color-bg-overlay)' }}
                             >
                                 <span style={{ fontSize: '0.8rem' }}>
                                     {req.reqTitle.length > 35 ? req.reqTitle.substring(0, 35) + '...' : req.reqTitle}
@@ -172,8 +172,8 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
                                     className="badge"
                                     style={{
                                         fontSize: '0.7rem',
-                                        background: 'rgba(6, 182, 212, 0.15)',
-                                        color: '#06b6d4'
+                                        background: 'var(--accent-bg)',
+                                        color: 'var(--accent)'
                                     }}
                                 >
                                     {req.candidateCount} candidates
@@ -186,7 +186,7 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
 
             {/* Confidence Reasons */}
             {recruiter.confidenceReasons.length > 0 && (
-                <div className="mt-4 pt-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                <div className="mt-4 pt-3 border-top" style={{ borderColor: 'var(--glass-border)' }}>
                     <div className="text-muted mb-2" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                         Confidence Notes
                     </div>

@@ -318,7 +318,7 @@ function convertToActionItems(
       due_date,
       evidence: {
         kpi_key: 'ask_generated',
-        explain_provider_key: 'ask_proddash',
+        explain_provider_key: 'ask_platovue',
         short_reason: action.reason,
       },
       recommended_steps: [action.title],
@@ -375,7 +375,7 @@ function deduplicateAgainstExisting(
 /**
  * Create an action plan from an Ask response
  *
- * @param response - The IntentResponse from Ask ProdDash
+ * @param response - The IntentResponse from Ask PlatoVue
  * @param existingActions - Current actions in the queue for deduplication
  * @param query - The original query for context
  * @param maxActions - Maximum actions to return (default 5)

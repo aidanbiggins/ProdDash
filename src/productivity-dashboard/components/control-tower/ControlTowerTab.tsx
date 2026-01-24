@@ -47,7 +47,7 @@ interface ControlTowerTabProps {
   onNavigateToReq: (reqId: string) => void;
   onNavigateToHM: (hmUserId: string) => void;
   onNavigateToTab: (tab: string) => void;
-  /** External manual actions from Ask ProdDash or other sources */
+  /** External manual actions from Ask PlatoVue or other sources */
   externalManualActions?: ActionItem[];
 }
 
