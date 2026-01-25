@@ -159,20 +159,20 @@ export function ReqHealthDrawer({
             </div>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <span
-                className="badge rounded-pill text-uppercase"
+                className="inline-flex items-center rounded-full uppercase"
                 style={{ fontSize: '0.65rem', ...healthBadgeStyle }}
               >
                 Score: {healthData.healthScore}
               </span>
               <span
-                className="badge rounded-pill text-uppercase"
+                className="inline-flex items-center rounded-full uppercase"
                 style={{ fontSize: '0.65rem', ...velocityBadgeStyle }}
               >
                 {healthData.velocityTrend}
               </span>
               {preMortem && (
                 <span
-                  className="badge rounded-pill text-uppercase"
+                  className="inline-flex items-center rounded-full uppercase"
                   style={{ fontSize: '0.65rem', ...getRiskBandBadgeStyle(preMortem.risk_band) }}
                 >
                   {preMortem.risk_band} Risk
@@ -309,7 +309,7 @@ export function ReqHealthDrawer({
                             </div>
                             <div style={{ textAlign: 'right', marginLeft: '12px' }}>
                               <span
-                                className="badge text-uppercase"
+                                className="inline-flex items-center uppercase"
                                 style={{ fontSize: '0.6rem', ...severityStyle }}
                               >
                                 {driver.severity}
@@ -459,7 +459,7 @@ export function ReqHealthDrawer({
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                         <span
-                          className="badge text-uppercase"
+                          className="inline-flex items-center uppercase"
                           style={{ fontSize: '0.6rem', ...priorityStyle }}
                         >
                           {action.priority}
@@ -496,7 +496,7 @@ export function ReqHealthDrawer({
                       >
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                           <span
-                            className="badge text-uppercase"
+                            className="inline-flex items-center uppercase"
                             style={{ fontSize: '0.6rem', ...priorityStyle }}
                           >
                             {intervention.priority}
@@ -534,7 +534,7 @@ export function ReqHealthDrawer({
                     >
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                         <span
-                          className="badge text-uppercase"
+                          className="inline-flex items-center uppercase"
                           style={{ fontSize: '0.6rem', ...priorityStyle }}
                         >
                           {intervention.priority}

@@ -18,48 +18,48 @@ function RecommendationCard({
 }) {
   return (
     <div className="border rounded p-3 mb-2" style={{ borderColor: 'var(--glass-border)' }}>
-      <div className="d-flex justify-content-between align-items-start mb-2">
+      <div className="flex justify-between items-start mb-2">
         <div>
-          <span className="badge-bespoke badge-primary-soft me-2">#{rec.rank}</span>
+          <span className="badge-bespoke badge-primary-soft mr-2">#{rec.rank}</span>
           <strong>{rec.reqTitle}</strong>
-          <span className="text-muted small ms-2">({rec.reqId})</span>
+          <span className="text-muted-foreground text-sm ml-2">({rec.reqId})</span>
         </div>
         <span className="badge-bespoke badge-neutral-soft">
           {rec.demandImpact.toFixed(0)} WU
         </span>
       </div>
 
-      <div className="row g-2 small mb-2">
-        <div className="col-6">
-          <div className="text-muted">From:</div>
+      <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+        <div>
+          <div className="text-muted-foreground">From:</div>
           <div>
             {rec.fromRecruiterName}
-            <span className="badge badge-danger-soft ms-1">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-400 ml-1">
               {Math.round(rec.fromUtilization * 100)}%
             </span>
           </div>
         </div>
-        <div className="col-6">
-          <div className="text-muted">To:</div>
+        <div>
+          <div className="text-muted-foreground">To:</div>
           <div>
             {rec.toRecruiterName}
-            <span className="badge badge-success-soft ms-1">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-500/15 text-green-400 ml-1">
               {Math.round(rec.toUtilization * 100)}%
             </span>
           </div>
         </div>
       </div>
 
-      <div className="small text-muted mb-2">
-        <i className="bi bi-info-circle me-1"></i>
+      <div className="text-sm text-muted-foreground mb-2">
+        <i className="bi bi-info-circle mr-1"></i>
         {rec.rationale}
       </div>
 
       {rec.fitScoreImprovement !== null && (
-        <div className="small mb-2">
-          <span className="text-muted">Fit improvement:</span>
+        <div className="text-sm mb-2">
+          <span className="text-muted-foreground">Fit improvement:</span>
           <span
-            className={`ms-1 ${rec.fitScoreImprovement > 0 ? 'text-success' : 'text-danger'}`}
+            className={`ml-1 ${rec.fitScoreImprovement > 0 ? 'text-success' : 'text-danger'}`}
           >
             {rec.fitScoreImprovement > 0 ? '+' : ''}{rec.fitScoreImprovement.toFixed(2)}
           </span>
@@ -67,12 +67,12 @@ function RecommendationCard({
       )}
 
       {onApply && (
-        <div className="text-end">
+        <div className="text-right">
           <button
-            className="btn btn-sm btn-bespoke-secondary"
+            className="px-3 py-1.5 text-sm bg-bg-glass border border-glass-border rounded hover:bg-opacity-80 transition-colors"
             onClick={onApply}
           >
-            <i className="bi bi-check2 me-1"></i>
+            <i className="bi bi-check2 mr-1"></i>
             Apply
           </button>
         </div>
@@ -92,14 +92,14 @@ export function RebalanceRecommendations({
       <div className="card-bespoke">
         <div className="card-header">
           <h6 className="mb-0">
-            <i className="bi bi-arrows-move me-2"></i>
+            <i className="bi bi-arrows-move mr-2"></i>
             Suggested Rebalances
           </h6>
         </div>
-        <div className="card-body text-center py-4 text-muted">
+        <div className="card-body text-center py-4 text-muted-foreground">
           <i className="bi bi-check-circle text-success" style={{ fontSize: '2rem' }}></i>
           <div className="mt-2">Workload is well distributed</div>
-          <div className="small">No rebalancing recommendations at this time</div>
+          <div className="text-sm">No rebalancing recommendations at this time</div>
         </div>
       </div>
     );
@@ -108,15 +108,15 @@ export function RebalanceRecommendations({
   return (
     <div className="card-bespoke">
       <div
-        className="card-header d-flex justify-content-between align-items-center"
+        className="card-header flex justify-between items-center"
         style={{ cursor: 'pointer' }}
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
         <h6 className="mb-0">
-          <i className="bi bi-arrows-move me-2"></i>
+          <i className="bi bi-arrows-move mr-2"></i>
           Suggested Rebalances
         </h6>
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <span className="badge-bespoke badge-primary-soft">
             {recommendations.length} moves
           </span>
@@ -126,8 +126,8 @@ export function RebalanceRecommendations({
 
       {!isCollapsed && (
         <div className="card-body">
-          <div className="alert alert-info small mb-3">
-            <i className="bi bi-lightbulb me-1"></i>
+          <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 text-sm mb-3">
+            <i className="bi bi-lightbulb mr-1"></i>
             These are suggestions based on workload and fit analysis.
             Apply only after reviewing each move with your team.
           </div>

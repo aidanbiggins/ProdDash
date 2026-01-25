@@ -75,9 +75,9 @@ export function QualityTab({ quality }: QualityTabProps) {
       />
 
       {/* Candidate Experience Stats */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-6">
-          <div className="card-bespoke h-100">
+      <div className="grid grid-cols-12 gap-4 mb-4">
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
             <div className="card-body text-center py-4">
               <StatLabel className="mb-2">Application to First Touch</StatLabel>
               <StatValue color="primary">
@@ -85,12 +85,12 @@ export function QualityTab({ quality }: QualityTabProps) {
                   ? `${Math.round(quality.candidateExperience.applicationToFirstTouchMedian)} hrs`
                   : 'N/A'}
               </StatValue>
-              <small style={{ color: '#94A3B8' }}>Median time for candidates to hear back</small>
+              <span className="text-sm text-muted-foreground">Median time for candidates to hear back</span>
             </div>
           </div>
         </div>
-        <div className="col-md-6">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
             <div className="card-body text-center py-4">
               <StatLabel className="mb-2">Time Between Steps</StatLabel>
               <StatValue color="primary">
@@ -98,7 +98,7 @@ export function QualityTab({ quality }: QualityTabProps) {
                   ? `${Math.round(quality.candidateExperience.timeBetweenStepsMedian)} hrs`
                   : 'N/A'}
               </StatValue>
-              <small style={{ color: '#94A3B8' }}>Median wait between stage changes</small>
+              <span className="text-sm text-muted-foreground">Median wait between stage changes</span>
             </div>
           </div>
         </div>
@@ -110,8 +110,8 @@ export function QualityTab({ quality }: QualityTabProps) {
           <h6>Late-Stage Fallout Rates</h6>
         </div>
         <div className="card-body">
-          <div className="row">
-            <div className="col-md-8">
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-12 md:col-span-8">
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={falloutData} barSize={24}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#3f3f46" />
@@ -141,15 +141,15 @@ export function QualityTab({ quality }: QualityTabProps) {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="col-md-4">
-              <div className="small" style={{ color: '#94A3B8' }}>
-                <p className="fw-semibold mb-2">What these metrics show:</p>
-                <ul className="ps-3 mb-3">
+            <div className="col-span-12 md:col-span-4">
+              <div className="text-sm text-muted-foreground">
+                <p className="font-semibold mb-2">What these metrics show:</p>
+                <ul className="pl-3 mb-3">
                   <li className="mb-1"><strong>Onsite → Reject:</strong> Candidates rejected after onsite</li>
                   <li className="mb-1"><strong>Offer → Decline:</strong> Offers declined by candidates</li>
                   <li><strong>Offer → Withdraw:</strong> Candidates withdrew after offer</li>
                 </ul>
-                <p className="mb-0 small" style={{ color: '#94A3B8' }}>High rates may indicate calibration issues or poor candidate experience.</p>
+                <p className="mb-0 text-sm text-muted-foreground">High rates may indicate calibration issues or poor candidate experience.</p>
               </div>
             </div>
           </div>
@@ -194,27 +194,27 @@ export function QualityTab({ quality }: QualityTabProps) {
       </div>
 
       {/* Offer Acceptance by Recruiter */}
-      <div className="row g-4 mb-4">
-        <div className="col-md-6">
-          <div className="card-bespoke h-100">
-            <div className="card-header border-bottom">
-              <h6 className="mb-0">Top 5 Recruiters <span className="text-muted fw-normal">(Offer Acceptance)</span></h6>
+      <div className="grid grid-cols-12 gap-4 mb-4">
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
+            <div className="card-header border-b border-glass-border">
+              <h6 className="mb-0">Top 5 Recruiters <span className="text-muted-foreground font-normal">(Offer Acceptance)</span></h6>
             </div>
             <div className="card-body p-0">
-              <table className="table table-bespoke table-hover mb-0">
+              <table className="table table-bespoke mb-0">
                 <thead>
                   <tr>
                     <th>Recruiter</th>
-                    <th className="text-end">Offers</th>
-                    <th className="text-end">Accept Rate</th>
+                    <th className="text-right">Offers</th>
+                    <th className="text-right">Accept Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {topRecruiters.map(r => (
                     <tr key={r.recruiterId}>
-                      <td className="fw-medium">{r.recruiterName}</td>
-                      <td className="text-end">{r.offerCount}</td>
-                      <td className="text-end">
+                      <td className="font-medium">{r.recruiterName}</td>
+                      <td className="text-right">{r.offerCount}</td>
+                      <td className="text-right">
                         <span className="badge-bespoke badge-success-soft">
                           {r.acceptanceRate !== null
                             ? `${(r.acceptanceRate * 100).toFixed(0)}%`
@@ -228,26 +228,26 @@ export function QualityTab({ quality }: QualityTabProps) {
             </div>
           </div>
         </div>
-        <div className="col-md-6">
-          <div className="card-bespoke h-100">
-            <div className="card-header border-bottom">
-              <h6 className="mb-0">Bottom 5 Recruiters <span className="text-muted fw-normal">(Offer Acceptance)</span></h6>
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
+            <div className="card-header border-b border-glass-border">
+              <h6 className="mb-0">Bottom 5 Recruiters <span className="text-muted-foreground font-normal">(Offer Acceptance)</span></h6>
             </div>
             <div className="card-body p-0">
-              <table className="table table-bespoke table-hover mb-0">
+              <table className="table table-bespoke mb-0">
                 <thead>
                   <tr>
                     <th>Recruiter</th>
-                    <th className="text-end">Offers</th>
-                    <th className="text-end">Accept Rate</th>
+                    <th className="text-right">Offers</th>
+                    <th className="text-right">Accept Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bottomRecruiters.map(r => (
                     <tr key={r.recruiterId}>
-                      <td className="fw-medium">{r.recruiterName}</td>
-                      <td className="text-end">{r.offerCount}</td>
-                      <td className="text-end">
+                      <td className="font-medium">{r.recruiterName}</td>
+                      <td className="text-right">{r.offerCount}</td>
+                      <td className="text-right">
                         <span className={`badge-bespoke ${r.acceptanceRate !== null && r.acceptanceRate >= 0.6 ? 'badge-warning-soft' : 'badge-danger-soft'
                           }`}>
                           {r.acceptanceRate !== null
@@ -270,11 +270,11 @@ export function QualityTab({ quality }: QualityTabProps) {
           <h6 className="mb-0" style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8' }}>Quality Guardrails: What to Watch For</h6>
         </div>
         <div className="card-body">
-          <div className="row g-3">
-            <div className="col-md-4">
-              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #EF4444' }}>
-                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Red Flags</h6>
-                <ul style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.6, paddingLeft: '1rem', marginBottom: 0 }}>
+          <div className="grid grid-cols-12 gap-3">
+            <div className="col-span-12 md:col-span-4">
+              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #EF4444' }}>
+                <h6 className="text-sm font-semibold mb-2" style={{ color: '#f5f5f5' }}>Red Flags</h6>
+                <ul className="text-xs text-muted-foreground pl-4 mb-0" style={{ lineHeight: 1.6 }}>
                   <li>Offer acceptance rate below 60%</li>
                   <li>High onsite-to-reject rate (&gt;40%)</li>
                   <li>Application to first touch &gt;72 hours</li>
@@ -282,10 +282,10 @@ export function QualityTab({ quality }: QualityTabProps) {
                 </ul>
               </div>
             </div>
-            <div className="col-md-4">
-              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #F59E0B' }}>
-                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Areas to Monitor</h6>
-                <ul style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.6, paddingLeft: '1rem', marginBottom: 0 }}>
+            <div className="col-span-12 md:col-span-4">
+              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #F59E0B' }}>
+                <h6 className="text-sm font-semibold mb-2" style={{ color: '#f5f5f5' }}>Areas to Monitor</h6>
+                <ul className="text-xs text-muted-foreground pl-4 mb-0" style={{ lineHeight: 1.6 }}>
                   <li>Offer acceptance between 60-80%</li>
                   <li>Functions with lower acceptance rates</li>
                   <li>Candidate withdrawals at offer stage</li>
@@ -293,10 +293,10 @@ export function QualityTab({ quality }: QualityTabProps) {
                 </ul>
               </div>
             </div>
-            <div className="col-md-4">
-              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #10B981' }}>
-                <h6 style={{ color: '#f5f5f5', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Good Health Indicators</h6>
-                <ul style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.6, paddingLeft: '1rem', marginBottom: 0 }}>
+            <div className="col-span-12 md:col-span-4">
+              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #10B981' }}>
+                <h6 className="text-sm font-semibold mb-2" style={{ color: '#f5f5f5' }}>Good Health Indicators</h6>
+                <ul className="text-xs text-muted-foreground pl-4 mb-0" style={{ lineHeight: 1.6 }}>
                   <li>Offer acceptance rate above 80%</li>
                   <li>Consistent performance across recruiters</li>
                   <li>Fast response times to candidates</li>

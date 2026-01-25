@@ -89,82 +89,64 @@ export function UltimateDemoModal({
     <>
       {/* Backdrop */}
       <div
-        className="modal-backdrop fade show"
-        style={{ backgroundColor: 'var(--glass-shadow-backdrop)' }}
+        className="fixed inset-0 bg-[var(--glass-shadow-backdrop)] opacity-100"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div
-        className="modal fade show d-block"
+        className="fixed inset-0 flex items-center justify-center z-[1055]"
         tabIndex={-1}
         role="dialog"
-        style={{ zIndex: 1055 }}
       >
-        <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="w-full max-w-3xl mx-4">
           <div
-            className="modal-content"
+            className="rounded-2xl overflow-hidden"
             style={{
               background: 'linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-base) 100%)',
               border: '1px solid var(--accent-border)',
-              borderRadius: '16px',
               boxShadow: 'var(--glass-shadow-elevated)',
             }}
           >
             {/* Header */}
-            <div
-              className="modal-header border-0 pb-0"
-              style={{ padding: '1.5rem 1.5rem 1rem' }}
-            >
-              <div className="d-flex align-items-center gap-3">
+            <div className="px-6 pt-6 pb-4 border-0">
+              <div className="flex items-center gap-3">
                 <div
-                  className="d-flex align-items-center justify-content-center"
+                  className="flex items-center justify-center w-12 h-12 rounded-xl"
                   style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
                     background: 'var(--accent-bg)',
                     color: 'var(--accent)',
                   }}
                 >
-                  <i className="bi bi-magic" style={{ fontSize: '1.5rem' }}></i>
+                  <i className="bi bi-magic text-2xl"></i>
                 </div>
                 <div>
-                  <h5
-                    className="modal-title mb-1"
-                    style={{ color: 'var(--text-primary)', fontWeight: 600 }}
-                  >
+                  <h5 className="text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
                     Load Ultimate Demo
                   </h5>
-                  <p className="mb-0 small" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="mb-0 text-sm" style={{ color: 'var(--text-secondary)' }}>
                     Load synthetic data to explore all PlatoVue features
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                className="btn-close btn-close-white"
+                className="text-white opacity-70 hover:opacity-100"
                 onClick={onClose}
                 disabled={isLoading}
-              />
+              >
+                <i className="bi bi-x text-2xl"></i>
+              </button>
             </div>
 
             {/* Body */}
-            <div className="modal-body" style={{ padding: '1.5rem' }}>
+            <div className="px-6 pb-6">
               {/* Presets */}
               <div className="mb-4">
-                <h6
-                  className="mb-3"
-                  style={{
-                    color: 'var(--text-label)',
-                    fontSize: '0.75rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                  }}
-                >
+                <h6 className="mb-3 text-xs uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>
                   Presets
                 </h6>
-                <div className="d-flex gap-3">
+                <div className="flex gap-3">
                   <PresetButton
                     label="All Features"
                     description="Recommended - enables everything"
@@ -188,27 +170,19 @@ export function UltimateDemoModal({
 
               {/* Demo Packs */}
               <div className="mb-4">
-                <h6
-                  className="mb-3"
-                  style={{
-                    color: 'var(--text-label)',
-                    fontSize: '0.75rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                  }}
-                >
+                <h6 className="mb-3 text-xs uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>
                   Demo Packs
                 </h6>
                 <div
-                  className="rounded-3 p-3"
+                  className="rounded-xl p-3"
                   style={{
                     background: 'var(--glass-bg)',
                     border: '1px solid var(--glass-border)',
                   }}
                 >
-                  <div className="row g-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {DEMO_PACK_INFO.map((pack) => (
-                      <div key={pack.id} className="col-6">
+                      <div key={pack.id}>
                         <PackToggle
                           pack={pack}
                           enabled={packConfig[pack.id]}
@@ -224,32 +198,22 @@ export function UltimateDemoModal({
 
               {/* Seed Input */}
               <div className="mb-4">
-                <label
-                  className="form-label"
-                  style={{
-                    color: 'var(--text-label)',
-                    fontSize: '0.75rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                  }}
-                >
+                <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>
                   Seed (for reproducibility)
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="w-full px-3 py-2 text-sm bg-transparent border border-glass-border rounded-md focus:outline-none focus:ring-1 focus:ring-accent-primary"
                   value={seed}
                   onChange={(e) => setSeed(e.target.value)}
                   placeholder="ultimate-demo-v1"
                   style={{
                     background: 'var(--color-bg-surface)',
-                    border: '1px solid var(--glass-border)',
                     color: 'var(--text-label)',
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '0.875rem',
                   }}
                 />
-                <small style={{ color: 'var(--text-muted)' }}>
+                <small className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   Same seed always produces identical data
                 </small>
               </div>
@@ -262,13 +226,10 @@ export function UltimateDemoModal({
             </div>
 
             {/* Footer */}
-            <div
-              className="modal-footer border-0 pt-0"
-              style={{ padding: '0 1.5rem 1.5rem', gap: '0.75rem' }}
-            >
+            <div className="px-6 pb-6 pt-0 flex justify-end gap-3">
               <button
                 type="button"
-                className="btn btn-bespoke-secondary"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-glass-border"
                 onClick={onClose}
                 disabled={isLoading}
               >
@@ -276,19 +237,18 @@ export function UltimateDemoModal({
               </button>
               <button
                 type="button"
-                className="btn btn-bespoke-primary"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-primary hover:bg-primary/90 text-white min-w-[160px]"
                 onClick={handleLoad}
                 disabled={isLoading}
-                style={{ minWidth: '160px' }}
               >
                 {isLoading ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" />
+                    <span className="inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
                     Loading...
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-play-fill me-2"></i>
+                    <i className="bi bi-play-fill mr-2"></i>
                     Load Demo Data
                   </>
                 )}
@@ -316,49 +276,30 @@ function PresetButton({
   return (
     <button
       type="button"
-      className="flex-fill p-3 rounded-3 text-start border-0"
+      className="flex-1 p-3 rounded-xl text-left transition-all duration-200"
       onClick={onClick}
       style={{
-        background: selected
-          ? 'var(--accent-bg)'
-          : 'var(--glass-bg)',
-        border: selected
-          ? '1px solid var(--accent)'
-          : '1px solid var(--glass-border)',
-        transition: 'all 0.2s ease',
+        background: selected ? 'var(--accent-bg)' : 'var(--glass-bg)',
+        border: selected ? '1px solid var(--accent)' : '1px solid var(--glass-border)',
       }}
     >
-      <div className="d-flex align-items-center gap-2 mb-1">
+      <div className="flex items-center gap-2 mb-1">
         <div
+          className="w-4 h-4 rounded-full flex items-center justify-center"
           style={{
-            width: '16px',
-            height: '16px',
-            borderRadius: '50%',
-            border: selected
-              ? '2px solid var(--accent)'
-              : '2px solid var(--glass-border-strong)',
+            border: selected ? '2px solid var(--accent)' : '2px solid var(--glass-border-strong)',
             background: selected ? 'var(--accent)' : 'transparent',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
           }}
         >
           {selected && (
-            <div
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--color-bg-base)',
-              }}
-            />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--color-bg-base)' }} />
           )}
         </div>
-        <span style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>
+        <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
           {label}
         </span>
       </div>
-      <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{description}</span>
+      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{description}</span>
     </button>
   );
 }
@@ -381,7 +322,7 @@ function PackToggle({
 
   return (
     <div
-      className="d-flex align-items-start gap-2 p-2 rounded-2"
+      className="flex items-start gap-2 p-2 rounded-lg"
       style={{
         background: enabled ? 'var(--accent-bg)' : 'transparent',
         opacity: disabled ? 0.5 : 1,
@@ -389,14 +330,10 @@ function PackToggle({
       }}
       onClick={disabled ? undefined : onToggle}
     >
-      <div
-        className="form-check"
-        style={{ marginTop: '2px' }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="mt-0.5" onClick={(e) => e.stopPropagation()}>
         <input
           type="checkbox"
-          className="form-check-input"
+          className="w-4 h-4 rounded"
           checked={enabled}
           onChange={onToggle}
           disabled={disabled}
@@ -406,34 +343,16 @@ function PackToggle({
           }}
         />
       </div>
-      <div className="flex-grow-1" style={{ minWidth: 0 }}>
-        <div
-          style={{
-            color: enabled ? 'var(--text-primary)' : 'var(--text-secondary)',
-            fontSize: '0.8125rem',
-            fontWeight: 500,
-          }}
-        >
+      <div className="flex-1 min-w-0">
+        <div className="text-[0.8125rem] font-medium" style={{ color: enabled ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
           {pack.name}
         </div>
-        <div
-          style={{
-            color: 'var(--text-muted)',
-            fontSize: '0.7rem',
-            lineHeight: 1.3,
-          }}
-        >
+        <div className="text-[0.7rem] leading-tight" style={{ color: 'var(--text-muted)' }}>
           {pack.description}
         </div>
         {hasMissingDeps && (
-          <div
-            style={{
-              color: 'var(--color-warn)',
-              fontSize: '0.65rem',
-              marginTop: '2px',
-            }}
-          >
-            <i className="bi bi-exclamation-triangle me-1"></i>
+          <div className="text-[0.65rem] mt-0.5" style={{ color: 'var(--color-warn)' }}>
+            <i className="bi bi-exclamation-triangle mr-1"></i>
             Requires: {missingDeps.join(', ')}
           </div>
         )}
@@ -449,49 +368,38 @@ function DemoStoryPanel() {
 
   return (
     <div
-      className="rounded-3 p-3 mb-4"
+      className="rounded-xl p-3 mb-4"
       style={{
         background: 'var(--accent-bg)',
         border: '1px solid var(--accent-border)',
       }}
     >
       <div
-        className="d-flex align-items-center justify-content-between cursor-pointer"
+        className="flex items-center justify-between cursor-pointer"
         onClick={() => setExpanded(!expanded)}
-        style={{ cursor: 'pointer' }}
       >
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <i className="bi bi-lightbulb" style={{ color: 'var(--accent)' }}></i>
-          <span style={{ color: 'var(--text-label)', fontSize: '0.8125rem', fontWeight: 500 }}>
+          <span className="text-[0.8125rem] font-medium" style={{ color: 'var(--text-label)' }}>
             What You'll Find in This Demo
           </span>
         </div>
         <i
-          className={`bi bi-chevron-${expanded ? 'up' : 'down'}`}
-          style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}
+          className={`bi bi-chevron-${expanded ? 'up' : 'down'} text-xs`}
+          style={{ color: 'var(--text-muted)' }}
         ></i>
       </div>
 
       {expanded && (
         <div className="mt-3">
-          <div className="row g-2">
+          <div className="grid grid-cols-2 gap-2">
             {patterns.map((pattern) => (
-              <div key={pattern.id} className="col-6">
-                <div
-                  className="p-2 rounded-2"
-                  style={{ background: 'var(--glass-bg)' }}
-                >
-                  <div
-                    style={{
-                      color: 'var(--text-primary)',
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      marginBottom: '2px',
-                    }}
-                  >
+              <div key={pattern.id}>
+                <div className="p-2 rounded-lg" style={{ background: 'var(--glass-bg)' }}>
+                  <div className="text-xs font-medium mb-0.5" style={{ color: 'var(--text-primary)' }}>
                     {pattern.name}
                   </div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+                  <div className="text-[0.65rem]" style={{ color: 'var(--text-muted)' }}>
                     {pattern.description}
                   </div>
                 </div>
@@ -499,14 +407,13 @@ function DemoStoryPanel() {
             ))}
           </div>
           <div
-            className="mt-2 pt-2"
+            className="mt-2 pt-2 text-[0.65rem] border-t"
             style={{
-              borderTop: '1px solid var(--glass-border)',
+              borderColor: 'var(--glass-border)',
               color: 'var(--text-muted)',
-              fontSize: '0.65rem',
             }}
           >
-            <i className="bi bi-info-circle me-1"></i>
+            <i className="bi bi-info-circle mr-1"></i>
             These patterns are intentionally placed to demonstrate PlatoVue's detection capabilities.
           </div>
         </div>
@@ -608,25 +515,17 @@ function CapabilityPreview({
 
   return (
     <div
-      className="rounded-3 p-3"
+      className="rounded-xl p-3"
       style={{
         background: 'var(--glass-bg)',
         border: '1px solid var(--glass-border)',
       }}
     >
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <h6
-          className="mb-0"
-          style={{
-            color: 'var(--text-label)',
-            fontSize: '0.75rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
-          }}
-        >
+      <div className="flex items-center justify-between mb-3">
+        <h6 className="mb-0 text-xs uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>
           Live Feature Preview
         </h6>
-        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+        <span className="text-[0.7rem]" style={{ color: 'var(--text-secondary)' }}>
           {summary.features_enabled}/{summary.total_features} enabled
           {summary.features_limited > 0 && `, ${summary.features_limited} limited`}
           {summary.features_blocked > 0 && `, ${summary.features_blocked} blocked`}
@@ -636,15 +535,15 @@ function CapabilityPreview({
       {/* Enabled features */}
       {enabledFeatures.length > 0 && (
         <div className="mb-2">
-          <div className="d-flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1">
             {enabledFeatures.slice(0, 12).map((feat) => (
-              <span key={feat.feature_key} className="badge" style={{ ...STATUS_CONFIG.ENABLED, fontSize: '0.65rem', fontWeight: 500 }}>
-                <i className={`${STATUS_CONFIG.ENABLED.icon} me-1`}></i>
+              <span key={feat.feature_key} className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium" style={{ ...STATUS_CONFIG.ENABLED }}>
+                <i className={`${STATUS_CONFIG.ENABLED.icon} mr-1`}></i>
                 {feat.display_name}
               </span>
             ))}
             {enabledFeatures.length > 12 && (
-              <span className="badge" style={{ background: STATUS_CONFIG.ENABLED.bg, color: STATUS_CONFIG.ENABLED.color, fontSize: '0.65rem' }}>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium" style={{ background: STATUS_CONFIG.ENABLED.bg, color: STATUS_CONFIG.ENABLED.color }}>
                 +{enabledFeatures.length - 12} more
               </span>
             )}
@@ -655,21 +554,16 @@ function CapabilityPreview({
       {/* Limited features */}
       {limitedFeatures.length > 0 && (
         <div className="mb-2">
-          <div className="d-flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1">
             {limitedFeatures.map((feat) => (
               <button
                 key={feat.feature_key}
                 type="button"
-                className="badge border-0"
+                className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium border-0 cursor-pointer"
                 onClick={() => setExpandedFeature(expandedFeature === feat.feature_key ? null : feat.feature_key)}
-                style={{
-                  ...STATUS_CONFIG.LIMITED,
-                  fontSize: '0.65rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                style={{ ...STATUS_CONFIG.LIMITED }}
               >
-                <i className={`${STATUS_CONFIG.LIMITED.icon} me-1`}></i>
+                <i className={`${STATUS_CONFIG.LIMITED.icon} mr-1`}></i>
                 {feat.display_name}
               </button>
             ))}
@@ -680,26 +574,21 @@ function CapabilityPreview({
       {/* Blocked features */}
       {blockedFeatures.length > 0 && (
         <div className="mb-2">
-          <div className="d-flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1">
             {blockedFeatures.slice(0, 8).map((feat) => (
               <button
                 key={feat.feature_key}
                 type="button"
-                className="badge border-0"
+                className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium border-0 cursor-pointer"
                 onClick={() => setExpandedFeature(expandedFeature === feat.feature_key ? null : feat.feature_key)}
-                style={{
-                  ...STATUS_CONFIG.BLOCKED,
-                  fontSize: '0.65rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                }}
+                style={{ ...STATUS_CONFIG.BLOCKED }}
               >
-                <i className={`${STATUS_CONFIG.BLOCKED.icon} me-1`}></i>
+                <i className={`${STATUS_CONFIG.BLOCKED.icon} mr-1`}></i>
                 {feat.display_name}
               </button>
             ))}
             {blockedFeatures.length > 8 && (
-              <span className="badge" style={{ background: STATUS_CONFIG.BLOCKED.bg, color: STATUS_CONFIG.BLOCKED.color, fontSize: '0.65rem' }}>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium" style={{ background: STATUS_CONFIG.BLOCKED.bg, color: STATUS_CONFIG.BLOCKED.color }}>
                 +{blockedFeatures.length - 8} more blocked
               </span>
             )}
@@ -716,18 +605,18 @@ function CapabilityPreview({
         if (effectiveStatus === 'ENABLED') return null;
         const cfg = STATUS_CONFIG[effectiveStatus];
         return (
-          <div className="rounded-2 p-2 mt-2" style={{ background: `${cfg.bg}`, border: `1px solid ${cfg.border}` }}>
-            <div className="d-flex align-items-start gap-2">
-              <i className="bi bi-info-circle" style={{ color: cfg.color, marginTop: '2px' }}></i>
+          <div className="rounded-lg p-2 mt-2" style={{ background: `${cfg.bg}`, border: `1px solid ${cfg.border}` }}>
+            <div className="flex items-start gap-2">
+              <i className="bi bi-info-circle mt-0.5" style={{ color: cfg.color }}></i>
               <div>
-                <div style={{ color: cfg.color, fontSize: '0.75rem', fontWeight: 500, marginBottom: '4px' }}>
+                <div className="text-xs font-medium mb-1" style={{ color: cfg.color }}>
                   {feat.display_name} — {effectiveStatus === 'BLOCKED' ? 'Blocked' : 'Limited'}
                 </div>
                 {isPackBlocked ? (
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>• Enable the required data pack to unlock this feature</div>
+                  <div className="text-[0.7rem]" style={{ color: 'var(--text-secondary)' }}>• Enable the required data pack to unlock this feature</div>
                 ) : (
                   feat.reasons.map((r, i) => (
-                    <div key={i} style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>• {r}</div>
+                    <div key={i} className="text-[0.7rem]" style={{ color: 'var(--text-secondary)' }}>• {r}</div>
                   ))
                 )}
               </div>
@@ -738,14 +627,14 @@ function CapabilityPreview({
 
       {/* All enabled message */}
       {blockedFeatures.length === 0 && limitedFeatures.length === 0 && (
-        <div className="text-center py-2" style={{ color: 'var(--color-good-text)', fontSize: '0.8rem' }}>
-          <i className="bi bi-stars me-2"></i>
+        <div className="text-center py-2 text-[0.8rem]" style={{ color: 'var(--color-good-text)' }}>
+          <i className="bi bi-stars mr-2"></i>
           All {summary.total_features} features enabled with this configuration!
         </div>
       )}
 
       {/* Data summary */}
-      <div className="d-flex gap-4 mt-3 pt-3" style={{ borderTop: '1px solid var(--glass-border)' }}>
+      <div className="flex gap-4 mt-3 pt-3 border-t" style={{ borderColor: 'var(--glass-border)' }}>
         <DataStat label="Requisitions" value={bundle.requisitions.length} />
         <DataStat label="Candidates" value={bundle.candidates.length} />
         <DataStat label="Events" value={bundle.events.length} />
@@ -759,17 +648,10 @@ function CapabilityPreview({
 function DataStat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div
-        style={{
-          color: 'var(--text-primary)',
-          fontSize: '1.125rem',
-          fontFamily: 'var(--font-mono)',
-          fontWeight: 600,
-        }}
-      >
+      <div className="text-lg font-semibold" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
         {value.toLocaleString()}
       </div>
-      <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>{label}</div>
+      <div className="text-[0.65rem]" style={{ color: 'var(--text-muted)' }}>{label}</div>
     </div>
   );
 }

@@ -40,10 +40,10 @@ export function UnavailableTabPanel({ capability, onUpgradeClick }: UnavailableP
 
         {capability.upgradeHint && onUpgradeClick && (
           <button
-            className="btn btn-outline-primary unavailable-cta"
+            className="px-4 py-2 border border-blue-500 text-blue-500 rounded-md hover:bg-blue-500/10 unavailable-cta"
             onClick={onUpgradeClick}
           >
-            <i className="bi bi-unlock me-2" />
+            <i className="bi bi-unlock mr-2" />
             How to unlock this feature
           </button>
         )}
@@ -63,7 +63,7 @@ export function UnavailableSectionPanel({ capability, onUpgradeClick }: Unavaila
   return (
     <div className="unavailable-section-panel">
       <div className="unavailable-section-header">
-        <i className="bi bi-lock me-2" />
+        <i className="bi bi-lock mr-2" />
         <span className="section-title">{capability.displayName}</span>
       </div>
       <p className="unavailable-section-message">
@@ -71,7 +71,7 @@ export function UnavailableSectionPanel({ capability, onUpgradeClick }: Unavaila
       </p>
       {capability.upgradeHint && onUpgradeClick && (
         <button
-          className="btn btn-link btn-sm p-0 unavailable-section-cta"
+          className="text-blue-500 hover:text-blue-400 text-sm p-0 unavailable-section-cta"
           onClick={onUpgradeClick}
         >
           {capability.upgradeHint}
@@ -108,7 +108,7 @@ export function MetricPlaceholder({
  * Individual requirement status item
  */
 function RequirementItem({ requirement }: { requirement: RequirementStatus }) {
-  const statusIcon = requirement.met ? 'bi-check-circle-fill text-success' : 'bi-circle text-muted';
+  const statusIcon = requirement.met ? 'bi-check-circle-fill text-green-500' : 'bi-circle text-muted-foreground';
 
   let progressText = '';
   if (requirement.currentValue !== undefined && requirement.requiredValue !== undefined) {
@@ -117,7 +117,7 @@ function RequirementItem({ requirement }: { requirement: RequirementStatus }) {
 
   return (
     <li className={`requirement-item ${requirement.met ? 'met' : 'unmet'}`}>
-      <i className={`bi ${statusIcon} me-2`} />
+      <i className={`bi ${statusIcon} mr-2`} />
       <span>{requirement.description}</span>
       {progressText && <span className="requirement-progress">{progressText}</span>}
     </li>
@@ -134,12 +134,12 @@ export function CapabilityBadge({
   capability: CapabilityStatus;
   size?: 'sm' | 'md';
 }) {
-  const colorClass = capability.enabled ? 'bg-success' : 'bg-secondary';
+  const colorClass = capability.enabled ? 'bg-green-600' : 'bg-gray-600';
   const icon = capability.enabled ? 'bi-check' : 'bi-lock';
 
   return (
-    <span className={`capability-badge badge ${colorClass} ${size === 'sm' ? 'badge-sm' : ''}`}>
-      <i className={`bi ${icon} me-1`} />
+    <span className={`capability-badge inline-flex items-center px-2 py-0.5 rounded ${colorClass} text-white ${size === 'sm' ? 'text-xs' : 'text-sm'}`}>
+      <i className={`bi ${icon} mr-1`} />
       {capability.displayName}
     </span>
   );

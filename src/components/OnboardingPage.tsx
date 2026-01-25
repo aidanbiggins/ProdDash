@@ -124,9 +124,9 @@ const OnboardingPage: React.FC = () => {
   // Show loading while auth is initializing or invites are loading
   if (authLoading || loadingInvites) {
     return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
+      <div className="flex justify-center items-center h-screen">
+        <div className="w-5 h-5 border-2 border-primary border-r-transparent rounded-full animate-spin" role="status">
+          <span className="sr-only">Loading...</span>
         </div>
       </div>
     );
@@ -135,16 +135,16 @@ const OnboardingPage: React.FC = () => {
   const hasOptions = memberships.length > 0 || invites.length > 0;
 
   return (
-    <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
-      <div className="card shadow-sm" style={{ maxWidth: '500px', width: '100%' }}>
-        <div className="card-body p-4">
-          <h1 className="h4 mb-1 text-center">Welcome to PlatoVue</h1>
-          <p className="text-muted text-center mb-4">
+    <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center h-screen">
+      <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '500px', width: '100%' }}>
+        <div className="p-6">
+          <h1 className="text-lg font-semibold mb-1 text-center">Welcome to PlatoVue</h1>
+          <p className="text-muted-foreground text-center mb-4">
             {hasOptions ? 'Select an organization to continue' : 'Create your first organization to get started'}
           </p>
 
           {error && (
-            <div className="alert alert-danger mb-3" role="alert">
+            <div className="p-3 rounded-lg bg-bad-bg border border-bad/20 text-bad-text mb-3" role="alert">
               {error}
             </div>
           )}
@@ -152,18 +152,18 @@ const OnboardingPage: React.FC = () => {
           {/* Existing Memberships */}
           {memberships.length > 0 && (
             <div className="mb-4">
-              <h6 className="text-muted mb-2">Your Organizations</h6>
-              <div className="list-group">
+              <h6 className="text-muted-foreground mb-2 text-sm font-medium">Your Organizations</h6>
+              <div className="border border-glass-border rounded-lg overflow-hidden">
                 {memberships.map((m) => (
                   <button
                     key={m.id}
                     type="button"
-                    className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    className="w-full flex justify-between items-center px-4 py-3 bg-bg-glass hover:bg-white/5 border-b border-glass-border last:border-b-0 text-left"
                     onClick={() => handleSelectOrg(m.organization_id)}
                   >
                     <div>
-                      <span className="fw-medium">{m.organization?.name}</span>
-                      <span className="badge bg-secondary ms-2 text-capitalize">{m.role}</span>
+                      <span className="font-medium">{m.organization?.name}</span>
+                      <span className="inline-block px-2 py-0.5 text-xs rounded bg-white/10 text-foreground ml-2 capitalize">{m.role}</span>
                     </div>
                     <span className="text-primary">Select &rarr;</span>
                   </button>
@@ -175,20 +175,20 @@ const OnboardingPage: React.FC = () => {
           {/* Pending Invites */}
           {invites.length > 0 && (
             <div className="mb-4">
-              <h6 className="text-muted mb-2">Pending Invites</h6>
-              <div className="list-group">
+              <h6 className="text-muted-foreground mb-2 text-sm font-medium">Pending Invites</h6>
+              <div className="border border-glass-border rounded-lg overflow-hidden">
                 {invites.map((invite) => (
                   <div
                     key={invite.id}
-                    className="list-group-item d-flex justify-content-between align-items-center"
+                    className="flex justify-between items-center px-4 py-3 bg-bg-glass border-b border-glass-border last:border-b-0"
                   >
                     <div>
-                      <span className="fw-medium">{(invite as any).organization?.name || 'Organization'}</span>
-                      <span className="badge bg-info ms-2 text-capitalize">{invite.role}</span>
+                      <span className="font-medium">{(invite as any).organization?.name || 'Organization'}</span>
+                      <span className="inline-block px-2 py-0.5 text-xs rounded bg-primary/20 text-primary ml-2 capitalize">{invite.role}</span>
                     </div>
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline-success"
+                      className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md bg-transparent text-good border border-good hover:bg-good/10"
                       onClick={() => handleAcceptInvite(invite)}
                       disabled={accepting === invite.id}
                     >
@@ -202,10 +202,10 @@ const OnboardingPage: React.FC = () => {
 
           {/* Divider if there are options */}
           {hasOptions && (
-            <div className="d-flex align-items-center mb-4">
-              <hr className="flex-grow-1" />
-              <span className="px-2 text-muted small">or</span>
-              <hr className="flex-grow-1" />
+            <div className="flex items-center mb-4">
+              <hr className="grow border-glass-border" />
+              <span className="px-2 text-muted-foreground text-sm">or</span>
+              <hr className="grow border-glass-border" />
             </div>
           )}
 
@@ -213,7 +213,7 @@ const OnboardingPage: React.FC = () => {
           {!showCreateForm && hasOptions ? (
             <button
               type="button"
-              className="btn btn-outline-primary w-100"
+              className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium rounded-md bg-transparent text-primary border border-primary hover:bg-primary/10"
               onClick={() => setShowCreateForm(true)}
             >
               Create New Organization
@@ -221,28 +221,28 @@ const OnboardingPage: React.FC = () => {
           ) : (
             <form onSubmit={handleCreateOrg}>
               <div className="mb-3">
-                <label htmlFor="orgName" className="form-label">
+                <label htmlFor="orgName" className="block text-xs font-medium text-muted-foreground mb-1">
                   Organization Name
                 </label>
                 <input
                   type="text"
                   id="orgName"
-                  className="form-control"
+                  className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md focus:border-primary focus:outline-none"
                   placeholder="e.g., Acme Corp"
                   value={newOrgName}
                   onChange={(e) => setNewOrgName(e.target.value)}
                   required
                   autoFocus={!hasOptions}
                 />
-                <div className="form-text">
+                <div className="text-xs text-muted-foreground mt-1">
                   You'll be the admin of this organization.
                 </div>
               </div>
-              <div className="d-flex gap-2">
+              <div className="flex gap-2">
                 {hasOptions && (
                   <button
                     type="button"
-                    className="btn btn-outline-secondary flex-grow-1"
+                    className="inline-flex items-center justify-center grow px-4 py-2 text-sm font-medium rounded-md bg-transparent text-foreground border border-glass-border hover:bg-white/10"
                     onClick={() => setShowCreateForm(false)}
                     disabled={creating}
                   >
@@ -251,7 +251,7 @@ const OnboardingPage: React.FC = () => {
                 )}
                 <button
                   type="submit"
-                  className="btn btn-primary flex-grow-1"
+                  className="inline-flex items-center justify-center grow px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
                   disabled={creating || !newOrgName.trim()}
                 >
                   {creating ? 'Creating...' : 'Create Organization'}

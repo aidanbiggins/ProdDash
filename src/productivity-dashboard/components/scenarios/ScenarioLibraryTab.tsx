@@ -178,10 +178,10 @@ export default function ScenarioLibraryTab({ className = '' }: ScenarioLibraryTa
 
       {!hasData ? (
         <GlassPanel className="scenario-no-data">
-          <div className="text-center py-5">
-            <i className="bi bi-database-x display-4 text-secondary mb-3" />
+          <div className="text-center py-12">
+            <i className="bi bi-database-x text-5xl text-muted-foreground mb-3 block" />
             <h5>No Data Available</h5>
-            <p className="text-secondary">
+            <p className="text-muted-foreground">
               Import recruiting data to start modeling scenarios.
             </p>
           </div>
@@ -195,22 +195,22 @@ export default function ScenarioLibraryTab({ className = '' }: ScenarioLibraryTa
         <div className="scenario-workspace">
           <div className="scenario-header">
             <button
-              className="btn btn-link text-secondary p-0"
+              className="bg-transparent border-none text-muted-foreground p-0 cursor-pointer hover:text-foreground transition-colors"
               onClick={handleBack}
             >
-              <i className="bi bi-arrow-left me-2" />
+              <i className="bi bi-arrow-left mr-2" />
               Back to scenarios
             </button>
             <SectionHeader
               title={(
                 <>
-                  <i className={`bi bi-${SCENARIO_METADATA[selectedScenarioId].icon} me-2`} />
+                  <i className={`bi bi-${SCENARIO_METADATA[selectedScenarioId].icon} mr-2`} />
                   {SCENARIO_METADATA[selectedScenarioId].title}
                 </>
               )}
               className="mt-2"
             />
-            <p className="scenario-description text-secondary">
+            <p className="scenario-description text-muted-foreground">
               {SCENARIO_METADATA[selectedScenarioId].description}
             </p>
           </div>
@@ -218,15 +218,15 @@ export default function ScenarioLibraryTab({ className = '' }: ScenarioLibraryTa
           <div className="scenario-content">
             <GlassPanel className="scenario-parameters-panel">
               <h5 className="panel-title">
-                <i className="bi bi-sliders me-2" />
+                <i className="bi bi-sliders mr-2" />
                 Configure Scenario
               </h5>
               {renderParameterForm()}
             </GlassPanel>
 
             {error && (
-              <div className="alert alert-danger mt-3">
-                <i className="bi bi-exclamation-triangle me-2" />
+              <div className="p-3 rounded-lg bg-red-500/10 text-red-400 mt-3">
+                <i className="bi bi-exclamation-triangle mr-2" />
                 {error}
               </div>
             )}

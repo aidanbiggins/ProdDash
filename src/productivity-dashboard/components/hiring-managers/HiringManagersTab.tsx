@@ -206,21 +206,21 @@ export function HiringManagersTab({
             )}
 
             {/* Header & Sub-Navigation */}
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
                 <div className="nav-pills-bespoke">
                     <button
                         className={`nav-link ${activeSubTab === 'overview' ? 'active' : ''}`}
                         onClick={() => setActiveSubTab('overview')}
                     >
                         Overview
-                        <span className="badge ms-2 bg-slate-200 text-slate-600 rounded-pill" style={{ fontSize: '0.7em' }}>{hmRollups.length}</span>
+                        <span className="inline-flex items-center px-2 py-0.5 ml-2 bg-slate-200 text-slate-600 rounded-full text-xs">{hmRollups.length}</span>
                     </button>
                     <button
                         className={`nav-link ${activeSubTab === 'scorecard' ? 'active' : ''}`}
                         onClick={() => setActiveSubTab('scorecard')}
                     >
                         Req Scorecard
-                        <span className="badge ms-2 bg-slate-200 text-slate-600 rounded-pill" style={{ fontSize: '0.7em' }}>
+                        <span className="inline-flex items-center px-2 py-0.5 ml-2 bg-slate-200 text-slate-600 rounded-full text-xs">
                             {selectedHmUserIds.size > 0 ? filteredReqRollups.length : reqRollups.length}
                         </span>
                     </button>
@@ -230,7 +230,7 @@ export function HiringManagersTab({
                     >
                         Pending Actions
                         {filteredActions.length > 0 && (
-                            <span className="badge ms-2 bg-warning text-dark rounded-pill" style={{ fontSize: '0.7em' }}>{filteredActions.length}</span>
+                            <span className="inline-flex items-center px-2 py-0.5 ml-2 bg-amber-500 text-black rounded-full text-xs font-medium">{filteredActions.length}</span>
                         )}
                     </button>
                     <button
@@ -241,18 +241,18 @@ export function HiringManagersTab({
                     </button>
                 </div>
 
-                <div className="d-flex align-items-center gap-3">
+                <div className="flex items-center gap-3">
                     {/* Selected HMs Indicator (Multi-select) */}
                     {selectedHmUserIds.size > 0 && (
-                        <div className="d-flex align-items-center px-3 py-1 rounded-pill" style={{ background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <span className="small me-2" style={{ color: '#94A3B8' }}>Comparing:</span>
-                            <span className="fw-bold me-2" style={{ color: '#F8FAFC' }}>
+                        <div className="flex items-center px-3 py-1 rounded-full" style={{ background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            <span className="text-sm mr-2" style={{ color: '#94A3B8' }}>Comparing:</span>
+                            <span className="font-bold mr-2" style={{ color: '#F8FAFC' }}>
                                 {selectedHmUserIds.size === 1
                                     ? selectedHmNames[0]
                                     : `${selectedHmUserIds.size} HMs`}
                             </span>
                             <button
-                                className="btn btn-link p-0 text-muted"
+                                className="p-0 text-muted-foreground hover:text-white transition-colors"
                                 onClick={clearSelection}
                                 title="Clear selection"
                             >
@@ -263,7 +263,7 @@ export function HiringManagersTab({
 
                     {/* As-of Date */}
                     <div
-                        className="px-3 py-1 rounded-pill text-end d-flex flex-column justify-content-center"
+                        className="px-3 py-1 rounded-full text-right flex flex-col justify-center"
                         style={{
                             height: '38px',
                             background: daysSinceImport !== null && daysSinceImport > 3
@@ -278,9 +278,9 @@ export function HiringManagersTab({
                         }}
                     >
                         <div style={{ fontSize: '0.6rem', textTransform: 'uppercase', fontWeight: 700, lineHeight: 1, marginBottom: '2px', opacity: 0.8 }}>Data Refresh</div>
-                        <div className="fw-bold small d-flex align-items-center justify-content-end gap-1" style={{ lineHeight: 1 }}>
+                        <div className="font-bold text-sm flex items-center justify-end gap-1" style={{ lineHeight: 1 }}>
                             {lastImportAt ? lastImportAt.toLocaleDateString() : 'Unknown'}
-                            {daysSinceImport !== null && daysSinceImport <= 3 && <i className="bi bi-check-circle-fill ms-1" style={{ fontSize: '0.8em' }}></i>}
+                            {daysSinceImport !== null && daysSinceImport <= 3 && <i className="bi bi-check-circle-fill ml-1" style={{ fontSize: '0.8em' }}></i>}
                         </div>
                     </div>
                 </div>

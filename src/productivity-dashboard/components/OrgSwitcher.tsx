@@ -27,43 +27,42 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
   const roleLabel = userRole === 'super_admin' ? 'Super Admin' : userRole === 'admin' ? 'Admin' : 'Member';
 
   return (
-    <div className="org-switcher dropdown">
+    <div className="org-switcher relative">
       <button
-        className="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border border-glass-border text-foreground hover:bg-bg-elevated transition-colors"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
       >
         <i className="bi bi-building"></i>
-        <span className="org-name">{currentOrg?.name || 'Select Organization'}</span>
+        <span className="org-name max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{currentOrg?.name || 'Select Organization'}</span>
         {userRole && (
-          <span className={`badge ${userRole === 'super_admin' ? 'bg-danger' : userRole === 'admin' ? 'bg-primary' : 'bg-secondary'}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${userRole === 'super_admin' ? 'bg-bad text-white' : userRole === 'admin' ? 'bg-accent text-bg-base' : 'bg-bg-elevated text-muted-foreground'}`}>
             {roleLabel}
           </span>
         )}
+        <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
       </button>
 
       {isOpen && (
         <>
-          <div className="dropdown-backdrop" onClick={() => setIsOpen(false)} />
-          <ul className="dropdown-menu show">
+          <div className="fixed inset-0 z-[1000]" onClick={() => setIsOpen(false)} />
+          <ul className="absolute top-full left-0 z-[1001] mt-1 min-w-[250px] py-1 bg-bg-surface border border-glass-border rounded-md shadow-glass-elevated">
             {memberships.length === 0 ? (
-              <li>
-                <span className="dropdown-item-text text-muted">
-                  No organizations
-                </span>
+              <li className="px-3 py-2 text-sm text-muted-foreground">
+                No organizations
               </li>
             ) : (
               memberships.map((membership) => (
                 <li key={membership.organization_id}>
                   <button
-                    className={`dropdown-item d-flex align-items-center justify-content-between ${
-                      membership.organization_id === currentOrg?.id ? 'active' : ''
+                    className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
+                      membership.organization_id === currentOrg?.id ? 'bg-accent text-bg-base' : 'text-foreground hover:bg-bg-elevated'
                     }`}
                     onClick={() => handleSelect(membership.organization_id)}
                   >
                     <span>{membership.organization.name}</span>
-                    <span className="badge bg-secondary ms-2">
+                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${membership.organization_id === currentOrg?.id ? 'bg-white/30' : 'bg-bg-elevated text-muted-foreground'}`}>
                       {membership.role}
                     </span>
                   </button>
@@ -71,12 +70,12 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
               ))
             )}
 
-            {(hasMultipleOrgs || memberships.length > 0) && <li><hr className="dropdown-divider" /></li>}
+            {(hasMultipleOrgs || memberships.length > 0) && <li className="my-1 border-t border-glass-border" />}
 
             {onOrgSettings && currentOrg && (userRole === 'admin' || userRole === 'super_admin') && (
               <li>
                 <button
-                  className="dropdown-item d-flex align-items-center gap-2"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-bg-elevated transition-colors"
                   onClick={() => {
                     onOrgSettings();
                     setIsOpen(false);
@@ -91,7 +90,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
             {onCreateOrg && (
               <li>
                 <button
-                  className="dropdown-item d-flex align-items-center gap-2"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-bg-elevated transition-colors"
                   onClick={() => {
                     onCreateOrg();
                     setIsOpen(false);
@@ -180,23 +179,23 @@ export function CreateOrgModal({ isOpen, onClose, onCreate }: CreateOrgModalProp
   };
 
   return (
-    <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Create New Organization</h5>
-            <button type="button" className="btn-close" onClick={onClose} disabled={isLoading}></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" tabIndex={-1}>
+      <div className="w-full max-w-md mx-4">
+        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
+          <div className="flex items-center justify-between p-4 border-b border-glass-border">
+            <h5 className="font-semibold text-foreground">Create New Organization</h5>
+            <button type="button" className="text-muted-foreground hover:text-foreground disabled:opacity-50" onClick={onClose} disabled={isLoading}>&times;</button>
           </div>
           <form onSubmit={handleSubmit}>
-            <div className="modal-body">
+            <div className="p-4">
               {error && (
-                <div className="alert alert-danger">{error}</div>
+                <div className="p-3 rounded-lg bg-bad/10 border border-bad/30 text-bad mb-4">{error}</div>
               )}
               <div className="mb-3">
-                <label htmlFor="orgName" className="form-label">Organization Name</label>
+                <label htmlFor="orgName" className="block text-xs font-medium text-muted-foreground mb-1">Organization Name</label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="w-full px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-50"
                   id="orgName"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -204,16 +203,16 @@ export function CreateOrgModal({ isOpen, onClose, onCreate }: CreateOrgModalProp
                   autoFocus
                   disabled={isLoading}
                 />
-                <div className="form-text">
+                <p className="mt-1 text-xs text-muted-foreground">
                   This is the name that will be shown to all members.
-                </div>
+                </p>
               </div>
             </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isLoading}>
+            <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
+              <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80 disabled:opacity-50" onClick={onClose} disabled={isLoading}>
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary" disabled={isLoading || !name.trim()}>
+              <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50" disabled={isLoading || !name.trim()}>
                 {isLoading ? 'Creating...' : 'Create Organization'}
               </button>
             </div>

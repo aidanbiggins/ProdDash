@@ -66,7 +66,7 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
 
     if (chartData.length === 0) {
         return (
-            <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="text-muted small">
+            <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="text-muted-foreground text-sm">
                 No simulation data available
             </div>
         );
@@ -94,8 +94,8 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
                             if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                    <div className="bg-white p-2 border border-border shadow-sm rounded text-xs">
-                                        <div className="fw-bold">{data.dateStr}</div>
+                                    <div className="bg-white p-2 border border-glass-border shadow-sm rounded text-xs">
+                                        <div className="font-bold">{data.dateStr}</div>
                                         <div>Prob: {data.percentage.toFixed(1)}% ({data.count} sims)</div>
                                     </div>
                                 );

@@ -207,18 +207,16 @@ export function BottlenecksTab({ onNavigate, onCreateActions }: BottlenecksTabPr
         title="Bottlenecks & SLAs"
         subtitle="Track stage dwell time and SLA compliance"
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+          <div className="flex gap-2 items-center">
             {bottleneckSummary && onCreateActions && (
               <button
                 onClick={handleCreateActions}
-                className="btn btn-sm"
+                className="px-3 py-1 text-sm rounded-md text-white"
                 style={{
                   background: 'var(--color-accent-primary)',
-                  color: '#fff',
-                  border: 'none',
                 }}
               >
-                <i className="bi bi-plus-circle me-1" />
+                <i className="bi bi-plus-circle mr-1" />
                 Create Actions
               </button>
             )}
@@ -236,32 +234,27 @@ export function BottlenecksTab({ onNavigate, onCreateActions }: BottlenecksTabPr
       {/* Action Creation Feedback */}
       {actionFeedback?.show && (
         <div
+          className="flex items-center justify-between p-3 mb-3 rounded-md"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: 'var(--space-3) var(--space-4)',
-            marginBottom: 'var(--space-3)',
             backgroundColor: 'rgba(34, 197, 94, 0.1)',
             border: '1px solid rgba(34, 197, 94, 0.3)',
-            borderRadius: 'var(--radius-md)',
             color: '#22c55e',
           }}
         >
           <span>
-            <i className="bi bi-check-circle me-2" />
+            <i className="bi bi-check-circle mr-2" />
             {actionFeedback.count} action{actionFeedback.count !== 1 ? 's' : ''} created
           </span>
           <button
             onClick={() => onNavigate?.('/')}
-            className="btn btn-sm"
+            className="px-3 py-1 text-sm rounded-md"
             style={{
               background: 'rgba(34, 197, 94, 0.2)',
               color: '#22c55e',
               border: '1px solid rgba(34, 197, 94, 0.3)',
             }}
           >
-            View in Command Center <i className="bi bi-arrow-right ms-1" />
+            View in Command Center <i className="bi bi-arrow-right ml-1" />
           </button>
         </div>
       )}

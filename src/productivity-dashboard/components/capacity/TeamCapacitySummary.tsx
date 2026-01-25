@@ -10,14 +10,14 @@ interface TeamCapacitySummaryProps {
 
 function ConfidenceBadge({ confidence }: { confidence: ConfidenceLevel }) {
   const badgeClass = {
-    HIGH: 'badge-success-soft',
-    MED: 'badge-warning-soft',
-    LOW: 'badge-neutral-soft',
-    INSUFFICIENT: 'badge-danger-soft'
+    HIGH: 'bg-green-500/15 text-green-400',
+    MED: 'bg-amber-500/15 text-amber-400',
+    LOW: 'bg-slate-500/15 text-slate-400',
+    INSUFFICIENT: 'bg-red-500/15 text-red-400'
   }[confidence];
 
   return (
-    <span className={`badge-bespoke ${badgeClass}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${badgeClass}`}>
       {confidence} confidence
     </span>
   );
@@ -31,24 +31,24 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
 
   return (
     <div className="mb-3">
-      <div className="d-flex justify-content-between small text-muted mb-1">
+      <div className="flex justify-between text-sm text-muted-foreground mb-1">
         <span>Team Demand</span>
         <span>{demand} WU</span>
       </div>
-      <div className="progress mb-2 capacity-progress-track">
+      <div className="h-2 bg-bg-glass rounded mb-2 capacity-progress-track">
         <div
-          className={`progress-bar ${isOverDemand ? 'bg-danger' : 'bg-primary'}`}
+          className={`h-full rounded ${isOverDemand ? 'bg-red-500' : 'bg-primary'}`}
           style={{ width: `${demandPercent}%` }}
         />
       </div>
 
-      <div className="d-flex justify-content-between small text-muted mb-1">
+      <div className="flex justify-between text-sm text-muted-foreground mb-1">
         <span>Team Capacity</span>
         <span>{capacity} WU</span>
       </div>
-      <div className="progress capacity-progress-track">
+      <div className="h-2 bg-bg-glass rounded capacity-progress-track">
         <div
-          className="progress-bar bg-success"
+          className="h-full rounded bg-green-500"
           style={{ width: `${capacityPercent}%` }}
         />
       </div>
@@ -68,9 +68,9 @@ export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
 
   return (
     <div className="card-bespoke">
-      <div className="card-header d-flex justify-content-between align-items-center">
+      <div className="card-header flex justify-between items-center">
         <h6 className="mb-0">
-          <i className="bi bi-people me-2"></i>
+          <i className="bi bi-people mr-2"></i>
           Team Capacity Overview
         </h6>
         <ConfidenceBadge confidence={summary.confidence} />
@@ -80,12 +80,12 @@ export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
         <CapacityGauge demand={summary.teamDemand} capacity={summary.teamCapacity} />
 
         <div className={`text-center p-3 rounded mb-3 capacity-status-panel ${statusStyle.panel}`}>
-          <div className="stat-label text-muted">Capacity Gap</div>
+          <div className="stat-label text-muted-foreground">Capacity Gap</div>
           <div className="stat-value capacity-gap-value">
             {summary.capacityGap > 0 ? '+' : ''}{summary.capacityGap} WU
           </div>
-          <div className="small mt-1">
-            <span className={`badge ${statusStyle.badge}`}>
+          <div className="text-sm mt-1">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusStyle.badge}`}>
               {Math.abs(summary.capacityGapPercent)}% {statusStyle.label}
             </span>
           </div>
@@ -93,15 +93,15 @@ export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
 
         {summary.topDrivers.length > 0 && (
           <div>
-            <div className="small text-muted mb-2">Top Drivers:</div>
-            <ul className="list-unstyled small mb-0">
+            <div className="text-sm text-muted-foreground mb-2">Top Drivers:</div>
+            <ul className="list-none text-sm mb-0">
               {summary.topDrivers.map((driver, i) => (
-                <li key={i} className="d-flex justify-content-between mb-1">
+                <li key={i} className="flex justify-between mb-1">
                   <span>
                     <i className="bi bi-dot"></i>
                     {driver.description}
                   </span>
-                  <span className="text-muted">+{driver.impactWU} WU</span>
+                  <span className="text-muted-foreground">+{driver.impactWU} WU</span>
                 </li>
               ))}
             </ul>

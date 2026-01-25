@@ -78,43 +78,36 @@ export function ExplainDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="position-fixed top-0 start-0 w-100 h-100 glass-backdrop"
+        className="fixed top-0 left-0 w-full h-full glass-backdrop transition-opacity duration-300 ease-in-out"
         style={{
           zIndex: 1040,
           opacity: isOpen ? 1 : 0,
           pointerEvents: isOpen ? 'auto' : 'none',
-          transition: 'opacity 0.3s ease-in-out',
         }}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className="position-fixed top-0 end-0 h-100 d-flex flex-column glass-drawer"
+        className="fixed top-0 right-0 h-full flex flex-col glass-drawer w-[420px] max-w-[90vw] transition-transform duration-300 ease-in-out"
         style={{
-          width: '420px',
-          maxWidth: '90vw',
           zIndex: 1050,
           transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s ease-in-out',
         }}
       >
         {/* Header */}
-        <div className="d-flex align-items-center justify-content-between p-3 glass-drawer-header">
-          <div className="d-flex align-items-center gap-3">
+        <div className="flex items-center justify-between p-3 glass-drawer-header">
+          <div className="flex items-center gap-3">
             {/* Back/Forward Navigation */}
             {(canGoBack || canGoForward) && (
-              <div className="d-flex align-items-center gap-1">
+              <div className="flex items-center gap-1">
                 <button
-                  className="btn btn-sm p-1"
+                  className="p-1 w-7 h-7 rounded text-sm"
                   onClick={onGoBack}
                   disabled={!canGoBack}
                   style={{
                     color: canGoBack ? 'var(--text-primary)' : 'var(--text-secondary)',
                     opacity: canGoBack ? 1 : 0.4,
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '4px',
                     backgroundColor: canGoBack ? 'rgba(255,255,255,0.1)' : 'transparent',
                   }}
                   title="Previous metric"
@@ -122,15 +115,12 @@ export function ExplainDrawer({
                   <i className="bi bi-chevron-left"></i>
                 </button>
                 <button
-                  className="btn btn-sm p-1"
+                  className="p-1 w-7 h-7 rounded text-sm"
                   onClick={onGoForward}
                   disabled={!canGoForward}
                   style={{
                     color: canGoForward ? 'var(--text-primary)' : 'var(--text-secondary)',
                     opacity: canGoForward ? 1 : 0.4,
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '4px',
                     backgroundColor: canGoForward ? 'rgba(255,255,255,0.1)' : 'transparent',
                   }}
                   title="Next metric"
@@ -138,23 +128,23 @@ export function ExplainDrawer({
                   <i className="bi bi-chevron-right"></i>
                 </button>
                 {currentIndex !== undefined && totalCount !== undefined && totalCount > 1 && (
-                  <span className="small ms-1" style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
+                  <span className="text-sm ml-1 text-[0.7rem]" style={{ color: 'var(--text-secondary)' }}>
                     {currentIndex + 1}/{totalCount}
                   </span>
                 )}
               </div>
             )}
             <div>
-              <div className="small text-uppercase" style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
+              <div className="text-xs text-uppercase" style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}>
                 Explain
               </div>
-              <h5 className="mb-0" style={{ color: 'var(--text-primary)' }}>
+              <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                 {explanation.metricLabel}
-              </h5>
+              </div>
             </div>
           </div>
           <button
-            className="btn btn-sm"
+            className="text-sm"
             onClick={onClose}
             style={{ color: 'var(--text-secondary)' }}
           >
@@ -163,7 +153,7 @@ export function ExplainDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex-grow-1 overflow-auto p-3">
+        <div className="grow overflow-auto p-3">
           {/* AI Summary Section */}
           {isAiEnabled && (
             <AiSummarySection
@@ -183,13 +173,12 @@ export function ExplainDrawer({
 
         {/* Footer */}
         <div
-          className="p-3 small"
+          className="p-3 text-sm border-t border-white/10"
           style={{
-            borderTop: '1px solid rgba(255,255,255,0.1)',
             color: 'var(--text-secondary)',
           }}
         >
-          <div className="d-flex justify-content-between">
+          <div className="flex justify-between">
             <span>
               {format(explanation.dateRange.start, 'MMM d, yyyy')} - {format(explanation.dateRange.end, 'MMM d, yyyy')}
             </span>
@@ -209,17 +198,13 @@ function BlockedContent({ explanation }: { explanation: Explanation }) {
     <div>
       {/* Blocked Alert */}
       <div
-        className="p-3 rounded mb-4"
-        style={{
-          backgroundColor: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-        }}
+        className="p-3 rounded mb-4 bg-red-500/15 border border-red-500/30"
       >
-        <div className="d-flex align-items-center gap-2 mb-2">
-          <i className="bi bi-exclamation-triangle" style={{ color: '#ef4444', fontSize: '1.25rem' }}></i>
-          <span className="fw-bold" style={{ color: '#ef4444' }}>BLOCKED</span>
+        <div className="flex items-center gap-2 mb-2">
+          <i className="bi bi-exclamation-triangle text-[1.25rem]" style={{ color: '#ef4444' }}></i>
+          <span className="font-bold" style={{ color: '#ef4444' }}>BLOCKED</span>
         </div>
-        <p className="mb-0 small" style={{ color: 'var(--text-primary)' }}>
+        <p className="mb-0 text-sm" style={{ color: 'var(--text-primary)' }}>
           This metric cannot be calculated due to missing data.
         </p>
       </div>
@@ -237,14 +222,14 @@ function BlockedContent({ explanation }: { explanation: Explanation }) {
                 border: '1px solid rgba(255,255,255,0.1)',
               }}
             >
-              <code className="small" style={{ color: '#f59e0b' }}>
+              <code className="text-sm" style={{ color: '#f59e0b' }}>
                 {reason.code}
               </code>
-              <p className="mb-0 mt-1 small" style={{ color: 'var(--text-primary)' }}>
+              <p className="mb-0 mt-1 text-sm" style={{ color: 'var(--text-primary)' }}>
                 {reason.message}
               </p>
               {reason.sampleCount !== undefined && (
-                <p className="mb-0 mt-1 small" style={{ color: 'var(--text-secondary)' }}>
+                <p className="mb-0 mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   {reason.sampleCount} record(s) affected
                 </p>
               )}
@@ -256,7 +241,7 @@ function BlockedContent({ explanation }: { explanation: Explanation }) {
       {/* Resolution Suggestions */}
       <div>
         <SectionHeader>To Resolve</SectionHeader>
-        <ul className="mb-0 ps-3 small" style={{ color: 'var(--text-secondary)' }}>
+        <ul className="mb-0 pl-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
           <li>Expand the date range</li>
           <li>Check if required date fields are being imported</li>
           <li>Verify data mapping in CSV import</li>
@@ -273,11 +258,7 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
       {/* Value Section */}
       <div className="text-center mb-4">
         <div
-          className="d-inline-block px-4 py-3 rounded"
-          style={{
-            backgroundColor: 'rgba(45, 212, 191, 0.1)',
-            border: '1px solid rgba(45, 212, 191, 0.3)',
-          }}
+          className="inline-block px-4 py-3 rounded bg-teal-400/10 border border-teal-400/30"
         >
           <div
             className="font-mono"
@@ -292,17 +273,16 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
         </div>
 
         {explanation.benchmark && (
-          <div className="mt-2 small" style={{ color: 'var(--text-secondary)' }}>
+          <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
             vs {explanation.benchmark.label}: {explanation.benchmark.value} {explanation.unit}
           </div>
         )}
 
         {explanation.status === 'partial' && (
           <div
-            className="mt-2 d-inline-block px-2 py-1 rounded small"
-            style={{ backgroundColor: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b' }}
+            className="mt-2 inline-block px-2 py-1 rounded text-sm bg-amber-500/20 text-amber-500"
           >
-            <i className="bi bi-exclamation-circle me-1"></i>
+            <i className="bi bi-exclamation-circle mr-1"></i>
             Partial Data
           </div>
         )}
@@ -312,7 +292,7 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
       <div className="mb-4">
         <SectionHeader>Formula</SectionHeader>
         <div
-          className="p-2 rounded font-mono small"
+          className="p-2 rounded font-mono text-sm"
           style={{
             backgroundColor: 'rgba(0,0,0,0.3)',
             color: '#2dd4bf',
@@ -327,12 +307,11 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
       {explanation.breakdown && explanation.breakdown.length > 0 && (
         <div className="mb-4">
           <SectionHeader>Breakdown</SectionHeader>
-          <div className="small">
+          <div className="text-sm">
             {explanation.breakdown.map((row, idx) => (
               <div
                 key={idx}
-                className="d-flex justify-content-between py-2"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}
+                className="flex justify-between py-2 border-b border-white/10"
               >
                 <span style={{ color: 'var(--text-secondary)' }}>{row.label}</span>
                 <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
@@ -342,8 +321,8 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
             ))}
           </div>
           {explanation.mathInvariantValid === false && (
-            <div className="mt-2 small" style={{ color: 'var(--text-secondary)' }}>
-              <i className="bi bi-info-circle me-1"></i>
+            <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <i className="bi bi-info-circle mr-1"></i>
               Phase medians may not sum to total — each is calculated independently
             </div>
           )}
@@ -353,25 +332,25 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
       {/* Data Included Section */}
       <div className="mb-4">
         <SectionHeader>Data Included</SectionHeader>
-        <div className="d-flex gap-3 mb-2">
+        <div className="flex gap-3 mb-2">
           <div>
-            <span className="font-mono fw-bold" style={{ color: '#22c55e' }}>
+            <span className="font-mono font-bold" style={{ color: '#22c55e' }}>
               {explanation.includedCount}
             </span>
-            <span className="ms-1 small" style={{ color: 'var(--text-secondary)' }}>included</span>
+            <span className="ml-1 text-sm" style={{ color: 'var(--text-secondary)' }}>included</span>
           </div>
           {explanation.excludedCount > 0 && (
             <div>
-              <span className="font-mono fw-bold" style={{ color: '#ef4444' }}>
+              <span className="font-mono font-bold" style={{ color: '#ef4444' }}>
                 {explanation.excludedCount}
               </span>
-              <span className="ms-1 small" style={{ color: 'var(--text-secondary)' }}>excluded</span>
+              <span className="ml-1 text-sm" style={{ color: 'var(--text-secondary)' }}>excluded</span>
             </div>
           )}
         </div>
 
         {explanation.exclusionReasons.length > 0 && (
-          <ul className="mb-0 ps-3 small" style={{ color: 'var(--text-secondary)' }}>
+          <ul className="mb-0 pl-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
             {explanation.exclusionReasons.map((er, idx) => (
               <li key={idx}>
                 {er.count} {er.reason}
@@ -385,10 +364,10 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
       {explanation.confidenceGrade && (
         <div className="mb-4">
           <SectionHeader>Confidence</SectionHeader>
-          <div className="d-flex align-items-center gap-2">
+          <div className="flex items-center gap-2">
             <ConfidenceBadge grade={explanation.confidenceGrade} />
             {explanation.confidenceNote && (
-              <span className="small" style={{ color: 'var(--text-secondary)' }}>
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 {explanation.confidenceNote}
               </span>
             )}
@@ -400,27 +379,24 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
       {explanation.topContributors && explanation.topContributors.length > 0 && (
         <div className="mb-4">
           <SectionHeader>Top Contributors (Longest)</SectionHeader>
-          <div className="small">
+          <div className="text-sm">
             {explanation.topContributors.map((contrib, idx) => (
               <div
                 key={contrib.id}
-                className="d-flex justify-content-between align-items-center py-2"
-                style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                className="flex justify-between items-center py-2 border-b border-white/5"
               >
-                <div className="d-flex align-items-center gap-2">
+                <div className="flex items-center gap-2">
                   <span
-                    className="badge rounded-pill"
+                    className="rounded-full px-2 py-0.5 min-w-[1.5rem] text-center bg-white/10"
                     style={{
-                      backgroundColor: 'rgba(255,255,255,0.1)',
                       color: 'var(--text-secondary)',
-                      minWidth: '1.5rem',
                     }}
                   >
                     {idx + 1}
                   </span>
                   <span
-                    className="text-truncate"
-                    style={{ color: 'var(--text-primary)', maxWidth: '200px' }}
+                    className="truncate max-w-[200px]"
+                    style={{ color: 'var(--text-primary)' }}
                     title={contrib.label}
                   >
                     {contrib.label}
@@ -439,7 +415,7 @@ function ReadyContent({ explanation }: { explanation: Explanation }) {
       {explanation.recommendedActions && explanation.recommendedActions.length > 0 && (
         <div>
           <SectionHeader>Recommended Next Actions</SectionHeader>
-          <div className="small">
+          <div className="text-sm">
             {explanation.recommendedActions.map((action, idx) => (
               <ActionItem key={idx} action={action} />
             ))}
@@ -484,11 +460,10 @@ function formatValueWithUnit(value: number | string, unit: string): React.ReactN
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="text-uppercase small mb-2"
+      className="text-uppercase text-sm mb-2 font-semibold"
       style={{
         color: 'var(--text-secondary)',
         letterSpacing: '0.05em',
-        fontWeight: 600,
       }}
     >
       {children}
@@ -506,7 +481,7 @@ function ConfidenceBadge({ grade }: { grade: 'high' | 'medium' | 'low' }) {
 
   return (
     <span
-      className="px-2 py-1 rounded text-uppercase small fw-bold"
+      className="inline-flex items-center px-2 py-0.5 rounded uppercase text-xs font-medium"
       style={{ backgroundColor: c.bg, color: c.text }}
     >
       {grade}
@@ -545,15 +520,15 @@ function ActionItem({ action }: { action: RecommendedAction }) {
         backgroundColor: style.bg,
       }}
     >
-      <div className="d-flex align-items-start gap-2">
+      <div className="flex items-start gap-2">
         <i
           className={`bi ${style.icon}`}
           style={{ color: style.iconColor, marginTop: '2px' }}
         ></i>
-        <div className="flex-grow-1">
+        <div className="grow">
           <div style={{ color: 'var(--text-primary)' }}>{action.action}</div>
           {action.reason && (
-            <div className="mt-1" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+            <div className="mt-1 text-[0.8rem]" style={{ color: 'var(--text-secondary)' }}>
               {action.reason}
             </div>
           )}
@@ -574,29 +549,22 @@ interface AiSummarySectionProps {
 function AiSummarySection({ isLoading, result, error, onGenerate }: AiSummarySectionProps) {
   return (
     <div
-      className="mb-4 p-3 rounded"
-      style={{
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-        border: '1px solid rgba(139, 92, 246, 0.3)',
-      }}
+      className="mb-4 p-3 rounded bg-violet-500/10 border border-violet-500/30"
     >
-      <div className="d-flex align-items-center justify-content-between mb-2">
-        <div className="d-flex align-items-center gap-2">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
           <i className="bi bi-stars" style={{ color: '#a78bfa' }}></i>
-          <span className="small fw-bold" style={{ color: '#a78bfa' }}>AI Summary</span>
+          <span className="text-sm font-bold" style={{ color: '#a78bfa' }}>AI Summary</span>
         </div>
         {!result && !isLoading && (
           <button
-            className="btn btn-sm"
+            className="text-sm px-2 py-1 rounded bg-violet-500/20 border border-violet-500/40 text-[0.75rem]"
             onClick={onGenerate}
             style={{
-              backgroundColor: 'rgba(139, 92, 246, 0.2)',
-              border: '1px solid rgba(139, 92, 246, 0.4)',
               color: '#a78bfa',
-              fontSize: '0.75rem',
             }}
           >
-            <i className="bi bi-lightning-charge me-1"></i>
+            <i className="bi bi-lightning-charge mr-1"></i>
             Generate
           </button>
         )}
@@ -604,7 +572,7 @@ function AiSummarySection({ isLoading, result, error, onGenerate }: AiSummarySec
 
       {/* Loading State */}
       {isLoading && (
-        <div className="d-flex align-items-center gap-2 py-2">
+        <div className="flex items-center gap-2 py-2">
           <LogoSpinner size={32} message="Generating summary..." />
         </div>
       )}
@@ -612,14 +580,9 @@ function AiSummarySection({ isLoading, result, error, onGenerate }: AiSummarySec
       {/* Error State */}
       {error && (
         <div
-          className="p-2 rounded small"
-          style={{
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: '#ef4444',
-          }}
+          className="p-2 rounded text-sm bg-red-500/10 border border-red-500/30 text-red-500"
         >
-          <i className="bi bi-exclamation-circle me-1"></i>
+          <i className="bi bi-exclamation-circle mr-1"></i>
           {error}
         </div>
       )}
@@ -627,11 +590,11 @@ function AiSummarySection({ isLoading, result, error, onGenerate }: AiSummarySec
       {/* Result */}
       {result && !error && (
         <div>
-          <p className="mb-2 small" style={{ color: 'var(--text-primary)' }}>
+          <p className="mb-2 text-sm" style={{ color: 'var(--text-primary)' }}>
             {result.summary}
           </p>
           {result.bullets.length > 0 && (
-            <ul className="mb-0 ps-3 small" style={{ color: 'var(--text-secondary)' }}>
+            <ul className="mb-0 pl-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {result.bullets.map((bullet, idx) => (
                 <li key={idx}>{bullet}</li>
               ))}
@@ -642,8 +605,8 @@ function AiSummarySection({ isLoading, result, error, onGenerate }: AiSummarySec
 
       {/* Placeholder when not generated - now auto-generates so this is rarely shown */}
       {!result && !isLoading && !error && (
-        <div className="d-flex align-items-center gap-2 py-1">
-          <span className="small ai-generating" style={{ color: 'var(--text-secondary)' }}>
+        <div className="flex items-center gap-2 py-1">
+          <span className="text-sm ai-generating" style={{ color: 'var(--text-secondary)' }}>
             <i className="bi bi-lightning-charge-fill"></i> Preparing AI analysis...
           </span>
         </div>

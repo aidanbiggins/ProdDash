@@ -159,8 +159,8 @@ export function OrgSettingsTab() {
           description="Manage your organization and team members"
         />
         <GlassPanel>
-          <div className="text-center py-5 text-muted">
-            <i className="bi bi-building fs-1 mb-3 d-block"></i>
+          <div className="text-center py-5 text-muted-foreground-foreground">
+            <i className="bi bi-building text-4xl mb-3 block"></i>
             <p>No organization selected. Please select or create an organization.</p>
           </div>
         </GlassPanel>
@@ -176,31 +176,35 @@ export function OrgSettingsTab() {
       />
 
       {/* Error/Success Messages */}
-      {error && <div className="alert alert-danger mb-4">{error}</div>}
-      {success && <div className="alert alert-success mb-4">{success}</div>}
+      {error && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 mb-4">{error}</div>}
+      {success && <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-500 mb-4">{success}</div>}
 
       {/* General Settings */}
       <SectionHeader title="General">
         <GlassPanel>
           <div className="p-4">
             <h6 className="mb-3">Organization Name</h6>
-            <div className="input-group mb-3" style={{ maxWidth: '400px' }}>
+            <div className="flex mb-3" style={{ maxWidth: '400px' }}>
               <input
                 type="text"
-                className="form-control"
+                className="flex-1 px-3 py-2 rounded-l border"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
                 disabled={!canManage || isLoading}
               />
               <button
-                className="btn btn-primary"
+                className="px-4 py-2 rounded-r border border-l-0 font-medium"
+                style={{
+                  background: 'var(--primary)',
+                  color: '#1a1a1a',
+                }}
                 onClick={handleSaveName}
                 disabled={!canManage || isLoading || orgName === currentOrg?.name}
               >
                 Save
               </button>
             </div>
-            <p className="text-muted small">
+            <p className="text-muted-foreground text-xs">
               Slug: <code>{currentOrg?.slug}</code>
             </p>
           </div>
@@ -224,15 +228,15 @@ export function OrgSettingsTab() {
                 {members.map((member) => (
                   <tr key={member.id}>
                     <td>
-                      <code className="small">{member.user_id.slice(0, 8)}...</code>
+                      <code className="text-xs">{member.user_id.slice(0, 8)}...</code>
                       {member.user_id === supabaseUser?.id && (
-                        <span className="badge bg-info ms-2">You</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/20 text-blue-500 ml-2">You</span>
                       )}
                     </td>
                     <td>
                       {canManage && member.user_id !== supabaseUser?.id ? (
                         <select
-                          className="form-select form-select-sm"
+                          className="px-2 py-1 rounded border text-xs"
                           value={member.role}
                           onChange={(e) => handleUpdateMemberRole(member.id, e.target.value as 'admin' | 'member')}
                           disabled={isLoading}
@@ -242,19 +246,19 @@ export function OrgSettingsTab() {
                           <option value="member">Member</option>
                         </select>
                       ) : (
-                        <span className={`badge ${member.role === 'admin' ? 'bg-primary' : 'bg-secondary'}`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${member.role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-gray-500/20 text-gray-400'}`}>
                           {member.role}
                         </span>
                       )}
                     </td>
-                    <td className="small text-muted">
+                    <td className="text-xs text-muted-foreground">
                       {new Date(member.created_at).toLocaleDateString()}
                     </td>
                     {canManage && (
                       <td>
                         {member.user_id !== supabaseUser?.id && (
                           <button
-                            className="btn btn-sm btn-outline-danger"
+                            className="px-3 py-1 text-xs rounded border border-red-500 text-red-500 hover:bg-red-500/10"
                             onClick={() => handleRemoveMember(member.id)}
                             disabled={isLoading}
                           >
@@ -267,7 +271,7 @@ export function OrgSettingsTab() {
                 ))}
                 {members.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="text-center text-muted py-4">
+                    <td colSpan={4} className="text-center text-muted-foreground py-4">
                       No members found
                     </td>
                   </tr>
@@ -282,13 +286,13 @@ export function OrgSettingsTab() {
       <SectionHeader title={`Invites (${invites.length})`}>
         <GlassPanel>
           {canManage && (
-            <form onSubmit={handleInvite} className="p-4 border-bottom" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+            <form onSubmit={handleInvite} className="p-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
               <h6 className="mb-3">Send Invite</h6>
-              <div className="row g-2">
-                <div className="col-md-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                <div className="md:col-span-6">
                   <input
                     type="email"
-                    className="form-control"
+                    className="w-full px-3 py-2 rounded border"
                     placeholder="Email address"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
@@ -296,9 +300,9 @@ export function OrgSettingsTab() {
                     disabled={isLoading}
                   />
                 </div>
-                <div className="col-md-3">
+                <div className="md:col-span-3">
                   <select
-                    className="form-select"
+                    className="w-full px-3 py-2 rounded border"
                     value={inviteRole}
                     onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member')}
                     disabled={isLoading}
@@ -307,10 +311,14 @@ export function OrgSettingsTab() {
                     <option value="admin">Admin</option>
                   </select>
                 </div>
-                <div className="col-md-3">
+                <div className="md:col-span-3">
                   <button
                     type="submit"
-                    className="btn btn-primary w-100"
+                    className="w-full px-4 py-2 rounded font-medium"
+                    style={{
+                      background: 'var(--primary)',
+                      color: '#1a1a1a',
+                    }}
                     disabled={isLoading || !inviteEmail}
                   >
                     Send Invite
@@ -321,7 +329,7 @@ export function OrgSettingsTab() {
           )}
 
           {invites.length === 0 ? (
-            <div className="text-center text-muted py-4">No pending invites</div>
+            <div className="text-center text-muted-foreground py-4">No pending invites</div>
           ) : (
             <div className="table-responsive">
               <table className="table table-bespoke mb-0">
@@ -338,16 +346,16 @@ export function OrgSettingsTab() {
                     <tr key={invite.id}>
                       <td>{invite.email}</td>
                       <td>
-                        <span className={`badge ${invite.role === 'admin' ? 'bg-primary' : 'bg-secondary'}`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${invite.role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-gray-500/20 text-gray-400'}`}>
                           {invite.role}
                         </span>
                       </td>
-                      <td className="small text-muted">
+                      <td className="text-xs text-muted-foreground">
                         {new Date(invite.expires_at).toLocaleDateString()}
                       </td>
                       <td>
                         <button
-                          className="btn btn-sm btn-outline-secondary me-2"
+                          className="px-3 py-1 text-xs rounded border border-white/10 text-muted-foreground hover:bg-white/5 mr-2"
                           onClick={() => copyInviteLink(invite.token)}
                           title="Copy invite link"
                         >
@@ -355,7 +363,7 @@ export function OrgSettingsTab() {
                         </button>
                         {canManage && (
                           <button
-                            className="btn btn-sm btn-outline-danger"
+                            className="px-3 py-1 text-xs rounded border border-red-500 text-red-500 hover:bg-red-500/10"
                             onClick={() => handleDeleteInvite(invite.id)}
                             disabled={isLoading}
                           >

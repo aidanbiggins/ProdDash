@@ -62,7 +62,7 @@ export const DataCoveragePanel: React.FC<DataCoveragePanelProps> = ({
     return (
       <GlassPanel>
         <SectionHeader title="Data Coverage" />
-        <p className="text-muted">Unable to load coverage data.</p>
+        <p className="text-muted-foreground">Unable to load coverage data.</p>
       </GlassPanel>
     );
   }
@@ -80,12 +80,12 @@ export const DataCoveragePanel: React.FC<DataCoveragePanelProps> = ({
       {/* Snapshot History */}
       <div className="mb-4">
         {coverage.snapshotCount === 0 ? (
-          <div className="alert alert-info mb-3">
+          <div className="p-3 rounded-lg mb-3" style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
             <strong>No snapshots yet.</strong> Import your first data snapshot to start tracking changes.
           </div>
         ) : (
           <>
-            <p className="text-muted small mb-2">
+            <p className="text-muted-foreground text-sm mb-2">
               {coverage.snapshotCount} import{coverage.snapshotCount !== 1 ? 's' : ''} over {coverage.daySpan} days
             </p>
 
@@ -93,31 +93,31 @@ export const DataCoveragePanel: React.FC<DataCoveragePanelProps> = ({
               {snapshots.slice(-5).map((snapshot, index) => (
                 <div
                   key={snapshot.id}
-                  className="snapshot-item d-flex justify-content-between align-items-center py-2 border-bottom"
+                  className="snapshot-item flex justify-between items-center py-2 border-b border-glass-border"
                 >
-                  <div className="d-flex align-items-center">
-                    <span className="snapshot-marker me-2">
+                  <div className="flex items-center">
+                    <span className="snapshot-marker mr-2">
                       {index === 0 ? '├─' : index === snapshots.slice(-5).length - 1 ? '└─' : '├─'}
                     </span>
-                    <span className="text-muted small">
+                    <span className="text-muted-foreground text-sm">
                       {formatDate(snapshot.snapshot_date)}
                       {index === 0 && snapshots.length <= 5 && (
-                        <span className="badge bg-secondary ms-2">baseline</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-500/20 text-gray-300 ml-2">baseline</span>
                       )}
                       {snapshot.delta_candidates !== undefined && (
-                        <span className={`badge ms-2 ${snapshot.delta_candidates >= 0 ? 'bg-success' : 'bg-warning'}`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ml-2 ${snapshot.delta_candidates >= 0 ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'}`}>
                           {snapshot.delta_candidates >= 0 ? '+' : ''}{snapshot.delta_candidates}
                         </span>
                       )}
                     </span>
                   </div>
-                  <span className="text-muted small">
+                  <span className="text-muted-foreground text-sm">
                     {snapshot.candidate_count.toLocaleString()} candidates
                   </span>
                 </div>
               ))}
               {snapshots.length > 5 && (
-                <div className="text-muted small mt-2">
+                <div className="text-muted-foreground text-sm mt-2">
                   + {snapshots.length - 5} more snapshots
                 </div>
               )}
@@ -128,18 +128,18 @@ export const DataCoveragePanel: React.FC<DataCoveragePanelProps> = ({
 
       {/* Capabilities Unlocked */}
       <div className="mb-4">
-        <h6 className="text-muted small mb-2">Capabilities Unlocked:</h6>
+        <h6 className="text-muted-foreground text-sm mb-2">Capabilities Unlocked:</h6>
         <div className="capabilities-list">
           {unlockedCapabilities.map((cap) => (
-            <div key={cap} className="capability-item d-flex align-items-center mb-1">
-              <span className="text-success me-2">✓</span>
-              <span className="small">{cap}</span>
+            <div key={cap} className="capability-item flex items-center mb-1">
+              <span className="text-success mr-2">✓</span>
+              <span className="text-sm">{cap}</span>
             </div>
           ))}
           {pendingCapabilities.map((cap) => (
-            <div key={cap.name} className="capability-item d-flex align-items-center mb-1">
-              <span className="text-warning me-2">○</span>
-              <span className="small text-muted">
+            <div key={cap.name} className="capability-item flex items-center mb-1">
+              <span className="text-warning mr-2">○</span>
+              <span className="text-sm text-muted-foreground">
                 {cap.name} <span className="opacity-75">({cap.requirement})</span>
               </span>
             </div>
@@ -149,9 +149,10 @@ export const DataCoveragePanel: React.FC<DataCoveragePanelProps> = ({
 
       {/* Import Button */}
       {onImportClick && (
-        <div className="d-grid">
+        <div className="grid">
           <button
-            className="btn btn-outline-primary btn-sm"
+            type="button"
+            className="px-3 py-1.5 text-sm font-medium rounded border border-primary text-primary hover:bg-primary hover:text-background"
             onClick={onImportClick}
           >
             Import New Snapshot
@@ -194,28 +195,28 @@ export const GatedFeature: React.FC<GatedFeatureProps> = ({
           <span className="empty-state-icon">📊</span>
         </div>
         <h5 className="mb-2">{featureName}</h5>
-        <p className="text-muted mb-3">
+        <p className="text-muted-foreground mb-3">
           This feature requires snapshot history.
         </p>
-        <p className="small text-muted mb-3">
+        <p className="text-sm text-muted-foreground mb-3">
           Import at least {coverage.minSnapshotsForDwell} data snapshots to unlock:
         </p>
-        <ul className="list-unstyled small text-muted mb-3">
+        <ul className="list-none text-sm text-muted-foreground mb-3">
           <li>• True stage duration tracking</li>
           <li>• Regression detection</li>
           <li>• SLA compliance metrics</li>
         </ul>
-        <p className="small mb-3">
+        <p className="text-sm mb-3">
           <strong>You have:</strong> {coverage.snapshotCount} snapshot{coverage.snapshotCount !== 1 ? 's' : ''}
           <br />
           <strong>Need:</strong> {coverage.minSnapshotsForDwell} snapshots (minimum 7 days apart)
         </p>
         {onImportClick && (
-          <div className="d-flex gap-2 justify-content-center">
-            <button className="btn btn-primary btn-sm" onClick={onImportClick}>
+          <div className="flex gap-2 justify-center">
+            <button type="button" className="px-3 py-1.5 text-sm font-medium rounded bg-primary text-background hover:bg-accent-hover" onClick={onImportClick}>
               Import New Snapshot
             </button>
-            <button className="btn btn-outline-secondary btn-sm">
+            <button type="button" className="px-3 py-1.5 text-sm font-medium rounded border border-muted-foreground text-muted-foreground hover:bg-muted-foreground hover:text-background">
               Learn More
             </button>
           </div>

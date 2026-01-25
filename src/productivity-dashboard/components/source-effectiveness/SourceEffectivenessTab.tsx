@@ -52,7 +52,7 @@ interface SourceColorDotProps {
 function SourceColorDot({ source, size = 8 }: SourceColorDotProps): JSX.Element {
     return (
         <span
-            className="rounded-circle d-inline-block"
+            className="rounded-full inline-block"
             style={{ width: size, height: size, background: getSourceColor(source) }}
         />
     );
@@ -83,7 +83,7 @@ function ChannelCard({ title, subtitle, channels, variant }: ChannelCardProps): 
     const bgAlpha = variant === 'danger' ? 'rgba(220, 38, 38, 0.05)' : 'rgba(5, 150, 105, 0.05)';
 
     return (
-        <div className="card-bespoke h-100" style={{ borderLeft: `4px solid ${color}` }}>
+        <div className="card-bespoke h-full" style={{ borderLeft: `4px solid ${color}` }}>
             <div className="card-header" style={{ background: bgAlpha }}>
                 <h6 style={{ color }}>{title}</h6>
                 <small style={{ color: '#94A3B8' }}>{subtitle}</small>
@@ -92,14 +92,14 @@ function ChannelCard({ title, subtitle, channels, variant }: ChannelCardProps): 
                 {channels.map(ch => (
                     <div
                         key={ch.source}
-                        className="d-flex justify-content-between align-items-center py-2"
+                        className="flex justify-between items-center py-2"
                         style={{ borderBottom: '1px solid var(--color-slate-100)' }}
                     >
-                        <div className="d-flex align-items-center gap-2">
+                        <div className="flex items-center gap-2">
                             <SourceColorDot source={ch.source} size={10} />
-                            <span className="fw-medium">{ch.source}</span>
+                            <span className="font-medium">{ch.source}</span>
                         </div>
-                        <div className="text-end">
+                        <div className="text-right">
                             <ChannelMetric channel={ch} variant={variant} />
                         </div>
                     </div>
@@ -120,8 +120,8 @@ function ChannelMetric({ channel, variant }: ChannelMetricProps): JSX.Element {
     if (variant === 'danger' && channel.hires === 0) {
         return (
             <div>
-                <span className="badge bg-danger">0 hires</span>
-                <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-500/20 text-red-300">0 hires</span>
+                <div className="text-muted-foreground" style={{ fontSize: '0.75rem' }}>
                     {channel.candidates} candidates processed
                 </div>
             </div>
@@ -137,7 +137,7 @@ function ChannelMetric({ channel, variant }: ChannelMetricProps): JSX.Element {
             <span style={{ color, fontWeight: 600 }}>
                 {channel.candidatesPerHire?.toFixed(1)} candidates/hire
             </span>
-            <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+            <div className="text-muted-foreground" style={{ fontSize: '0.75rem' }}>
                 {comparisonText}
             </div>
         </div>
@@ -148,21 +148,21 @@ function ChannelMetric({ channel, variant }: ChannelMetricProps): JSX.Element {
 function getStatusBadge(item: EfficiencyChannel): JSX.Element {
     if (item.isMirage) {
         return (
-            <span className="badge" style={{ background: 'rgba(220, 38, 38, 0.1)', color: STATUS_COLORS.danger }}>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(220, 38, 38, 0.1)', color: STATUS_COLORS.danger }}>
                 Mirage
             </span>
         );
     }
     if (item.isEfficient) {
         return (
-            <span className="badge" style={{ background: 'rgba(5, 150, 105, 0.1)', color: STATUS_COLORS.success }}>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(5, 150, 105, 0.1)', color: STATUS_COLORS.success }}>
                 Efficient
             </span>
         );
     }
     const label = item.hires === 0 ? 'No Hires' : 'Average';
     return (
-        <span className="badge" style={{ background: 'rgba(100, 116, 139, 0.1)', color: STATUS_COLORS.neutral }}>
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(100, 116, 139, 0.1)', color: STATUS_COLORS.neutral }}>
             {label}
         </span>
     );
@@ -195,7 +195,7 @@ interface RateBadgeProps {
 
 function RateBadge({ rate, thresholds }: RateBadgeProps): JSX.Element {
     if (rate === null) {
-        return <span className="text-muted">—</span>;
+        return <span className="text-muted-foreground">—</span>;
     }
     let badgeClass = 'badge-warning-soft';
     if (rate >= thresholds.high) {
@@ -293,13 +293,13 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
             />
 
             {/* Summary Cards */}
-            <div className="row g-4 mb-4">
+            <div className="grid grid-cols-12 gap-4 mb-4">
                 {data.bestSource && (
-                    <div className="col-md-4">
-                        <div className="card-bespoke h-100">
+                    <div className="col-span-12 md:col-span-4">
+                        <div className="card-bespoke h-full">
                             <div className="card-body text-center py-4">
                                 <StatLabel className="mb-2">Top Hiring Source</StatLabel>
-                                <StatValue className="d-block" style={{ color: getSourceColor(data.bestSource.name) }}>
+                                <StatValue className="block" style={{ color: getSourceColor(data.bestSource.name) }}>
                                     {data.bestSource.name}
                                 </StatValue>
                                 <div className="mt-2">
@@ -307,32 +307,32 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                         {Math.round(data.bestSource.hireRate * 100)}% of hires
                                     </span>
                                 </div>
-                                <small className="text-muted d-block mt-1">
+                                <span className="text-muted-foreground text-sm block mt-1">
                                     {data.bestSource.hires.toLocaleString()} hires of {data.totalHires?.toLocaleString() || 0} total
-                                </small>
+                                </span>
                             </div>
                         </div>
                     </div>
                 )}
 
-                <div className="col-md-4">
-                    <div className="card-bespoke h-100">
+                <div className="col-span-12 md:col-span-4">
+                    <div className="card-bespoke h-full">
                         <div className="card-body text-center py-4">
                             <StatLabel className="mb-2">Total Candidates</StatLabel>
                             <StatValue color="primary">
                                 {data.totalCandidates.toLocaleString()}
                             </StatValue>
-                            <small className="text-muted">in selected period</small>
+                            <span className="text-muted-foreground text-sm">in selected period</span>
                         </div>
                     </div>
                 </div>
 
                 {data.worstSource && (
-                    <div className="col-md-4">
-                        <div className="card-bespoke h-100">
+                    <div className="col-span-12 md:col-span-4">
+                        <div className="card-bespoke h-full">
                             <div className="card-body text-center py-4">
                                 <StatLabel className="mb-2">Lowest Conversion Rate</StatLabel>
-                                <StatValue className="d-block" style={{ color: getSourceColor(data.worstSource.name) }}>
+                                <StatValue className="block" style={{ color: getSourceColor(data.worstSource.name) }}>
                                     {data.worstSource.name}
                                 </StatValue>
                                 <div className="mt-2">
@@ -340,9 +340,9 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                         {Math.round(data.worstSource.hireRate * 100)}% conversion
                                     </span>
                                 </div>
-                                <small className="text-muted d-block mt-1">
+                                <span className="text-muted-foreground text-sm block mt-1">
                                     {data.worstSource.hires.toLocaleString()} hires from {data.worstSource.totalCandidates.toLocaleString()} candidates
-                                </small>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -350,10 +350,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
             </div>
 
             {/* Charts Row */}
-            <div className="row g-4 mb-4">
+            <div className="grid grid-cols-12 gap-4 mb-4">
                 {/* Hire Rate Comparison */}
-                <div className="col-md-7">
-                    <div className="card-bespoke h-100">
+                <div className="col-span-12 md:col-span-7">
+                    <div className="card-bespoke h-full">
                         <div className="card-header">
                             <h6>Hire Rate by Source</h6>
                         </div>
@@ -413,8 +413,8 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                 </div>
 
                 {/* Source Distribution */}
-                <div className="col-md-5">
-                    <div className="card-bespoke h-100">
+                <div className="col-span-12 md:col-span-5">
+                    <div className="card-bespoke h-full">
                         <div className="card-header">
                             <h6>Candidate Distribution</h6>
                         </div>
@@ -472,9 +472,9 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
 
             {/* Source Efficiency Analysis - Mirage Channel Detection */}
             {efficiencyData.length > 0 && (
-                <div className="row g-4 mb-4">
+                <div className="grid grid-cols-12 gap-4 mb-4">
                     {mirageChannels.length > 0 && (
-                        <div className="col-md-6">
+                        <div className="col-span-12 md:col-span-6">
                             <ChannelCard
                                 title="Mirage Channels"
                                 subtitle="High activity, low results - consider reducing investment"
@@ -485,7 +485,7 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                     )}
 
                     {efficientChannels.length > 0 && (
-                        <div className={`col-md-${mirageChannels.length > 0 ? '6' : '12'}`}>
+                        <div className={mirageChannels.length > 0 ? 'col-span-12 md:col-span-6' : 'col-span-12'}>
                             <ChannelCard
                                 title="High Efficiency Channels"
                                 subtitle="Best ROI - consider increasing investment"
@@ -495,24 +495,24 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                         </div>
                     )}
 
-                    <div className="col-12">
+                    <div className="col-span-12">
                         <div className="card-bespoke">
                             <div className="card-header">
                                 <h6>Source Efficiency Comparison</h6>
-                                <small style={{ color: '#94A3B8' }}>
+                                <span className="text-sm text-muted-foreground">
                                     Average: {avgCandidatesPerHire.toFixed(1)} candidates per hire
-                                </small>
+                                </span>
                             </div>
                             <div className="card-body p-0">
-                                <div className="table-responsive">
-                                    <table className="table table-bespoke table-hover mb-0">
+                                <div className="overflow-x-auto">
+                                    <table className="table table-bespoke mb-0">
                                         <thead>
                                             <tr>
                                                 <th>Source</th>
-                                                <th className="text-end">Candidates</th>
-                                                <th className="text-end">Hires</th>
-                                                <th className="text-end">Candidates/Hire</th>
-                                                <th className="text-end">vs Average</th>
+                                                <th className="text-right">Candidates</th>
+                                                <th className="text-right">Hires</th>
+                                                <th className="text-right">Candidates/Hire</th>
+                                                <th className="text-right">vs Average</th>
                                                 <th className="text-center">Status</th>
                                             </tr>
                                         </thead>
@@ -520,17 +520,17 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                                             {efficiencyData.map(s => (
                                                 <tr key={s.source}>
                                                     <td>
-                                                        <div className="d-flex align-items-center gap-2">
+                                                        <div className="flex items-center gap-2">
                                                             <SourceColorDot source={s.source} />
                                                             {s.source}
                                                         </div>
                                                     </td>
-                                                    <td className="text-end">{s.candidates.toLocaleString()}</td>
-                                                    <td className="text-end">{s.hires.toLocaleString()}</td>
-                                                    <td className="text-end">
+                                                    <td className="text-right">{s.candidates.toLocaleString()}</td>
+                                                    <td className="text-right">{s.hires.toLocaleString()}</td>
+                                                    <td className="text-right">
                                                         {s.candidatesPerHire !== null ? s.candidatesPerHire.toFixed(1) : '—'}
                                                     </td>
-                                                    <td className="text-end">
+                                                    <td className="text-right">
                                                         {s.efficiencyVsAvg !== null ? (
                                                             <span style={{ color: s.efficiencyVsAvg > 0 ? STATUS_COLORS.danger : STATUS_COLORS.success }}>
                                                                 {s.efficiencyVsAvg > 0 ? '+' : ''}{Math.round(s.efficiencyVsAvg)}%
@@ -555,11 +555,11 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
             <div className="card-bespoke mb-4">
                 <div className="card-header">
                     <h6>Funnel Pass-Through Rates by Source</h6>
-                    <small style={{ color: '#94A3B8' }}>See where candidates from each source drop off</small>
+                    <span className="text-sm text-muted-foreground">See where candidates from each source drop off</span>
                 </div>
                 <div className="card-body p-0">
-                    <div className="table-responsive">
-                        <table className="table table-bespoke table-hover mb-0">
+                    <div className="overflow-x-auto">
+                        <table className="table table-bespoke mb-0">
                             <thead>
                                 <tr>
                                     <th>Source</th>
@@ -573,8 +573,8 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                             <tbody>
                                 {data.bySource.filter(s => s.funnel && s.funnel.length > 0).map(source => (
                                     <tr key={source.source}>
-                                        <td className="fw-medium">
-                                            <div className="d-flex align-items-center gap-2">
+                                        <td className="font-medium">
+                                            <div className="flex items-center gap-2">
                                                 <SourceColorDot source={source.source} />
                                                 {source.source}
                                             </div>
@@ -603,10 +603,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                             </tbody>
                         </table>
                     </div>
-                    <div className="mt-3 p-2 rounded d-flex gap-4 justify-content-center" style={{ background: '#141414', fontSize: '0.75rem', color: '#94A3B8' }}>
-                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(16, 185, 129, 0.4)' }}></span> ≥70% pass rate</span>
-                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(245, 158, 11, 0.4)' }}></span> 40-70%</span>
-                        <span><span className="d-inline-block rounded me-1" style={{ width: 12, height: 12, background: 'rgba(239, 68, 68, 0.4)' }}></span> &lt;40%</span>
+                    <div className="mt-3 p-2 rounded flex gap-4 justify-center" style={{ background: '#141414', fontSize: '0.75rem', color: '#94A3B8' }}>
+                        <span><span className="inline-block rounded mr-1" style={{ width: 12, height: 12, background: 'rgba(16, 185, 129, 0.4)' }}></span> ≥70% pass rate</span>
+                        <span><span className="inline-block rounded mr-1" style={{ width: 12, height: 12, background: 'rgba(245, 158, 11, 0.4)' }}></span> 40-70%</span>
+                        <span><span className="inline-block rounded mr-1" style={{ width: 12, height: 12, background: 'rgba(239, 68, 68, 0.4)' }}></span> &lt;40%</span>
                     </div>
                 </div>
             </div>
@@ -617,42 +617,42 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
                     <h6>Source Performance Details</h6>
                 </div>
                 <div className="card-body p-0">
-                    <div className="table-responsive">
-                        <table className="table table-bespoke table-hover mb-0">
+                    <div className="overflow-x-auto">
+                        <table className="table table-bespoke mb-0">
                             <thead>
                                 <tr>
                                     <th>Source</th>
-                                    <th className="text-end">Candidates</th>
-                                    <th className="text-end">Hires</th>
-                                    <th className="text-end">Hire Rate</th>
-                                    <th className="text-end">Offers</th>
-                                    <th className="text-end">Accept Rate</th>
-                                    <th className="text-end">Median TTH</th>
-                                    <th className="text-end">Screen Pass</th>
+                                    <th className="text-right">Candidates</th>
+                                    <th className="text-right">Hires</th>
+                                    <th className="text-right">Hire Rate</th>
+                                    <th className="text-right">Offers</th>
+                                    <th className="text-right">Accept Rate</th>
+                                    <th className="text-right">Median TTH</th>
+                                    <th className="text-right">Screen Pass</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.bySource.map(s => (
                                     <tr key={s.source}>
-                                        <td className="fw-medium">
-                                            <div className="d-flex align-items-center gap-2">
+                                        <td className="font-medium">
+                                            <div className="flex items-center gap-2">
                                                 <SourceColorDot source={s.source} />
                                                 {s.source}
                                             </div>
                                         </td>
-                                        <td className="text-end">{s.totalCandidates}</td>
-                                        <td className="text-end">{s.hires}</td>
-                                        <td className="text-end">
+                                        <td className="text-right">{s.totalCandidates}</td>
+                                        <td className="text-right">{s.hires}</td>
+                                        <td className="text-right">
                                             <RateBadge rate={s.hireRate} thresholds={{ high: 0.15, medium: 0.05 }} />
                                         </td>
-                                        <td className="text-end">{s.offers}</td>
-                                        <td className="text-end">
+                                        <td className="text-right">{s.offers}</td>
+                                        <td className="text-right">
                                             <RateBadge rate={s.offerAcceptRate} thresholds={{ high: 0.8, medium: 0.6 }} />
                                         </td>
-                                        <td className="text-end text-muted">
+                                        <td className="text-right text-muted-foreground">
                                             {s.medianTimeToHire !== null ? `${s.medianTimeToHire}d` : '—'}
                                         </td>
-                                        <td className="text-end text-muted">
+                                        <td className="text-right text-muted-foreground">
                                             {s.screenPassRate !== null ? `${Math.round(s.screenPassRate * 100)}%` : '—'}
                                         </td>
                                     </tr>
@@ -665,10 +665,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
 
             {/* Insight Box */}
             <div className="mt-4 p-3 rounded" style={{ background: '#141414', border: '1px solid #27272a' }}>
-                <div className="d-flex gap-2">
+                <div className="flex gap-2">
                     <span>💡</span>
-                    <div className="small" style={{ color: '#94A3B8' }}>
-                        <strong style={{ color: '#94A3B8' }}>Key Insight:</strong> Compare hire rates and time-to-hire across sources.
+                    <div className="text-sm text-muted-foreground">
+                        <strong className="text-muted-foreground">Key Insight:</strong> Compare hire rates and time-to-hire across sources.
                         High-volume sources with low hire rates may be costing recruiter time.
                         Consider investing more in sources with higher conversion rates.
                     </div>

@@ -543,203 +543,191 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   };
 
   return (
-    <div className="container py-5">
+    <div className="max-w-4xl mx-auto py-8 px-4">
       {showGuide && <ImportGuide onClose={() => setShowGuide(false)} />}
 
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          {/* Organization Context */}
-          <div className="mb-4 d-flex justify-content-between align-items-center">
-            <OrgSwitcher
-              onCreateOrg={() => setShowCreateOrgModal(true)}
-            />
+      <div className="w-full">
+        {/* Organization Context */}
+        <div className="mb-4 flex justify-between items-center">
+          <OrgSwitcher
+            onCreateOrg={() => setShowCreateOrgModal(true)}
+          />
+        </div>
+
+        {/* No Organization Warning */}
+        {hasNoOrg && (
+          <div className="p-4 rounded-lg bg-warn/10 border border-warn/30 text-foreground mb-4">
+            <h5 className="font-semibold text-warn mb-2">No Organization Selected</h5>
+            <p className="mb-3">You need to create or join an organization before importing data.</p>
+            <button
+              className="px-4 py-2 text-sm font-medium rounded-md bg-warn text-bg-base hover:bg-warn/90"
+              onClick={() => setShowCreateOrgModal(true)}
+            >
+              Create Organization
+            </button>
           </div>
+        )}
 
-          {/* No Organization Warning */}
-          {hasNoOrg && (
-            <div className="alert alert-warning mb-4">
-              <h5 className="alert-heading">No Organization Selected</h5>
-              <p className="mb-2">You need to create or join an organization before importing data.</p>
-              <button
-                className="btn btn-warning"
-                onClick={() => setShowCreateOrgModal(true)}
-              >
-                Create Organization
-              </button>
-            </div>
-          )}
+        {/* Member-Only Warning */}
+        {!hasNoOrg && isMemberOnly && (
+          <div className="p-4 rounded-lg bg-accent/10 border border-accent/30 text-foreground mb-4">
+            <h5 className="font-semibold text-accent mb-2">View-Only Access</h5>
+            <p className="mb-0">
+              You are a member of <strong>{currentOrg?.name}</strong>.
+              Only organization admins can import data. Contact your admin if you need to upload data.
+            </p>
+          </div>
+        )}
 
-          {/* Member-Only Warning */}
-          {!hasNoOrg && isMemberOnly && (
-            <div className="alert alert-info mb-4">
-              <h5 className="alert-heading">View-Only Access</h5>
-              <p className="mb-0">
-                You are a member of <strong>{currentOrg?.name}</strong>.
-                Only organization admins can import data. Contact your admin if you need to upload data.
-              </p>
-            </div>
-          )}
+        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass">
+          <div className="flex justify-between items-center p-4 border-b border-glass-border">
+            <h5 className="font-semibold text-foreground">Import Data {currentOrg && <span className="text-muted-foreground text-sm font-normal">to {currentOrg.name}</span>}</h5>
+            <button
+              className="px-3 py-1.5 text-sm font-medium rounded border border-accent text-accent hover:bg-accent hover:text-bg-base transition-colors"
+              onClick={() => setShowGuide(true)}
+            >
+              Import Guide
+            </button>
+          </div>
+          <div className="p-4">
+            <p className="text-muted-foreground mb-4">
+              Drag and drop your "Universal Application Report" (Jobs + Candidates in one file)
+              <strong> OR </strong> select individual files below.
+              <br />
+              <span className="text-sm">Supports CSV, XLS, and XLSX formats.</span>
+            </p>
 
-          <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Import Data {currentOrg && <small className="text-muted">to {currentOrg.name}</small>}</h5>
-              <button
-                className="btn btn-sm btn-outline-info"
-                onClick={() => setShowGuide(true)}
-              >
-                Import Guide
-              </button>
-            </div>
-            <div className="card-body">
-              <p className="text-muted mb-4">
-                Drag and drop your "Universal Application Report" (Jobs + Candidates in one file)
-                <strong> OR </strong> select individual files below.
-                <br />
-                <small>Supports CSV, XLS, and XLSX formats.</small>
-              </p>
+            <form onSubmit={handleSubmit}>
+              {/* Unified Drop Zone */}
+              <div className="border-2 border-dashed border-glass-border rounded-lg p-8 text-center mb-4 bg-bg-elevated/50">
+                <p className="text-lg font-medium text-foreground mb-2">Drag & Drop Files Here</p>
+                <p className="text-sm text-muted-foreground">Supports CSV, XLS, XLSX - "Universal Report" or individual files</p>
 
-              <form onSubmit={handleSubmit}>
-                {/* Unified Drop Zone */}
-                <div
-                  className="border rounded p-5 text-center mb-4"
-                  style={{ borderStyle: 'dashed', borderWidth: '2px', borderColor: 'rgba(255,255,255,0.2)', background: 'rgba(30, 41, 59, 0.5)' }}
-                >
-                  <p className="lead mb-2">Drag & Drop Files Here</p>
-                  <p className="small text-muted">Supports CSV, XLS, XLSX - "Universal Report" or individual files</p>
+                <input
+                  type="file"
+                  className="mt-3 w-full px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-accent file:text-bg-base file:font-medium"
+                  accept={FILE_ACCEPT}
+                  multiple
+                  onChange={(e) => {
+                    // Simple implementation for now - just map to standard inputs
+                    const fileList = e.target.files;
+                    if (!fileList) return;
 
-                  <input
-                    type="file"
-                    className="form-control mt-3"
-                    accept={FILE_ACCEPT}
-                    multiple
-                    onChange={(e) => {
-                      // Simple implementation for now - just map to standard inputs
-                      const fileList = e.target.files;
-                      if (!fileList) return;
+                    // Identify files by name heuristic or just assign first one to requisitions if single
+                    if (fileList.length === 1) {
+                      setFiles(prev => ({ ...prev, requisitions: fileList[0] }));
+                    } else {
+                      // Smart auto-assign based on filename (works for CSV and Excel)
+                      Array.from(fileList).forEach(f => {
+                        const name = f.name.toLowerCase().replace(/\.(csv|xlsx?|xls)$/i, '');
+                        if (name.includes('req') || name.includes('job') || name.includes('universal')) {
+                          setFiles(p => ({ ...p, requisitions: f }));
+                        } else if (name.includes('cand') || name.includes('person') || name.includes('applicant')) {
+                          setFiles(p => ({ ...p, candidates: f }));
+                        } else if (name.includes('event') || name.includes('activity') || name.includes('history')) {
+                          setFiles(p => ({ ...p, events: f }));
+                        } else if (name.includes('user') || name.includes('recruiter') || name.includes('team')) {
+                          setFiles(p => ({ ...p, users: f }));
+                        }
+                      });
+                    }
+                    setErrors([]);
+                  }}
+                  disabled={uploading || isLoading}
+                />
+              </div>
 
-                      // Identify files by name heuristic or just assign first one to requisitions if single
-                      if (fileList.length === 1) {
-                        setFiles(prev => ({ ...prev, requisitions: fileList[0] }));
-                      } else {
-                        // Smart auto-assign based on filename (works for CSV and Excel)
-                        Array.from(fileList).forEach(f => {
-                          const name = f.name.toLowerCase().replace(/\.(csv|xlsx?|xls)$/i, '');
-                          if (name.includes('req') || name.includes('job') || name.includes('universal')) {
-                            setFiles(p => ({ ...p, requisitions: f }));
-                          } else if (name.includes('cand') || name.includes('person') || name.includes('applicant')) {
-                            setFiles(p => ({ ...p, candidates: f }));
-                          } else if (name.includes('event') || name.includes('activity') || name.includes('history')) {
-                            setFiles(p => ({ ...p, events: f }));
-                          } else if (name.includes('user') || name.includes('recruiter') || name.includes('team')) {
-                            setFiles(p => ({ ...p, users: f }));
-                          }
-                        });
-                      }
-                      setErrors([]);
-                    }}
-                    disabled={uploading || isLoading}
-                  />
-                </div>
-
-                {/* Manual File Selection Check (Hidden mostly, but good for debug) */}
-                <div className="mb-3 p-3 border rounded" style={{ background: 'rgba(30, 41, 59, 0.6)', borderColor: 'rgba(255,255,255,0.1)' }}>
-                  <h6 className="mb-3" style={{ color: '#F8FAFC' }}>Selected Files:</h6>
-                  <div className="row g-2">
-                    <div className="col-md-6">
-                      <div className="p-2 border rounded" style={{ background: files.requisitions ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.requisitions ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
-                        <strong>Requisitions / Universal:</strong> {files.requisitions?.name || 'Missing'}
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="p-2 border rounded" style={{ background: files.candidates ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.candidates ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
-                        <strong>Candidates:</strong> {files.candidates?.name || 'Optional'}
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="p-2 border rounded" style={{ background: files.events ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.events ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
-                        <strong>Events:</strong> {files.events?.name || 'Optional'}
-                      </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="p-2 border rounded" style={{ background: files.users ? 'rgba(16, 185, 129, 0.15)' : 'rgba(30, 41, 59, 0.4)', borderColor: files.users ? '#10b981' : 'rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
-                        <strong>Users:</strong> {files.users?.name || 'Optional'}
-                      </div>
-                    </div>
+              {/* Manual File Selection Check (Hidden mostly, but good for debug) */}
+              <div className="mb-3 p-3 border border-glass-border rounded-lg bg-bg-elevated/50">
+                <h6 className="mb-3 font-semibold text-foreground">Selected Files:</h6>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className={`p-2 border rounded ${files.requisitions ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                    <strong className="text-foreground">Requisitions / Universal:</strong> <span className="text-foreground">{files.requisitions?.name || 'Missing'}</span>
                   </div>
-                </div>
-
-                {/* Errors */}
-                {errors.length > 0 && (
-                  <div className="alert alert-danger">
-                    <strong>Import Errors:</strong>
-                    <ul className="mb-0 mt-2">
-                      {errors.map((err, i) => (
-                        <li key={i}>{err}</li>
-                      ))}
-                    </ul>
+                  <div className={`p-2 border rounded ${files.candidates ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                    <strong className="text-foreground">Candidates:</strong> <span className="text-foreground">{files.candidates?.name || 'Optional'}</span>
                   </div>
-                )}
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  className="btn btn-primary w-100"
-                  disabled={!files.requisitions || uploading || isLoading || !canImportData || hasNoOrg}
-                >
-                  {uploading || isLoading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" />
-                      Processing...
-                    </>
-                  ) : (
-                    'Import Data'
-                  )}
-                </button>
-              </form>
-
-              {/* Demo Mode */}
-              <div className="mt-4 p-3 bg-primary bg-opacity-10 rounded border border-primary">
-                <h6 className="text-primary">Try Demo Mode</h6>
-                <p className="small text-muted mb-3">
-                  Want to explore the dashboard before importing your data? Load sample data
-                  to see all features in action.
-                </p>
-                <div className="d-flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setShowUltimateDemoModal(true)}
-                    disabled={uploading || isLoading}
-                    data-testid="load-ultimate-demo-btn"
-                  >
-                    <i className="bi bi-magic me-2"></i>
-                    Load Ultimate Demo
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-primary"
-                    onClick={handleLoadDemo}
-                    disabled={uploading || isLoading}
-                  >
-                    {uploading ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" />
-                        Loading...
-                      </>
-                    ) : (
-                      'Load Basic Demo'
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger"
-                    onClick={() => setShowClearConfirm(true)}
-                    disabled={uploading || isLoading}
-                  >
-                    Clear Database
-                  </button>
+                  <div className={`p-2 border rounded ${files.events ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                    <strong className="text-foreground">Events:</strong> <span className="text-foreground">{files.events?.name || 'Optional'}</span>
+                  </div>
+                  <div className={`p-2 border rounded ${files.users ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                    <strong className="text-foreground">Users:</strong> <span className="text-foreground">{files.users?.name || 'Optional'}</span>
+                  </div>
                 </div>
               </div>
+
+              {/* Errors */}
+              {errors.length > 0 && (
+                <div className="p-3 rounded-lg bg-bad/10 border border-bad/30 text-foreground mb-4">
+                  <strong className="text-bad">Import Errors:</strong>
+                  <ul className="mb-0 mt-2 list-disc list-inside">
+                    {errors.map((err, i) => (
+                      <li key={i}>{err}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                className="w-full px-4 py-2.5 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                disabled={!files.requisitions || uploading || isLoading || !canImportData || hasNoOrg}
+              >
+                {uploading || isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
+                    Processing...
+                  </span>
+                ) : (
+                  'Import Data'
+                )}
+              </button>
+            </form>
+
+            {/* Demo Mode */}
+            <div className="mt-4 p-4 rounded-lg bg-accent/10 border border-accent/30">
+              <h6 className="font-semibold text-accent mb-2">Try Demo Mode</h6>
+              <p className="text-sm text-muted-foreground mb-3">
+                Want to explore the dashboard before importing your data? Load sample data
+                to see all features in action.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50"
+                  onClick={() => setShowUltimateDemoModal(true)}
+                  disabled={uploading || isLoading}
+                  data-testid="load-ultimate-demo-btn"
+                >
+                  <i className="bi bi-magic mr-2"></i>
+                  Load Ultimate Demo
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium rounded-md border border-accent text-accent hover:bg-accent hover:text-bg-base transition-colors disabled:opacity-50"
+                  onClick={handleLoadDemo}
+                  disabled={uploading || isLoading}
+                >
+                  {uploading ? (
+                    <span className="flex items-center">
+                      <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
+                      Loading...
+                    </span>
+                  ) : (
+                    'Load Basic Demo'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 text-sm font-medium rounded-md border border-bad text-bad hover:bg-bad hover:text-white transition-colors disabled:opacity-50"
+                  onClick={() => setShowClearConfirm(true)}
+                  disabled={uploading || isLoading}
+                >
+                  Clear Database
+                </button>
+              </div>
+            </div>
 
               {/* Clear Data Confirmation Modal */}
               <ClearDataConfirmationModal
@@ -775,7 +763,6 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                 onLoadDemo={handleLoadUltimateDemo}
               />
 
-            </div>
           </div>
         </div>
       </div>

@@ -18,7 +18,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
     if (isLoading) {
         return (
             <div className={`card-bespoke p-3 ${className || ''}`}>
-                <div className="d-flex align-items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                <div className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
                     <LogoSpinner size={24} message="Running backtest..." />
                 </div>
             </div>
@@ -28,7 +28,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
     if (!report) {
         return (
             <div className={`card-bespoke p-3 ${className || ''}`}>
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="flex justify-between items-center">
                     <StatLabel>Model Accuracy</StatLabel>
                     {onRunCalibration && (
                         <button
@@ -54,21 +54,22 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
 
     return (
         <div className={`card-bespoke p-3 ${className || ''}`}>
-            <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="flex justify-between items-center mb-3">
                 <StatLabel>Model Trust Score</StatLabel>
                 <span
-                    className="badge rounded-pill"
+                    className="inline-flex items-center rounded-full"
                     style={{
                         background: 'var(--color-neutral-bg)',
                         color: 'var(--text-secondary)',
-                        fontSize: '0.6rem'
+                        fontSize: '0.6rem',
+                        padding: '0.2rem 0.5rem'
                     }}
                 >
                     {report.period}
                 </span>
             </div>
 
-            <div className="d-flex align-items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-3">
                 <StatValue size="lg" color={isAccurate ? 'success' : 'warning'}>
                     {(report.accuracy * 100).toFixed(0)}%
                 </StatValue>
@@ -90,7 +91,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
                     fontSize: '0.7rem'
                 }}
             >
-                <div className="d-flex justify-content-between mb-2">
+                <div className="flex justify-between mb-2">
                     <span style={{ color: 'var(--text-tertiary)' }}>Bias Trend:</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: biasColor }}>
                         {report.bias > 0 ? '+' : ''}{report.bias.toFixed(1)} days
@@ -99,7 +100,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
                         </span>
                     </span>
                 </div>
-                <div className="d-flex justify-content-between">
+                <div className="flex justify-between">
                     <span style={{ color: 'var(--text-tertiary)' }}>Sample Size:</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
                         {report.sampleSize} hires
@@ -119,7 +120,7 @@ export const CalibrationCard: React.FC<CalibrationCardProps> = ({
                         color: 'var(--color-warn)'
                     }}
                 >
-                    <i className="bi bi-exclamation-triangle me-1"></i>
+                    <i className="bi bi-exclamation-triangle mr-1"></i>
                     Model is currently under-performing. Adjusting constraints recommended.
                 </div>
             )}

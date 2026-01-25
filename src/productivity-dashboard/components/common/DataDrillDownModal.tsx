@@ -172,53 +172,54 @@ export function DataDrillDownModal({
         >
             {label}
             {sortColumn === column && (
-                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}-short ms-1`}></i>
+                <i className={`bi bi-arrow-${sortDirection === 'asc' ? 'up' : 'down'}-short ml-1`}></i>
             )}
         </th>
     );
 
     return (
         <div
-            className="modal show d-block"
+            className="fixed inset-0 flex items-center justify-center"
             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="modal-dialog modal-xl modal-dialog-scrollable">
-                <div className="modal-content">
-                    <div className="modal-header">
+            <div className="w-full max-w-6xl mx-4 max-h-[90vh] flex flex-col">
+                <div className="bg-[var(--color-bg-surface)] rounded-lg overflow-hidden flex flex-col max-h-full">
+                    <div className="px-4 py-3 border-b border-glass-border flex justify-between items-start">
                         <div>
-                            <h5 className="modal-title mb-1">{title}</h5>
-                            <div className="d-flex align-items-center gap-3">
-                                <span className="badge bg-primary fs-6">{totalValue ?? records.length}</span>
-                                <span className="text-muted small">{records.length} records</span>
+                            <h5 className="text-lg font-semibold mb-1">{title}</h5>
+                            <div className="flex items-center gap-3">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-lg font-medium bg-primary text-white">{totalValue ?? records.length}</span>
+                                <span className="text-muted-foreground text-sm">{records.length} records</span>
                             </div>
                         </div>
-                        <button type="button" className="btn-close" onClick={onClose} />
+                        <button type="button" className="text-muted-foreground hover:text-white" onClick={onClose}>
+                            <i className="bi bi-x text-2xl"></i>
+                        </button>
                     </div>
 
-                    <div className="modal-body p-0">
+                    <div className="flex-1 overflow-auto">
                         {/* Search and Export */}
-                        <div className="d-flex justify-content-between align-items-center p-3 border-bottom">
+                        <div className="flex justify-between items-center p-3 border-b border-glass-border">
                             <input
                                 type="text"
-                                className="form-control form-control-sm"
-                                style={{ maxWidth: '300px' }}
+                                className="w-full max-w-xs px-3 py-1.5 text-sm bg-transparent border border-glass-border rounded-md focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             <button
-                                className="btn btn-bespoke-secondary btn-sm"
+                                className="px-3 py-1.5 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-glass-border"
                                 onClick={exportCSV}
                             >
-                                <i className="bi bi-download me-1"></i>
+                                <i className="bi bi-download mr-1"></i>
                                 Export CSV
                             </button>
                         </div>
 
                         {/* Formula (if provided) */}
                         {formula && (
-                            <div className="px-3 py-2 border-bottom" style={{ background: 'rgba(30, 41, 59, 0.6)', borderColor: 'rgba(255,255,255,0.1)' }}>
+                            <div className="px-3 py-2 border-b border-glass-border" style={{ background: 'rgba(30, 41, 59, 0.6)' }}>
                                 <small style={{ color: '#94A3B8' }}>
                                     <strong style={{ color: '#F8FAFC' }}>Formula:</strong> <code style={{ color: '#2dd4bf' }}>{formula}</code>
                                 </small>
@@ -226,8 +227,8 @@ export function DataDrillDownModal({
                         )}
 
                         {/* Data Table */}
-                        <div className="table-responsive">
-                            <table className="table table-hover mb-0">
+                        <div className="overflow-x-auto">
+                            <table className="w-full mb-0">
                                 <thead>
                                     <tr style={{ background: 'var(--color-slate-50)' }}>
                                         {columns.map(col => (
@@ -238,7 +239,7 @@ export function DataDrillDownModal({
                                 <tbody>
                                     {paginatedRecords.length === 0 ? (
                                         <tr>
-                                            <td colSpan={columns.length} className="text-center text-muted py-4">
+                                            <td colSpan={columns.length} className="text-center text-muted-foreground py-4">
                                                 No records found
                                             </td>
                                         </tr>
@@ -265,14 +266,14 @@ export function DataDrillDownModal({
                         </div>
                     </div>
 
-                    <div className="modal-footer">
-                        <span className="text-muted small">
+                    <div className="px-4 py-3 border-t border-glass-border flex justify-between items-center">
+                        <span className="text-muted-foreground text-sm">
                             Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, sortedRecords.length)} of {sortedRecords.length} records
                         </span>
                         {totalPages > 1 && (
-                            <div className="btn-group btn-group-sm mx-auto">
+                            <div className="inline-flex rounded-md shadow-sm mx-auto">
                                 <button
-                                    className="btn btn-outline-secondary"
+                                    className="px-3 py-1.5 text-sm border border-glass-border rounded-l-md hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page === 0}
                                     onClick={() => setPage(0)}
                                     title="First page"
@@ -280,24 +281,24 @@ export function DataDrillDownModal({
                                     <i className="bi bi-chevron-bar-left"></i>
                                 </button>
                                 <button
-                                    className="btn btn-outline-secondary"
+                                    className="px-3 py-1.5 text-sm border-y border-glass-border hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page === 0}
                                     onClick={() => setPage(p => p - 1)}
                                 >
                                     Previous
                                 </button>
-                                <span className="btn btn-outline-secondary disabled">
+                                <span className="px-3 py-1.5 text-sm border-y border-glass-border bg-white/5">
                                     {page + 1} / {totalPages}
                                 </span>
                                 <button
-                                    className="btn btn-outline-secondary"
+                                    className="px-3 py-1.5 text-sm border-y border-glass-border hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page >= totalPages - 1}
                                     onClick={() => setPage(p => p + 1)}
                                 >
                                     Next
                                 </button>
                                 <button
-                                    className="btn btn-outline-secondary"
+                                    className="px-3 py-1.5 text-sm border border-glass-border rounded-r-md hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page >= totalPages - 1}
                                     onClick={() => setPage(totalPages - 1)}
                                     title="Last page"
@@ -306,7 +307,7 @@ export function DataDrillDownModal({
                                 </button>
                             </div>
                         )}
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>
+                        <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-glass-border" onClick={onClose}>
                             Close
                         </button>
                     </div>
@@ -395,7 +396,7 @@ function getColumns(type: DrillDownType): { key: string; label: string }[] {
 
 // Format cell values for display
 function formatCell(value: any, key: string): React.ReactNode {
-    if (value == null) return <span className="text-muted">—</span>;
+    if (value == null) return <span className="text-muted-foreground">—</span>;
 
     if (value instanceof Date) {
         return format(value, 'MMM d, yyyy');
@@ -406,28 +407,28 @@ function formatCell(value: any, key: string): React.ReactNode {
     }
 
     if (key === 'status') {
-        const statusClass = value === 'Accepted' ? 'success' :
-            value === 'Declined' ? 'danger' :
-                value === 'Open' ? 'primary' : 'secondary';
-        return <span className={`badge bg-${statusClass}`}>{value}</span>;
+        const statusBg = value === 'Accepted' ? 'bg-success' :
+            value === 'Declined' ? 'bg-danger' :
+                value === 'Open' ? 'bg-primary' : 'bg-secondary';
+        return <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusBg} text-white`}>{value}</span>;
     }
 
     if (key === 'ageInDays') {
-        const color = value > 90 ? 'text-danger fw-bold' : value > 60 ? 'text-warning' : '';
+        const color = value > 90 ? 'text-danger font-bold' : value > 60 ? 'text-warning' : '';
         return <span className={color}>{value}d</span>;
     }
 
     if (key === 'daysToFill') {
         // Negative values indicate data quality issues (hired before req opened)
         if (value < 0) {
-            return <span className="text-danger fw-bold" title="Data issue: Hired before req opened">{value}d ⚠️</span>;
+            return <span className="text-danger font-bold" title="Data issue: Hired before req opened">{value}d</span>;
         }
-        const color = value > 90 ? 'text-danger fw-bold' : value > 60 ? 'text-warning' : 'text-success';
+        const color = value > 90 ? 'text-danger font-bold' : value > 60 ? 'text-warning' : 'text-success';
         return <span className={color}>{value}d</span>;
     }
 
     if (key === 'openDate' || key === 'hireDate') {
-        return value instanceof Date ? format(value, 'MMM d, yyyy') : <span className="text-muted">—</span>;
+        return value instanceof Date ? format(value, 'MMM d, yyyy') : <span className="text-muted-foreground">—</span>;
     }
 
     return String(value);

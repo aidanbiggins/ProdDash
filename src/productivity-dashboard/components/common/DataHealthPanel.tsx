@@ -59,18 +59,18 @@ export function DataHealthPanel({ health, onConfigureStages }: DataHealthPanelPr
 
   return (
     <div className="card-bespoke">
-      <div className="card-header d-flex justify-content-between align-items-center">
-        <h6 className="mb-0 fw-semibold">Data Health</h6>
+      <div className="px-4 py-3 border-b border-glass-border flex justify-between items-center">
+        <h6 className="mb-0 font-semibold">Data Health</h6>
         <div className={`health-grade ${getGradeClass(healthGrade)}`}>
           {healthGrade}
         </div>
       </div>
-      <div className="card-body">
+      <div className="p-4">
         {/* Health Score Bar */}
         <div className="mb-4">
-          <div className="d-flex justify-content-between align-items-center mb-2">
+          <div className="flex justify-between items-center mb-2">
             <span className="stat-label">Overall Score</span>
-            <span className="fw-bold" style={{ color: `var(--color-${healthColor})` }}>
+            <span className="font-bold" style={{ color: `var(--color-${healthColor})` }}>
               {health.overallHealthScore}%
             </span>
           </div>
@@ -86,17 +86,17 @@ export function DataHealthPanel({ health, onConfigureStages }: DataHealthPanelPr
         {issues.length > 0 && (
           <div className="mb-3">
             <div className="stat-label mb-2">Data Issues</div>
-            <div className="d-flex flex-column gap-2">
+            <div className="flex flex-col gap-2">
               {issues.map((issue, i) => (
                 <div
                   key={i}
-                  className="d-flex justify-content-between align-items-center py-2 px-3 rounded"
+                  className="flex justify-between items-center py-2 px-3 rounded"
                   style={{ background: '#0a0a0a' }}
                 >
-                  <span className="small text-muted">{issue.label}</span>
+                  <span className="text-sm text-muted-foreground">{issue.label}</span>
                   <span className={`badge-bespoke ${issue.percentage > issue.threshold ? 'badge-warning-soft' : 'badge-neutral-soft'}`}>
                     {issue.percentage}%
-                    <span className="opacity-75 ms-1">({issue.count})</span>
+                    <span className="opacity-75 ml-1">({issue.count})</span>
                   </span>
                 </div>
               ))}
@@ -107,14 +107,14 @@ export function DataHealthPanel({ health, onConfigureStages }: DataHealthPanelPr
         {/* Unmapped Stages */}
         {health.unmappedStagesCount > 0 && (
           <div
-            className="d-flex justify-content-between align-items-center py-2 px-3 rounded mb-3"
+            className="flex justify-between items-center py-2 px-3 rounded mb-3"
             style={{ background: 'var(--color-danger-light)' }}
           >
-            <span className="small" style={{ color: 'var(--color-danger)' }}>
+            <span className="text-sm" style={{ color: 'var(--color-danger)' }}>
               Unmapped stages
             </span>
-            <div className="d-flex align-items-center gap-2">
-              <span className="badge-bespoke badge-danger-soft fw-bold">
+            <div className="flex items-center gap-2">
+              <span className="badge-bespoke badge-danger-soft font-bold">
                 {health.unmappedStagesCount}
               </span>
               {onConfigureStages && (
@@ -134,7 +134,7 @@ export function DataHealthPanel({ health, onConfigureStages }: DataHealthPanelPr
         {health.lowConfidenceMetrics.length > 0 && (
           <div>
             <div className="stat-label mb-2">Low Confidence Metrics</div>
-            <div className="d-flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1">
               {health.lowConfidenceMetrics.map((metric, i) => (
                 <span key={i} className="badge-bespoke badge-warning-soft">
                   {metric}
@@ -147,7 +147,7 @@ export function DataHealthPanel({ health, onConfigureStages }: DataHealthPanelPr
         {/* All Good State */}
         {issues.length === 0 && health.unmappedStagesCount === 0 && health.lowConfidenceMetrics.length === 0 && (
           <div className="text-center py-2">
-            <span className="small text-muted">✓ All data quality checks passed</span>
+            <span className="text-sm text-muted-foreground">All data quality checks passed</span>
           </div>
         )}
       </div>

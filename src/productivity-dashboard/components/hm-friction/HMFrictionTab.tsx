@@ -34,7 +34,7 @@ function WeightLegend() {
   return (
     <div className="mt-4">
       <button
-        className="btn btn-sm d-flex align-items-center gap-2 w-100 text-start"
+        className="flex items-center gap-2 w-full text-left text-sm"
         onClick={() => setIsOpen(!isOpen)}
         style={{
           background: 'rgba(39, 39, 42, 0.5)',
@@ -45,7 +45,7 @@ function WeightLegend() {
         }}
       >
         <i className={`bi ${isOpen ? 'bi-chevron-down' : 'bi-chevron-right'}`}></i>
-        <i className="bi bi-info-circle me-1"></i>
+        <i className="bi bi-info-circle mr-1"></i>
         <span>Understanding HM Weight</span>
       </button>
       {isOpen && (
@@ -54,29 +54,29 @@ function WeightLegend() {
           style={{ borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
         >
           <div className="card-body">
-            <p className="small text-muted mb-3">
+            <p className="text-sm text-muted-foreground mb-3">
               HM Weight measures how a hiring manager's decision speed compares to the median.
               It affects the complexity score of their requisitions:
             </p>
-            <div className="d-flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3">
               <div>
                 <span className="badge-bespoke badge-success-soft">0.8 - 0.95x</span>
-                <span className="ms-2 small text-muted">Fast - reduces complexity</span>
+                <span className="ml-2 text-sm text-muted-foreground">Fast - reduces complexity</span>
               </div>
               <div>
                 <span className="badge-bespoke badge-neutral-soft">0.95 - 1.05x</span>
-                <span className="ms-2 small text-muted">Average</span>
+                <span className="ml-2 text-sm text-muted-foreground">Average</span>
               </div>
               <div>
                 <span className="badge-bespoke badge-warning-soft">1.05 - 1.2x</span>
-                <span className="ms-2 small text-muted">Slow</span>
+                <span className="ml-2 text-sm text-muted-foreground">Slow</span>
               </div>
               <div>
                 <span className="badge-bespoke badge-danger-soft">1.2 - 1.3x</span>
-                <span className="ms-2 small text-muted">Very slow - increases complexity</span>
+                <span className="ml-2 text-sm text-muted-foreground">Very slow - increases complexity</span>
               </div>
             </div>
-            <p className="small text-muted mt-3 mb-0">
+            <p className="text-sm text-muted-foreground mt-3 mb-0">
               * HMs with fewer than 3 interview loops are assigned the default weight of 1.0
             </p>
           </div>
@@ -315,14 +315,14 @@ export function HMFrictionTab({
 
   // Helper to render sort icon
   const renderSortIcon = (column: keyof HiringManagerFriction) => {
-    if (sortColumn !== column) return <i className="bi bi-arrow-down-up ms-1" style={{ fontSize: '0.7rem', color: '#71717a' }}></i>;
+    if (sortColumn !== column) return <i className="bi bi-arrow-down-up ml-1" style={{ fontSize: '0.7rem', color: '#71717a' }}></i>;
     return sortDirection === 'asc'
-      ? <i className="bi bi-arrow-up-short ms-1 text-primary"></i>
-      : <i className="bi bi-arrow-down-short ms-1 text-primary"></i>;
+      ? <i className="bi bi-arrow-up-short ml-1 text-primary"></i>
+      : <i className="bi bi-arrow-down-short ml-1 text-primary"></i>;
   };
 
   // Helper for clickable header
-  const SortableHeader = ({ column, label, align = 'text-end' }: { column: keyof HiringManagerFriction, label: string, align?: string }) => (
+  const SortableHeader = ({ column, label, align = 'text-right' }: { column: keyof HiringManagerFriction, label: string, align?: string }) => (
     <th
       className={`${align}`}
       onClick={() => handleSort(column)}
@@ -339,7 +339,7 @@ export function HMFrictionTab({
         whiteSpace: 'nowrap'
       }}
     >
-      <div className={`d-flex align-items-center ${align === 'text-end' ? 'justify-content-end' : ''}`}>
+      <div className={`flex items-center ${align === 'text-right' ? 'justify-end' : ''}`}>
         {label}
         {renderSortIcon(column)}
       </div>
@@ -372,8 +372,8 @@ export function HMFrictionTab({
       )}
 
       {/* Overview Stats - Time Tax focused - Clickable KPI Tiles */}
-      <div className="row g-3 mb-4">
-        <div className="col-6 col-md-3">
+      <div className="grid grid-cols-12 gap-3 mb-4">
+        <div className="col-span-6 md:col-span-3">
           <div
             className={`card-bespoke cursor-pointer transition-all ${expandedKPI === 'totalHMs' ? 'border-primary shadow' : ''}`}
             onClick={() => handleKPIClick('totalHMs')}
@@ -382,11 +382,11 @@ export function HMFrictionTab({
             <div className="card-body text-center">
               <StatLabel className="mb-2">Total Hiring Managers</StatLabel>
               <StatValue>{filteredFriction.length}</StatValue>
-              <div className="text-muted small mt-1"><i className="bi bi-chevron-down"></i> Click for details</div>
+              <div className="text-muted-foreground text-sm mt-1"><i className="bi bi-chevron-down"></i> Click for details</div>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
+        <div className="col-span-6 md:col-span-3">
           <div
             className={`card-bespoke cursor-pointer transition-all ${expandedKPI === 'avgTimeTax' ? 'border-primary shadow' : 'border-danger border-opacity-25'}`}
             onClick={() => handleKPIClick('avgTimeTax')}
@@ -395,11 +395,11 @@ export function HMFrictionTab({
             <div className="card-body text-center">
               <StatLabel className="mb-2">Avg Time Tax</StatLabel>
               <StatValue color="danger">{avgTimeTax}%</StatValue>
-              <div className="text-muted small">of cycle spent waiting</div>
+              <div className="text-muted-foreground text-sm">of cycle spent waiting</div>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
+        <div className="col-span-6 md:col-span-3">
           <div
             className={`card-bespoke cursor-pointer transition-all ${expandedKPI === 'latencyImpact' ? 'border-primary shadow' : ''}`}
             onClick={() => handleKPIClick('latencyImpact')}
@@ -408,11 +408,11 @@ export function HMFrictionTab({
             <div className="card-body text-center">
               <StatLabel className="mb-2">Latency Impact</StatLabel>
               <StatValue color="warning">{totalLatencyImpactDays}d</StatValue>
-              <div className="text-muted small">total time lost waiting</div>
+              <div className="text-muted-foreground text-sm">total time lost waiting</div>
             </div>
           </div>
         </div>
-        <div className="col-6 col-md-3">
+        <div className="col-span-6 md:col-span-3">
           <div
             className={`card-bespoke cursor-pointer transition-all ${expandedKPI === 'fastHMs' ? 'border-primary shadow' : ''}`}
             onClick={() => handleKPIClick('fastHMs')}
@@ -421,7 +421,7 @@ export function HMFrictionTab({
             <div className="card-body text-center">
               <StatLabel className="mb-2 text-success">Fast HMs</StatLabel>
               <StatValue color="success">{fastHMs.length}</StatValue>
-              <div className="text-muted small mt-1"><i className="bi bi-chevron-down"></i> Click for details</div>
+              <div className="text-muted-foreground text-sm mt-1"><i className="bi bi-chevron-down"></i> Click for details</div>
             </div>
           </div>
         </div>
@@ -430,47 +430,47 @@ export function HMFrictionTab({
       {/* KPI Drill-Down Panels */}
       {expandedKPI && (
         <div className="card-bespoke mb-4 border-primary">
-          <div className="card-header d-flex justify-content-between align-items-center">
+          <div className="card-header flex justify-between items-center">
             <h6 className="mb-0">
               {expandedKPI === 'totalHMs' && 'All Hiring Managers Overview'}
               {expandedKPI === 'avgTimeTax' && 'Time Tax Distribution'}
               {expandedKPI === 'latencyImpact' && 'Latency Impact by HM'}
               {expandedKPI === 'fastHMs' && 'Fast Hiring Managers'}
             </h6>
-            <button className="btn btn-sm btn-bespoke-secondary" onClick={() => setExpandedKPI(null)}>
+            <button className="px-3 py-1.5 text-sm bg-bg-glass border border-glass-border rounded hover:bg-opacity-80 transition-colors" onClick={() => setExpandedKPI(null)}>
               <i className="bi bi-x-lg"></i> Close
             </button>
           </div>
           <div className="card-body">
             {/* Total HMs Panel */}
             {expandedKPI === 'totalHMs' && (
-              <div className="table-responsive">
-                <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
+              <div className="overflow-x-auto">
+                <table className="w-full mb-0 text-sm"style={{ fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ background: '#0a0a0a' }}>
-                      <th>Hiring Manager</th>
-                      <th className="text-end">Reqs</th>
-                      <th className="text-end">Loops</th>
-                      <th className="text-end">Avg Latency</th>
-                      <th className="text-end">Time Tax</th>
-                      <th className="text-end">Weight</th>
+                      <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left">Hiring Manager</th>
+                      <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Reqs</th>
+                      <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Loops</th>
+                      <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Avg Latency</th>
+                      <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Time Tax</th>
+                      <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Weight</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredFriction.slice(0, 20).map(f => (
-                      <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} style={{ cursor: 'pointer' }}>
-                        <td className="fw-medium">{f.hmName}</td>
-                        <td className="text-end">{f.reqsInRange}</td>
-                        <td className="text-end">{f.loopCount}</td>
-                        <td className="text-end">
+                      <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white hover:bg-opacity-5">
+                        <td className="px-2 py-2 font-medium">{f.hmName}</td>
+                        <td className="px-2 py-2 text-right">{f.reqsInRange}</td>
+                        <td className="px-2 py-2 text-right">{f.loopCount}</td>
+                        <td className="px-2 py-2 text-right">
                           {f.composition.totalLatencyHours > 0 ? `${Math.round(f.composition.totalLatencyHours / 24)}d` : '-'}
                         </td>
-                        <td className="text-end">
-                          <span className={f.composition.timeTaxPercent > 30 ? 'text-danger fw-bold' : f.composition.timeTaxPercent > 15 ? 'text-warning' : ''}>
+                        <td className="px-2 py-2 text-right">
+                          <span className={f.composition.timeTaxPercent > 30 ? 'text-danger font-bold' : f.composition.timeTaxPercent > 15 ? 'text-warning' : ''}>
                             {f.composition.timeTaxPercent}%
                           </span>
                         </td>
-                        <td className="text-end">
+                        <td className="px-2 py-2 text-right">
                           <span className={`badge-bespoke ${f.hmWeight > 1.2 ? 'badge-danger-soft' : f.hmWeight > 1.0 ? 'badge-warning-soft' : f.hmWeight < 0.9 ? 'badge-success-soft' : 'badge-neutral-soft'}`}>
                             {f.hmWeight.toFixed(2)}x
                           </span>
@@ -480,7 +480,7 @@ export function HMFrictionTab({
                   </tbody>
                 </table>
                 {filteredFriction.length > 20 && (
-                  <div className="text-center text-muted small mt-2">
+                  <div className="text-center text-muted-foreground text-sm mt-2 py-2">
                     Showing top 20 of {filteredFriction.length} HMs
                   </div>
                 )}
@@ -490,13 +490,13 @@ export function HMFrictionTab({
             {/* Avg Time Tax Panel - Distribution */}
             {expandedKPI === 'avgTimeTax' && (
               <div>
-                <div className="row mb-3">
+                <div className="grid grid-cols-12 gap-3 mb-3">
                   {timeTaxDistribution.map(bucket => (
-                    <div key={bucket.label} className="col-4 col-md-2 mb-2">
+                    <div key={bucket.label} className="col-span-4 md:col-span-2 mb-2">
                       <div className="text-center p-2 rounded" style={{ background: bucket.min >= 30 ? 'rgba(239, 68, 68, 0.15)' : bucket.min >= 20 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)' }}>
-                        <div className="small text-muted">{bucket.label}</div>
-                        <div className="fw-bold" style={{ fontSize: '1.5rem' }}>{bucket.count}</div>
-                        <div className="small text-muted">HMs</div>
+                        <div className="text-sm text-muted-foreground">{bucket.label}</div>
+                        <div className="font-bold" style={{ fontSize: '1.5rem' }}>{bucket.count}</div>
+                        <div className="text-sm text-muted-foreground">HMs</div>
                       </div>
                     </div>
                   ))}
@@ -504,26 +504,26 @@ export function HMFrictionTab({
                 <ChartHelp text="HMs with >30% Time Tax are costing significant recruiting cycle time. Time Tax = the portion of hiring cycle spent waiting on the HM." />
                 {timeTaxDistribution.filter(b => b.min >= 30).flatMap(b => b.hms).length > 0 && (
                   <>
-                    <h6 className="mt-3 mb-2">High Time Tax HMs (&gt;30%)</h6>
-                    <div className="table-responsive">
-                      <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
+                    <h6 className="mt-3 mb-2 text-base font-semibold">High Time Tax HMs (&gt;30%)</h6>
+                    <div className="overflow-x-auto">
+                      <table className="w-full mb-0 text-sm" style={{ fontSize: '0.85rem' }}>
                         <thead>
                           <tr style={{ background: 'rgba(239, 68, 68, 0.15)' }}>
-                            <th>Hiring Manager</th>
-                            <th className="text-end">Time Tax</th>
-                            <th className="text-end">Feedback Latency</th>
-                            <th className="text-end">Decision Latency</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left">Hiring Manager</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Time Tax</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Feedback Latency</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Decision Latency</th>
                           </tr>
                         </thead>
                         <tbody>
                           {timeTaxDistribution.filter(b => b.min >= 30).flatMap(b => b.hms)
                             .sort((a, b) => b.composition.timeTaxPercent - a.composition.timeTaxPercent)
                             .map(f => (
-                              <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} style={{ cursor: 'pointer' }}>
-                                <td className="fw-medium">{f.hmName}</td>
-                                <td className="text-end text-danger fw-bold">{f.composition.timeTaxPercent}%</td>
-                                <td className="text-end">{f.feedbackLatencyMedian ? `${Math.round(f.feedbackLatencyMedian)} hrs` : '-'}</td>
-                                <td className="text-end">{f.decisionLatencyMedian ? `${Math.round(f.decisionLatencyMedian)} hrs` : '-'}</td>
+                              <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white hover:bg-opacity-5">
+                                <td className="px-2 py-2 font-medium">{f.hmName}</td>
+                                <td className="px-2 py-2 text-right text-danger font-bold">{f.composition.timeTaxPercent}%</td>
+                                <td className="px-2 py-2 text-right">{f.feedbackLatencyMedian ? `${Math.round(f.feedbackLatencyMedian)} hrs` : '-'}</td>
+                                <td className="px-2 py-2 text-right">{f.decisionLatencyMedian ? `${Math.round(f.decisionLatencyMedian)} hrs` : '-'}</td>
                               </tr>
                             ))}
                         </tbody>
@@ -538,21 +538,21 @@ export function HMFrictionTab({
             {expandedKPI === 'latencyImpact' && (
               <div>
                 <div className="mb-3 p-3 rounded" style={{ background: 'rgba(245, 158, 11, 0.15)' }}>
-                  <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex justify-between items-center">
                     <span>Total latency across all HMs:</span>
                     <strong className="text-warning" style={{ fontSize: '1.25rem' }}>{totalLatencyImpactDays} days</strong>
                   </div>
                 </div>
-                <h6 className="mb-2">Top Contributors to Latency</h6>
-                <div className="table-responsive">
-                  <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
+                <h6 className="mb-2 text-base font-semibold">Top Contributors to Latency</h6>
+                <div className="overflow-x-auto">
+                  <table className="w-full mb-0 text-sm" style={{ fontSize: '0.85rem' }}>
                     <thead>
                       <tr style={{ background: '#0a0a0a' }}>
-                        <th>Hiring Manager</th>
-                        <th className="text-end">Total Latency</th>
-                        <th className="text-end">% of Total</th>
-                        <th className="text-end">Feedback</th>
-                        <th className="text-end">Decision</th>
+                        <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left">Hiring Manager</th>
+                        <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Total Latency</th>
+                        <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">% of Total</th>
+                        <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Feedback</th>
+                        <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Decision</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -561,19 +561,19 @@ export function HMFrictionTab({
                           ? Math.round((f.composition.totalLatencyHours / 24) / totalLatencyImpactDays * 100)
                           : 0;
                         return (
-                          <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} style={{ cursor: 'pointer' }}>
-                            <td className="fw-medium">{f.hmName}</td>
-                            <td className="text-end fw-bold">{Math.round(f.composition.totalLatencyHours / 24)}d</td>
-                            <td className="text-end">
-                              <div className="d-flex align-items-center justify-content-end gap-2">
-                                <div className="progress" style={{ width: '60px', height: '8px' }}>
-                                  <div className="progress-bar bg-warning" style={{ width: `${pctOfTotal}%` }}></div>
+                          <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white hover:bg-opacity-5">
+                            <td className="px-2 py-2 font-medium">{f.hmName}</td>
+                            <td className="px-2 py-2 text-right font-bold">{Math.round(f.composition.totalLatencyHours / 24)}d</td>
+                            <td className="px-2 py-2 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <div className="relative w-[60px] h-2 bg-gray-700 rounded overflow-hidden">
+                                  <div className="absolute top-0 left-0 h-full bg-warning" style={{ width: `${pctOfTotal}%` }}></div>
                                 </div>
                                 <span>{pctOfTotal}%</span>
                               </div>
                             </td>
-                            <td className="text-end">{f.composition.feedbackLatencyHours}h</td>
-                            <td className="text-end">{f.composition.decisionLatencyHours}h</td>
+                            <td className="px-2 py-2 text-right">{f.composition.feedbackLatencyHours}h</td>
+                            <td className="px-2 py-2 text-right">{f.composition.decisionLatencyHours}h</td>
                           </tr>
                         );
                       })}
@@ -589,34 +589,34 @@ export function HMFrictionTab({
                 {fastHMs.length > 0 ? (
                   <>
                     <div className="mb-3 p-3 rounded" style={{ background: '#f0fdf4' }}>
-                      <div className="d-flex justify-content-between align-items-center">
+                      <div className="flex justify-between items-center">
                         <span>HMs with faster-than-median decision speed:</span>
                         <strong className="text-success" style={{ fontSize: '1.25rem' }}>{fastHMs.length} HMs</strong>
                       </div>
                     </div>
-                    <div className="table-responsive">
-                      <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
+                    <div className="overflow-x-auto">
+                      <table className="w-full mb-0 text-sm" style={{ fontSize: '0.85rem' }}>
                         <thead>
                           <tr style={{ background: '#f0fdf4' }}>
-                            <th>Hiring Manager</th>
-                            <th className="text-end">Weight</th>
-                            <th className="text-end">Avg Feedback</th>
-                            <th className="text-end">Avg Decision</th>
-                            <th className="text-end">Time Tax</th>
-                            <th className="text-end">Offer Accept</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left">Hiring Manager</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Weight</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Avg Feedback</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Avg Decision</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Time Tax</th>
+                            <th className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-right">Offer Accept</th>
                           </tr>
                         </thead>
                         <tbody>
                           {fastHMs.map(f => (
-                            <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} style={{ cursor: 'pointer' }}>
-                              <td className="fw-medium">{f.hmName}</td>
-                              <td className="text-end">
+                            <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white hover:bg-opacity-5">
+                              <td className="px-2 py-2 font-medium">{f.hmName}</td>
+                              <td className="px-2 py-2 text-right">
                                 <span className="badge-bespoke badge-success-soft">{f.hmWeight.toFixed(2)}x</span>
                               </td>
-                              <td className="text-end">{f.feedbackLatencyMedian ? `${Math.round(f.feedbackLatencyMedian)}h` : '-'}</td>
-                              <td className="text-end">{f.decisionLatencyMedian ? `${Math.round(f.decisionLatencyMedian)}h` : '-'}</td>
-                              <td className="text-end text-success">{f.composition.timeTaxPercent}%</td>
-                              <td className="text-end">{f.offerAcceptanceRate ? `${Math.round(f.offerAcceptanceRate * 100)}%` : '-'}</td>
+                              <td className="px-2 py-2 text-right">{f.feedbackLatencyMedian ? `${Math.round(f.feedbackLatencyMedian)}h` : '-'}</td>
+                              <td className="px-2 py-2 text-right">{f.decisionLatencyMedian ? `${Math.round(f.decisionLatencyMedian)}h` : '-'}</td>
+                              <td className="px-2 py-2 text-right text-success">{f.composition.timeTaxPercent}%</td>
+                              <td className="px-2 py-2 text-right">{f.offerAcceptanceRate ? `${Math.round(f.offerAcceptanceRate * 100)}%` : '-'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -625,10 +625,10 @@ export function HMFrictionTab({
                     <ChartHelp text="These HMs have lower-than-median decision latency (weight < 0.9), reducing complexity scores on their requisitions. Fast HMs help shorten time-to-fill." />
                   </>
                 ) : (
-                  <div className="text-center text-muted py-4">
+                  <div className="text-center text-muted-foreground py-4">
                     <div className="mb-2" style={{ fontSize: '2rem' }}>🏃</div>
                     <div>No HMs currently qualify as "fast" (weight &lt; 0.9)</div>
-                    <div className="small mt-1">This requires at least 3 interview loops and faster-than-median decisions</div>
+                    <div className="text-sm mt-1">This requires at least 3 interview loops and faster-than-median decisions</div>
                   </div>
                 )}
               </div>
@@ -639,25 +639,25 @@ export function HMFrictionTab({
 
       {/* Hiring Cycle Breakdown - Stacked Composition Chart */}
       <div className="card-bespoke mb-4">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center">
-            <span className="me-2" style={{ fontSize: '1.25rem' }}>📊</span>
-            <h6 className="mb-0">Hiring Cycle Breakdown <span className="text-muted fw-normal">(time composition by HM)</span></h6>
+        <div className="card-header flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="mr-2" style={{ fontSize: '1.25rem' }}>📊</span>
+            <h6 className="mb-0 text-base font-semibold">Hiring Cycle Breakdown <span className="text-muted-foreground font-normal">(time composition by HM)</span></h6>
           </div>
-          <div className="d-flex align-items-center gap-3 flex-wrap">
-            <div className="d-flex align-items-center gap-2 small flex-wrap">
-              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#64748b' }}></span>
-              <span className="text-muted">Sourcing</span>
-              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#3b82f6' }}></span>
-              <span className="text-muted">Screening</span>
-              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#14b8a6' }}></span>
-              <span className="text-muted">HM Review</span>
-              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#22c55e' }}></span>
-              <span className="text-muted">Interview</span>
-              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#f59e0b' }}></span>
-              <span className="text-muted">Feedback</span>
-              <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#dc2626' }}></span>
-              <span className="text-muted">Decision</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-sm flex-wrap">
+              <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#64748b' }}></span>
+              <span className="text-muted-foreground">Sourcing</span>
+              <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#3b82f6' }}></span>
+              <span className="text-muted-foreground">Screening</span>
+              <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#14b8a6' }}></span>
+              <span className="text-muted-foreground">HM Review</span>
+              <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#22c55e' }}></span>
+              <span className="text-muted-foreground">Interview</span>
+              <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#f59e0b' }}></span>
+              <span className="text-muted-foreground">Feedback</span>
+              <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#dc2626' }}></span>
+              <span className="text-muted-foreground">Decision</span>
             </div>
           </div>
         </div>
@@ -686,39 +686,39 @@ export function HMFrictionTab({
                   const totalCycle = d.sourcing + d.screening + d.hmReview + d.interview + d.feedback + d.decision;
                   return (
                     <div className="rounded p-3" style={{ minWidth: '240px', background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-                      <div className="fw-bold mb-2" style={{ color: '#F8FAFC' }}>{d.fullName}</div>
-                      <div className="small mb-2" style={{ color: '#94A3B8' }}>Pipeline Stage Breakdown</div>
-                      <div className="d-flex justify-content-between">
+                      <div className="font-bold mb-2" style={{ color: '#F8FAFC' }}>{d.fullName}</div>
+                      <div className="text-sm mb-2" style={{ color: '#94A3B8' }}>Pipeline Stage Breakdown</div>
+                      <div className="flex justify-between">
                         <span style={{ color: '#64748b' }}>● Sourcing:</span>
                         <strong>{d.sourcing} hrs</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
+                      <div className="flex justify-between">
                         <span style={{ color: '#3b82f6' }}>● Screening:</span>
                         <strong>{d.screening} hrs</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
+                      <div className="flex justify-between">
                         <span style={{ color: '#14b8a6' }}>● HM Review:</span>
                         <strong>{d.hmReview} hrs</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
+                      <div className="flex justify-between">
                         <span style={{ color: '#22c55e' }}>● Interview:</span>
                         <strong>{d.interview} hrs</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
+                      <div className="flex justify-between">
                         <span style={{ color: '#f59e0b' }}>● Feedback Wait:</span>
                         <strong>{d.feedback} hrs</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
+                      <div className="flex justify-between">
                         <span style={{ color: '#dc2626' }}>● Decision Wait:</span>
                         <strong>{d.decision} hrs</strong>
                       </div>
                       <hr className="my-2" />
-                      <div className="d-flex justify-content-between">
-                        <span className="fw-bold">Total Cycle:</span>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Total Cycle:</span>
                         <strong>{totalCycle} hrs ({Math.round(totalCycle / 24)}d)</strong>
                       </div>
-                      <div className="d-flex justify-content-between">
-                        <span className="fw-bold">Time Tax:</span>
+                      <div className="flex justify-between">
+                        <span className="font-bold">Time Tax:</span>
                         <strong className={d.timeTax > 30 ? 'text-danger' : d.timeTax > 15 ? 'text-warning' : 'text-success'}>
                           {d.timeTax}%
                         </strong>
@@ -741,16 +741,16 @@ export function HMFrictionTab({
       </div>
 
       {/* Advanced Visualizations Row */}
-      <div className="row g-4 mb-4">
+      <div className="grid grid-cols-12 gap-4 mb-4">
         {/* Candidate Decay Curve */}
-        <div className="col-12 col-md-6">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
             <div className="card-header">
-              <div className="d-flex align-items-center">
-                <span className="me-2" style={{ fontSize: '1.25rem' }}>📉</span>
-                <h6 className="mb-0">Candidate Decay Curve</h6>
+              <div className="flex items-center">
+                <span className="mr-2" style={{ fontSize: '1.25rem' }}>📉</span>
+                <h6 className="mb-0 text-base font-semibold">Candidate Decay Curve</h6>
               </div>
-              <small className="text-muted">Offer acceptance rate vs HM latency</small>
+              <span className="text-sm text-muted-foreground">Offer acceptance rate vs HM latency</span>
             </div>
             <div className="card-body">
               {decayCurveData.length > 0 ? (
@@ -783,10 +783,10 @@ export function HMFrictionTab({
                         const d = payload[0].payload;
                         return (
                           <div className="rounded p-2" style={{ background: 'rgba(30, 41, 59, 0.95)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <div className="fw-bold" style={{ color: '#F8FAFC' }}>{d.hmName}</div>
-                            <div className="small" style={{ color: '#F8FAFC' }}>Latency: {d.latencyDays} days</div>
-                            <div className="small" style={{ color: '#F8FAFC' }}>Accept Rate: {d.acceptanceRate}%</div>
-                            <div className="small" style={{ color: '#94A3B8' }}>({d.loopCount} loops)</div>
+                            <div className="font-bold" style={{ color: '#F8FAFC' }}>{d.hmName}</div>
+                            <div className="text-sm" style={{ color: '#F8FAFC' }}>Latency: {d.latencyDays} days</div>
+                            <div className="text-sm" style={{ color: '#F8FAFC' }}>Accept Rate: {d.acceptanceRate}%</div>
+                            <div className="text-sm" style={{ color: '#94A3B8' }}>({d.loopCount} loops)</div>
                           </div>
                         );
                       }}
@@ -809,7 +809,7 @@ export function HMFrictionTab({
                   </ScatterChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-muted py-5">
+                <div className="text-center text-muted-foreground py-5">
                   <div className="mb-2">📊</div>
                   <div>No offer data available</div>
                 </div>
@@ -820,29 +820,29 @@ export function HMFrictionTab({
         </div>
 
         {/* Stage-by-Stage Heatmap */}
-        <div className="col-12 col-md-6">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
             <div className="card-header">
-              <div className="d-flex align-items-center justify-content-between">
-                <div className="d-flex align-items-center">
-                  <span className="me-2" style={{ fontSize: '1.25rem' }}>🗺️</span>
-                  <h6 className="mb-0">Stage Latency Heatmap</h6>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="mr-2" style={{ fontSize: '1.25rem' }}>🗺️</span>
+                  <h6 className="mb-0 text-base font-semibold">Stage Latency Heatmap</h6>
                 </div>
-                <div className="d-flex align-items-center gap-2 small">
-                  <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#dcfce7' }}></span>
-                  <span className="text-muted">Fast</span>
-                  <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#fef3c7' }}></span>
-                  <span className="text-muted">Slow</span>
-                  <span className="d-inline-block rounded" style={{ width: '12px', height: '12px', background: '#fecaca' }}></span>
-                  <span className="text-muted">Very Slow</span>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#dcfce7' }}></span>
+                  <span className="text-muted-foreground">Fast</span>
+                  <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#fef3c7' }}></span>
+                  <span className="text-muted-foreground">Slow</span>
+                  <span className="inline-block rounded" style={{ width: '12px', height: '12px', background: '#fecaca' }}></span>
+                  <span className="text-muted-foreground">Very Slow</span>
                 </div>
               </div>
-              <small className="text-muted">Top 10 HMs by total latency</small>
+              <span className="text-sm text-muted-foreground">Top 10 HMs by total latency</span>
             </div>
             <div className="card-body p-0">
               {heatmapData.length > 0 ? (
-                <div className="table-responsive">
-                  <table className="table table-sm mb-0" style={{ fontSize: '0.8rem' }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full mb-0" style={{ fontSize: '0.8rem' }}>
                     <thead>
                       <tr style={{ background: '#0a0a0a' }}>
                         <th style={{ padding: '0.5rem', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase' }}>HM</th>
@@ -860,10 +860,10 @@ export function HMFrictionTab({
                           className={selectedHM === row.hmId ? 'bg-soft-primary' : ''}
                         >
                           <td style={{ padding: '0.5rem' }} title={row.fullName}>
-                            <span className="fw-medium">{row.hmName}</span>
+                            <span className="font-medium">{row.hmName}</span>
                           </td>
                           <td
-                            className="text-center fw-medium"
+                            className="text-center font-medium"
                             style={{
                               padding: '0.5rem',
                               background: getHeatmapColor(row.feedback, 'feedback')
@@ -872,7 +872,7 @@ export function HMFrictionTab({
                             {row.feedback ?? '-'}
                           </td>
                           <td
-                            className="text-center fw-medium"
+                            className="text-center font-medium"
                             style={{
                               padding: '0.5rem',
                               background: getHeatmapColor(row.decision, 'decision')
@@ -881,7 +881,7 @@ export function HMFrictionTab({
                             {row.decision ?? '-'}
                           </td>
                           <td
-                            className="text-center fw-bold"
+                            className="text-center font-bold"
                             style={{ padding: '0.5rem' }}
                           >
                             {Math.round(row.total)}
@@ -892,7 +892,7 @@ export function HMFrictionTab({
                   </table>
                 </div>
               ) : (
-                <div className="text-center text-muted py-5">
+                <div className="text-center text-muted-foreground py-5">
                   <div className="mb-2">🗺️</div>
                   <div>No latency data available</div>
                 </div>
@@ -907,18 +907,18 @@ export function HMFrictionTab({
 
       {/* HM Table */}
       <div className="card-bespoke">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h6 className="mb-0">All Hiring Managers</h6>
-          <button className="btn btn-bespoke-secondary btn-sm" onClick={handleExport}>
+        <div className="card-header flex justify-between items-center">
+          <h6 className="mb-0 text-base font-semibold">All Hiring Managers</h6>
+          <button className="px-3 py-1.5 text-sm bg-bg-glass border border-glass-border rounded hover:bg-opacity-80 transition-colors" onClick={handleExport}>
             Export CSV
           </button>
         </div>
         <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-bespoke table-hover mb-0">
+          <div className="overflow-x-auto">
+            <table className="w-full mb-0">
               <thead>
                 <tr>
-                  <SortableHeader column="hmName" label="Hiring Manager" align="text-start" />
+                  <SortableHeader column="hmName" label="Hiring Manager" align="text-left" />
                   <SortableHeader column="reqsInRange" label="Reqs" />
                   <SortableHeader column="loopCount" label="Interview Loops" />
                   <SortableHeader column="feedbackLatencyMedian" label="Feedback Latency" />
@@ -931,40 +931,39 @@ export function HMFrictionTab({
                 {sortedFriction.map(f => (
                   <tr
                     key={f.hmId}
-                    className={selectedHM === f.hmId ? 'bg-soft-primary' : ''}
-                    style={{ cursor: 'pointer' }}
+                    className={`cursor-pointer hover:bg-white hover:bg-opacity-5 transition-colors ${selectedHM === f.hmId ? 'bg-soft-primary' : ''}`}
                     onClick={() => setSelectedHM(selectedHM === f.hmId ? null : f.hmId)}
                   >
-                    <td className="fw-medium">
+                    <td className="font-medium">
                       {f.hmName}
                     </td>
-                    <td className="text-end text-muted">
+                    <td className="text-right text-muted-foreground">
                       {f.reqsInRange}
                     </td>
-                    <td className="text-end">
+                    <td className="text-right">
                       {f.loopCount}
                     </td>
-                    <td className="text-end">
+                    <td className="text-right">
                       {f.feedbackLatencyMedian !== null
                         ? `${Math.round(f.feedbackLatencyMedian)} hrs`
                         : '-'}
                     </td>
-                    <td className="text-end">
+                    <td className="text-right">
                       <span className={
-                        f.decisionLatencyMedian !== null && f.decisionLatencyMedian > 72 ? 'text-danger fw-bold' :
-                          f.decisionLatencyMedian !== null && f.decisionLatencyMedian > 48 ? 'text-warning fw-bold' : ''
+                        f.decisionLatencyMedian !== null && f.decisionLatencyMedian > 72 ? 'text-danger font-bold' :
+                          f.decisionLatencyMedian !== null && f.decisionLatencyMedian > 48 ? 'text-warning font-bold' : ''
                       }>
                         {f.decisionLatencyMedian !== null
                           ? `${Math.round(f.decisionLatencyMedian)} hrs`
                           : '-'}
                       </span>
                     </td>
-                    <td className="text-end">
+                    <td className="text-right">
                       {f.offerAcceptanceRate !== null
                         ? `${(f.offerAcceptanceRate * 100).toFixed(0)}%`
                         : '-'}
                     </td>
-                    <td className="text-end">
+                    <td className="text-right">
                       <span className={`badge-bespoke ${f.hmWeight > 1.2 ? 'badge-danger-soft' :
                         f.hmWeight > 1.0 ? 'badge-warning-soft' :
                           f.hmWeight < 0.9 ? 'badge-success-soft' : 'badge-neutral-soft'
@@ -972,9 +971,9 @@ export function HMFrictionTab({
                         {f.hmWeight.toFixed(2)}x
                       </span>
                       {f.loopCount < 3 && (
-                        <small className="text-muted ms-1" title="Low data volume">
+                        <span className="text-sm text-muted-foreground ml-1" title="Low data volume">
                           *
-                        </small>
+                        </span>
                       )}
                     </td>
                   </tr>

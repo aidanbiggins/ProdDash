@@ -107,16 +107,16 @@ export function ImportReview({ onClose }: ImportReviewProps) {
 
   if (!diagnostics) {
     return (
-      <div className="modal show d-block" style={{ backgroundColor: 'var(--color-bg-overlay)' }}>
-        <div className="modal-dialog modal-xl modal-dialog-centered">
-          <div className="modal-content glass-panel">
-            <div className="modal-header border-secondary">
-              <h5 className="modal-title">Import Review</h5>
-              <button type="button" className="btn-close btn-close-white" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+        <div className="w-full max-w-5xl mx-4">
+          <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
+            <div className="flex items-center justify-between p-4 border-b border-glass-border">
+              <h5 className="font-semibold text-foreground">Import Review</h5>
+              <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
             </div>
-            <div className="modal-body text-center py-5">
-              <p className="text-muted">No import data available.</p>
-              <p className="small">Import some data first to see diagnostics.</p>
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">No import data available.</p>
+              <p className="text-sm text-muted-foreground">Import some data first to see diagnostics.</p>
             </div>
           </div>
         </div>
@@ -127,66 +127,51 @@ export function ImportReview({ onClose }: ImportReviewProps) {
   const summary = createDiagnosticsSummary(diagnostics);
 
   return (
-    <div className="modal show d-block" style={{ backgroundColor: 'var(--color-bg-overlay)' }}>
-      <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div className="modal-content glass-panel" style={{ maxHeight: '90vh' }}>
-          <div className="modal-header border-secondary">
-            <h5 className="modal-title">Import Review & Field Mapping</h5>
-            <button type="button" className="btn-close btn-close-white" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+      <div className="w-full max-w-5xl mx-4 flex flex-col max-h-[90vh]">
+        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-glass-border">
+            <h5 className="font-semibold text-foreground">Import Review & Field Mapping</h5>
+            <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
           </div>
 
           {/* Tabs */}
-          <div className="border-bottom border-secondary">
-            <ul className="nav nav-tabs border-0 px-3">
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeTab === 'overview' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('overview')}
-                  style={{ color: activeTab === 'overview' ? 'var(--accent)' : 'var(--text-secondary)' }}
-                >
-                  Overview
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeTab === 'requisitions' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('requisitions')}
-                  style={{ color: activeTab === 'requisitions' ? 'var(--accent)' : 'var(--text-secondary)' }}
-                >
-                  Requisitions ({diagnostics.requisitions?.rowCount || 0})
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeTab === 'candidates' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('candidates')}
-                  style={{ color: activeTab === 'candidates' ? 'var(--accent)' : 'var(--text-secondary)' }}
-                >
-                  Candidates ({diagnostics.candidates?.rowCount || 0})
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeTab === 'events' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('events')}
-                  style={{ color: activeTab === 'events' ? 'var(--accent)' : 'var(--text-secondary)' }}
-                >
-                  Events ({diagnostics.events?.rowCount || 0})
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeTab === 'users' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('users')}
-                  style={{ color: activeTab === 'users' ? 'var(--accent)' : 'var(--text-secondary)' }}
-                >
-                  Users ({diagnostics.users?.rowCount || 0})
-                </button>
-              </li>
-            </ul>
+          <div className="border-b border-glass-border px-3">
+            <div className="flex gap-1">
+              <button
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('overview')}
+              >
+                Overview
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'requisitions' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('requisitions')}
+              >
+                Requisitions ({diagnostics.requisitions?.rowCount || 0})
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'candidates' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('candidates')}
+              >
+                Candidates ({diagnostics.candidates?.rowCount || 0})
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'events' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('events')}
+              >
+                Events ({diagnostics.events?.rowCount || 0})
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'users' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveTab('users')}
+              >
+                Users ({diagnostics.users?.rowCount || 0})
+              </button>
+            </div>
           </div>
 
-          <div className="modal-body" style={{ overflowY: 'auto' }}>
+          <div className="p-4 overflow-y-auto flex-1">
             {activeTab === 'overview' && (
               <OverviewTab diagnostics={diagnostics} summary={summary} />
             )}
@@ -204,8 +189,8 @@ export function ImportReview({ onClose }: ImportReviewProps) {
             )}
           </div>
 
-          <div className="modal-footer border-secondary">
-            <button className="btn btn-outline-secondary" onClick={onClose}>
+          <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
+            <button className="px-4 py-2 text-sm font-medium rounded-md border border-glass-border text-muted-foreground hover:text-foreground hover:bg-bg-elevated" onClick={onClose}>
               Close
             </button>
           </div>
@@ -219,42 +204,33 @@ function OverviewTab({ diagnostics, summary }: { diagnostics: ImportDiagnostics;
   return (
     <div>
       {/* Health Score */}
-      <div className="row mb-4">
-        <div className="col-md-4">
-          <div className="glass-panel p-4 text-center">
-            <div className="stat-label">IMPORT HEALTH SCORE</div>
-            <div
-              className="stat-value"
-              style={{
-                color: summary.score >= 80 ? 'var(--color-good)' : summary.score >= 50 ? 'var(--color-warn)' : 'var(--color-bad)',
-              }}
-            >
-              {summary.score}
-            </div>
-            <div className="small text-muted">out of 100</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="glass-panel p-4 text-center">
+          <div className="stat-label">IMPORT HEALTH SCORE</div>
+          <div
+            className={`stat-value ${summary.score >= 80 ? 'text-good' : summary.score >= 50 ? 'text-warn' : 'text-bad'}`}
+          >
+            {summary.score}
           </div>
+          <div className="text-sm text-muted-foreground">out of 100</div>
         </div>
-        <div className="col-md-4">
-          <div className="glass-panel p-4 text-center">
-            <div className="stat-label">TOTAL RECORDS</div>
-            <div className="stat-value">{diagnostics.overallHealth.totalRecords.toLocaleString()}</div>
-          </div>
+        <div className="glass-panel p-4 text-center">
+          <div className="stat-label">TOTAL RECORDS</div>
+          <div className="stat-value">{diagnostics.overallHealth.totalRecords.toLocaleString()}</div>
         </div>
-        <div className="col-md-4">
-          <div className="glass-panel p-4 text-center">
-            <div className="stat-label">IMPORTED AT</div>
-            <div className="small mt-2">
-              {diagnostics.importedAt?.toLocaleString() || 'Unknown'}
-            </div>
+        <div className="glass-panel p-4 text-center">
+          <div className="stat-label">IMPORTED AT</div>
+          <div className="text-sm mt-2 text-foreground">
+            {diagnostics.importedAt?.toLocaleString() || 'Unknown'}
           </div>
         </div>
       </div>
 
       {/* Issues */}
       {summary.issues.length > 0 && (
-        <div className="alert alert-danger mb-3">
-          <strong>Critical Issues:</strong>
-          <ul className="mb-0 mt-2">
+        <div className="p-3 rounded-lg bg-bad/10 border border-bad/30 text-foreground mb-3">
+          <strong className="text-bad">Critical Issues:</strong>
+          <ul className="mb-0 mt-2 list-disc list-inside">
             {summary.issues.map((issue, i) => (
               <li key={i}>{issue}</li>
             ))}
@@ -264,9 +240,9 @@ function OverviewTab({ diagnostics, summary }: { diagnostics: ImportDiagnostics;
 
       {/* Warnings */}
       {summary.warnings.length > 0 && (
-        <div className="alert alert-warning mb-3">
-          <strong>Warnings:</strong>
-          <ul className="mb-0 mt-2">
+        <div className="p-3 rounded-lg bg-warn/10 border border-warn/30 text-foreground mb-3">
+          <strong className="text-warn">Warnings:</strong>
+          <ul className="mb-0 mt-2 list-disc list-inside">
             {summary.warnings.map((warning, i) => (
               <li key={i}>{warning}</li>
             ))}
@@ -275,8 +251,8 @@ function OverviewTab({ diagnostics, summary }: { diagnostics: ImportDiagnostics;
       )}
 
       {/* Per-Entity Summary */}
-      <h6 className="text-muted mb-3">Data by Entity</h6>
-      <div className="row g-3">
+      <h6 className="text-muted-foreground mb-3 font-semibold">Data by Entity</h6>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <EntitySummaryCard entity={diagnostics.requisitions} name="Requisitions" />
         <EntitySummaryCard entity={diagnostics.candidates} name="Candidates" />
         <EntitySummaryCard entity={diagnostics.events} name="Events" />
@@ -289,29 +265,25 @@ function OverviewTab({ diagnostics, summary }: { diagnostics: ImportDiagnostics;
 function EntitySummaryCard({ entity, name }: { entity: EntityDiagnostics | null; name: string }) {
   if (!entity) {
     return (
-      <div className="col-md-3">
-        <div className="glass-panel p-3">
-          <h6>{name}</h6>
-          <div className="text-muted small">No data</div>
-        </div>
+      <div className="glass-panel p-3">
+        <h6 className="font-semibold text-foreground">{name}</h6>
+        <div className="text-muted-foreground text-sm">No data</div>
       </div>
     );
   }
 
   return (
-    <div className="col-md-3">
-      <div className="glass-panel p-3">
-        <h6>{name}</h6>
-        <div className="small">
-          <div><strong>{entity.rowCount.toLocaleString()}</strong> rows</div>
-          <div className="text-success">{entity.mappedColumns.length} fields mapped</div>
-          {entity.unmappedColumns.length > 0 && (
-            <div className="text-warning">{entity.unmappedColumns.length} unmapped</div>
-          )}
-          {entity.missingIdealColumns.length > 0 && (
-            <div className="text-danger">{entity.missingIdealColumns.length} missing ideal</div>
-          )}
-        </div>
+    <div className="glass-panel p-3">
+      <h6 className="font-semibold text-foreground">{name}</h6>
+      <div className="text-sm">
+        <div className="text-foreground"><strong>{entity.rowCount.toLocaleString()}</strong> rows</div>
+        <div className="text-good">{entity.mappedColumns.length} fields mapped</div>
+        {entity.unmappedColumns.length > 0 && (
+          <div className="text-warn">{entity.unmappedColumns.length} unmapped</div>
+        )}
+        {entity.missingIdealColumns.length > 0 && (
+          <div className="text-bad">{entity.missingIdealColumns.length} missing ideal</div>
+        )}
       </div>
     </div>
   );
@@ -323,38 +295,30 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
   return (
     <div>
       {/* Summary */}
-      <div className="row mb-4">
-        <div className="col-md-3">
-          <div className="glass-panel p-3 text-center">
-            <div className="stat-label">ROWS</div>
-            <div className="h4 mb-0">{entity.rowCount.toLocaleString()}</div>
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="glass-panel p-3 text-center">
+          <div className="stat-label">ROWS</div>
+          <div className="text-2xl font-bold text-foreground">{entity.rowCount.toLocaleString()}</div>
         </div>
-        <div className="col-md-3">
-          <div className="glass-panel p-3 text-center">
-            <div className="stat-label">MAPPED COLUMNS</div>
-            <div className="h4 mb-0 text-success">{entity.mappedColumns.length}</div>
-          </div>
+        <div className="glass-panel p-3 text-center">
+          <div className="stat-label">MAPPED COLUMNS</div>
+          <div className="text-2xl font-bold text-good">{entity.mappedColumns.length}</div>
         </div>
-        <div className="col-md-3">
-          <div className="glass-panel p-3 text-center">
-            <div className="stat-label">UNMAPPED</div>
-            <div className="h4 mb-0 text-warning">{entity.unmappedColumns.length}</div>
-          </div>
+        <div className="glass-panel p-3 text-center">
+          <div className="stat-label">UNMAPPED</div>
+          <div className="text-2xl font-bold text-warn">{entity.unmappedColumns.length}</div>
         </div>
-        <div className="col-md-3">
-          <div className="glass-panel p-3 text-center">
-            <div className="stat-label">SYNTHESIZED IDS</div>
-            <div className="h4 mb-0 text-info">{entity.synthesizedIds}</div>
-          </div>
+        <div className="glass-panel p-3 text-center">
+          <div className="stat-label">SYNTHESIZED IDS</div>
+          <div className="text-2xl font-bold text-accent">{entity.synthesizedIds}</div>
         </div>
       </div>
 
       {/* Missing Ideal Columns */}
       {entity.missingIdealColumns.length > 0 && (
-        <div className="alert alert-warning mb-4">
-          <strong>Missing Recommended Columns:</strong> {entity.missingIdealColumns.join(', ')}
-          <div className="small mt-1">
+        <div className="p-3 rounded-lg bg-warn/10 border border-warn/30 text-foreground mb-4">
+          <strong className="text-warn">Missing Recommended Columns:</strong> {entity.missingIdealColumns.join(', ')}
+          <div className="text-sm mt-1 text-muted-foreground">
             These columns would enable more features. Check if your data has similar columns under different names.
           </div>
         </div>
@@ -363,7 +327,7 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
       {/* Toggle for unmapped columns */}
       <div className="mb-3">
         <button
-          className="btn btn-sm btn-outline-secondary"
+          className="px-3 py-1.5 text-sm font-medium rounded border border-glass-border text-muted-foreground hover:text-foreground hover:bg-bg-elevated transition-colors"
           onClick={() => setShowUnmapped(!showUnmapped)}
         >
           {showUnmapped ? 'Show Mapped Only' : `Show All (including ${entity.unmappedColumns.length} unmapped)`}
@@ -371,14 +335,14 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
       </div>
 
       {/* Column Mapping Table */}
-      <div className="table-responsive">
-        <table className="table table-dark table-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
           <thead>
-            <tr>
-              <th>Original Column</th>
-              <th>Maps To</th>
-              <th>Coverage</th>
-              <th>Sample Values</th>
+            <tr className="border-b border-glass-border bg-bg-elevated">
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Original Column</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Maps To</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Coverage</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Sample Values</th>
             </tr>
           </thead>
           <tbody>
@@ -391,28 +355,30 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
                 return b.coverage - a.coverage;
               })
               .map((cm, i) => (
-                <tr key={i} className={cm.mappedTo ? '' : 'table-secondary'}>
-                  <td>
-                    <code className="small">{cm.originalName}</code>
+                <tr key={i} className={`border-b border-glass-border ${cm.mappedTo ? '' : 'bg-bg-elevated/50'}`}>
+                  <td className="px-3 py-2">
+                    <code className="text-xs text-accent">{cm.originalName}</code>
                   </td>
-                  <td>
+                  <td className="px-3 py-2">
                     {cm.mappedTo ? (
-                      <span className="badge bg-success">{cm.mappedTo}</span>
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-good text-white">{cm.mappedTo}</span>
                     ) : (
-                      <span className="badge bg-secondary">unmapped</span>
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-bg-elevated text-muted-foreground">unmapped</span>
                     )}
                   </td>
-                  <td>
-                    <div className="progress" style={{ width: 100, height: 8 }}>
-                      <div
-                        className={`progress-bar ${cm.coverage > 80 ? 'bg-success' : cm.coverage > 50 ? 'bg-warning' : 'bg-danger'}`}
-                        style={{ width: `${cm.coverage}%` }}
-                      />
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-bg-elevated rounded overflow-hidden">
+                        <div
+                          className={`h-full ${cm.coverage > 80 ? 'bg-good' : cm.coverage > 50 ? 'bg-warn' : 'bg-bad'}`}
+                          style={{ width: `${cm.coverage}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground">{cm.coverage.toFixed(0)}%</span>
                     </div>
-                    <span className="small text-muted ms-2">{cm.coverage.toFixed(0)}%</span>
                   </td>
-                  <td>
-                    <span className="small text-muted">
+                  <td className="px-3 py-2">
+                    <span className="text-xs text-muted-foreground">
                       {cm.sampleValues.slice(0, 2).join(', ') || '(empty)'}
                     </span>
                   </td>
@@ -423,23 +389,21 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
       </div>
 
       {/* Field Coverage */}
-      <h6 className="mt-4 mb-3">Field Coverage</h6>
-      <div className="row g-2">
+      <h6 className="mt-4 mb-3 font-semibold text-foreground">Field Coverage</h6>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {Object.entries(entity.fieldCoverage)
           .sort(([, a], [, b]) => b.coverage - a.coverage)
           .slice(0, 12)
           .map(([field, stats]) => (
-            <div key={field} className="col-md-4 col-lg-3">
-              <div className="d-flex align-items-center gap-2">
-                <div className="progress flex-grow-1" style={{ height: 6 }}>
-                  <div
-                    className={`progress-bar ${stats.coverage > 80 ? 'bg-success' : stats.coverage > 50 ? 'bg-warning' : 'bg-danger'}`}
-                    style={{ width: `${stats.coverage}%` }}
-                  />
-                </div>
-                <code className="small" style={{ minWidth: 100 }}>{field}</code>
-                <span className="small text-muted">{stats.coverage.toFixed(0)}%</span>
+            <div key={field} className="flex items-center gap-2">
+              <div className="flex-1 h-1.5 bg-bg-elevated rounded overflow-hidden">
+                <div
+                  className={`h-full ${stats.coverage > 80 ? 'bg-good' : stats.coverage > 50 ? 'bg-warn' : 'bg-bad'}`}
+                  style={{ width: `${stats.coverage}%` }}
+                />
               </div>
+              <code className="text-xs text-accent min-w-[100px]">{field}</code>
+              <span className="text-xs text-muted-foreground">{stats.coverage.toFixed(0)}%</span>
             </div>
           ))}
       </div>

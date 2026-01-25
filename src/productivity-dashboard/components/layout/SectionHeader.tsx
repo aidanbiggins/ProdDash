@@ -61,7 +61,7 @@ export function SectionHeader({
               <i className={`bi ${isExpanded ? 'bi-chevron-down' : 'bi-chevron-right'} section-collapse-icon`} />
             )}
             {resolvedTitle}
-            {badge && <span className="ms-2">{badge}</span>}
+            {badge && <span className="ml-2">{badge}</span>}
           </h2>
           {subtitle && (
             <p className="section-header-subtitle">{subtitle}</p>

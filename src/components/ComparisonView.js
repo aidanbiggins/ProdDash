@@ -35,7 +35,7 @@ const ComparisonView = ({ socket }) => {
     });
     
     return (
-      <table className="table table-bordered">
+      <table className="w-full border border-glass-border">
         <thead>
           <tr>
             <th>Metric</th>
@@ -57,14 +57,14 @@ const ComparisonView = ({ socket }) => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="max-w-7xl mx-auto px-4 mt-4">
       <h2>Scenario Comparison</h2>
       <div className="mb-3">
         <h5>Select Scenarios:</h5>
         {scenarios.map(scenario => (
           <div key={scenario.id}>
             <input type="checkbox" value={scenario.id} onChange={() => handleSelect(scenario.id)} checked={selectedIds.includes(scenario.id)} />
-            <label className="ms-2">{scenario.title}</label>
+            <label className="ml-2">{scenario.title}</label>
           </div>
         ))}
       </div>

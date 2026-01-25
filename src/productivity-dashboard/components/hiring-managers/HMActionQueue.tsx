@@ -123,7 +123,7 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                 width: '110px',
                 sortable: true,
                 hidden: !showHmColumn,
-                render: (a) => <span className="cell-primary text-truncate d-block" style={{ maxWidth: '100px' }} title={a.hmName}>{a.hmName}</span>
+                render: (a) => <span className="cell-primary truncate block" style={{ maxWidth: '100px' }} title={a.hmName}>{a.hmName}</span>
             },
             {
                 key: 'reqTitle',
@@ -133,7 +133,7 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                 render: (a) => (
                     <div>
                         <div className="cell-primary text-truncate" style={{ maxWidth: '140px' }} title={a.reqTitle}>{a.reqTitle}</div>
-                        <small className="cell-muted cell-small">{a.reqId}</small>
+                        <div className="text-sm cell-muted cell-small">{a.reqId}</div>
                     </div>
                 )
             },
@@ -141,7 +141,7 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                 key: 'candidateName',
                 header: 'Candidate',
                 width: '110px',
-                render: (a) => <span className="text-truncate d-block" style={{ maxWidth: '100px' }} title={a.candidateName}>{a.candidateName}</span>
+                render: (a) => <span className="truncate block" style={{ maxWidth: '100px' }} title={a.candidateName}>{a.candidateName}</span>
             },
             {
                 key: 'triggerDate',
@@ -150,7 +150,7 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                 cellClass: 'cell-muted',
                 render: (a) => a.triggerDate
                     ? a.triggerDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                    : <span className="text-muted">--</span>  // STRICT: Show '--' for null dates
+                    : <span className="text-muted-foreground">--</span>  // STRICT: Show '--' for null dates
             },
             {
                 key: 'daysWaiting',
@@ -158,7 +158,7 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                 width: '50px',
                 align: 'right',
                 sortable: true,
-                render: (a) => <span className="fw-semibold">{a.daysWaiting}d</span>
+                render: (a) => <span className="font-semibold">{a.daysWaiting}d</span>
             },
             {
                 key: 'daysOverdue',
@@ -175,7 +175,7 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
             {
                 key: 'suggestedAction',
                 header: 'Action',
-                render: (a) => <small className="cell-muted">→ {a.suggestedAction}</small>
+                render: (a) => <div className="text-sm cell-muted">→ {a.suggestedAction}</div>
             }
         ];
         return cols;
@@ -184,15 +184,15 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
     return (
         <div className="animate-fade-in">
             {/* Summary Cards */}
-            <div className="row g-3 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                 {Object.entries(ACTION_TYPE_META).map(([type, meta]) => {
                     const count = countByType[type as HMActionType] || 0;
                     const isActive = filterType === type;
 
                     return (
-                        <div className="col-md-4" key={type}>
+                        <div key={type}>
                             <div
-                                className="p-3 text-center cursor-pointer h-100 d-flex flex-column justify-content-center"
+                                className="p-3 text-center cursor-pointer h-full flex flex-col justify-center"
                                 onClick={() => setFilterType(filterType === type as HMActionType ? 'ALL' : type as HMActionType)}
                                 style={{
                                     background: isActive ? '#2a2a2a' : '#141414',
@@ -225,16 +225,16 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
 
             {/* Filter indicator */}
             {filterType !== 'ALL' && (
-                <div className="d-flex justify-content-between align-items-center mb-4 rounded p-3" style={{ background: '#1a1a1a', border: '1px solid #27272a' }}>
-                    <div className="d-flex align-items-center">
-                        <i className="bi bi-funnel-fill me-2" style={{ color: '#71717a' }}></i>
+                <div className="flex justify-between items-center mb-4 rounded p-3" style={{ background: '#1a1a1a', border: '1px solid #27272a' }}>
+                    <div className="flex items-center">
+                        <i className="bi bi-funnel-fill mr-2" style={{ color: '#71717a' }}></i>
                         <span>
                             Showing: <strong>{ACTION_TYPE_META[filterType].label}</strong>
-                            <span className="badge-bespoke badge-neutral-soft ms-2">{countByType[filterType]} items</span>
+                            <span className="badge-bespoke badge-neutral-soft ml-2">{countByType[filterType]} items</span>
                         </span>
                     </div>
                     <button
-                        className="btn btn-bespoke-secondary btn-sm"
+                        className="px-3 py-1.5 text-sm bg-bg-glass border border-glass-border rounded hover:bg-opacity-80 transition-colors"
                         onClick={() => setFilterType('ALL')}
                     >
                         Clear Filter
@@ -244,8 +244,8 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
 
             {/* Actions Table */}
             <div className="card-bespoke">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                    <h6 className="mb-0">Pending Actions Queue</h6>
+                <div className="card-header flex justify-between items-center">
+                    <h6 className="mb-0 text-base font-semibold">Pending Actions Queue</h6>
                     <span className="badge-bespoke badge-neutral-soft">{sortedActions.length} actions</span>
                 </div>
                 <div className="card-body p-0">
@@ -258,13 +258,13 @@ export function HMActionQueue({ actions, selectedHmUserIds }: HMActionQueueProps
                         onSort={handleSort}
                         emptyState={
                             actions.length === 0 ? (
-                                <div className="d-flex flex-column align-items-center py-4">
+                                <div className="flex flex-col items-center py-4">
                                     <i className="bi bi-check-circle" style={{ fontSize: '2.5rem', color: '#22c55e', marginBottom: '0.75rem' }}></i>
-                                    <h5 style={{ color: '#F8FAFC' }}>All Caught Up!</h5>
-                                    <p className="text-muted mb-0">No pending actions requiring attention.</p>
+                                    <h5 className="text-lg font-semibold" style={{ color: '#F8FAFC' }}>All Caught Up!</h5>
+                                    <p className="text-muted-foreground mb-0">No pending actions requiring attention.</p>
                                 </div>
                             ) : (
-                                <div className="text-muted">No actions match the current filter</div>
+                                <div className="text-muted-foreground">No actions match the current filter</div>
                             )
                         }
                     />

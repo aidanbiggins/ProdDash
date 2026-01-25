@@ -86,7 +86,7 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
           {onNavigateToImport && (
             <button
               type="button"
-              className="btn btn-outline-secondary btn-sm"
+              className="px-2 py-1 text-sm border border-gray-500 rounded"
               onClick={onNavigateToImport}
               style={{ fontSize: '0.75rem' }}
             >
@@ -96,7 +96,7 @@ export function CoverageMapPanel({ result, onClose, onNavigateToImport, onNaviga
           {onNavigateToDemo && (
             <button
               type="button"
-              className="btn btn-outline-primary btn-sm"
+              className="px-2 py-1 text-sm border rounded"
               onClick={onNavigateToDemo}
               style={{ fontSize: '0.75rem', borderColor: 'var(--accent)', color: 'var(--accent)' }}
             >

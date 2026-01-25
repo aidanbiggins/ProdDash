@@ -90,28 +90,28 @@ const Login = () => {
 
   if (!supabase) {
     return (
-      <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
-        <div className="card p-5 shadow-sm text-center border-danger" style={{ maxWidth: '500px' }}>
-          <h1 className="h3 mb-3 text-danger">Setup Required</h1>
-          <p className="lead">Database connection missing.</p>
+      <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center h-screen">
+        <div className="bg-bg-glass border border-bad rounded-lg p-8 shadow-sm text-center" style={{ maxWidth: '500px' }}>
+          <h1 className="text-xl font-semibold mb-3 text-bad">Setup Required</h1>
+          <p className="text-lg">Database connection missing.</p>
           <p>The app cannot persist data or log you in until you connect it to Supabase.</p>
-          <hr />
-          <p className="small text-muted">See <code>setup_supabase.md</code> for instructions.</p>
+          <hr className="my-4 border-glass-border" />
+          <p className="text-sm text-muted-foreground">See <code>setup_supabase.md</code> for instructions.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container d-flex flex-column align-items-center justify-content-center vh-100">
-      <div className="card p-5 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
-        <h1 className="h3 mb-4 text-center">Recruiting Planner</h1>
-        <p className="text-muted text-center mb-4">Sign in to access shared data</p>
+    <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center h-screen">
+      <div className="bg-bg-glass border border-glass-border rounded-lg p-8 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+        <h1 className="text-xl font-semibold mb-4 text-center">Recruiting Planner</h1>
+        <p className="text-muted-foreground text-center mb-4">Sign in to access shared data</p>
 
         {/* Google Sign-In Button */}
         <button
           type="button"
-          className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2 mb-3"
+          className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium rounded-md bg-transparent text-foreground border border-glass-border hover:bg-white/10 gap-2 mb-3"
           onClick={handleGoogleSignIn}
           disabled={googleLoading || loading}
         >
@@ -124,18 +124,18 @@ const Login = () => {
           {googleLoading ? 'Connecting...' : 'Sign in with Google'}
         </button>
 
-        <div className="d-flex align-items-center mb-3">
-          <hr className="flex-grow-1" />
-          <span className="px-2 text-muted small">or</span>
-          <hr className="flex-grow-1" />
+        <div className="flex items-center mb-3">
+          <hr className="grow border-glass-border" />
+          <span className="px-2 text-muted-foreground text-sm">or</span>
+          <hr className="grow border-glass-border" />
         </div>
 
         <form onSubmit={handleLogin}>
           <div className="mb-3">
-            <label className="form-label">Email address</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Email address</label>
             <input
               type="email"
-              className="form-control"
+              className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md focus:border-primary focus:outline-none"
               placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -144,7 +144,7 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="btn btn-primary w-100"
+            className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
             disabled={loading || googleLoading}
           >
             {loading ? 'Sending link...' : 'Send Magic Link'}
@@ -152,7 +152,7 @@ const Login = () => {
         </form>
 
         {message && (
-          <div className={`mt-3 alert ${message.includes('Error') ? 'alert-danger' : 'alert-success'}`}>
+          <div className={`mt-3 p-3 rounded-lg border ${message.includes('Error') ? 'bg-bad-bg border-bad/20 text-bad-text' : 'bg-good-bg border-good/20 text-good-text'}`}>
             {message}
           </div>
         )}

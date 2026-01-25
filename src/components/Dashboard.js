@@ -51,16 +51,16 @@ const Dashboard = ({ user, socket }) => {
   }, [socket, selectedScenario]);
 
   return (
-    <div className="container">
+    <div className="max-w-7xl mx-auto px-4">
       <header className="my-4">
         <h1>Welcome, {user.name}</h1>
-        <Link to="/compare" className="btn btn-secondary">Compare Scenarios</Link>
+        <Link to="/compare" className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-white/10 text-foreground border border-glass-border hover:bg-white/15">Compare Scenarios</Link>
       </header>
-      <div className="row">
-        <div className="col-md-6">
+      <div className="grid grid-cols-12 gap-4">
+        <div className="col-span-12 md:col-span-6">
           <ScenarioForm user={user} onSuccess={fetchScenarios} selectedScenario={selectedScenario} clearSelection={() => setSelectedScenario(null)} />
         </div>
-        <div className="col-md-6">
+        <div className="col-span-12 md:col-span-6">
           <ScenarioList scenarios={scenarios} selectScenario={setSelectedScenario} />
         </div>
       </div>

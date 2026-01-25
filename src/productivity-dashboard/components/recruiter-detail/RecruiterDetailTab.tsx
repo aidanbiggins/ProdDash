@@ -373,7 +373,7 @@ export function RecruiterDetailTab({
   }, [drillDown, recruiterCandidates, recruiterRequisitions, users, complexityScoresMap, detail]);
 
   if (!detail) {
-    return <div className="text-center py-5 text-muted">No recruiter data available</div>;
+    return <div className="text-center py-5 text-muted-foreground">No recruiter data available</div>;
   }
 
   // Get recruiter's reqs (filtered by master filters, then by selected recruiter)
@@ -515,15 +515,15 @@ export function RecruiterDetailTab({
   });
 
   const renderSortIcon = (column: string) => {
-    if (sortColumn !== column) return <i className="bi bi-arrow-down-up ms-1" style={{ fontSize: '0.7rem', color: '#71717a' }}></i>;
+    if (sortColumn !== column) return <i className="bi bi-arrow-down-up ml-1" style={{ fontSize: '0.7rem', color: '#71717a' }}></i>;
     return sortDirection === 'asc'
-      ? <i className="bi bi-arrow-up-short ms-1 text-primary"></i>
-      : <i className="bi bi-arrow-down-short ms-1 text-primary"></i>;
+      ? <i className="bi bi-arrow-up-short ml-1" style={{ color: 'var(--color-primary)' }}></i>
+      : <i className="bi bi-arrow-down-short ml-1" style={{ color: 'var(--color-primary)' }}></i>;
   };
 
-  const SortableHeader = ({ column, label, align = 'text-start' }: { column: keyof ReqDetail | 'status', label: string, align?: string }) => (
+  const SortableHeader = ({ column, label, align = 'text-left' }: { column: keyof ReqDetail | 'status', label: string, align?: string }) => (
     <th
-      className={`${align} cursor-pointer user-select-none`}
+      className={`${align} cursor-pointer select-none`}
       onClick={() => handleSort(column)}
       style={{
         borderBottom: '2px solid var(--color-slate-200)',
@@ -537,7 +537,7 @@ export function RecruiterDetailTab({
         whiteSpace: 'nowrap'
       }}
     >
-      <div className={`d-flex align-items-center ${align === 'text-end' ? 'justify-content-end' : ''}`}>
+      <div className={`flex items-center ${align === 'text-right' ? 'justify-end' : ''}`}>
         {label}
         {renderSortIcon(column)}
       </div>
@@ -566,7 +566,7 @@ export function RecruiterDetailTab({
       />
 
       {/* KPI Cards - 7 cards using flex for equal width */}
-      <div className="d-flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
+      <div className="flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
         <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Hires"
@@ -654,12 +654,12 @@ export function RecruiterDetailTab({
       {/* Productivity Trend Chart */}
       <div className="card-bespoke mb-4">
         <div className="card-header">
-          <div className="d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-center gap-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
               <h6 className="mb-0">Productivity Trend</h6>
               <HelpButton onClick={() => setShowProductivityHelp(true)} ariaLabel="Explain productivity metric" />
             </div>
-            <small className="text-muted">Weighted Hires ÷ Open Reqs per Week</small>
+            <small className="text-muted-foreground">Weighted Hires ÷ Open Reqs per Week</small>
           </div>
         </div>
         <div className="card-body">
@@ -695,9 +695,9 @@ export function RecruiterDetailTab({
 
       {/* Weekly Activity Volume */}
       <div className="card-bespoke mb-4">
-        <div className="card-header d-flex justify-content-between align-items-center">
+        <div className="card-header flex justify-between items-center">
           <h6 className="mb-0">Weekly Activity Volume</h6>
-          <small className="text-muted">Last 12 Weeks</small>
+          <small className="text-muted-foreground">Last 12 Weeks</small>
         </div>
         <div className="card-body">
           <ResponsiveContainer width="100%" height={chartHeight}>
@@ -717,10 +717,10 @@ export function RecruiterDetailTab({
         </div>
       </div>
 
-      <div className="row g-3 mb-4">
+      <div className="grid grid-cols-12 gap-3 mb-4">
         {/* Funnel Conversion */}
-        <div className="col-12 col-md-6">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
             <div className="card-header">
               <h6 className="mb-0">Funnel Conversion</h6>
             </div>
@@ -745,8 +745,8 @@ export function RecruiterDetailTab({
         </div>
 
         {/* Req Aging */}
-        <div className="col-12 col-md-6">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 md:col-span-6">
+          <div className="card-bespoke h-full">
             <div className="card-header">
               <h6 className="mb-0">Req Aging Distribution</h6>
             </div>
@@ -787,7 +787,7 @@ export function RecruiterDetailTab({
               padding: '1rem'
             }}>
               <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-accent-primary)', marginBottom: '0.75rem' }}>
-                <i className="bi bi-person-badge me-1" />Recruiter
+                <i className="bi bi-person-badge mr-1" />Recruiter
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div>
@@ -817,7 +817,7 @@ export function RecruiterDetailTab({
               padding: '1rem'
             }}>
               <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-accent-secondary)', marginBottom: '0.75rem' }}>
-                <i className="bi bi-briefcase me-1" />Hiring Manager
+                <i className="bi bi-briefcase mr-1" />Hiring Manager
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div>
@@ -847,7 +847,7 @@ export function RecruiterDetailTab({
               padding: '1rem'
             }}>
               <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-tertiary)', marginBottom: '0.75rem' }}>
-                <i className="bi bi-gear me-1" />TA Ops
+                <i className="bi bi-gear mr-1" />TA Ops
               </div>
               {detail.timeAttribution.opsControlledTime.available ? (
                 <div>
@@ -870,24 +870,24 @@ export function RecruiterDetailTab({
 
       {/* Req List */}
       <div className="card-bespoke">
-        <div className="card-header d-flex justify-content-between align-items-center">
+        <div className="card-header flex justify-between items-center">
           <h6 className="mb-0">Requisitions ({recruiterReqs.length})</h6>
-          <button className="btn btn-bespoke-secondary btn-sm" onClick={handleExportReqs}>
+          <button type="button" className="btn-bespoke-secondary px-3 py-1.5 text-xs" onClick={handleExportReqs}>
             Export CSV
           </button>
         </div>
         <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-bespoke table-hover mb-0">
+          <div className="overflow-x-auto">
+            <table className="table table-bespoke mb-0">
               <thead>
                 <tr>
                   <SortableHeader column="req" label="Req" />
                   <SortableHeader column="req" label="Title" />
                   <SortableHeader column="req" label="Level" />
                   <SortableHeader column="hmName" label="HM" />
-                  <SortableHeader column="ageInDays" label="Age" align="text-end" />
-                  <SortableHeader column="candidateCount" label="Candidates" align="text-end" />
-                  <SortableHeader column="complexityScore" label="Complexity" align="text-end" />
+                  <SortableHeader column="ageInDays" label="Age" align="text-right" />
+                  <SortableHeader column="candidateCount" label="Candidates" align="text-right" />
+                  <SortableHeader column="complexityScore" label="Complexity" align="text-right" />
                   <SortableHeader column="status" label="Status" />
                 </tr>
               </thead>
@@ -895,26 +895,26 @@ export function RecruiterDetailTab({
                 {sortedReqDetails.map(rd => (
                   <tr key={rd.req.req_id}>
                     <td style={{ padding: '0.875rem 1rem' }}>
-                      <code className="small text-muted">{rd.req.req_id}</code>
+                      <code className="text-sm text-muted-foreground">{rd.req.req_id}</code>
                     </td>
-                    <td className="fw-medium">
+                    <td className="font-medium">
                       {rd.req.req_title}
                     </td>
-                    <td className="text-muted">
+                    <td className="text-muted-foreground">
                       {rd.req.level}
                     </td>
-                    <td className="text-secondary text-truncate-2" style={{ maxWidth: '150px' }}>
+                    <td className="text-muted-foreground truncate" style={{ maxWidth: '150px' }}>
                       {rd.hmName}
                     </td>
-                    <td className="text-end">
-                      <span className={rd.ageInDays > 90 ? 'text-danger fw-bold' : rd.ageInDays > 60 ? 'text-warning fw-bold' : 'text-slate-700'}>
+                    <td className="text-right">
+                      <span className={rd.ageInDays > 90 ? 'text-red-500 font-bold' : rd.ageInDays > 60 ? 'text-yellow-500 font-bold' : 'text-slate-700'}>
                         {rd.ageInDays}d
                       </span>
                     </td>
-                    <td className="text-end text-muted">
+                    <td className="text-right text-muted-foreground">
                       {rd.candidateCount}
                     </td>
-                    <td className="text-end text-muted">
+                    <td className="text-right text-muted-foreground">
                       {rd.complexityScore.toFixed(2)}
                     </td>
                     <td>
@@ -925,7 +925,7 @@ export function RecruiterDetailTab({
                         {rd.req.status}
                       </span>
                       {rd.isStalled && (
-                        <span className="badge-bespoke badge-warning-soft ms-1" title="No activity in 14+ days">
+                        <span className="badge-bespoke badge-warning-soft ml-1" title="No activity in 14+ days">
                           Stalled
                         </span>
                       )}

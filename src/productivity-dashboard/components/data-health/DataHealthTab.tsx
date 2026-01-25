@@ -128,10 +128,10 @@ export function DataHealthTab({
       />
 
       {/* Summary Cards */}
-      <div className="row g-3 mb-4">
+      <div className="grid grid-cols-12 gap-3 mb-4">
         {/* Hygiene Score */}
-        <div className="col-md-3">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 md:col-span-3">
+          <div className="card-bespoke h-full">
             <div className="card-body text-center py-4">
               <StatLabel className="mb-2">Data Hygiene Score</StatLabel>
               <StatValue
@@ -140,18 +140,18 @@ export function DataHealthTab({
               >
                 {summary.hygieneScore}
               </StatValue>
-              <div className="small text-muted mt-1">out of 100</div>
+              <div className="text-sm text-muted-foreground mt-1">out of 100</div>
             </div>
           </div>
         </div>
 
         {/* TTF Comparison */}
-        <div className="col-md-3">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 md:col-span-3">
+          <div className="card-bespoke h-full">
             <div className="card-body text-center py-4">
               <StatLabel className="mb-2">True TTF vs Raw</StatLabel>
-              <div className="d-flex justify-content-center align-items-baseline gap-2">
-                <StatValue size="sm" className="text-info">
+              <div className="flex justify-center items-baseline gap-2">
+                <StatValue size="sm" className="text-cyan-500">
                   {summary.trueMedianTTF !== null ? `${summary.trueMedianTTF}d` : '—'}
                 </StatValue>
                 <span style={{ color: '#71717a' }}>/</span>
@@ -160,7 +160,7 @@ export function DataHealthTab({
                 </span>
               </div>
               {summary.ttfDifferencePercent !== null && (
-                <div className="small mt-1 text-success">
+                <div className="text-sm mt-1 text-success">
                   {summary.ttfDifferencePercent.toFixed(0)}% faster when clean
                 </div>
               )}
@@ -169,9 +169,9 @@ export function DataHealthTab({
         </div>
 
         {/* Zombie Count */}
-        <div className="col-md-3">
+        <div className="col-span-12 md:col-span-3">
           <div
-            className="card-bespoke h-100 cursor-pointer"
+            className="card-bespoke h-full cursor-pointer"
             onClick={() => setActiveFilter(activeFilter === ReqHealthStatus.ZOMBIE ? 'ALL' : ReqHealthStatus.ZOMBIE)}
             style={{
               borderLeft: activeFilter === ReqHealthStatus.ZOMBIE ? '3px solid #ef4444' : undefined
@@ -180,15 +180,15 @@ export function DataHealthTab({
             <div className="card-body text-center py-4">
               <StatLabel className="mb-2">Zombie Reqs</StatLabel>
               <StatValue color="danger">{summary.zombieReqCount}</StatValue>
-              <div className="small text-muted mt-1">30+ days inactive</div>
+              <div className="text-sm text-muted-foreground mt-1">30+ days inactive</div>
             </div>
           </div>
         </div>
 
         {/* Ghost Candidates */}
-        <div className="col-md-3">
+        <div className="col-span-12 md:col-span-3">
           <div
-            className="card-bespoke h-100 cursor-pointer"
+            className="card-bespoke h-full cursor-pointer"
             onClick={() => setShowGhostCandidates(!showGhostCandidates)}
             style={{
               borderLeft: showGhostCandidates ? '3px solid #a855f7' : undefined
@@ -199,16 +199,17 @@ export function DataHealthTab({
               <span className="stat-value" style={{ color: '#c084fc' }}>
                 {summary.stagnantCandidateCount + summary.abandonedCandidateCount}
               </span>
-              <div className="small text-muted mt-1">10+ days stuck</div>
+              <div className="text-sm text-muted-foreground mt-1">10+ days stuck</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Status Filter Pills */}
-      <div className="d-flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap">
         <button
-          className={`btn btn-sm ${activeFilter === 'ALL' ? 'btn-bespoke' : 'btn-bespoke-secondary'}`}
+          type="button"
+          className={`px-3 py-1.5 text-xs ${activeFilter === 'ALL' ? 'btn-bespoke' : 'btn-bespoke-secondary'}`}
           onClick={() => setActiveFilter('ALL')}
         >
           All ({displayAssessments.length})
@@ -223,7 +224,8 @@ export function DataHealthTab({
           return (
             <button
               key={status}
-              className="btn btn-sm"
+              type="button"
+              className="px-3 py-1.5 text-xs"
               onClick={() => setActiveFilter(activeFilter === status ? 'ALL' : status as ReqHealthStatus)}
               style={{
                 background: activeFilter === status ? colors.bg : 'transparent',
@@ -240,27 +242,28 @@ export function DataHealthTab({
       {/* Ghost Candidates Panel */}
       {showGhostCandidates && (
         <div className="card-bespoke mb-4">
-          <div className="card-header d-flex justify-content-between align-items-center">
+          <div className="card-header flex justify-between items-center">
             <h6 className="mb-0">
               <span style={{ marginRight: '0.5rem' }}>👻</span>
               Ghost Candidates
             </h6>
             <button
-              className="btn btn-sm btn-bespoke-secondary"
+              type="button"
+              className="btn-bespoke-secondary px-3 py-1.5 text-xs"
               onClick={() => setShowGhostCandidates(false)}
             >
               Close
             </button>
           </div>
           <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bespoke table-hover mb-0">
+            <div className="overflow-x-auto">
+              <table className="table table-bespoke mb-0">
                 <thead>
                   <tr>
                     <th>Candidate</th>
                     <th>Requisition</th>
                     <th>Stage</th>
-                    <th className="text-end">Days Stuck</th>
+                    <th className="text-right">Days Stuck</th>
                     <th>Recruiter</th>
                     <th>Status</th>
                   </tr>
@@ -268,15 +271,15 @@ export function DataHealthTab({
                 <tbody>
                   {ghostCandidates.slice(0, 50).map(ghost => (
                     <tr key={ghost.candidateId}>
-                      <td className="fw-medium">{ghost.candidateName || ghost.candidateId}</td>
+                      <td className="font-medium">{ghost.candidateName || ghost.candidateId}</td>
                       <td>
-                        <div className="text-truncate" style={{ maxWidth: 200 }} title={ghost.reqTitle}>
+                        <div className="truncate" style={{ maxWidth: 200 }} title={ghost.reqTitle}>
                           {ghost.reqTitle}
                         </div>
-                        <small className="text-muted">{ghost.reqId}</small>
+                        <span className="text-sm text-muted-foreground">{ghost.reqId}</span>
                       </td>
                       <td>{ghost.currentStage}</td>
-                      <td className="text-end">
+                      <td className="text-right">
                         <span
                           style={{
                             color: ghost.daysInCurrentStage >= 30 ? '#f87171' : '#fbbf24',
@@ -286,10 +289,10 @@ export function DataHealthTab({
                           {ghost.daysInCurrentStage}d
                         </span>
                       </td>
-                      <td className="text-muted">{ghost.recruiterName}</td>
+                      <td className="text-muted-foreground">{ghost.recruiterName}</td>
                       <td>
                         <span
-                          className="badge"
+                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                           style={{
                             background: ghost.status === 'ABANDONED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
                             color: ghost.status === 'ABANDONED' ? '#f87171' : '#fbbf24'
@@ -302,7 +305,7 @@ export function DataHealthTab({
                   ))}
                   {ghostCandidates.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center text-muted py-4">
+                      <td colSpan={6} className="text-center text-muted-foreground py-4">
                         No ghost candidates found
                       </td>
                     </tr>
@@ -316,29 +319,29 @@ export function DataHealthTab({
 
       {/* Requisition Health Table */}
       <div className="card-bespoke">
-        <div className="card-header d-flex justify-content-between align-items-center">
+        <div className="card-header flex justify-between items-center">
           <h6 className="mb-0">
             Requisition Health Status
-            <span className="badge-bespoke badge-neutral-soft ms-2">
+            <span className="badge-bespoke badge-neutral-soft ml-2">
               {displayAssessments.length} reqs
             </span>
           </h6>
-          <div className="small text-muted">
+          <div className="text-sm text-muted-foreground">
             Toggle "Exclude" to remove from TTF calculations
           </div>
         </div>
         <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-bespoke table-hover mb-0">
+          <div className="overflow-x-auto">
+            <table className="table table-bespoke mb-0">
               <thead>
                 <tr>
                   <th style={{ width: 80 }}>Status</th>
                   <th>Requisition</th>
                   <th>Recruiter</th>
                   <th>HM</th>
-                  <th className="text-end">Days Open</th>
-                  <th className="text-end">Last Activity</th>
-                  <th className="text-end">Candidates</th>
+                  <th className="text-right">Days Open</th>
+                  <th className="text-right">Last Activity</th>
+                  <th className="text-right">Candidates</th>
                   <th className="text-center">Exclude</th>
                 </tr>
               </thead>
@@ -358,7 +361,7 @@ export function DataHealthTab({
                     >
                       <td>
                         <span
-                          className="badge"
+                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                           style={{
                             background: colors.bg,
                             color: colors.text,
@@ -369,17 +372,17 @@ export function DataHealthTab({
                         </span>
                       </td>
                       <td>
-                        <div className="fw-medium text-truncate" style={{ maxWidth: 250 }} title={req.req_title}>
+                        <div className="font-medium truncate" style={{ maxWidth: 250 }} title={req.req_title}>
                           {req.req_title}
                         </div>
-                        <small className="text-muted">{req.req_id}</small>
+                        <span className="text-sm text-muted-foreground">{req.req_id}</span>
                       </td>
-                      <td className="text-muted">{recruiter?.name || req.recruiter_id}</td>
-                      <td className="text-muted">{hm?.name || req.hiring_manager_id}</td>
-                      <td className="text-end" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <td className="text-muted-foreground">{recruiter?.name || req.recruiter_id}</td>
+                      <td className="text-muted-foreground">{hm?.name || req.hiring_manager_id}</td>
+                      <td className="text-right" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                         {assessment.daysOpen}d
                       </td>
-                      <td className="text-end">
+                      <td className="text-right">
                         {assessment.daysSinceLastActivity !== null ? (
                           <span
                             style={{
@@ -391,16 +394,16 @@ export function DataHealthTab({
                             {assessment.daysSinceLastActivity}d ago
                           </span>
                         ) : (
-                          <span className="text-muted">—</span>
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="text-end" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <td className="text-right" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                         {assessment.activeCandidateCount}
                       </td>
                       <td className="text-center">
                         <input
                           type="checkbox"
-                          className="form-check-input"
+                          className="w-4 h-4 cursor-pointer"
                           checked={isExcluded}
                           onChange={() => onToggleExclusion(assessment.reqId)}
                           title={isExcluded ? 'Include in metrics' : 'Exclude from metrics'}
@@ -411,7 +414,7 @@ export function DataHealthTab({
                 })}
                 {displayAssessments.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="text-center text-muted py-5">
+                    <td colSpan={8} className="text-center text-muted-foreground py-5">
                       No requisitions match the current filter
                     </td>
                   </tr>
@@ -421,7 +424,7 @@ export function DataHealthTab({
           </div>
         </div>
         {displayAssessments.length > 100 && (
-          <div className="card-footer text-muted text-center small">
+          <div className="card-footer text-muted-foreground text-center text-sm">
             Showing first 100 of {displayAssessments.length} requisitions
           </div>
         )}
@@ -435,35 +438,35 @@ export function DataHealthTab({
           </h6>
         </div>
         <div className="card-body">
-          <div className="row g-3">
-            <div className="col-md-3">
-              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #ef4444' }}>
-                <h6 style={{ color: '#f87171', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Zombie Reqs</h6>
-                <p style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: 0 }}>
+          <div className="grid grid-cols-12 gap-3">
+            <div className="col-span-12 md:col-span-3">
+              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #ef4444' }}>
+                <h6 className="text-sm font-semibold mb-2" style={{ color: '#f87171' }}>Zombie Reqs</h6>
+                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
                   No candidate activity in 30+ days. These inflate your TTF and should be excluded or closed.
                 </p>
               </div>
             </div>
-            <div className="col-md-3">
-              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #f59e0b' }}>
-                <h6 style={{ color: '#fbbf24', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>Stalled Reqs</h6>
-                <p style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: 0 }}>
+            <div className="col-span-12 md:col-span-3">
+              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #f59e0b' }}>
+                <h6 className="text-sm font-semibold mb-2" style={{ color: '#fbbf24' }}>Stalled Reqs</h6>
+                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
                   No activity in 14-30 days. May need recruiter attention or HM follow-up to get moving again.
                 </p>
               </div>
             </div>
-            <div className="col-md-3">
-              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #a855f7' }}>
-                <h6 style={{ color: '#c084fc', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>At Risk Reqs</h6>
-                <p style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: 0 }}>
+            <div className="col-span-12 md:col-span-3">
+              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #a855f7' }}>
+                <h6 className="text-sm font-semibold mb-2" style={{ color: '#c084fc' }}>At Risk Reqs</h6>
+                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
                   Open 120+ days with fewer than 5 candidates. May have unrealistic requirements or poor sourcing.
                 </p>
               </div>
             </div>
-            <div className="col-md-3">
-              <div className="p-3 h-100" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #2dd4bf' }}>
-                <h6 style={{ color: '#34d399', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.5rem' }}>True TTF</h6>
-                <p style={{ color: '#94A3B8', fontSize: '0.75rem', lineHeight: 1.5, marginBottom: 0 }}>
+            <div className="col-span-12 md:col-span-3">
+              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #2dd4bf' }}>
+                <h6 className="text-sm font-semibold mb-2" style={{ color: '#34d399' }}>True TTF</h6>
+                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
                   Time-to-fill calculated excluding zombie reqs. Gives a more accurate picture of actual performance.
                 </p>
               </div>

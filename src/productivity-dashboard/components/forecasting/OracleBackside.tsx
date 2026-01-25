@@ -55,9 +55,9 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
     return (
         <div className="oracle-backside p-3">
             {/* Header */}
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <div className="d-flex align-items-center gap-2">
-                    <span className="fw-bold">Oracle Explained</span>
+            <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2">
+                    <span className="font-bold">Oracle Explained</span>
                     {hasKnobChanges && (
                         <span className="oracle-adjusted-chip">
                             <i className="bi bi-sliders2" style={{ fontSize: '0.5rem' }}></i>
@@ -76,7 +76,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
 
                 {/* Pipeline Counts */}
                 <div className="mb-2">
-                    <div className="text-muted mb-1" style={{ fontSize: '0.65rem' }}>Pipeline by Stage</div>
+                    <div className="text-muted-foreground mb-1" style={{ fontSize: '0.65rem' }}>Pipeline by Stage</div>
                     <table className="oracle-data-table">
                         <tbody>
                             {explainData.pipelineCounts.map(pc => (
@@ -91,7 +91,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
 
                 {/* Stage Pass Rates */}
                 <div className="mb-2">
-                    <div className="text-muted mb-1" style={{ fontSize: '0.65rem' }}>Stage Pass Rates</div>
+                    <div className="text-muted-foreground mb-1" style={{ fontSize: '0.65rem' }}>Stage Pass Rates</div>
                     <table className="oracle-data-table">
                         <thead>
                             <tr>
@@ -118,7 +118,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
 
                 {/* Stage Durations */}
                 <div className="mb-2">
-                    <div className="text-muted mb-1" style={{ fontSize: '0.65rem' }}>Stage Durations</div>
+                    <div className="text-muted-foreground mb-1" style={{ fontSize: '0.65rem' }}>Stage Durations</div>
                     <table className="oracle-data-table">
                         <thead>
                             <tr>
@@ -144,13 +144,13 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                 </div>
 
                 {/* Simulation params */}
-                <div className="d-flex gap-3 mt-2" style={{ fontSize: '0.65rem' }}>
+                <div className="flex gap-3 mt-2" style={{ fontSize: '0.65rem' }}>
                     <div>
-                        <span className="text-muted">Iterations: </span>
+                        <span className="text-muted-foreground">Iterations: </span>
                         <span style={{ fontFamily: 'var(--font-mono)' }}>{explainData.iterations.toLocaleString()}</span>
                     </div>
                     <div>
-                        <span className="text-muted">Seed: </span>
+                        <span className="text-muted-foreground">Seed: </span>
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem' }}>
                             {explainData.seed.length > 12 ? explainData.seed.substring(0, 12) + '…' : explainData.seed}
                         </span>
@@ -161,11 +161,12 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
             {/* Section: Confidence */}
             <div className="oracle-backside-section">
                 <div className="oracle-backside-section-title">Confidence Analysis</div>
-                <div className="d-flex align-items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2">
                     <span
-                        className="badge rounded-pill"
+                        className="inline-flex items-center rounded-full"
                         style={{
                             fontSize: '0.6rem',
+                            padding: '0.2rem 0.5rem',
                             background: explainData.confidenceLevel === 'HIGH' ? 'var(--color-success-light)' :
                                 explainData.confidenceLevel === 'MEDIUM' ? 'var(--color-warning-light)' : 'var(--color-danger-light)',
                             color: explainData.confidenceLevel === 'HIGH' ? 'var(--color-good)' :
@@ -177,7 +178,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                 </div>
                 <div style={{ fontSize: '0.65rem' }}>
                     {explainData.confidenceReasons.map((reason, idx) => (
-                        <div key={idx} className="d-flex align-items-start gap-1 mb-1">
+                        <div key={idx} className="flex items-start gap-1 mb-1">
                             <i
                                 className={`bi ${reason.impact === 'positive' ? 'bi-check-circle-fill' :
                                     reason.impact === 'negative' ? 'bi-exclamation-circle-fill' : 'bi-info-circle-fill'}`}
@@ -187,7 +188,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                         reason.impact === 'negative' ? 'var(--color-warn)' : 'var(--text-muted)'
                                 }}
                             ></i>
-                            <span className="text-muted">{reason.message}</span>
+                            <span className="text-muted-foreground">{reason.message}</span>
                         </div>
                     ))}
                 </div>
@@ -200,9 +201,10 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                     <div className="oracle-backside-section-title">
                         <span>Capacity Analysis</span>
                         <span
-                            className="badge rounded-pill ms-2"
+                            className="inline-flex items-center rounded-full ml-2"
                             style={{
                                 fontSize: '0.5rem',
+                                padding: '0.15rem 0.4rem',
                                 background: explainData.capacity.isAvailable ? 'var(--color-success-light)' : 'var(--color-neutral-bg)',
                                 color: explainData.capacity.isAvailable ? 'var(--color-good)' : 'var(--text-muted)'
                             }}
@@ -215,7 +217,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                         <div style={{ fontSize: '0.65rem' }}>
                             {/* Inference Window */}
                             {explainData.capacity.inferenceWindow && (
-                                <div className="text-muted mb-2" style={{ fontSize: '0.6rem' }}>
+                                <div className="text-muted-foreground mb-2" style={{ fontSize: '0.6rem' }}>
                                     Based on {format(explainData.capacity.inferenceWindow.start, 'MMM d')} – {format(explainData.capacity.inferenceWindow.end, 'MMM d, yyyy')}
                                 </div>
                             )}
@@ -229,13 +231,13 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                         border: '1px solid var(--color-blue-light)'
                                     }}
                                 >
-                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                    <div className="flex items-center gap-1 mb-1">
                                         <i className="bi bi-people" style={{ fontSize: '0.6rem', color: 'var(--color-blue)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Workload Context</span>
                                     </div>
-                                    <div className="d-flex gap-3" style={{ fontSize: '0.6rem' }}>
+                                    <div className="flex gap-3" style={{ fontSize: '0.6rem' }}>
                                         <div>
-                                            <span className="text-muted">Recruiter: </span>
+                                            <span className="text-muted-foreground">Recruiter: </span>
                                             <span style={{ fontFamily: 'var(--font-mono)' }}>
                                                 {explainData.capacity.globalDemand.recruiter_context.open_req_count} reqs,{' '}
                                                 {explainData.capacity.globalDemand.recruiter_context.total_candidates_in_flight} in-flight
@@ -243,7 +245,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                         </div>
                                         {explainData.capacity.globalDemand.hm_context.hm_id && (
                                             <div>
-                                                <span className="text-muted">HM: </span>
+                                                <span className="text-muted-foreground">HM: </span>
                                                 <span style={{ fontFamily: 'var(--font-mono)' }}>
                                                     {explainData.capacity.globalDemand.hm_context.open_req_count} reqs,{' '}
                                                     {explainData.capacity.globalDemand.hm_context.total_candidates_in_flight} in-flight
@@ -252,7 +254,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                         )}
                                     </div>
                                     {explainData.capacity.globalDemand.demand_scope !== 'single_req' && (
-                                        <div className="text-muted mt-1" style={{ fontSize: '0.55rem', fontStyle: 'italic' }}>
+                                        <div className="text-muted-foreground mt-1" style={{ fontSize: '0.55rem', fontStyle: 'italic' }}>
                                             Demand computed from {explainData.capacity.globalDemand.demand_scope === 'global_by_recruiter' ? "recruiter's" : "HM's"} full portfolio
                                         </div>
                                     )}
@@ -262,13 +264,14 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             {/* Recruiter Capacity */}
                             {explainData.capacity.profile.recruiter && (
                                 <div className="mb-2">
-                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                    <div className="flex items-center gap-1 mb-1">
                                         <i className="bi bi-person-badge" style={{ fontSize: '0.6rem', color: 'var(--color-blue)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Recruiter Throughput</span>
                                         <span
-                                            className="badge rounded-pill"
+                                            className="inline-flex items-center rounded-full"
                                             style={{
                                                 fontSize: '0.5rem',
+                                                padding: '0.15rem 0.4rem',
                                                 background: explainData.capacity.profile.recruiter.overall_confidence === 'HIGH'
                                                     ? 'var(--color-success-light)'
                                                     : explainData.capacity.profile.recruiter.overall_confidence === 'MED'
@@ -327,13 +330,14 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             {/* HM Capacity */}
                             {explainData.capacity.profile.hm && explainData.capacity.profile.hm.interviews_per_week && (
                                 <div className="mb-2">
-                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                    <div className="flex items-center gap-1 mb-1">
                                         <i className="bi bi-person-workspace" style={{ fontSize: '0.6rem', color: 'var(--color-purple)' }}></i>
                                         <span style={{ fontWeight: 600 }}>HM Throughput</span>
                                         <span
-                                            className="badge rounded-pill"
+                                            className="inline-flex items-center rounded-full"
                                             style={{
                                                 fontSize: '0.5rem',
+                                                padding: '0.15rem 0.4rem',
                                                 background: explainData.capacity.profile.hm.overall_confidence === 'HIGH'
                                                     ? 'var(--color-success-light)'
                                                     : explainData.capacity.profile.hm.overall_confidence === 'MED'
@@ -371,7 +375,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             {/* v1.1: Queue Delays with Bottleneck Attribution */}
                             {explainData.capacity.penaltyResultV11 && explainData.capacity.penaltyResultV11.top_bottlenecks.length > 0 ? (
                                 <div className="mb-2">
-                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                    <div className="flex items-center gap-1 mb-1">
                                         <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: 'var(--color-warn)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Bottlenecks</span>
                                     </div>
@@ -390,7 +394,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                                     <th>{b.stage_name}</th>
                                                     <td>
                                                         <span
-                                                            className="badge"
+                                                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                                                             style={{
                                                                 fontSize: '0.5rem',
                                                                 background: b.bottleneck_owner_type === 'hm'
@@ -410,7 +414,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                             ))}
                                         </tbody>
                                     </table>
-                                    <div className="d-flex justify-content-between mt-1" style={{ fontWeight: 600 }}>
+                                    <div className="flex justify-between mt-1" style={{ fontWeight: 600 }}>
                                         <span>Total Queue Delay:</span>
                                         <span style={{ color: 'var(--color-warn)' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
                                     </div>
@@ -418,7 +422,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                             ) : explainData.capacity.penaltyResult && explainData.capacity.penaltyResult.top_bottlenecks.length > 0 ? (
                                 /* Fallback to v1 display if v1.1 not available */
                                 <div className="mb-2">
-                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                    <div className="flex items-center gap-1 mb-1">
                                         <i className="bi bi-hourglass-split" style={{ fontSize: '0.6rem', color: 'var(--color-warn)' }}></i>
                                         <span style={{ fontWeight: 600 }}>Queue Delays</span>
                                     </div>
@@ -446,7 +450,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                                 ))}
                                         </tbody>
                                     </table>
-                                    <div className="d-flex justify-content-between mt-1" style={{ fontWeight: 600 }}>
+                                    <div className="flex justify-between mt-1" style={{ fontWeight: 600 }}>
                                         <span>Total Queue Delay:</span>
                                         <span style={{ color: 'var(--color-warn)' }}>+{explainData.capacity.totalQueueDelayDays.toFixed(1)}d</span>
                                     </div>
@@ -462,13 +466,14 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                         border: '1px solid var(--color-success-light)'
                                     }}
                                 >
-                                    <div className="d-flex align-items-center gap-1 mb-1">
+                                    <div className="flex items-center gap-1 mb-1">
                                         <i className="bi bi-lightbulb" style={{ fontSize: '0.6rem', color: 'var(--color-good)' }}></i>
                                         <span style={{ fontWeight: 600 }}>To Improve</span>
                                         <span
-                                            className="badge rounded-pill ms-1"
+                                            className="inline-flex items-center rounded-full ml-1"
                                             style={{
                                                 fontSize: '0.45rem',
+                                                padding: '0.1rem 0.3rem',
                                                 background: explainData.capacity.profile?.overall_confidence === 'HIGH'
                                                     ? 'var(--color-success-light)'
                                                     : explainData.capacity.profile?.overall_confidence === 'MED'
@@ -486,7 +491,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                     </div>
                                     <div style={{ fontSize: '0.6rem' }}>
                                         {explainData.capacity.recommendations.slice(0, 2).map((rec, idx) => (
-                                            <div key={idx} className="d-flex align-items-start gap-1 mb-1">
+                                            <div key={idx} className="flex items-start gap-1 mb-1">
                                                 <span style={{ color: getRecommendationIcon(rec.type).color }}>
                                                     <i className={`bi ${getRecommendationIcon(rec.type).icon}`} style={{ fontSize: '0.55rem' }}></i>
                                                 </span>
@@ -514,7 +519,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                         color: 'var(--color-warn)'
                                     }}
                                 >
-                                    <i className="bi bi-info-circle me-1"></i>
+                                    <i className="bi bi-info-circle mr-1"></i>
                                     Using cohort averages (insufficient individual data)
                                 </div>
                             )}
@@ -527,7 +532,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                         ...(explainData.capacity.globalDemand?.confidence_reasons || []),
                                         ...explainData.capacity.profile.confidence_reasons
                                     ].slice(0, 3).map((r, i) => (
-                                        <div key={i} className="d-flex align-items-start gap-1 mb-1">
+                                        <div key={i} className="flex items-start gap-1 mb-1">
                                             <i
                                                 className={`bi ${r.impact === 'positive'
                                                     ? 'bi-check-circle-fill'
@@ -544,7 +549,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                                                             : 'var(--text-secondary)'
                                                 }}
                                             ></i>
-                                            <span className="text-muted">{r.message}</span>
+                                            <span className="text-muted-foreground">{r.message}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -552,7 +557,7 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                         </div>
                     ) : (
                         <div className="oracle-calibration-cta">
-                            <i className="bi bi-info-circle me-1"></i>
+                            <i className="bi bi-info-circle mr-1"></i>
                             {!explainData.capacity.profile
                                 ? 'Capacity data not available'
                                 : 'No capacity constraints detected'}
@@ -611,13 +616,12 @@ export const OracleBackside: React.FC<OracleBacksideProps> = ({
                     </div>
                     <input
                         type="range"
-                        className="form-range form-range-sm"
+                        className="w-full h-2 rounded-lg cursor-pointer accent-accent"
                         min={ITERATIONS_RANGE.min}
                         max={ITERATIONS_RANGE.max}
                         step={1000}
                         value={knobSettings.iterations}
                         onChange={(e) => onKnobChange({ ...knobSettings, iterations: Number(e.target.value) })}
-                        style={{ accentColor: 'var(--accent)' }}
                     />
                     {showPerfWarning && (
                         <div className="oracle-perf-warning">

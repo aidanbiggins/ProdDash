@@ -158,11 +158,11 @@ export function AskMainPanel({
       <div className="ask-top-bar">
         <div className="ask-mode-badge">
           {aiEnabled ? (
-            <span className="badge badge-ai-on">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium badge-ai-on">
               <i className="bi bi-stars" /> AI
             </span>
           ) : (
-            <span className="badge badge-ai-off">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium badge-ai-off">
               <i className="bi bi-cpu" /> Guided
             </span>
           )}
@@ -191,7 +191,7 @@ export function AskMainPanel({
           title="Send"
         >
           {isLoading ? (
-            <span className="spinner-border spinner-border-sm" />
+            <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
           ) : (
             <i className="bi bi-arrow-up" />
           )}
@@ -356,7 +356,7 @@ export function AskMainPanel({
               >
                 {isCreatingPlan ? (
                   <>
-                    <span className="spinner-border spinner-border-sm" />
+                    <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
                     Creating...
                   </>
                 ) : planFeedback ? (
@@ -380,7 +380,7 @@ export function AskMainPanel({
               <span>
                 <strong>{planFeedback.actionsCreated} action{planFeedback.actionsCreated !== 1 ? 's' : ''}</strong> added to queue
                 {planFeedback.duplicatesSkipped > 0 && (
-                  <span className="text-muted"> ({planFeedback.duplicatesSkipped} duplicate{planFeedback.duplicatesSkipped !== 1 ? 's' : ''} skipped)</span>
+                  <span className="text-muted-foreground"> ({planFeedback.duplicatesSkipped} duplicate{planFeedback.duplicatesSkipped !== 1 ? 's' : ''} skipped)</span>
                 )}
               </span>
               <button

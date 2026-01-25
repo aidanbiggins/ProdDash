@@ -85,7 +85,7 @@ export function DateRangePicker({ dateRange, onChange }: DateRangePickerProps) {
 
   // Desktop: Full version
   return (
-    <div className="d-flex align-items-center gap-3">
+    <div className="flex items-center gap-3">
       <div className="date-preset-group">
         {presets.map(preset => (
           <button
@@ -98,19 +98,17 @@ export function DateRangePicker({ dateRange, onChange }: DateRangePickerProps) {
           </button>
         ))}
       </div>
-      <div className="d-flex align-items-center gap-2">
+      <div className="flex items-center gap-2">
         <input
           type="date"
-          className="form-control form-control-sm"
-          style={{ width: '130px' }}
+          className="w-[130px] px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
           value={format(dateRange.startDate, 'yyyy-MM-dd')}
           onChange={handleStartDateChange}
         />
-        <span style={{ color: '#94A3B8', fontSize: '0.85rem' }}>to</span>
+        <span className="text-[#94A3B8] text-[0.85rem]">to</span>
         <input
           type="date"
-          className="form-control form-control-sm"
-          style={{ width: '130px' }}
+          className="w-[130px] px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
           value={format(dateRange.endDate, 'yyyy-MM-dd')}
           onChange={handleEndDateChange}
         />

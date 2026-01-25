@@ -65,28 +65,18 @@ export function HMDetailDrawer({
 
       {/* Drawer */}
       <div
-        className="glass-drawer"
+        className="glass-drawer fixed top-0 right-0 bottom-0 flex flex-col overflow-hidden"
         style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          bottom: 0,
           width: '480px',
           maxWidth: '90vw',
           zIndex: 1050,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
         }}
       >
         {/* Header */}
         <div
-          className="glass-drawer-header"
+          className="glass-drawer-header flex justify-between items-start"
           style={{
             padding: 'var(--space-4)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
           }}
         >
           <div>
@@ -121,15 +111,10 @@ export function HMDetailDrawer({
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-4)' }}>
+        <div className="flex-1 overflow-auto" style={{ padding: 'var(--space-4)' }}>
           {/* Key Metrics Grid */}
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 'var(--space-3)',
-              marginBottom: 'var(--space-4)',
-            }}
+            className="grid grid-cols-3 gap-3 mb-4"
           >
             <div
               style={{
@@ -207,11 +192,7 @@ export function HMDetailDrawer({
               const decisionColor = getLatencyColor(hmData.decisionLatencyMedian, 'decision');
               return (
                 <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: 'var(--space-2)',
-                  }}
+                  className="grid grid-cols-2 gap-2"
                 >
                   <div
                     style={{
@@ -269,7 +250,7 @@ export function HMDetailDrawer({
               }}
             >
               {/* Mini stacked bar */}
-              <div style={{ display: 'flex', height: '24px', borderRadius: '4px', overflow: 'hidden', marginBottom: 'var(--space-2)' }}>
+              <div className="flex h-6 rounded overflow-hidden mb-2">
                 {totalCycleHours > 0 && (
                   <>
                     <div style={{ width: `${(hmData.composition.stageBreakdown.sourcingHours / totalCycleHours) * 100}%`, background: '#64748b' }} title="Sourcing" />
@@ -281,7 +262,7 @@ export function HMDetailDrawer({
                   </>
                 )}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+              <div className="flex justify-between text-xs" style={{ color: 'var(--text-secondary)' }}>
                 <span>Total: {Math.round(totalCycleHours)} hrs ({Math.round(totalCycleHours / 24)}d)</span>
                 <span
                   style={{
@@ -310,13 +291,10 @@ export function HMDetailDrawer({
                 Offer Performance
               </div>
               <div
+                className="flex justify-between items-center rounded-md"
                 style={{
                   padding: 'var(--space-3)',
                   background: 'rgba(34, 197, 94, 0.1)',
-                  borderRadius: 'var(--radius-md)',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
                 }}
               >
                 <span style={{ color: 'var(--text-secondary)' }}>Offer Accept Rate</span>
@@ -340,7 +318,7 @@ export function HMDetailDrawer({
             >
               Requisitions ({requisitions.length})
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <div className="flex flex-col gap-2">
               {requisitions.map(req => (
                 <div
                   key={req.req_id}
@@ -351,7 +329,7 @@ export function HMDetailDrawer({
                     fontSize: 'var(--text-sm)',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                  <div className="flex justify-between items-start mb-1">
                     <div>
                       <div style={{ fontWeight: 'var(--font-medium)' }}>{req.req_title}</div>
                       <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
@@ -367,13 +345,13 @@ export function HMDetailDrawer({
                       {req.status}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', gap: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
+                  <div className="flex gap-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
                     <span>
-                      <i className="bi bi-layers me-1" />
+                      <i className="bi bi-layers mr-1" />
                       {req.level || 'N/A'}
                     </span>
                     <span>
-                      <i className="bi bi-person me-1" />
+                      <i className="bi bi-person mr-1" />
                       {getRecruiterName(req.recruiter_id)}
                     </span>
                   </div>

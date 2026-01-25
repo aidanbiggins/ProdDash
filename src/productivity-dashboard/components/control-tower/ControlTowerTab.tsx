@@ -52,57 +52,87 @@ interface ControlTowerTabProps {
 }
 
 
-// Health indicator component
-function HealthIndicator({ status, label, value, subtitle, onExplain }: {
+// Health indicator component - styled per reference KPI card design
+function HealthIndicator({ status, label, value, subtitle, trend, change, onExplain }: {
   status: 'green' | 'yellow' | 'red';
   label: string;
   value: string | number;
   subtitle?: string;
+  trend?: 'up' | 'down' | 'flat';
+  change?: number;
   onExplain?: () => void;
 }) {
-  const colors = {
-    green: { bg: 'rgba(34, 197, 94, 0.15)', border: '#22c55e', text: '#22c55e' },
-    yellow: { bg: 'rgba(245, 158, 11, 0.15)', border: '#f59e0b', text: '#f59e0b' },
-    red: { bg: 'rgba(239, 68, 68, 0.15)', border: '#ef4444', text: '#ef4444' }
+  const statusConfig = {
+    green: {
+      bg: 'rgba(34, 197, 94, 0.12)',
+      border: 'rgba(34, 197, 94, 0.4)',
+      text: '#86efac',
+      badge: 'On Track',
+    },
+    yellow: {
+      bg: 'rgba(245, 158, 11, 0.12)',
+      border: 'rgba(245, 158, 11, 0.4)',
+      text: '#fcd34d',
+      badge: 'At Risk',
+    },
+    red: {
+      bg: 'rgba(239, 68, 68, 0.12)',
+      border: 'rgba(239, 68, 68, 0.4)',
+      text: '#fca5a5',
+      badge: 'Critical',
+    },
   };
 
-  const c = colors[status];
+  const c = statusConfig[status];
+
+  // Determine trend icon
+  const trendIcon = trend === 'up' ? 'bi-arrow-up-right' : trend === 'down' ? 'bi-arrow-down-right' : 'bi-dash';
+  const trendColor = trend === 'up'
+    ? (status === 'green' ? '#22c55e' : '#ef4444')
+    : trend === 'down'
+    ? (status === 'green' ? '#22c55e' : '#ef4444')
+    : '#64748b';
 
   return (
     <div
-      className="glass-panel p-3 h-100"
-      style={{ borderLeft: `3px solid ${c.border}` }}
+      className={`glass-panel kpi-card-v2 ${onExplain ? 'kpi-card-v2--clickable' : ''}`}
+      onClick={onExplain}
+      onKeyDown={onExplain ? (e) => e.key === 'Enter' && onExplain() : undefined}
+      role={onExplain ? 'button' : undefined}
+      tabIndex={onExplain ? 0 : undefined}
     >
-      <div className="d-flex justify-content-between align-items-start mb-2">
-        <span className="stat-label" style={{ color: 'var(--text-secondary)' }}>{label}</span>
-        <div className="d-flex align-items-center gap-1">
-          {onExplain && (
-            <button
-              className="btn btn-sm p-0"
-              onClick={(e) => { e.stopPropagation(); onExplain(); }}
-              title="Explain this metric"
-              style={{ color: 'var(--text-secondary)', lineHeight: 1 }}
-            >
-              <i className="bi bi-question-circle" style={{ fontSize: '0.85rem' }}></i>
-            </button>
-          )}
-          <span
-            className="badge"
-            style={{ background: c.bg, color: c.text, fontSize: '0.65rem', textTransform: 'uppercase' }}
-          >
-            {status}
-          </span>
-        </div>
+      {/* Label Row */}
+      <div className="kpi-card-v2__label-row">
+        <span className="kpi-card-v2__label">{label}</span>
+        {onExplain && (
+          <i className="bi bi-question-circle kpi-card-v2__help-icon"></i>
+        )}
       </div>
-      <AnimatedStat
-        value={value}
-        className="stat-value"
-        style={{ fontSize: '1.75rem', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}
-      />
+
+      {/* Value */}
+      <div className="kpi-card-v2__value">
+        <AnimatedStat value={value} />
+      </div>
+
+      {/* Trend & Status */}
+      <div className="kpi-card-v2__footer">
+        {change !== undefined && (
+          <span className="kpi-card-v2__trend" style={{ color: trendColor }}>
+            <i className={`bi ${trendIcon}`} style={{ fontSize: '0.75rem' }}></i>
+            {change > 0 ? '+' : ''}{change}%
+          </span>
+        )}
+        <span
+          className="kpi-card-v2__status-badge"
+          style={{ background: c.bg, color: c.text }}
+        >
+          {c.badge}
+        </span>
+      </div>
+
+      {/* Subtitle */}
       {subtitle && (
-        <div className="small" style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-          {subtitle}
-        </div>
+        <div className="kpi-card-v2__subtitle">{subtitle}</div>
       )}
     </div>
   );
@@ -138,42 +168,36 @@ function DatasetStatusBar({
     dataHealthScore >= 70 ? '#f59e0b' : '#ef4444';
 
   return (
-    <div
-      className="glass-panel mb-4 px-4 py-2"
-      style={{
-        background: 'rgba(15, 23, 42, 0.8)',
-        borderColor: 'rgba(255, 255, 255, 0.1)'
-      }}
-    >
-      <div className="d-flex flex-wrap align-items-center gap-4" style={{ fontSize: '0.8rem' }}>
-        <div className="d-flex align-items-center gap-2">
+    <div className="glass-panel mb-4 px-4 py-2">
+      <div className="flex flex-wrap items-center gap-4" style={{ fontSize: '0.8rem' }}>
+        <div className="flex items-center gap-2">
           <i className="bi bi-database" style={{ color: 'var(--accent)' }}></i>
           <span style={{ color: 'var(--text-secondary)' }}>Dataset:</span>
           <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{formatName}</span>
         </div>
 
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <span style={{ color: 'var(--text-secondary)' }}>Reqs:</span>
           <span className="font-mono" style={{ color: 'var(--text-primary)' }}>{reqCount.toLocaleString()}</span>
         </div>
 
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <span style={{ color: 'var(--text-secondary)' }}>Candidates:</span>
           <span className="font-mono" style={{ color: 'var(--text-primary)' }}>{candidateCount.toLocaleString()}</span>
         </div>
 
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <span style={{ color: 'var(--text-secondary)' }}>Events:</span>
           <span className="font-mono" style={{ color: 'var(--text-primary)' }}>{eventCount.toLocaleString()}</span>
         </div>
 
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <span style={{ color: 'var(--text-secondary)' }}>Health:</span>
           <span className="font-mono" style={{ color: healthColor, fontWeight: 600 }}>{dataHealthScore}%</span>
         </div>
 
         {unmappedStages > 0 && (
-          <div className="d-flex align-items-center gap-1">
+          <div className="flex items-center gap-1">
             <i className="bi bi-exclamation-triangle" style={{ color: '#f59e0b' }}></i>
             <span style={{ color: '#f59e0b' }}>{unmappedStages} unmapped stages</span>
           </div>
@@ -192,7 +216,7 @@ function DatasetStatusBar({
         )}
 
         {lastImportAt && (
-          <div className="d-flex align-items-center gap-2 ms-auto">
+          <div className="flex items-center gap-2 ml-auto">
             <i className="bi bi-clock-history" style={{ color: 'var(--text-secondary)' }}></i>
             <span style={{ color: 'var(--text-secondary)' }}>
               Last refresh: {lastImportAt.toLocaleDateString()} {lastImportAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -663,7 +687,7 @@ export function ControlTowerTab({
     <div className="animate-fade-in">
       <PageHeader
         title="Command Center"
-        subtitle="Executive overview of recruiting health, risks, and actions"
+        subtitle="Real-time recruiting pipeline health and capacity insights"
         actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
       />
       <HelpDrawer
@@ -684,78 +708,55 @@ export function ControlTowerTab({
         unmappedStages={dataHealth.unmappedStagesCount}
       />
 
-      {/* Section 1: Health KPIs */}
-      <div className="mb-4">
-        <SectionHeader
-          title="Health"
-          actions={
-            <button
-              className="btn btn-sm btn-bespoke-secondary"
-              onClick={() => onNavigateToTab('overview')}
-            >
-              View Details <i className="bi bi-arrow-right ms-1"></i>
-            </button>
-          }
+      {/* Section 1: Health KPIs - 5 card grid */}
+      <div className="kpi-grid mb-4">
+        <HealthIndicator
+          status={healthKPIs.ttf.status}
+          label="Median TTF"
+          value={healthKPIs.ttf.value}
+          subtitle={healthKPIs.ttf.subtitle}
+          onExplain={() => handleExplain('median_ttf')}
         />
-        <div className="row g-3">
-          <div className="col-6 col-md">
-            <HealthIndicator
-              status={healthKPIs.ttf.status}
-              label="Median TTF"
-              value={healthKPIs.ttf.value}
-              subtitle={healthKPIs.ttf.subtitle}
-              onExplain={() => handleExplain('median_ttf')}
-            />
-          </div>
-          <div className="col-6 col-md">
-            <HealthIndicator
-              status={healthKPIs.offers.status}
-              label="Offers"
-              value={healthKPIs.offers.value}
-              subtitle={healthKPIs.offers.subtitle}
-              onExplain={() => handleExplain('time_to_offer')}
-            />
-          </div>
-          <div className="col-6 col-md">
-            <HealthIndicator
-              status={healthKPIs.acceptRate.status}
-              label="Accept Rate"
-              value={healthKPIs.acceptRate.value}
-              subtitle={healthKPIs.acceptRate.subtitle}
-              onExplain={() => handleExplain('offer_accept_rate')}
-            />
-          </div>
-          <div className="col-6 col-md">
-            <HealthIndicator
-              status={healthKPIs.stalledReqs.status}
-              label="Stalled Reqs"
-              value={healthKPIs.stalledReqs.value}
-              subtitle={healthKPIs.stalledReqs.subtitle}
-              onExplain={() => handleExplain('stalled_reqs')}
-            />
-          </div>
-          <div className="col-6 col-md">
-            <HealthIndicator
-              status={healthKPIs.hmLatency.status}
-              label="HM Latency"
-              value={healthKPIs.hmLatency.value}
-              subtitle={healthKPIs.hmLatency.subtitle}
-              onExplain={() => handleExplain('hm_latency')}
-            />
-          </div>
-        </div>
+        <HealthIndicator
+          status={healthKPIs.offers.status}
+          label="Offers"
+          value={healthKPIs.offers.value}
+          subtitle={healthKPIs.offers.subtitle}
+          onExplain={() => handleExplain('time_to_offer')}
+        />
+        <HealthIndicator
+          status={healthKPIs.acceptRate.status}
+          label="Accept Rate"
+          value={healthKPIs.acceptRate.value}
+          subtitle={healthKPIs.acceptRate.subtitle}
+          onExplain={() => handleExplain('offer_accept_rate')}
+        />
+        <HealthIndicator
+          status={healthKPIs.stalledReqs.status}
+          label="Stalled Reqs"
+          value={healthKPIs.stalledReqs.value}
+          subtitle={healthKPIs.stalledReqs.subtitle}
+          onExplain={() => handleExplain('stalled_reqs')}
+        />
+        <HealthIndicator
+          status={healthKPIs.hmLatency.status}
+          label="HM Latency"
+          value={healthKPIs.hmLatency.value}
+          subtitle={healthKPIs.hmLatency.subtitle}
+          onExplain={() => handleExplain('hm_latency')}
+        />
       </div>
 
       {/* Two column layout for Pre-Mortem and Actions */}
-      <div className="row g-4 mb-4">
+      <div className="grid grid-cols-12 gap-4 mb-4">
         {/* Section 2: Pre-Mortem (Risks) */}
-        <div className="col-lg-6">
-          <div className="glass-panel p-3 h-100">
+        <div className="col-span-12 lg:col-span-6">
+          <div className="glass-panel p-3 h-full">
             <SectionHeader
               title="Risks"
               badge={highRiskCount > 0 ? (
                 <span
-                  className="badge badge-danger-soft"
+                  className="badge-bespoke badge-danger-soft"
                   style={{ fontSize: '0.7rem' }}
                 >
                   {highRiskCount} HIGH
@@ -777,54 +778,45 @@ export function ControlTowerTab({
                 <p className="mt-2 mb-0">No at-risk requisitions</p>
               </div>
             ) : (
-              <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                {atRiskPreMortems.map((result, idx) => {
+              <div style={{ maxHeight: '320px', overflowY: 'auto' }} className="flex flex-col gap-2 p-1">
+                {atRiskPreMortems.map((result) => {
                   const isGreyedOut = hasActiveFilters && !result.matchesFilter;
+                  const riskClass = result.risk_band === 'HIGH' ? 'risk-item-v2--high' : 'risk-item-v2--med';
                   return (
                     <div
                       key={result.req_id}
-                      className="d-flex align-items-center py-2 px-2 rounded mb-1"
-                      style={{
-                        background: idx % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
-                        cursor: 'pointer',
-                        opacity: isGreyedOut ? 0.4 : 1,
-                        transition: 'opacity 0.2s ease',
-                      }}
+                      className={`risk-item-v2 ${riskClass}`}
+                      style={{ opacity: isGreyedOut ? 0.4 : 1 }}
                       onClick={() => handlePreMortemClick(result)}
                     >
-                      <div className="flex-grow-1 min-width-0">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <span
-                            className="badge font-mono"
-                            style={{
-                              background: isGreyedOut ? 'rgba(100, 116, 139, 0.5)' : getRiskBandColor(result.risk_band),
-                              fontSize: '0.65rem',
-                              minWidth: '28px',
-                              textAlign: 'center'
-                            }}
-                          >
-                            {result.risk_score}
-                          </span>
-                          <span
-                            className="badge"
-                            style={{
-                              background: isGreyedOut ? 'rgba(100, 116, 139, 0.2)' : `${getRiskBandColor(result.risk_band)}20`,
-                              color: isGreyedOut ? 'rgba(100, 116, 139, 0.8)' : getRiskBandColor(result.risk_band),
-                              fontSize: '0.6rem'
-                            }}
-                          >
-                            {getFailureModeLabel(result.failure_mode)}
-                          </span>
-                          <span className="text-truncate" style={{ color: isGreyedOut ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 500 }}>
-                            {result.req_title}
-                          </span>
-                        </div>
-                        <div className="d-flex gap-3" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                          <span><i className="bi bi-calendar me-1"></i>{result.days_open}d open</span>
-                          <span><i className="bi bi-people me-1"></i>{result.active_candidate_count} active</span>
-                        </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[0.65rem] font-mono"
+                          style={{
+                            background: isGreyedOut ? 'rgba(100, 116, 139, 0.5)' : getRiskBandColor(result.risk_band),
+                            minWidth: '28px',
+                            textAlign: 'center'
+                          }}
+                        >
+                          {result.risk_score}
+                        </span>
+                        <span
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.6rem] font-medium"
+                          style={{
+                            background: isGreyedOut ? 'rgba(100, 116, 139, 0.2)' : `${getRiskBandColor(result.risk_band)}20`,
+                            color: isGreyedOut ? 'rgba(100, 116, 139, 0.8)' : getRiskBandColor(result.risk_band)
+                          }}
+                        >
+                          {getFailureModeLabel(result.failure_mode)}
+                        </span>
+                        <span className="truncate" style={{ color: isGreyedOut ? 'var(--text-secondary)' : 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 500 }}>
+                          {result.req_title}
+                        </span>
                       </div>
-                      <i className="bi bi-chevron-right" style={{ color: 'var(--text-secondary)' }}></i>
+                      <div className="flex gap-3" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                        <span><i className="bi bi-calendar mr-1"></i>{result.days_open}d open</span>
+                        <span><i className="bi bi-people mr-1"></i>{result.active_candidate_count} active</span>
+                      </div>
                     </div>
                   );
                 })}
@@ -834,13 +826,13 @@ export function ControlTowerTab({
         </div>
 
         {/* Section 3: Unified Actions */}
-        <div className="col-lg-6">
-          <div className="glass-panel p-3 h-100">
+        <div className="col-span-12 lg:col-span-6">
+          <div className="glass-panel p-3 h-full">
             <SectionHeader
               title="Unified Actions"
               badge={getOpenActions(actionQueue).length > 0 ? (
                 <span
-                  className="badge badge-warning-soft"
+                  className="badge-bespoke badge-warning-soft"
                   style={{ fontSize: '0.7rem' }}
                 >
                   {getOpenActions(actionQueue).length}
@@ -874,64 +866,49 @@ export function ControlTowerTab({
               className="btn btn-sm btn-bespoke-secondary"
               onClick={() => onNavigateToTab('forecasting')}
             >
-              View Details <i className="bi bi-arrow-right ms-1"></i>
+              View Details <i className="bi bi-arrow-right ml-1"></i>
             </button>
           }
         />
 
-        <div className="row g-4">
-          <div className="col-md-4">
-            <div className="text-center">
-              <div className="stat-label mb-2" style={{ color: 'var(--text-secondary)' }}>Expected Hires</div>
-              <AnimatedStat
-                value={forecastData.expectedHires}
-                className="stat-value"
-                style={{ fontSize: '2.5rem', color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}
-              />
-              <div className="small" style={{ color: 'var(--text-secondary)' }}>
-                of {forecastData.openReqCount} open reqs
-                {forecastData.isFiltered && forecastData.totalOpenReqCount !== forecastData.openReqCount && (
-                  <span style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                    {' '}({forecastData.totalOpenReqCount} total)
-                  </span>
-                )}
-              </div>
+        <div className="forecast-stats-grid">
+          <div className="forecast-stat text-center">
+            <div className="forecast-stat__value font-mono">
+              <AnimatedStat value={forecastData.expectedHires} />
+            </div>
+            <div className="forecast-stat__label">Expected Hires</div>
+            <div className="forecast-stat__sub">
+              of {forecastData.openReqCount} open reqs
+              {forecastData.isFiltered && forecastData.totalOpenReqCount !== forecastData.openReqCount && (
+                <span style={{ opacity: 0.6 }}>
+                  {' '}({forecastData.totalOpenReqCount} total)
+                </span>
+              )}
             </div>
           </div>
-          <div className="col-md-4">
-            <div className="text-center">
-              <div className="stat-label mb-2" style={{ color: 'var(--text-secondary)' }}>Pipeline Gap</div>
-              <AnimatedStat
-                value={forecastData.gap}
-                className="stat-value"
-                style={{
-                  fontSize: '2.5rem',
-                  color: forecastData.gap === 0 ? '#22c55e' : forecastData.gap <= 5 ? '#f59e0b' : '#ef4444',
-                  fontVariantNumeric: 'tabular-nums'
-                }}
-              />
-              <div className="small" style={{ color: 'var(--text-secondary)' }}>
-                {forecastData.gap === 0 ? 'pipeline covers all reqs' : 'reqs need more sourcing'}
-              </div>
+          <div className="forecast-stat text-center">
+            <div
+              className="forecast-stat__value font-mono"
+              style={{
+                color: forecastData.gap === 0 ? '#22c55e' : forecastData.gap <= 5 ? '#f59e0b' : '#ef4444'
+              }}
+            >
+              <AnimatedStat value={forecastData.gap} />
+            </div>
+            <div className="forecast-stat__label">Pipeline Gap</div>
+            <div className="forecast-stat__sub">
+              {forecastData.gap === 0 ? 'pipeline covers all reqs' : 'reqs need more sourcing'}
             </div>
           </div>
-          <div className="col-md-4">
-            <div className="text-center">
-              <div className="stat-label mb-2" style={{ color: 'var(--text-secondary)' }}>Confidence</div>
-              <div
-                className="stat-value text-uppercase"
-                style={{
-                  fontSize: '1.5rem',
-                  color: confidenceColors[forecastData.confidence],
-                  letterSpacing: '0.05em'
-                }}
-              >
-                {forecastData.confidence}
-              </div>
-              <div className="small" style={{ color: 'var(--text-secondary)' }}>
-                based on pipeline data
-              </div>
+          <div className="forecast-stat text-center">
+            <div
+              className="forecast-stat__value font-mono text-uppercase"
+              style={{ color: confidenceColors[forecastData.confidence] }}
+            >
+              {forecastData.confidence}
             </div>
+            <div className="forecast-stat__label">Confidence</div>
+            <div className="forecast-stat__sub">based on pipeline data</div>
           </div>
         </div>
       </div>

@@ -304,6 +304,19 @@ td[class*="numeric"] {
     margin-bottom: 0.5rem;
 }
 
+/* Stat-value contextual overrides */
+.kpi-card-v2__value .stat-value {
+    font-size: 1.875rem !important;
+    margin-bottom: 0 !important;
+    display: inline !important;
+}
+
+.forecast-stat__value .stat-value {
+    font-size: 2rem !important;
+    margin-bottom: 0 !important;
+    display: inline !important;
+}
+
 /* Stat labels - Secondary color */
 .stat-label {
     display: block;
@@ -1093,6 +1106,59 @@ td[class*="numeric"] {
     color: #94a3b8;
 }
 .status-pill--neutral::before { background: #64748b; }
+
+/* Priority Badges - Reference UI style */
+.priority-badge {
+    display: inline-flex;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.priority-badge--critical {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+
+.priority-badge--high {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+}
+
+.priority-badge--medium {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+}
+
+.priority-badge--low {
+    background: rgba(100, 116, 139, 0.15);
+    color: #94a3b8;
+}
+
+/* Status Dot indicator */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-dot--open { background: #3b82f6; }
+.status-dot--sourcing { background: #8b5cf6; }
+.status-dot--screening { background: #f59e0b; }
+.status-dot--interviewing { background: #06b6d4; }
+.status-dot--offer { background: #22c55e; }
+.status-dot--closed { background: #64748b; }
+.status-dot--on-hold { background: #ef4444; }
+
+/* Health Score color utility */
+.health-score--good { color: #22c55e; }
+.health-score--warn { color: #f59e0b; }
+.health-score--bad { color: #ef4444; }
 
 .table-primary {
     --bs-table-bg: rgba(245, 158, 11, 0.15);

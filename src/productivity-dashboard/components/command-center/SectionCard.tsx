@@ -58,7 +58,7 @@ export const SectionCard: React.FC<SectionCardProps> = ({
           </div>
           <div className="cc-section__blocked-title">{copy.title}</div>
           <div className="cc-section__blocked-desc">{copy.whats_needed}</div>
-          <button className="btn btn-sm btn-outline-info cc-section__blocked-cta">
+          <button className="px-3 py-1.5 text-sm font-medium text-cyan-400 border border-cyan-400/30 rounded-md hover:bg-cyan-400/10 transition-colors cc-section__blocked-cta">
             {copy.cta_label}
           </button>
         </div>

@@ -66,7 +66,7 @@ export function ActionDetailDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="position-fixed top-0 start-0 w-100 h-100 glass-backdrop"
+        className="fixed top-0 left-0 w-full h-full glass-backdrop"
         style={{
           zIndex: 1040,
           opacity: isOpen ? 1 : 0,
@@ -78,7 +78,7 @@ export function ActionDetailDrawer({
 
       {/* Drawer */}
       <div
-        className="position-fixed top-0 end-0 h-100 d-flex flex-column glass-drawer"
+        className="fixed top-0 right-0 h-full flex flex-col glass-drawer"
         style={{
           width: '420px',
           maxWidth: '90vw',
@@ -88,8 +88,8 @@ export function ActionDetailDrawer({
         }}
       >
         {/* Header */}
-        <div className="d-flex align-items-center justify-content-between p-3 glass-drawer-header">
-          <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center justify-between p-3 glass-drawer-header">
+          <div className="flex items-center gap-2">
             <div
               style={{
                 width: '4px',
@@ -100,18 +100,18 @@ export function ActionDetailDrawer({
             />
             <div>
               <div
-                className="small text-uppercase"
+                className="text-xs uppercase"
                 style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}
               >
                 Action Detail
               </div>
-              <h5 className="mb-0" style={{ color: 'var(--text-primary)' }}>
+              <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                 {action.title}
-              </h5>
+              </div>
             </div>
           </div>
           <button
-            className="btn btn-sm"
+            className="px-2 py-1 text-sm"
             onClick={onClose}
             style={{ color: 'var(--text-secondary)' }}
           >
@@ -120,7 +120,7 @@ export function ActionDetailDrawer({
         </div>
 
         {/* Content */}
-        <div className="flex-grow-1 overflow-auto p-3">
+        <div className="grow overflow-auto p-3">
           {/* Status Banner */}
           {action.status !== 'OPEN' && (
             <div
@@ -133,43 +133,41 @@ export function ActionDetailDrawer({
                 color: action.status === 'DONE' ? '#22c55e' : '#6b7280',
               }}
             >
-              <i className={`bi ${action.status === 'DONE' ? 'bi-check-circle' : 'bi-x-circle'} me-1`}></i>
+              <i className={`bi ${action.status === 'DONE' ? 'bi-check-circle' : 'bi-x-circle'} mr-1.5`}></i>
               {action.status === 'DONE' ? 'Marked as Done' : 'Dismissed'}
             </div>
           )}
 
           {/* Priority & Due */}
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <div className="d-flex align-items-center gap-2">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
               <span
-                className="badge"
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                 style={{
                   backgroundColor: priorityMeta.bgColor,
                   color: priorityMeta.color,
-                  fontSize: '0.75rem',
                 }}
               >
                 {action.priority} - {priorityMeta.label}
               </span>
               <span
-                className="badge"
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                 style={{
                   backgroundColor: `${ownerMeta.color}20`,
                   color: ownerMeta.color,
-                  fontSize: '0.75rem',
                 }}
               >
                 {ownerMeta.label}
               </span>
             </div>
             <div
-              className="text-end small"
+              className="text-right text-sm"
               style={{
                 color: action.due_in_days <= 0 ? '#ef4444' : 'var(--text-secondary)',
               }}
             >
               {action.due_in_days <= 0 ? (
-                <span className="fw-bold">Overdue</span>
+                <span className="font-bold">Overdue</span>
               ) : (
                 <>Due in {action.due_in_days} day{action.due_in_days !== 1 ? 's' : ''}</>
               )}
@@ -189,7 +187,7 @@ export function ActionDetailDrawer({
             }}
           >
             <div style={{ color: 'var(--text-primary)' }}>{action.owner_name}</div>
-            <div className="small" style={{ color: 'var(--text-secondary)' }}>
+            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               {ownerMeta.label}
             </div>
           </div>
@@ -207,13 +205,13 @@ export function ActionDetailDrawer({
               >
                 {action.req_title && (
                   <div className="mb-1">
-                    <span className="small" style={{ color: 'var(--text-secondary)' }}>Req: </span>
+                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Req: </span>
                     <span style={{ color: 'var(--text-primary)' }}>{action.req_title}</span>
                   </div>
                 )}
                 {action.candidate_name && (
                   <div>
-                    <span className="small" style={{ color: 'var(--text-secondary)' }}>Candidate: </span>
+                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Candidate: </span>
                     <span style={{ color: 'var(--text-primary)' }}>{action.candidate_name}</span>
                   </div>
                 )}
@@ -231,18 +229,18 @@ export function ActionDetailDrawer({
             }}
           >
             <div className="mb-1">
-              <span className="small" style={{ color: 'var(--text-secondary)' }}>KPI: </span>
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>KPI: </span>
               <span style={{ color: 'var(--text-primary)' }}>{action.evidence.kpi_key}</span>
             </div>
             <div>
-              <span className="small" style={{ color: 'var(--text-secondary)' }}>Reason: </span>
+              <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Reason: </span>
               <span style={{ color: 'var(--text-primary)' }}>{action.evidence.short_reason}</span>
             </div>
           </div>
 
           {hasEvidence ? (
             <button
-              className="btn btn-sm w-100 mb-4"
+              className="px-2 py-1 text-sm w-full mb-4"
               onClick={() => onViewEvidence(action.evidence.explain_provider_key as ExplainProviderId)}
               style={{
                 backgroundColor: 'rgba(45, 212, 191, 0.1)',
@@ -250,15 +248,15 @@ export function ActionDetailDrawer({
                 color: '#2dd4bf',
               }}
             >
-              <i className="bi bi-graph-up me-1"></i>
+              <i className="bi bi-graph-up mr-1"></i>
               View Evidence
             </button>
           ) : (
             <div
-              className="text-center small mb-4 py-2"
+              className="text-center text-sm mb-4 py-2"
               style={{ color: 'var(--text-secondary)' }}
             >
-              <i className="bi bi-info-circle me-1"></i>
+              <i className="bi bi-info-circle mr-1"></i>
               Evidence unavailable
             </div>
           )}
@@ -268,7 +266,7 @@ export function ActionDetailDrawer({
             <>
               <SectionHeader>Recommended Steps</SectionHeader>
               <ul
-                className="mb-4 ps-3"
+                className="mb-4 pl-3"
                 style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}
               >
                 {action.recommended_steps.map((step, idx) => (
@@ -294,11 +292,11 @@ export function ActionDetailDrawer({
         {/* Footer Actions */}
         {action.status === 'OPEN' && (
           <div
-            className="p-3 d-flex gap-2"
+            className="p-3 flex gap-2"
             style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
           >
             <button
-              className="btn btn-sm flex-grow-1"
+              className="px-2 py-1 text-sm grow"
               onClick={() => onMarkDone(action.action_id)}
               style={{
                 backgroundColor: 'rgba(34, 197, 94, 0.15)',
@@ -306,11 +304,11 @@ export function ActionDetailDrawer({
                 color: '#22c55e',
               }}
             >
-              <i className="bi bi-check-lg me-1"></i>
+              <i className="bi bi-check-lg mr-1"></i>
               Mark Done
             </button>
             <button
-              className="btn btn-sm flex-grow-1"
+              className="px-2 py-1 text-sm grow"
               onClick={() => onDismiss(action.action_id)}
               style={{
                 backgroundColor: 'rgba(107, 114, 128, 0.15)',
@@ -318,7 +316,7 @@ export function ActionDetailDrawer({
                 color: '#9ca3af',
               }}
             >
-              <i className="bi bi-x-lg me-1"></i>
+              <i className="bi bi-x-lg mr-1"></i>
               Dismiss
             </button>
           </div>
@@ -326,13 +324,13 @@ export function ActionDetailDrawer({
 
         {/* Footer - Timestamps */}
         <div
-          className="p-3 small"
+          className="p-3 text-sm"
           style={{
             borderTop: '1px solid rgba(255,255,255,0.1)',
             color: 'var(--text-secondary)',
           }}
         >
-          <div className="d-flex justify-content-between">
+          <div className="flex justify-between">
             <span>Created: {format(action.created_at, 'MMM d, yyyy')}</span>
             <span>ID: {action.action_id.slice(0, 12)}</span>
           </div>
@@ -346,11 +344,10 @@ export function ActionDetailDrawer({
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="text-uppercase small mb-2"
+      className="uppercase text-sm mb-2 font-semibold"
       style={{
         color: 'var(--text-secondary)',
         letterSpacing: '0.05em',
-        fontWeight: 600,
       }}
     >
       {children}
@@ -394,18 +391,18 @@ function DraftMessageSection({
         border: '1px solid rgba(139, 92, 246, 0.3)',
       }}
     >
-      <div className="d-flex align-items-center justify-content-between mb-2">
-        <div className="d-flex align-items-center gap-2">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
           <i className="bi bi-chat-left-text" style={{ color: '#a78bfa' }}></i>
-          <span className="small fw-bold" style={{ color: '#a78bfa' }}>Draft Message</span>
+          <span className="text-sm font-bold" style={{ color: '#a78bfa' }}>Draft Message</span>
         </div>
       </div>
 
       {/* Channel Selector */}
       {!result && !isLoading && (
-        <div className="d-flex gap-2 mb-3">
+        <div className="flex gap-2 mb-3">
           <button
-            className={`btn btn-sm flex-grow-1 ${channel === 'slack' ? 'active' : ''}`}
+            className={`px-2 py-1 text-sm grow ${channel === 'slack' ? 'active' : ''}`}
             onClick={() => onChannelChange('slack')}
             style={{
               backgroundColor: channel === 'slack' ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
@@ -414,11 +411,11 @@ function DraftMessageSection({
               fontSize: '0.75rem',
             }}
           >
-            <i className="bi bi-slack me-1"></i>
+            <i className="bi bi-slack mr-1"></i>
             Slack
           </button>
           <button
-            className={`btn btn-sm flex-grow-1 ${channel === 'email' ? 'active' : ''}`}
+            className={`px-2 py-1 text-sm grow ${channel === 'email' ? 'active' : ''}`}
             onClick={() => onChannelChange('email')}
             style={{
               backgroundColor: channel === 'email' ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
@@ -427,7 +424,7 @@ function DraftMessageSection({
               fontSize: '0.75rem',
             }}
           >
-            <i className="bi bi-envelope me-1"></i>
+            <i className="bi bi-envelope mr-1"></i>
             Email
           </button>
         </div>
@@ -436,7 +433,7 @@ function DraftMessageSection({
       {/* Generate Button */}
       {!result && !isLoading && (
         <button
-          className="btn btn-sm w-100"
+          className="px-2 py-1 text-sm w-full"
           onClick={onGenerate}
           style={{
             backgroundColor: 'rgba(139, 92, 246, 0.2)',
@@ -445,14 +442,14 @@ function DraftMessageSection({
             fontSize: '0.8rem',
           }}
         >
-          <i className="bi bi-lightning-charge me-1"></i>
+          <i className="bi bi-lightning-charge mr-1"></i>
           Generate {channel === 'slack' ? 'Slack' : 'Email'} Draft
         </button>
       )}
 
       {/* Loading State */}
       {isLoading && (
-        <div className="d-flex align-items-center gap-2 py-2">
+        <div className="flex items-center gap-2 py-2">
           <LogoSpinner size={32} message="Drafting message..." />
         </div>
       )}
@@ -460,14 +457,14 @@ function DraftMessageSection({
       {/* Error State */}
       {error && (
         <div
-          className="p-2 rounded small"
+          className="p-2 rounded text-sm"
           style={{
             backgroundColor: 'rgba(239, 68, 68, 0.1)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
             color: '#ef4444',
           }}
         >
-          <i className="bi bi-exclamation-circle me-1"></i>
+          <i className="bi bi-exclamation-circle mr-1"></i>
           {error}
         </div>
       )}
@@ -485,7 +482,7 @@ function DraftMessageSection({
             }}
           >
             <pre
-              className="mb-0 small"
+              className="mb-0 text-sm"
               style={{
                 color: 'var(--text-primary)',
                 whiteSpace: 'pre-wrap',
@@ -497,7 +494,7 @@ function DraftMessageSection({
             </pre>
           </div>
           <button
-            className="btn btn-sm w-100"
+            className="px-2 py-1 text-sm w-full"
             onClick={handleCopy}
             style={{
               backgroundColor: copied ? 'rgba(34, 197, 94, 0.2)' : 'rgba(139, 92, 246, 0.2)',
@@ -506,11 +503,11 @@ function DraftMessageSection({
               fontSize: '0.8rem',
             }}
           >
-            <i className={`bi ${copied ? 'bi-check' : 'bi-clipboard'} me-1`}></i>
+            <i className={`bi ${copied ? 'bi-check' : 'bi-clipboard'} mr-1`}></i>
             {copied ? 'Copied!' : 'Copy to Clipboard'}
           </button>
-          <p className="mt-2 mb-0 small" style={{ color: 'var(--text-secondary)' }}>
-            <i className="bi bi-info-circle me-1"></i>
+          <p className="mt-2 mb-0 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <i className="bi bi-info-circle mr-1"></i>
             Replace placeholders with actual names before sending.
           </p>
         </div>

@@ -68,16 +68,14 @@ interface KPISkeletonProps {
 
 export function KPISkeleton({ count = 4 }: KPISkeletonProps) {
   return (
-    <div className="row g-3 mb-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="col-md-6 col-lg-3">
+        <div key={i}>
           <div
-            className="card h-100"
+            className="h-full rounded-xl p-5"
             style={{
               background: 'linear-gradient(135deg, rgba(30,30,46,0.8) 0%, rgba(45,45,68,0.8) 100%)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '12px',
-              padding: '20px'
+              border: '1px solid rgba(255,255,255,0.1)'
             }}
           >
             {/* Label */}
@@ -102,12 +100,10 @@ interface ChartSkeletonProps {
 export function ChartSkeleton({ height = 300, type = 'bar' }: ChartSkeletonProps) {
   return (
     <div
-      className="card"
+      className="rounded-xl p-5"
       style={{
         background: 'linear-gradient(135deg, rgba(30,30,46,0.8) 0%, rgba(45,45,68,0.8) 100%)',
         border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: '12px',
-        padding: '20px',
         height: `${height}px`
       }}
     >
@@ -116,7 +112,7 @@ export function ChartSkeleton({ height = 300, type = 'bar' }: ChartSkeletonProps
 
       {/* Chart content based on type */}
       {type === 'bar' && (
-        <div className="d-flex align-items-end justify-content-around" style={{ height: 'calc(100% - 50px)' }}>
+        <div className="flex items-end justify-around" style={{ height: 'calc(100% - 50px)' }}>
           {Array.from({ length: 7 }).map((_, i) => (
             <SkeletonBlock
               key={i}
@@ -143,7 +139,7 @@ export function ChartSkeleton({ height = 300, type = 'bar' }: ChartSkeletonProps
       )}
 
       {type === 'pie' && (
-        <div className="d-flex justify-content-center align-items-center" style={{ height: 'calc(100% - 50px)' }}>
+        <div className="flex justify-center items-center" style={{ height: 'calc(100% - 50px)' }}>
           <div
             style={{
               width: Math.min(height - 100, 200),
@@ -157,7 +153,7 @@ export function ChartSkeleton({ height = 300, type = 'bar' }: ChartSkeletonProps
       )}
 
       {type === 'funnel' && (
-        <div className="d-flex flex-column align-items-center gap-2" style={{ height: 'calc(100% - 50px)' }}>
+        <div className="flex flex-col items-center gap-2" style={{ height: 'calc(100% - 50px)' }}>
           {[100, 80, 60, 45, 30].map((width, i) => (
             <SkeletonBlock
               key={i}
@@ -181,18 +177,16 @@ interface TableSkeletonProps {
 export function TableSkeleton({ rows = 5, columns = 5 }: TableSkeletonProps) {
   return (
     <div
-      className="card"
+      className="rounded-xl overflow-hidden"
       style={{
         background: 'linear-gradient(135deg, rgba(30,30,46,0.8) 0%, rgba(45,45,68,0.8) 100%)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: '12px',
-        overflow: 'hidden'
+        border: '1px solid rgba(255,255,255,0.1)'
       }}
     >
       {/* Table header */}
       <div
-        className="d-flex gap-3 p-3"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}
+        className="flex gap-3 p-3 border-b border-white/10"
+        style={{ background: 'rgba(0,0,0,0.2)' }}
       >
         {Array.from({ length: columns }).map((_, i) => (
           <SkeletonBlock
@@ -208,7 +202,7 @@ export function TableSkeleton({ rows = 5, columns = 5 }: TableSkeletonProps) {
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div
           key={rowIndex}
-          className="d-flex gap-3 p-3"
+          className="flex gap-3 p-3"
           style={{ borderBottom: rowIndex < rows - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}
         >
           {Array.from({ length: columns }).map((_, colIndex) => (
@@ -267,7 +261,7 @@ interface LoadingMessageProps {
 
 export function LoadingMessage({ message = 'Loading...' }: LoadingMessageProps) {
   return (
-    <div className="d-flex align-items-center gap-2 p-3">
+    <div className="flex items-center gap-2 p-3">
       <LogoSpinner size={24} message={message} />
     </div>
   );
@@ -286,13 +280,10 @@ export function EmptyState({
   icon = '📊'
 }: EmptyStateProps) {
   return (
-    <div
-      className="d-flex flex-column align-items-center justify-content-center p-5"
-      style={{ minHeight: 200 }}
-    >
-      <div style={{ fontSize: '3rem', marginBottom: 16, opacity: 0.5 }}>{icon}</div>
-      <h5 style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 8 }}>{title}</h5>
-      <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0 }}>{message}</p>
+    <div className="flex flex-col items-center justify-center p-5 min-h-[200px]">
+      <div className="text-5xl mb-4 opacity-50">{icon}</div>
+      <h5 className="text-white/80 mb-2">{title}</h5>
+      <p className="text-white/50 m-0">{message}</p>
     </div>
   );
 }

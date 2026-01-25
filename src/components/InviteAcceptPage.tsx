@@ -67,12 +67,12 @@ export function InviteAcceptPage() {
   // Show loading state
   if (loading || authLoading) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+      <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
-          <div className="spinner-border text-primary mb-3" role="status">
-            <span className="visually-hidden">Loading...</span>
+          <div className="w-5 h-5 border-2 border-primary border-r-transparent rounded-full animate-spin mb-3 mx-auto" role="status">
+            <span className="sr-only">Loading...</span>
           </div>
-          <p className="text-muted">Loading invite...</p>
+          <p className="text-muted-foreground">Loading invite...</p>
         </div>
       </div>
     );
@@ -83,25 +83,25 @@ export function InviteAcceptPage() {
     // Store the invite URL to redirect back after login
     const returnUrl = window.location.pathname;
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-        <div className="card shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
-          <div className="card-body text-center p-5">
-            <h4 className="mb-4">Organization Invite</h4>
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+          <div className="text-center p-8">
+            <h4 className="mb-4 text-lg font-semibold">Organization Invite</h4>
             {invite ? (
               <>
-                <p className="text-muted mb-4">
+                <p className="text-muted-foreground mb-4">
                   You've been invited to join <strong>{(invite as any).organization?.name || 'an organization'}</strong>.
                 </p>
                 <p className="mb-4">Please log in to accept this invite.</p>
                 <a
                   href={`/login?returnUrl=${encodeURIComponent(returnUrl)}`}
-                  className="btn btn-primary"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
                 >
                   Log In to Accept
                 </a>
               </>
             ) : (
-              <div className="alert alert-danger">{error || 'Invalid invite'}</div>
+              <div className="p-3 rounded-lg bg-bad-bg border border-bad/20 text-bad-text">{error || 'Invalid invite'}</div>
             )}
           </div>
         </div>
@@ -112,16 +112,16 @@ export function InviteAcceptPage() {
   // Show error state
   if (error && !invite) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-        <div className="card shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
-          <div className="card-body text-center p-5">
-            <div className="text-danger mb-4">
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+          <div className="text-center p-8">
+            <div className="text-bad mb-4">
               <i className="bi bi-exclamation-circle" style={{ fontSize: '3rem' }}></i>
             </div>
-            <h4 className="mb-3">Invalid Invite</h4>
-            <p className="text-muted mb-4">{error}</p>
+            <h4 className="mb-3 text-lg font-semibold">Invalid Invite</h4>
+            <p className="text-muted-foreground mb-4">{error}</p>
             <button
-              className="btn btn-primary"
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
               onClick={() => navigate('/')}
             >
               Go to Dashboard
@@ -134,39 +134,39 @@ export function InviteAcceptPage() {
 
   // Show invite acceptance form
   return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-      <div className="card shadow-sm" style={{ maxWidth: '450px', width: '100%' }}>
-        <div className="card-body p-5">
+    <div className="min-h-screen flex items-center justify-center bg-surface">
+      <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '450px', width: '100%' }}>
+        <div className="p-8">
           <div className="text-center mb-4">
-            <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '60px', height: '60px' }}>
+            <div className="bg-primary/10 rounded-full inline-flex items-center justify-center mb-3" style={{ width: '60px', height: '60px' }}>
               <i className="bi bi-building text-primary" style={{ fontSize: '1.5rem' }}></i>
             </div>
-            <h4>Organization Invite</h4>
+            <h4 className="text-lg font-semibold">Organization Invite</h4>
           </div>
 
-          {error && <div className="alert alert-danger">{error}</div>}
+          {error && <div className="p-3 rounded-lg bg-bad-bg border border-bad/20 text-bad-text">{error}</div>}
 
           <div className="text-center mb-4">
             <p className="mb-2">You've been invited to join:</p>
-            <h5 className="text-primary mb-3">
+            <h5 className="text-primary mb-3 font-semibold">
               {(invite as any).organization?.name || 'Organization'}
             </h5>
-            <p className="text-muted small mb-0">
-              Role: <span className={`badge ${invite?.role === 'admin' ? 'bg-primary' : 'bg-secondary'}`}>
+            <p className="text-muted-foreground text-sm mb-0">
+              Role: <span className={`inline-block px-2 py-0.5 text-xs rounded ${invite?.role === 'admin' ? 'bg-primary text-background' : 'bg-white/10 text-foreground'}`}>
                 {invite?.role || 'member'}
               </span>
             </p>
           </div>
 
-          <div className="d-grid gap-2">
+          <div className="grid gap-2">
             <button
-              className="btn btn-primary btn-lg"
+              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
               onClick={handleAccept}
               disabled={accepting}
             >
               {accepting ? (
                 <>
-                  <span className="spinner-border spinner-border-sm me-2" />
+                  <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
                   Accepting...
                 </>
               ) : (
@@ -174,7 +174,7 @@ export function InviteAcceptPage() {
               )}
             </button>
             <button
-              className="btn btn-outline-secondary"
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-transparent text-foreground border border-glass-border hover:bg-white/10"
               onClick={() => navigate('/')}
               disabled={accepting}
             >
@@ -182,7 +182,7 @@ export function InviteAcceptPage() {
             </button>
           </div>
 
-          <p className="text-muted small text-center mt-4 mb-0">
+          <p className="text-muted-foreground text-sm text-center mt-4 mb-0">
             Invited as: {supabaseUser.email}
           </p>
         </div>

@@ -38,27 +38,27 @@ export default function ActionPlanCard({ actions, className = '' }: ActionPlanCa
       />
 
       {/* Priority summary */}
-      <div className="action-priority-summary d-flex gap-3 mb-3">
+      <div className="action-priority-summary flex gap-3 mb-3">
         {p0Actions.length > 0 && (
-          <span className="badge bg-danger">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-500 text-white">
             {p0Actions.length} P0
           </span>
         )}
         {p1Actions.length > 0 && (
-          <span className="badge bg-warning text-dark">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-500 text-gray-900">
             {p1Actions.length} P1
           </span>
         )}
         {p2Actions.length > 0 && (
-          <span className="badge bg-info">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500 text-white">
             {p2Actions.length} P2
           </span>
         )}
       </div>
 
       {actions.length === 0 ? (
-        <p className="text-secondary mb-0">
-          <i className="bi bi-check-circle me-2 text-success" />
+        <p className="text-muted-foreground mb-0">
+          <i className="bi bi-check-circle mr-2 text-green-400" />
           No immediate actions required
         </p>
       ) : (
@@ -71,35 +71,38 @@ export default function ActionPlanCard({ actions, className = '' }: ActionPlanCa
               return (
                 <div key={action.action_id} className="action-item mb-2">
                   <div
-                    className="action-item-header d-flex align-items-start"
+                    className="action-item-header flex items-start cursor-pointer"
                     onClick={() => setExpandedAction(isExpanded ? null : action.action_id)}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <span className={`badge bg-${config.color} me-2`} style={{ minWidth: '28px' }}>
+                    <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-medium mr-2 min-w-[28px] ${
+                      config.color === 'danger' ? 'bg-red-500 text-white' :
+                      config.color === 'warning' ? 'bg-yellow-500 text-gray-900' :
+                      'bg-blue-500 text-white'
+                    }`}>
                       {action.priority}
                     </span>
-                    <div className="flex-grow-1">
+                    <div className="grow">
                       <div className="action-title">{action.title}</div>
-                      <small className="text-secondary">
+                      <small className="text-muted-foreground">
                         Due in {action.due_in_days} days
                         {action.owner_name && ` | ${action.owner_name}`}
                       </small>
                     </div>
-                    <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} text-secondary`} />
+                    <i className={`bi bi-chevron-${isExpanded ? 'up' : 'down'} text-muted-foreground`} />
                   </div>
 
                   {isExpanded && (
-                    <div className="action-details mt-2 ps-4">
+                    <div className="action-details mt-2 pl-4">
                       {action.evidence && (
                         <div className="mb-2">
-                          <small className="text-secondary">Evidence: </small>
+                          <small className="text-muted-foreground">Evidence: </small>
                           <small>{action.evidence.short_reason}</small>
                         </div>
                       )}
                       {action.recommended_steps && action.recommended_steps.length > 0 && (
                         <div className="recommended-steps">
-                          <small className="text-secondary d-block mb-1">Recommended Steps:</small>
-                          <ol className="small mb-0 ps-3">
+                          <small className="text-muted-foreground block mb-1">Recommended Steps:</small>
+                          <ol className="text-sm mb-0 pl-3">
                             {action.recommended_steps.map((step, idx) => (
                               <li key={idx}>{step}</li>
                             ))}
@@ -115,7 +118,7 @@ export default function ActionPlanCard({ actions, className = '' }: ActionPlanCa
 
           {actions.length > 5 && (
             <button
-              className="btn btn-link btn-sm p-0 mt-2"
+              className="bg-transparent border-none text-accent-secondary text-sm p-0 mt-2 cursor-pointer hover:underline"
               onClick={() => setExpanded(!expanded)}
             >
               {expanded ? 'Show less' : `Show all ${actions.length} actions`}

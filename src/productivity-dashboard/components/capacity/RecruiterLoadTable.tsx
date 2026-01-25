@@ -50,7 +50,7 @@ function ConfidenceIndicator({ confidence }: { confidence: ConfidenceLevel }) {
 function StatusBadge({ status }: { status: LoadStatus }) {
   const { className, label } = STATUS_BADGE_CLASS[status];
   return (
-    <span className={`badge ${className}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${className}`}>
       {label}
     </span>
   );
@@ -64,7 +64,7 @@ function UtilizationBar({ utilization }: { utilization: number }) {
                      utilization > 0.7 ? 'utilization-good' : 'utilization-low';
 
   return (
-    <div className="d-flex align-items-center gap-2">
+    <div className="flex items-center gap-2">
       <div className="utilization-bar-track">
         <div
           className={`utilization-bar-fill ${colorClass}`}
@@ -173,7 +173,7 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
       header: 'Top Driver',
       width: '180px',
       render: (row) => (
-        <span className="text-truncate d-block small" style={{ maxWidth: 170 }} title={row.topDriver}>
+        <span className="truncate block text-sm" style={{ maxWidth: 170 }} title={row.topDriver}>
           {row.topDriver}
         </span>
       )
@@ -191,7 +191,7 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
     <div className="card-bespoke">
       <div className="card-header">
         <h6 className="mb-0">
-          <i className="bi bi-bar-chart me-2"></i>
+          <i className="bi bi-bar-chart mr-2"></i>
           Recruiter Workload
         </h6>
       </div>
@@ -205,7 +205,7 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
           onSort={handleSort}
           onRowClick={(row) => onRecruiterClick?.(row.recruiterId)}
           emptyState={
-            <div className="text-center py-4 text-muted">
+            <div className="text-center py-4 text-muted-foreground">
               <i className="bi bi-inbox" style={{ fontSize: '2rem' }}></i>
               <div className="mt-2">No recruiter data available</div>
             </div>

@@ -71,26 +71,26 @@ export default function ExplainForExecsButton({ output }: ExplainForExecsButtonP
   return (
     <>
       <button
-        className="btn btn-outline-secondary"
+        className="px-4 py-2 rounded-md border border-glass-border bg-transparent text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={handleClick}
         disabled={isLoading}
       >
         {isLoading ? (
           <>
-            <span className="spinner-border spinner-border-sm me-2" />
+            <span className="inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
             Generating...
           </>
         ) : narration ? (
           <>
-            <i className="bi bi-file-text me-2" />
+            <i className="bi bi-file-text mr-2" />
             {showNarration ? 'Hide Summary' : 'Show Summary'}
           </>
         ) : (
           <>
-            <i className="bi bi-magic me-2" />
+            <i className="bi bi-magic mr-2" />
             Explain for Execs
             {!aiAvailable && (
-              <span className="badge bg-secondary ms-2">Deterministic</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-500 text-white ml-2">Deterministic</span>
             )}
           </>
         )}
@@ -121,10 +121,12 @@ function NarrationPanel({ narration, onClose, usedFallback, aiAvailable }: Narra
       {/* Header */}
       <div className="exec-header">
         <button
-          className="btn btn-sm btn-close float-end"
+          className="w-5 h-5 flex items-center justify-center rounded-full bg-surface-elevated hover:bg-glass-border transition-colors float-right"
           onClick={onClose}
           aria-label="Close"
-        />
+        >
+          <i className="bi bi-x text-muted-foreground text-sm" />
+        </button>
         <span className="exec-label">Executive Summary</span>
       </div>
 

@@ -591,12 +591,12 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                 <div className="oracle-flip-front" ref={frontRef}>
                     <div className="oracle-glass-inner p-3">
                     {/* Compact Header */}
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <div className="d-flex align-items-center gap-2">
-                            <span className="fw-bold">The Oracle</span>
+                    <div className="flex justify-between items-center mb-3">
+                        <div className="flex items-center gap-2">
+                            <span className="font-bold">The Oracle</span>
                             <span
-                                className="badge rounded-pill text-uppercase"
-                                style={{ fontSize: '0.6rem', ...badgeStyle }}
+                                className="inline-flex items-center rounded-full uppercase"
+                                style={{ fontSize: '0.6rem', padding: '0.2rem 0.5rem', ...badgeStyle }}
                             >
                                 {displayForecast.confidenceLevel}
                             </span>
@@ -606,8 +606,8 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                 </span>
                             )}
                         </div>
-                        <div className="d-flex align-items-center gap-2">
-                            <span className="text-muted" style={{ fontSize: '0.65rem' }}>
+                        <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground" style={{ fontSize: '0.65rem' }}>
                                 {displayForecast.debug.iterations} runs
                             </span>
                             <button
@@ -622,7 +622,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
 
                     {/* P50 - Main Prediction */}
                     <div
-                        className="text-center p-3 rounded-3 mb-3"
+                        className="text-center p-3 rounded-lg mb-3"
                         style={{
                             background: 'rgba(212, 163, 115, 0.1)',
                             borderLeft: '4px solid var(--color-accent-primary, #d4a373)'
@@ -630,7 +630,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     >
                         <div className="stat-label mb-1">Most Likely (P50)</div>
                         <div className="stat-value" style={{ fontSize: '1.5rem' }}>{p50Str}</div>
-                        <div className="text-muted small mt-1">
+                        <div className="text-muted-foreground text-sm mt-1">
                             {differenceInDays(displayForecast.p50Date, startDate)} days from today
                             {p50Delta !== null && p50Delta !== 0 && (
                                 <span style={{ color: p50Delta < 0 ? '#10b981' : '#ef4444', marginLeft: '6px' }}>
@@ -641,38 +641,39 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     </div>
 
                     {/* P10/P90 Range */}
-                    <div className="d-flex justify-content-between align-items-center text-center mb-3 px-2">
+                    <div className="flex justify-between items-center text-center mb-3 px-2">
                         <div>
-                            <div className="fw-bold" style={{ color: '#10b981', fontSize: '0.85rem' }}>{p10Str}</div>
-                            <div className="text-muted" style={{ fontSize: '0.65rem' }}>Optimistic</div>
+                            <div className="font-bold" style={{ color: '#10b981', fontSize: '0.85rem' }}>{p10Str}</div>
+                            <div className="text-muted-foreground" style={{ fontSize: '0.65rem' }}>Optimistic</div>
                         </div>
-                        <div className="flex-grow-1 mx-3 text-center">
-                            <div className="text-muted" style={{ fontSize: '0.65rem' }}>{rangeDays}d range</div>
+                        <div className="grow mx-3 text-center">
+                            <div className="text-muted-foreground" style={{ fontSize: '0.65rem' }}>{rangeDays}d range</div>
                             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.2)', marginTop: '2px' }}></div>
                         </div>
                         <div>
-                            <div className="fw-bold text-muted" style={{ fontSize: '0.85rem' }}>{p90Str}</div>
-                            <div className="text-muted" style={{ fontSize: '0.65rem' }}>Conservative</div>
+                            <div className="font-bold text-muted-foreground" style={{ fontSize: '0.85rem' }}>{p90Str}</div>
+                            <div className="text-muted-foreground" style={{ fontSize: '0.65rem' }}>Conservative</div>
                         </div>
                     </div>
 
                     {/* Capacity Comparison View */}
                     {capacityAwareForecast && capacityAwareForecast.capacity_constrained && (
                         <div
-                            className="mb-3 p-2 rounded-2"
+                            className="mb-3 p-2 rounded-lg"
                             style={{
                                 background: 'rgba(245, 158, 11, 0.1)',
                                 border: '1px solid rgba(245, 158, 11, 0.2)'
                             }}
                         >
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                <div className="d-flex align-items-center gap-2">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="flex items-center gap-2">
                                     <i className="bi bi-speedometer2" style={{ color: '#f59e0b' }}></i>
                                     <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Capacity Impact</span>
                                     <span
-                                        className="badge rounded-pill"
+                                        className="inline-flex items-center rounded-full"
                                         style={{
                                             fontSize: '0.55rem',
+                                            padding: '0.15rem 0.4rem',
                                             background: capacityAwareForecast.capacity_confidence === 'HIGH'
                                                 ? 'rgba(16, 185, 129, 0.15)'
                                                 : capacityAwareForecast.capacity_confidence === 'MED'
@@ -689,25 +690,24 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                     </span>
                                 </div>
                                 <button
-                                    className="btn btn-sm"
+                                    className="text-xs font-medium"
                                     style={{
                                         background: 'transparent',
                                         border: 'none',
                                         padding: '0',
-                                        color: showCapacityView ? '#d4a373' : '#94a3b8',
-                                        fontSize: '0.7rem'
+                                        color: showCapacityView ? '#d4a373' : '#94a3b8'
                                     }}
                                     onClick={() => setShowCapacityView(!showCapacityView)}
                                 >
                                     {showCapacityView ? 'Hide' : 'Details'}
-                                    <i className={`bi bi-chevron-${showCapacityView ? 'up' : 'down'} ms-1`}></i>
+                                    <i className={`bi bi-chevron-${showCapacityView ? 'up' : 'down'} ml-1`}></i>
                                 </button>
                             </div>
 
                             {/* Quick Summary */}
-                            <div className="d-flex justify-content-between align-items-center" style={{ fontSize: '0.75rem' }}>
+                            <div className="flex justify-between items-center" style={{ fontSize: '0.75rem' }}>
                                 <div>
-                                    <span className="text-muted">Pipeline-only: </span>
+                                    <span className="text-muted-foreground">Pipeline-only: </span>
                                     <span style={{ fontFamily: 'var(--font-mono)' }}>
                                         {format(capacityAwareForecast.pipeline_only.p50_date, 'MMM d')}
                                     </span>
@@ -716,7 +716,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                     <i className="bi bi-arrow-right mx-2" style={{ color: '#f59e0b' }}></i>
                                 </div>
                                 <div>
-                                    <span className="text-muted">With capacity: </span>
+                                    <span className="text-muted-foreground">With capacity: </span>
                                     <span style={{ fontFamily: 'var(--font-mono)', color: '#f59e0b' }}>
                                         {format(capacityAwareForecast.capacity_aware.p50_date, 'MMM d')}
                                     </span>
@@ -734,18 +734,19 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                     {/* Bottlenecks */}
                                     {capacityAwareForecast.capacity_bottlenecks.length > 0 && (
                                         <div className="mb-2">
-                                            <div className="text-muted mb-1" style={{ fontSize: '0.65rem' }}>Bottlenecks</div>
+                                            <div className="text-muted-foreground mb-1" style={{ fontSize: '0.65rem' }}>Bottlenecks</div>
                                             {capacityAwareForecast.capacity_bottlenecks.slice(0, 3).map((b, i) => (
                                                 <div
                                                     key={i}
-                                                    className="d-flex justify-content-between align-items-center mb-1"
+                                                    className="flex justify-between items-center mb-1"
                                                     style={{ fontSize: '0.7rem' }}
                                                 >
-                                                    <div className="d-flex align-items-center gap-1">
+                                                    <div className="flex items-center gap-1">
                                                         <span
-                                                            className="badge"
+                                                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                                                             style={{
                                                                 fontSize: '0.55rem',
+                                                                padding: '0.1rem 0.3rem',
                                                                 background: b.bottleneck_owner_type === 'hm'
                                                                     ? 'rgba(139, 92, 246, 0.15)'
                                                                     : 'rgba(59, 130, 246, 0.15)',
@@ -770,7 +771,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                     {capacityAwareForecast.capacity_reasons.length > 0 && (
                                         <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>
                                             {capacityAwareForecast.capacity_reasons.slice(0, 2).map((r, i) => (
-                                                <div key={i} className="d-flex align-items-start gap-1 mb-1">
+                                                <div key={i} className="flex items-start gap-1 mb-1">
                                                     <i
                                                         className={`bi ${r.impact === 'positive'
                                                             ? 'bi-check-circle-fill'
@@ -793,7 +794,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                         </div>
                                     )}
 
-                                    <div className="text-muted mt-2" style={{ fontSize: '0.6rem', fontStyle: 'italic' }}>
+                                    <div className="text-muted-foreground mt-2" style={{ fontSize: '0.6rem', fontStyle: 'italic' }}>
                                         Based on observed throughput over past 12 weeks
                                     </div>
                                 </div>
@@ -804,16 +805,15 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                     {/* What-If Toggle Button */}
                     {simulationParams && (
                         <button
-                            className="btn btn-sm w-100"
+                            className="px-3 py-1.5 text-sm font-medium rounded w-full"
                             style={{
                                 background: showLevers ? 'rgba(212, 163, 115, 0.15)' : 'transparent',
                                 border: `1px solid ${showLevers ? 'rgba(212, 163, 115, 0.4)' : 'rgba(255,255,255,0.15)'}`,
-                                color: showLevers ? '#d4a373' : '#94a3b8',
-                                fontSize: '0.75rem'
+                                color: showLevers ? '#d4a373' : '#94a3b8'
                             }}
                             onClick={() => setShowLevers(!showLevers)}
                         >
-                            <i className={`bi ${showLevers ? 'bi-chevron-up' : 'bi-sliders2'} me-1`}></i>
+                            <i className={`bi ${showLevers ? 'bi-chevron-up' : 'bi-sliders2'} mr-1`}></i>
                             {showLevers ? 'Hide What-If' : 'What-If Analysis'}
                         </button>
                     )}
@@ -824,17 +824,15 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                             className="pt-3 mt-2"
                             style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
                         >
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                <span className="text-muted small">Adjust levers to see impact</span>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-muted-foreground text-sm">Adjust levers to see impact</span>
                                 {hasAdjustments && (
                                     <button
-                                        className="btn btn-sm"
+                                        className="px-2 py-0.5 text-xs font-medium rounded"
                                         style={{
                                             background: 'transparent',
                                             border: '1px solid rgba(255,255,255,0.2)',
-                                            color: '#94a3b8',
-                                            fontSize: '0.65rem',
-                                            padding: '0.15rem 0.4rem'
+                                            color: '#94a3b8'
                                         }}
                                         onClick={resetLevers}
                                     >
@@ -844,9 +842,9 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                             </div>
 
                             {/* Two-column layout for sliders */}
-                            <div className="row g-3">
+                            <div className="grid grid-cols-12 gap-3">
                                 {/* Conversion Rates */}
-                                <div className="col-6">
+                                <div className="col-span-6">
                                     <div
                                         className="mb-3 pb-1 text-center"
                                         style={{
@@ -867,7 +865,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
 
                                         return (
                                             <div key={stage} className="mb-2">
-                                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                                <div className="flex justify-between items-center mb-1">
                                                     <span style={{ fontSize: '0.75rem' }}>{STAGE_LABELS[stage]}</span>
                                                     <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', minWidth: '50px', textAlign: 'right' }}>
                                                         <span style={{ color: adjustment !== 0 ? '#2dd4bf' : 'inherit' }}>{current.toFixed(0)}%</span>
@@ -880,7 +878,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                                 </div>
                                                 <input
                                                     type="range"
-                                                    className="form-range form-range-sm"
+                                                    className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-700"
                                                     min={-30}
                                                     max={30}
                                                     step={5}
@@ -897,7 +895,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                 </div>
 
                                 {/* Stage Durations */}
-                                <div className="col-6">
+                                <div className="col-span-6">
                                     <div
                                         className="mb-3 pb-1 text-center"
                                         style={{
@@ -921,7 +919,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
 
                                         return (
                                             <div key={stage} className="mb-2">
-                                                <div className="d-flex justify-content-between align-items-center mb-1">
+                                                <div className="flex justify-between items-center mb-1">
                                                     <span style={{ fontSize: '0.75rem' }}>{STAGE_LABELS[stage]}</span>
                                                     <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', minWidth: '50px', textAlign: 'right' }}>
                                                         <span style={{ color: pctChange !== 0 ? '#2dd4bf' : 'inherit' }}>{currentDays}d</span>
@@ -934,7 +932,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                                 </div>
                                                 <input
                                                     type="range"
-                                                    className="form-range form-range-sm"
+                                                    className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-gray-700"
                                                     min={-50}
                                                     max={50}
                                                     step={10}
@@ -954,7 +952,7 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                             {/* Impact Summary */}
                             {hasAdjustments && p50Delta !== null && p50Delta !== 0 && (
                                 <div
-                                    className="mt-3 p-2 rounded-2 text-center"
+                                    className="mt-3 p-2 rounded text-center"
                                     style={{
                                         background: p50Delta < 0 ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
                                         fontSize: '0.8rem'
@@ -962,12 +960,12 @@ export const OracleConfidenceWidget: React.FC<OracleConfidenceWidgetProps> = ({
                                 >
                                     {p50Delta < 0 ? (
                                         <span style={{ color: '#10b981' }}>
-                                            <i className="bi bi-arrow-down me-1"></i>
+                                            <i className="bi bi-arrow-down mr-1"></i>
                                             {Math.abs(p50Delta)} days faster
                                         </span>
                                     ) : (
                                         <span style={{ color: '#ef4444' }}>
-                                            <i className="bi bi-arrow-up me-1"></i>
+                                            <i className="bi bi-arrow-up mr-1"></i>
                                             {p50Delta} days slower
                                         </span>
                                     )}

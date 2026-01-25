@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './../dashboard-theme.css'; // Import bespoke theme
+import './../platovue-ui.css'; // Import PlatoVue V2 UI styles
 import { useDashboard, PersistenceProgress } from '../hooks/useDashboardContext';
 import { CSVUpload } from './CSVUpload';
 import { FilterBar } from './common/FilterBar';
@@ -380,7 +381,12 @@ export function ProductivityDashboard() {
       >
         <div className="mobile-menu-header">
           <h6 className="mb-0">Menu</h6>
-          <button className="btn-close" onClick={() => setShowMobileMenu(false)} />
+          <button className="text-white/60 hover:text-white" aria-label="Close" onClick={() => setShowMobileMenu(false)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
         <div className="mobile-menu-content">
           <button
@@ -423,7 +429,7 @@ export function ProductivityDashboard() {
             Back to Import
           </button>
           <button
-            className="mobile-menu-item text-danger"
+            className="mobile-menu-item text-bad"
             onClick={() => { setShowClearConfirm(true); setShowMobileMenu(false); }}
           >
             Clear Database
@@ -459,20 +465,25 @@ export function ProductivityDashboard() {
         />
       )}
 
-      <div className={`container-fluid ${isMobile ? 'py-2 px-2' : 'py-4'}`} style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
-      <div className={isMobile ? '' : 'container-xxl'}>
+      <div className={`w-full ${isMobile ? 'py-2 px-2' : 'py-4'}`} style={{ minHeight: '100vh', backgroundColor: '#0a0a0a' }}>
+      <div className={isMobile ? '' : 'max-w-screen-2xl mx-auto'}>
         {/* Mobile Menu Overlay - only show with legacy nav */}
         {isMobile && !showNewNav && <MobileMenu />}
 
         {/* Demo Mode Banner - mobile only (desktop uses inline chip) */}
         {isDemo && !demoDismissed && isMobile && (
           <div className="demo-banner demo-banner-mobile mb-2" role="alert">
-            <span className="small">⚠️ Demo Mode - Sample Data</span>
+            <span className="text-sm">⚠️ Demo Mode - Sample Data</span>
             <button
-              className="btn-close btn-close-sm ms-auto"
+              className="ml-auto text-white/60 hover:text-white"
+              aria-label="Dismiss demo banner"
               onClick={() => setDemoDismissed(true)}
-              style={{ fontSize: '0.6rem' }}
-            />
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
           </div>
         )}
 
@@ -489,27 +500,31 @@ export function ProductivityDashboard() {
           >
             {eventGenComplete ? (
               // Success completion state
-              <div className="p-3 d-flex align-items-center gap-3" style={{ color: '#ffffff' }}>
+              <div className="p-3 flex items-center gap-3" style={{ color: '#ffffff' }}>
                 <span style={{ fontSize: '1.5rem' }}>✅</span>
-                <div className="flex-grow-1">
+                <div className="grow">
                   <strong style={{ color: '#10b981' }}>Events Generated Successfully!</strong>
                   <div className="small" style={{ color: 'rgba(255,255,255,0.7)' }}>
                     Created {eventGenComplete.eventsGenerated.toLocaleString()} stage transition events from your candidate data.
                   </div>
                 </div>
                 <button
-                  className="btn-close"
+                  className="text-white/60 hover:text-white"
                   onClick={() => { setEventGenDismissed(true); setEventGenComplete(null); }}
                   title="Dismiss"
-                  style={{ filter: 'invert(1) grayscale(100%) brightness(200%)' }}
-                />
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
               </div>
             ) : isGeneratingEvents ? (
               // Fun animated progress UI
               <div className="p-4" style={{ color: '#ffffff' }}>
-                <div className="d-flex justify-content-between align-items-start mb-3">
+                <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h5 className="mb-1 d-flex align-items-center gap-2" style={{ color: '#ffffff' }}>
+                    <h5 className="mb-1 flex items-center gap-2" style={{ color: '#ffffff' }}>
                       <LogoSpinner size={24} />
                       {persistProgress?.phase === 'persisting' ? 'Saving to Database' : 'Generating Events'}
                     </h5>
@@ -517,25 +532,24 @@ export function ProductivityDashboard() {
                       {getCurrentMessage(persistProgress)}
                     </p>
                   </div>
-                  <span className="badge bg-warning text-dark fs-6">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-base font-medium bg-warn text-white">
                     {getTimeRemaining(persistProgress)}
                   </span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="progress mb-3" style={{ height: '12px', backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                <div className="h-3 rounded-full bg-white/10 mb-3">
                   <div
-                    className="progress-bar"
+                    className="h-3 rounded-full transition-all duration-300"
                     style={{
                       width: `${persistProgress ? (persistProgress.current / Math.max(persistProgress.total, 1)) * 100 : 0}%`,
-                      background: 'linear-gradient(90deg, #ffc107, #ff9800)',
-                      transition: 'width 0.3s ease'
+                      background: 'linear-gradient(90deg, #ffc107, #ff9800)'
                     }}
                   />
                 </div>
 
                 {/* Stats row */}
-                <div className="d-flex justify-content-between small" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                <div className="flex justify-between small" style={{ color: 'rgba(255,255,255,0.6)' }}>
                   <div>
                     <span style={{ color: '#ffffff', fontWeight: 'bold' }}>
                       {(persistProgress?.eventsGenerated || eventGenProgress?.eventsGenerated || 0).toLocaleString()}
@@ -567,26 +581,30 @@ export function ProductivityDashboard() {
               </div>
             ) : (
               // Static prompt to generate events
-              <div className="p-3 d-flex align-items-center gap-3">
+              <div className="p-3 flex items-center gap-3">
                 <span style={{ fontSize: '1.5rem' }}>⚡</span>
-                <div className="flex-grow-1">
+                <div className="grow">
                   <strong style={{ color: '#ffc107' }}>Events Not Generated</strong>
                   <div className="small" style={{ color: 'rgba(255,255,255,0.7)' }}>
                     Your data was imported without stage events. Generate events to enable HM Friction, Quality Guardrails, and activity tracking.
                   </div>
                 </div>
                 <button
-                  className="btn btn-warning btn-sm"
+                  className="px-3 py-1.5 text-xs font-medium rounded bg-warn text-white hover:bg-warn/90"
                   onClick={handleGenerateEvents}
                 >
                   Generate Events
                 </button>
                 <button
-                  className="btn-close"
+                  className="text-white/60 hover:text-white"
                   onClick={() => setEventGenDismissed(true)}
                   title="Dismiss"
-                  style={{ filter: 'invert(1) grayscale(100%) brightness(200%)' }}
-                />
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
               </div>
             )}
           </div>
@@ -594,7 +612,7 @@ export function ProductivityDashboard() {
 
         {/* Minimal Status Bar - Progress indicator + Demo chip */}
         {(state.loadingState.operations.length > 0 || (isDemo && !demoDismissed)) && (
-          <div className="d-flex align-items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-3">
             {state.loadingState.operations.length > 0 && (
               <ProgressPill
                 loadingState={state.loadingState}
@@ -611,7 +629,7 @@ export function ProductivityDashboard() {
 
         {/* Mobile Legacy Nav Hamburger - only show when using legacy nav */}
         {isMobile && !showNewNav && (
-          <div className="d-flex justify-content-end mb-2">
+          <div className="flex justify-end mb-2">
             <button
               className="btn"
               onClick={() => setShowMobileMenu(true)}
@@ -633,7 +651,7 @@ export function ProductivityDashboard() {
 
         {/* Error Display */}
         {state.error && (
-          <div className="alert alert-danger mb-3">
+          <div className="p-3 rounded-lg bg-bad/10 border border-bad/20 text-bad mb-3">
             {state.error}
           </div>
         )}
@@ -721,9 +739,9 @@ export function ProductivityDashboard() {
         </div>
 
         {/* Main Content */}
-        <div className="row g-4">
+        <div className="grid grid-cols-12 gap-4">
           {/* Main Area - Full width now that sidebar is removed */}
-          <div className="col-12">
+          <div className="col-span-12">
             {/* Desktop Tabs - hidden when new nav is active */}
             {!isMobile && !showNewNav && (
               <div className="nav-pills-bespoke mb-4">

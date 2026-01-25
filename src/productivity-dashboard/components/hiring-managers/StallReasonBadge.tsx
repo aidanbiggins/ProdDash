@@ -39,7 +39,7 @@ export function StallReasonBadge({ stallReason, showEvidence = false }: StallRea
     if (stallReason.code === StallReasonCode.NONE) {
         return (
             <span
-                className="badge"
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                 style={{ backgroundColor: colors.bg, color: colors.text }}
                 title={stallReason.explanation}
             >
@@ -50,17 +50,16 @@ export function StallReasonBadge({ stallReason, showEvidence = false }: StallRea
 
     return (
         <span
-            className="badge"
+            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium cursor-help"
             style={{
                 backgroundColor: colors.bg,
                 color: colors.text,
-                cursor: 'help'
             }}
             title={`${stallReason.explanation}\n\nEvidence: ${stallReason.evidence}`}
         >
             {label}
             {showEvidence && (
-                <small className="d-block" style={{ fontSize: '0.75em', opacity: 0.9 }}>
+                <small className="block" style={{ fontSize: '0.75em', opacity: 0.9 }}>
                     {stallReason.evidence}
                 </small>
             )}
@@ -85,16 +84,19 @@ const COMPACT_LABELS: Record<string, string> = {
 
 export function RiskFlagBadges({ flags, compact = false }: RiskFlagBadgesProps) {
     if (flags.length === 0) {
-        return <span className="text-muted small">—</span>;
+        return <span className="text-muted-foreground text-sm">—</span>;
     }
 
     return (
-        <div className="d-flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1">
             {flags.map(flag => (
                 <span
                     key={flag.code}
-                    className={`badge bg-${flag.severity}`}
-                    style={{ fontSize: '0.65rem' }}
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        flag.severity === 'danger' ? 'bg-red-500/15 text-red-400' :
+                        flag.severity === 'warning' ? 'bg-amber-500/15 text-amber-400' :
+                        'bg-blue-500/15 text-blue-400'
+                    }`}
                     title={flag.label}
                 >
                     {compact ? (COMPACT_LABELS[flag.code] || flag.label) : flag.label}

@@ -19,7 +19,7 @@ function ConfidenceBadge({ confidence }: { confidence: ConfidenceLevel }) {
   }[confidence];
 
   return (
-    <span className="badge" style={{ background: styles.bg, color: styles.color }}>
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style={{ background: styles.bg, color: styles.color }}>
       {confidence}
     </span>
   );
@@ -48,37 +48,37 @@ function MetricRow({
 
   return (
     <div className="border rounded p-2 mb-2" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-      <div className="d-flex justify-content-between mb-2">
-        <span className="fw-medium">{label}</span>
-        <span className="small text-muted">weight: {(weight * 100).toFixed(0)}%</span>
+      <div className="flex justify-between mb-2">
+        <span className="font-medium">{label}</span>
+        <span className="text-sm text-muted-foreground">weight: {(weight * 100).toFixed(0)}%</span>
       </div>
 
-      <div className="row g-2 small">
-        <div className="col-4 text-center">
-          <div className="text-muted">Observed</div>
-          <div className="fw-bold">{typeof value === 'number' ? value.toFixed(2) : value}</div>
+      <div className="grid grid-cols-3 gap-2 text-sm">
+        <div className="text-center">
+          <div className="text-muted-foreground">Observed</div>
+          <div className="font-bold">{typeof value === 'number' ? value.toFixed(2) : value}</div>
         </div>
-        <div className="col-4 text-center">
-          <div className="text-muted">Expected</div>
+        <div className="text-center">
+          <div className="text-muted-foreground">Expected</div>
           <div>{typeof expected === 'number' ? expected.toFixed(2) : expected}</div>
         </div>
-        <div className="col-4 text-center">
-          <div className="text-muted">Delta</div>
+        <div className="text-center">
+          <div className="text-muted-foreground">Delta</div>
           <div style={{ color: isPositive ? '#34d399' : '#f87171' }}>
             {percentChange > 0 ? '+' : ''}{percentChange.toFixed(0)}%
           </div>
         </div>
       </div>
 
-      <div className="mt-2 pt-2 border-top" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <div className="row small">
-          <div className="col-6">
-            <span className="text-muted">After shrinkage (n={sampleSize}):</span>
-            <span className="ms-1">{residual.toFixed(3)}</span>
+      <div className="mt-2 pt-2 border-t border-glass-border" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+        <div className="grid grid-cols-2 text-sm">
+          <div>
+            <span className="text-muted-foreground">After shrinkage (n={sampleSize}):</span>
+            <span className="ml-1">{residual.toFixed(3)}</span>
           </div>
-          <div className="col-6 text-end">
-            <span className="text-muted">Contribution:</span>
-            <span className="ms-1" style={{ color: contribution > 0 ? '#34d399' : contribution < 0 ? '#f87171' : '#94a3b8' }}>
+          <div className="text-right">
+            <span className="text-muted-foreground">Contribution:</span>
+            <span className="ml-1" style={{ color: contribution > 0 ? '#34d399' : contribution < 0 ? '#f87171' : '#94a3b8' }}>
               {contribution > 0 ? '+' : ''}{contribution.toFixed(3)}
             </span>
           </div>
@@ -110,14 +110,14 @@ export function FitExplainDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="glass-backdrop position-fixed top-0 start-0 w-100 h-100"
+        className="glass-backdrop fixed top-0 left-0 w-full h-full"
         style={{ zIndex: 1040 }}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className="glass-drawer position-fixed top-0 end-0 h-100"
+        className="glass-drawer fixed top-0 right-0 h-full"
         style={{
           width: '450px',
           maxWidth: '90vw',
@@ -126,15 +126,15 @@ export function FitExplainDrawer({
         }}
       >
         <div className="glass-drawer-header p-3">
-          <div className="d-flex justify-content-between align-items-start">
+          <div className="flex justify-between items-start">
             <div>
               <h5 className="mb-1">
                 Why is {cell.recruiterName} {fitLabel.toLowerCase()} for this segment?
               </h5>
-              <div className="small text-muted">{cell.segmentString}</div>
+              <div className="text-sm text-muted-foreground">{cell.segmentString}</div>
             </div>
             <button
-              className="btn btn-sm btn-link text-muted p-0"
+              className="text-sm text-muted-foreground p-0 hover:text-white transition-colors"
               onClick={onClose}
             >
               <i className="bi bi-x-lg"></i>
@@ -145,19 +145,19 @@ export function FitExplainDrawer({
         <div className="p-3">
           {/* FitScore Summary */}
           <div className="text-center p-3 rounded mb-4" style={{ background: `${fitColor}15` }}>
-            <div className="small text-muted">FitScore</div>
-            <div className="display-6" style={{ color: fitColor }}>
+            <div className="text-sm text-muted-foreground">FitScore</div>
+            <div className="text-4xl font-bold" style={{ color: fitColor }}>
               {cell.fitScore > 0 ? '+' : ''}{cell.fitScore.toFixed(2)}
             </div>
-            <div className="d-flex justify-content-center align-items-center gap-2 mt-1">
+            <div className="flex justify-center items-center gap-2 mt-1">
               <ConfidenceBadge confidence={cell.confidence} />
-              <span className="small text-muted">n={cell.sampleSize}</span>
+              <span className="text-sm text-muted-foreground">n={cell.sampleSize}</span>
             </div>
           </div>
 
           {/* Metric Breakdown */}
           <h6 className="mb-3">
-            <i className="bi bi-bar-chart me-2"></i>
+            <i className="bi bi-bar-chart mr-2"></i>
             Metric Breakdown
           </h6>
 
@@ -200,10 +200,10 @@ export function FitExplainDrawer({
 
           {/* Shrinkage Explanation */}
           <h6 className="mt-4 mb-3">
-            <i className="bi bi-info-circle me-2"></i>
+            <i className="bi bi-info-circle mr-2"></i>
             About Shrinkage
           </h6>
-          <div className="alert alert-light small" style={{
+          <div className="p-3 rounded-lg text-sm" style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.1)',
             color: '#94a3b8'
@@ -223,12 +223,12 @@ export function FitExplainDrawer({
 
           {/* Confidence Caveat */}
           {cell.confidence !== 'HIGH' && (
-            <div className="alert alert-warning small" style={{
+            <div className="p-3 rounded-lg text-sm" style={{
               background: 'rgba(245, 158, 11, 0.15)',
               border: '1px solid rgba(245, 158, 11, 0.3)',
               color: '#fbbf24'
             }}>
-              <i className="bi bi-exclamation-triangle me-1"></i>
+              <i className="bi bi-exclamation-triangle mr-1"></i>
               Sample size of {cell.sampleSize} is below HIGH confidence threshold.
               Interpret with appropriate caution.
             </div>

@@ -107,7 +107,7 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
                 width: '100px',
                 sortable: true,
                 hidden: !showHmColumn,
-                render: (r) => <span className="text-truncate d-block" style={{ maxWidth: '90px' }} title={r.hmName}>{r.hmName}</span>
+                render: (r) => <span className="truncate block" style={{ maxWidth: '90px' }} title={r.hmName}>{r.hmName}</span>
             },
             {
                 key: 'function',
@@ -151,7 +151,7 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
                 sortable: true,
                 render: (r) => r.pipelineDepth < 3
                     ? <span className="badge-bespoke badge-danger-soft">{r.pipelineDepth}</span>
-                    : <span className="fw-semibold">{r.pipelineDepth}</span>
+                    : <span className="font-semibold">{r.pipelineDepth}</span>
             }
         ];
 
@@ -185,7 +185,7 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
                 headerClass: 'border-start',
                 cellClass: 'border-start',
                 render: (r) => r.forecast?.likelyDate
-                    ? <span className="fw-semibold">{new Date(r.forecast.likelyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                    ? <span className="font-semibold">{new Date(r.forecast.likelyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                     : <span className="cell-muted">—</span>
             },
             {
@@ -209,13 +209,13 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
 
     return (
         <div className="card-bespoke animate-fade-in">
-            <div className="card-header d-flex justify-content-between align-items-center">
+            <div className="card-header flex justify-between items-center">
                 <h6 className="mb-0">Open Requisitions Scorecard</h6>
-                <div className="d-flex gap-2 align-items-center">
+                <div className="flex gap-2 items-center">
                     <span className="badge-bespoke badge-neutral-soft">{sortedRollups.length} reqs</span>
                     <input
                         type="text"
-                        className="form-control form-control-sm"
+                        className="px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
                         placeholder="Search reqs..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}

@@ -49,16 +49,16 @@ export function ImportProgressModal({
     const phaseColor = progress.phase === 'parsing' ? '#3b82f6' : '#10b981';
 
     return (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}>
-            <div className="modal-dialog modal-dialog-centered">
-                <div className="modal-content" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div className="modal-header" style={{ background: 'rgba(59, 130, 246, 0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                        <h5 className="modal-title" style={{ color: '#ffffff' }}>
-                            <i className="bi bi-cloud-upload me-2" style={{ color: phaseColor }}></i>
+        <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}>
+            <div className="w-full max-w-lg mx-4">
+                <div className="rounded-lg" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div className="p-4 rounded-t-lg" style={{ background: 'rgba(59, 130, 246, 0.2)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                        <h5 className="text-lg font-medium" style={{ color: '#ffffff' }}>
+                            <i className="bi bi-cloud-upload mr-2" style={{ color: phaseColor }}></i>
                             Importing Data
                         </h5>
                     </div>
-                    <div className="modal-body">
+                    <div className="p-4">
                         <div className="text-center py-3">
                             {/* Progress ring */}
                             <div className="mb-4">
@@ -151,7 +151,7 @@ export function ImportProgressModal({
 
                             {/* Step progress indicators */}
                             {progress.phase === 'persisting' && (
-                                <div className="d-flex justify-content-center gap-3 mt-4">
+                                <div className="flex justify-center gap-3 mt-4">
                                     {['Users', 'Requisitions', 'Candidates', 'Events'].map((table, idx) => {
                                         const stepNum = idx + 1;
                                         const isComplete = stepNum < progress.step ||

@@ -54,7 +54,7 @@ function SeverityBadge({ severity }: { severity: 'P0' | 'P1' | 'P2' }) {
 
   return (
     <span
-      className="badge font-mono"
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono"
       style={{ background: style.bg, color: style.color }}
     >
       {severity} · {style.label}
@@ -67,14 +67,12 @@ function CitationBadge({ citation }: { citation: string }) {
   const label = getCitationLabel(citation);
   return (
     <span
-      className="badge"
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mr-1 mb-1"
       style={{
         background: 'rgba(96, 165, 250, 0.1)',
         color: '#60a5fa',
         fontSize: '0.65rem',
-        fontWeight: 500,
-        marginRight: '0.25rem',
-        marginBottom: '0.25rem'
+        fontWeight: 500
       }}
       title={citation}  // Show technical path on hover for debugging
     >
@@ -99,7 +97,7 @@ function CitationsDisplay({
     // Show collapsed summary with click to expand
     return (
       <button
-        className="btn btn-link p-0 ms-2"
+        className="text-primary hover:text-accent-hover underline p-0 ml-2 bg-transparent border-0"
         onClick={onViewEvidence}
         style={{
           fontSize: '0.7rem',
@@ -109,7 +107,7 @@ function CitationsDisplay({
         }}
         title="Click to see evidence"
       >
-        <i className="bi bi-database me-1" style={{ fontSize: '0.6rem' }}></i>
+        <i className="bi bi-database mr-1" style={{ fontSize: '0.6rem' }}></i>
         {getCitationsSummary(citations)}
       </button>
     );
@@ -117,7 +115,7 @@ function CitationsDisplay({
 
   // Show inline badges for 1-3 citations
   return (
-    <span className="ms-2 d-inline-flex flex-wrap align-items-center gap-1">
+    <span className="ml-2 inline-flex flex-wrap items-center gap-1">
       {citations.map((citation, idx) => (
         <CitationBadge key={idx} citation={citation} />
       ))}
@@ -151,11 +149,11 @@ function AIInsightCard({
       style={{ borderLeft: `3px solid ${borderColor}` }}
     >
       {/* Header row with severity, title, and mini chart */}
-      <div className="d-flex align-items-start justify-content-between gap-3 mb-2">
-        <div className="flex-grow-1">
-          <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="grow">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <SeverityBadge severity={insight.severity} />
-            <span className="fw-semibold" style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+            <span className="font-semibold" style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>
               {insight.title}
             </span>
           </div>
@@ -167,7 +165,7 @@ function AIInsightCard({
 
         {/* Mini chart on the right */}
         {chartData.type !== 'none' && (
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <MiniChart data={chartData} width={140} height={55} />
           </div>
         )}
@@ -184,33 +182,33 @@ function AIInsightCard({
       </p>
 
       {/* Action Buttons */}
-      <div className="d-flex gap-2 flex-wrap align-items-center">
+      <div className="flex gap-2 flex-wrap items-center">
         <button
-          className="btn btn-sm btn-bespoke-secondary"
+          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
           onClick={() => onCreateAction(insight)}
           disabled={isActionCreated}
           style={isActionCreated ? { opacity: 0.5 } : {}}
           data-testid="create-action-btn"
         >
-          <i className={`bi ${isActionCreated ? 'bi-check-circle' : 'bi-plus-circle'} me-1`}></i>
+          <i className={`bi ${isActionCreated ? 'bi-check-circle' : 'bi-plus-circle'} mr-1`}></i>
           {isActionCreated ? 'Added' : 'Action'}
         </button>
 
         <button
-          className="btn btn-sm btn-bespoke-secondary"
+          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
           onClick={() => onDraftMessage(insight)}
           data-testid="draft-message-btn"
         >
-          <i className="bi bi-chat-text me-1"></i>
+          <i className="bi bi-chat-text mr-1"></i>
           Draft
         </button>
 
         <button
-          className="btn btn-sm btn-bespoke-secondary"
+          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
           onClick={() => onViewEvidence(insight)}
           data-testid="view-evidence-btn"
         >
-          <i className="bi bi-eye me-1"></i>
+          <i className="bi bi-eye mr-1"></i>
           Evidence
         </button>
 
@@ -242,7 +240,7 @@ function DraftMessageModal({
 
   return (
     <div
-      className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+      className="fixed top-0 left-0 w-full h-full flex items-center justify-center"
       style={{ background: 'rgba(0,0,0,0.7)', zIndex: 1060 }}
       onClick={onClose}
     >
@@ -257,12 +255,11 @@ function DraftMessageModal({
         onClick={e => e.stopPropagation()}
       >
         <SectionHeader
-          title={<><i className="bi bi-chat-text me-2"></i>Draft Message</>}
+          title={<><i className="bi bi-chat-text mr-2"></i>Draft Message</>}
           actions={
             <button
-              className="btn btn-sm"
+              className="px-3 py-1.5 text-xs text-muted-foreground"
               onClick={onClose}
-              style={{ color: 'var(--color-text-secondary)' }}
             >
               <i className="bi bi-x-lg"></i>
             </button>
@@ -310,10 +307,10 @@ function DraftMessageModal({
             </div>
 
             <button
-              className="btn btn-bespoke-primary w-100"
+              className="w-full px-4 py-2 bg-accent text-white rounded hover:bg-accent/90"
               onClick={() => navigator.clipboard.writeText(draftMessage.body)}
             >
-              <i className="bi bi-clipboard me-2"></i>
+              <i className="bi bi-clipboard mr-2"></i>
               Copy to Clipboard
             </button>
           </>
@@ -506,8 +503,8 @@ export function VelocityCopilotPanel({
   return (
     <div className="glass-panel p-3 mb-4" data-testid="velocity-copilot-panel">
       {/* Simplified Header - one line, no redundancy */}
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <div className="d-flex align-items-center gap-2">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
           <span
             className={isLoading ? 'ai-enabled-glow' : ''}
             style={{
@@ -533,23 +530,23 @@ export function VelocityCopilotPanel({
           </h6>
         </div>
 
-        <div className="d-flex gap-2">
+        <div className="flex gap-2">
           {isLoading ? (
             <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-              <span className="spinner-border spinner-border-sm me-1" role="status" />
+              <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin inline-block mr-1" role="status" />
               Analyzing...
             </span>
           ) : (
             <>
               <button
-                className="btn btn-sm btn-link p-0"
+                className="p-0 bg-transparent border-0 hover:underline text-xs"
                 onClick={handleGenerateAI}
                 disabled={!hasAI}
                 title={hasAI ? 'Regenerate with AI' : 'Configure AI key in Settings'}
-                style={{ color: hasAI ? 'var(--accent)' : 'var(--text-muted)', fontSize: '0.75rem' }}
+                style={{ color: hasAI ? 'var(--accent)' : 'var(--text-muted)' }}
                 data-testid="generate-ai-btn"
               >
-                <i className="bi bi-arrow-clockwise me-1"></i>
+                <i className="bi bi-arrow-clockwise mr-1"></i>
                 Refresh
               </button>
             </>
@@ -559,8 +556,8 @@ export function VelocityCopilotPanel({
 
       {/* Error state */}
       {error && (
-        <div className="alert alert-danger mb-3">
-          <i className="bi bi-exclamation-triangle me-2"></i>
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 mb-3">
+          <i className="bi bi-exclamation-triangle mr-2"></i>
           {error}
         </div>
       )}
@@ -572,23 +569,23 @@ export function VelocityCopilotPanel({
           <p className="mt-2 mb-2" style={{ fontSize: '0.85rem' }}>
             Analyze your velocity data
           </p>
-          <div className="d-flex gap-2 justify-content-center">
+          <div className="flex gap-2 justify-center">
             {hasAI && (
               <button
-                className="btn btn-sm btn-bespoke-primary"
+                className="px-3 py-1.5 text-xs bg-accent text-white rounded hover:bg-accent/90"
                 onClick={handleGenerateAI}
                 data-testid="generate-ai-empty-btn"
               >
-                <i className="bi bi-stars me-1"></i>
+                <i className="bi bi-stars mr-1"></i>
                 AI Analysis
               </button>
             )}
             <button
-              className="btn btn-sm btn-bespoke-secondary"
+              className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
               onClick={handleGenerateDeterministic}
               data-testid="generate-deterministic-btn"
             >
-              <i className="bi bi-calculator me-1"></i>
+              <i className="bi bi-calculator mr-1"></i>
               Quick Analysis
             </button>
           </div>

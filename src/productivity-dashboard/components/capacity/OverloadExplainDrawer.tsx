@@ -14,27 +14,27 @@ interface OverloadExplainDrawerProps {
 function WorkloadBreakdownRow({ req }: { req: ReqWithWorkload }) {
   return (
     <div className="border rounded p-2 mb-2" style={{ borderColor: 'rgba(255,255,255,0.1)', fontSize: '0.85rem' }}>
-      <div className="d-flex justify-content-between mb-1">
-        <span className="fw-medium">{req.reqTitle}</span>
+      <div className="flex justify-between mb-1">
+        <span className="font-medium">{req.reqTitle}</span>
         <span className="badge-bespoke badge-primary-soft">
           {req.workloadScore.toFixed(1)} WU
         </span>
       </div>
-      <div className="row g-1 small text-muted">
-        <div className="col-6">
-          <i className="bi bi-bar-chart-steps me-1"></i>
+      <div className="grid grid-cols-2 gap-1 text-sm text-muted-foreground">
+        <div>
+          <i className="bi bi-bar-chart-steps mr-1"></i>
           Base: {req.components.baseDifficulty.toFixed(2)}
         </div>
-        <div className="col-6">
-          <i className="bi bi-funnel me-1"></i>
+        <div>
+          <i className="bi bi-funnel mr-1"></i>
           Remaining: {(req.components.remainingWork * 100).toFixed(0)}%
         </div>
-        <div className="col-6">
-          <i className="bi bi-person-badge me-1"></i>
+        <div>
+          <i className="bi bi-person-badge mr-1"></i>
           HM Friction: {req.components.frictionMultiplier.toFixed(2)}x
         </div>
-        <div className="col-6">
-          <i className="bi bi-clock-history me-1"></i>
+        <div>
+          <i className="bi bi-clock-history mr-1"></i>
           Aging: {req.components.agingMultiplier.toFixed(2)}x ({req.reqAgeDays}d)
         </div>
       </div>
@@ -63,14 +63,14 @@ export function OverloadExplainDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="glass-backdrop position-fixed top-0 start-0 w-100 h-100"
+        className="glass-backdrop fixed top-0 left-0 w-full h-full"
         style={{ zIndex: 1040 }}
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className="glass-drawer position-fixed top-0 end-0 h-100"
+        className="glass-drawer fixed top-0 right-0 h-full"
         style={{
           width: '450px',
           maxWidth: '90vw',
@@ -79,12 +79,12 @@ export function OverloadExplainDrawer({
         }}
       >
         <div className="glass-drawer-header p-3">
-          <div className="d-flex justify-content-between align-items-start">
+          <div className="flex justify-between items-start">
             <h5 className="mb-0">
               Why is {recruiterLoad.recruiterName} overloaded?
             </h5>
             <button
-              className="btn btn-sm btn-link text-muted p-0"
+              className="text-sm text-muted-foreground p-0 hover:text-white transition-colors"
               onClick={onClose}
             >
               <i className="bi bi-x-lg"></i>
@@ -94,25 +94,25 @@ export function OverloadExplainDrawer({
 
         <div className="p-3">
           {/* Summary Stats */}
-          <div className="row g-2 mb-4">
-            <div className="col-4">
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div>
               <div className="text-center p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <div className="small text-muted">Demand</div>
-                <div className="fw-bold" style={{ color: statusColor }}>
+                <div className="text-sm text-muted-foreground">Demand</div>
+                <div className="font-bold" style={{ color: statusColor }}>
                   {recruiterLoad.demandWU} WU
                 </div>
               </div>
             </div>
-            <div className="col-4">
+            <div>
               <div className="text-center p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <div className="small text-muted">Capacity</div>
-                <div className="fw-bold">{recruiterLoad.capacityWU} WU</div>
+                <div className="text-sm text-muted-foreground">Capacity</div>
+                <div className="font-bold">{recruiterLoad.capacityWU} WU</div>
               </div>
             </div>
-            <div className="col-4">
+            <div>
               <div className="text-center p-2 rounded" style={{ background: `${statusColor}15` }}>
-                <div className="small text-muted">Utilization</div>
-                <div className="fw-bold" style={{ color: statusColor }}>
+                <div className="text-sm text-muted-foreground">Utilization</div>
+                <div className="font-bold" style={{ color: statusColor }}>
                   {Math.round(recruiterLoad.utilization * 100)}%
                 </div>
               </div>
@@ -121,7 +121,7 @@ export function OverloadExplainDrawer({
 
           {/* Workload Breakdown */}
           <h6 className="mb-3">
-            <i className="bi bi-list-ul me-2"></i>
+            <i className="bi bi-list-ul mr-2"></i>
             Workload Breakdown ({recruiterReqs.length} reqs)
           </h6>
 
@@ -130,17 +130,17 @@ export function OverloadExplainDrawer({
           ))}
 
           {recruiterReqs.length > 10 && (
-            <div className="text-muted small text-center mt-2">
+            <div className="text-muted-foreground text-sm text-center mt-2">
               + {recruiterReqs.length - 10} more reqs
             </div>
           )}
 
           {/* Capacity Derivation */}
           <h6 className="mt-4 mb-3">
-            <i className="bi bi-calculator me-2"></i>
+            <i className="bi bi-calculator mr-2"></i>
             Capacity Calculation
           </h6>
-          <div className="alert alert-light small" style={{
+          <div className="p-3 rounded-lg text-sm" style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.1)',
             color: '#94a3b8'
@@ -148,7 +148,7 @@ export function OverloadExplainDrawer({
             <div>
               <strong>Sustainable Capacity:</strong> {recruiterLoad.capacityWU} WU
             </div>
-            <div className="mt-1 text-muted">
+            <div className="mt-1 text-muted-foreground">
               {recruiterLoad.confidence === 'HIGH'
                 ? 'Based on historical stable weeks (HIGH confidence)'
                 : recruiterLoad.confidence === 'MED'
@@ -161,10 +161,10 @@ export function OverloadExplainDrawer({
           {recruiterLoad.utilization > 1.1 && (
             <>
               <h6 className="mt-4 mb-3">
-                <i className="bi bi-lightbulb me-2"></i>
+                <i className="bi bi-lightbulb mr-2"></i>
                 Recommendations
               </h6>
-              <ul className="small text-muted">
+              <ul className="text-sm text-muted-foreground">
                 <li className="mb-1">
                   Consider redistributing high-WU reqs to available recruiters
                 </li>

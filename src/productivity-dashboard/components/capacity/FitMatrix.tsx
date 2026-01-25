@@ -34,7 +34,7 @@ function ConfidenceDots({ confidence }: { confidence: ConfidenceLevel }) {
   }[confidence];
 
   return (
-    <span className="ms-1" style={{ opacity: 0.7 }}>
+    <span className="ml-1" style={{ opacity: 0.7 }}>
       {'●'.repeat(dots)}{'○'.repeat(3 - dots)}
     </span>
   );
@@ -117,14 +117,14 @@ export function FitMatrix({ cells, onCellClick }: FitMatrixProps) {
       <div className="card-bespoke">
         <div className="card-header">
           <h6 className="mb-0">
-            <i className="bi bi-grid me-2"></i>
+            <i className="bi bi-grid mr-2"></i>
             Recruiter Fit by Segment
           </h6>
         </div>
-        <div className="card-body text-center py-4 text-muted">
+        <div className="card-body text-center py-4 text-muted-foreground">
           <i className="bi bi-grid" style={{ fontSize: '2rem' }}></i>
           <div className="mt-2">Insufficient data for fit analysis</div>
-          <div className="small">Need at least {CAPACITY_CONSTANTS.MIN_N_FOR_FIT_CELL} observations per segment</div>
+          <div className="text-sm">Need at least {CAPACITY_CONSTANTS.MIN_N_FOR_FIT_CELL} observations per segment</div>
         </div>
       </div>
     );
@@ -132,27 +132,27 @@ export function FitMatrix({ cells, onCellClick }: FitMatrixProps) {
 
   return (
     <div className="card-bespoke">
-      <div className="card-header d-flex justify-content-between align-items-center">
+      <div className="card-header flex justify-between items-center">
         <h6 className="mb-0">
-          <i className="bi bi-grid me-2"></i>
+          <i className="bi bi-grid mr-2"></i>
           Recruiter Fit by Segment
         </h6>
-        <div className="form-check form-switch">
+        <div className="flex items-center gap-2">
           <input
-            className="form-check-input"
+            className="w-4 h-4 rounded"
             type="checkbox"
             id="showAllFit"
             checked={showAll}
             onChange={(e) => setShowAll(e.target.checked)}
           />
-          <label className="form-check-label small text-muted" htmlFor="showAllFit">
+          <label className="text-sm text-muted-foreground" htmlFor="showAllFit">
             Show low confidence
           </label>
         </div>
       </div>
       <div className="card-body p-0">
-        <div className="table-responsive">
-          <table className="table table-sm mb-0" style={{ fontSize: '0.8rem' }}>
+        <div className="overflow-x-auto">
+          <table className="w-full mb-0 text-sm">
             <thead>
               <tr>
                 <th style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -200,12 +200,12 @@ export function FitMatrix({ cells, onCellClick }: FitMatrixProps) {
           </table>
         </div>
       </div>
-      <div className="card-footer small text-muted">
-        <div className="d-flex justify-content-between align-items-center">
+      <div className="card-footer text-sm text-muted-foreground">
+        <div className="flex justify-between items-center">
           <div>
             Legend: ●●● HIGH, ●●○ MED, ●○○ LOW, — insufficient
           </div>
-          <div className="d-flex gap-3">
+          <div className="flex gap-3">
             <span><span style={{ color: FIT_COLORS.strong }}>■</span> Strong (+0.3+)</span>
             <span><span style={{ color: FIT_COLORS.good }}>■</span> Good (+0.1)</span>
             <span><span style={{ color: FIT_COLORS.neutral }}>■</span> Neutral</span>

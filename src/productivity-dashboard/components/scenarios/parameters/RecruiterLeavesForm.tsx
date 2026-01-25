@@ -73,12 +73,12 @@ export default function RecruiterLeavesForm({
 
   return (
     <form onSubmit={handleSubmit} className="scenario-form">
-      <div className="row g-3">
+      <div className="grid grid-cols-12 gap-3">
         {/* Recruiter Selection */}
-        <div className="col-md-6">
-          <label className="form-label">Departing Recruiter</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Departing Recruiter</label>
           <select
-            className="form-select"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
             value={recruiterId}
             onChange={e => setRecruiterId(e.target.value)}
             required
@@ -91,31 +91,31 @@ export default function RecruiterLeavesForm({
             ))}
           </select>
           {selectedRecruiter && (
-            <small className="text-secondary">
+            <small className="text-muted-foreground">
               Current workload: {selectedRecruiter.demand_wu} WU
             </small>
           )}
         </div>
 
         {/* Departure Date */}
-        <div className="col-md-6">
-          <label className="form-label">Departure Date</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Departure Date</label>
           <input
             type="date"
-            className="form-control"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
             value={departureDate}
             onChange={e => setDepartureDate(e.target.value)}
             min={new Date().toISOString().split('T')[0]}
             required
           />
-          <small className="text-secondary">
+          <small className="text-muted-foreground">
             {daysUntilDeparture > 0 ? `${daysUntilDeparture} days from now` : 'Select a future date'}
           </small>
         </div>
 
         {/* Reassignment Strategy */}
-        <div className="col-12">
-          <label className="form-label">Reassignment Strategy</label>
+        <div className="col-span-12">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Reassignment Strategy</label>
           <div className="strategy-options">
             {REASSIGNMENT_STRATEGIES.map(strategy => (
               <div
@@ -123,18 +123,18 @@ export default function RecruiterLeavesForm({
                 className={`strategy-option ${reassignmentStrategy === strategy.value ? 'selected' : ''}`}
                 onClick={() => setReassignmentStrategy(strategy.value)}
               >
-                <div className="d-flex align-items-center">
+                <div className="flex items-center">
                   <input
                     type="radio"
                     name="strategy"
                     value={strategy.value}
                     checked={reassignmentStrategy === strategy.value}
                     onChange={() => setReassignmentStrategy(strategy.value)}
-                    className="me-2"
+                    className="mr-2"
                   />
                   <div>
                     <strong>{strategy.label}</strong>
-                    <p className="mb-0 text-secondary small">{strategy.description}</p>
+                    <p className="mb-0 text-muted-foreground text-sm">{strategy.description}</p>
                   </div>
                 </div>
               </div>
@@ -144,9 +144,9 @@ export default function RecruiterLeavesForm({
 
         {/* Warning for short timeline */}
         {daysUntilDeparture > 0 && daysUntilDeparture < 7 && (
-          <div className="col-12">
-            <div className="alert alert-warning mb-0">
-              <i className="bi bi-exclamation-triangle me-2" />
+          <div className="col-span-12">
+            <div className="p-3 rounded-lg bg-yellow-500/10 text-yellow-400 mb-0">
+              <i className="bi bi-exclamation-triangle mr-2" />
               <strong>Short Timeline:</strong> Only {daysUntilDeparture} days until departure.
               Consider extending the date for smoother knowledge transfer.
             </div>
@@ -155,9 +155,9 @@ export default function RecruiterLeavesForm({
 
         {/* Selected recruiter preview */}
         {selectedRecruiter && (
-          <div className="col-12">
-            <div className="alert alert-info mb-0">
-              <i className="bi bi-info-circle me-2" />
+          <div className="col-span-12">
+            <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400 mb-0">
+              <i className="bi bi-info-circle mr-2" />
               <strong>Impact Preview:</strong> Recruiter {recruiters.findIndex(r => r.recruiter_id === recruiterId) + 1}'s
               workload ({selectedRecruiter.demand_wu} WU) will be redistributed among {recruiters.length - 1} remaining recruiters.
             </div>
@@ -168,17 +168,17 @@ export default function RecruiterLeavesForm({
       <div className="mt-4">
         <button
           type="submit"
-          className="btn btn-primary"
+          className="px-4 py-2 rounded-md bg-accent-primary text-white font-medium hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isRunning || !recruiterId || daysUntilDeparture <= 0}
         >
           {isRunning ? (
             <>
-              <span className="spinner-border spinner-border-sm me-2" />
+              <span className="inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
               Running...
             </>
           ) : (
             <>
-              <i className="bi bi-play-fill me-2" />
+              <i className="bi bi-play-fill mr-2" />
               Run Scenario
             </>
           )}

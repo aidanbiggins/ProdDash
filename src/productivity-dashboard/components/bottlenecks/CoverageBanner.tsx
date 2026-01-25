@@ -110,19 +110,13 @@ export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshot
 
   return (
     <div
-      className="coverage-banner"
+      className="coverage-banner flex items-center justify-between p-3 mb-4 rounded-lg"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 'var(--space-3) var(--space-4)',
         background: styles.bgColor,
         border: `1px solid ${styles.borderColor}`,
-        borderRadius: 'var(--radius-lg)',
-        marginBottom: 'var(--space-4)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+      <div className="flex items-center gap-3">
         <i
           className={`bi ${styles.iconClass}`}
           style={{ color: styles.textColor, fontSize: '1.25rem' }}
@@ -150,16 +144,9 @@ export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshot
       </div>
 
       {/* Coverage details (right side) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+      <div className="flex items-center gap-4">
         {coverage.snapshot_count > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 'var(--space-4)',
-              fontSize: 'var(--text-xs)',
-              color: 'var(--text-secondary)',
-            }}
-          >
+          <div className="flex gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
             <span>
               <strong>{coverage.snapshot_count}</strong> snapshots
             </span>
@@ -173,19 +160,14 @@ export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshot
         )}
 
         {(status === 'insufficient' || status === 'no_data') && (
-          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+          <div className="flex gap-2">
             {hasCandidateData && onGenerateDemoSnapshots && (
               <button
                 onClick={onGenerateDemoSnapshots}
-                className="btn btn-sm"
+                className="px-3 py-1 text-xs rounded cursor-pointer"
                 style={{
                   background: '#2dd4bf',
                   color: '#000',
-                  border: 'none',
-                  padding: '4px 12px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: 'var(--text-xs)',
-                  cursor: 'pointer',
                 }}
               >
                 Generate Snapshots
@@ -194,15 +176,9 @@ export function CoverageBanner({ coverage, onImportClick, onGenerateDemoSnapshot
             {onImportClick && (
               <button
                 onClick={onImportClick}
-                className="btn btn-sm"
+                className="px-3 py-1 text-xs rounded cursor-pointer text-white"
                 style={{
                   background: styles.textColor,
-                  color: '#fff',
-                  border: 'none',
-                  padding: '4px 12px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: 'var(--text-xs)',
-                  cursor: 'pointer',
                 }}
               >
                 Import Data

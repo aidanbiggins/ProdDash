@@ -68,7 +68,7 @@ export function PipelineChartV2({ stages }: PipelineChartV2Props) {
               <div key={stage.name}>
                 <div className="flex items-center gap-4">
                   {/* Stage Label */}
-                  <div className="w-[100px] flex-shrink-0">
+                  <div className="w-[100px] shrink-0">
                     <p className="text-sm font-medium text-foreground">{stage.name}</p>
                     <p className="text-xs text-muted-foreground">{stage.avgDays}d avg</p>
                   </div>

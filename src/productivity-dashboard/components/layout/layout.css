@@ -87,8 +87,8 @@
 
 .page-header-title {
   font-family: var(--font-heading);
-  font-size: 1.375rem;
-  font-weight: var(--font-semibold);
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #f8fafc;
   margin: 0;
   line-height: var(--leading-tight);
@@ -96,9 +96,9 @@
 }
 
 .page-header-description {
-  color: var(--text-secondary);
-  margin: var(--space-2) 0 0 0;
-  font-size: var(--text-sm);
+  color: #94a3b8;
+  margin: var(--space-1) 0 0 0;
+  font-size: 0.875rem;
   line-height: var(--leading-normal);
 }
 
@@ -156,14 +156,14 @@
 
 .section-header-title {
   font-family: var(--font-heading);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f8fafc;
   margin: 0;
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .section-collapse-icon {
@@ -197,14 +197,20 @@
   }
 }
 
-/* GlassPanel - Per Plan Section 2.2 */
+/* GlassPanel - Matches reference design */
 .glass-panel {
   background: rgba(30, 41, 59, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
+}
+
+/* Panel internal section borders (header/footer) */
+.glass-panel .panel-header,
+.glass-panel .panel-footer {
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 /* Padding variants */

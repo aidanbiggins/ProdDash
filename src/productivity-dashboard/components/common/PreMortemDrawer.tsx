@@ -56,64 +56,60 @@ export function PreMortemDrawer({
 
   return (
     <div
-      className="offcanvas offcanvas-end show glass-drawer"
+      className="fixed top-0 right-0 h-full glass-drawer w-[480px] flex flex-col"
       style={{
         visibility: 'visible',
-        width: '480px',
       }}
     >
-      <div className="offcanvas-header glass-drawer-header">
+      <div className="glass-drawer-header px-4 py-3 flex justify-between items-start">
         <div>
-          <h5 className="offcanvas-title mb-1" style={{ color: '#f8fafc' }}>
+          <h5 className="text-lg font-semibold mb-1" style={{ color: '#f8fafc' }}>
             Pre-Mortem Analysis
           </h5>
-          <div className="small" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <div className="text-sm text-white/60">
             {result.req_title}
           </div>
         </div>
         <button
           type="button"
-          className="btn-close btn-close-white"
+          className="text-white opacity-70 hover:opacity-100"
           onClick={onClose}
-        />
+        >
+          <i className="bi bi-x text-2xl"></i>
+        </button>
       </div>
 
-      <div className="offcanvas-body" style={{ padding: '1.5rem' }}>
+      <div className="flex-1 overflow-y-auto p-6">
         {/* Risk Score Header */}
         <div
-          className="p-4 rounded-3 mb-4"
+          className="p-4 rounded-lg mb-4"
           style={{
             background: `linear-gradient(135deg, ${getRiskBandColor(result.risk_band)}20, transparent)`,
             border: `1px solid ${getRiskBandColor(result.risk_band)}40`,
           }}
         >
-          <div className="d-flex align-items-center justify-content-between mb-3">
+          <div className="flex items-center justify-between mb-3">
             <div>
-              <div className="small text-uppercase mb-1" style={{ color: 'rgba(255,255,255,0.5)', letterSpacing: '0.05em' }}>
+              <div className="text-sm uppercase mb-1 tracking-wider text-white/50">
                 Risk Score
               </div>
-              <div className="d-flex align-items-baseline gap-2">
+              <div className="flex items-baseline gap-2">
                 <span
-                  className="font-monospace"
+                  className="font-mono text-5xl font-bold leading-none"
                   style={{
-                    fontSize: '3rem',
-                    fontWeight: 700,
                     color: getRiskBandColor(result.risk_band),
-                    lineHeight: 1,
                   }}
                 >
                   {result.risk_score}
                 </span>
-                <span style={{ color: 'rgba(255,255,255,0.5)' }}>/100</span>
+                <span className="text-white/50">/100</span>
               </div>
             </div>
-            <div className="text-end">
+            <div className="text-right">
               <span
-                className="badge"
+                className="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium text-white"
                 style={{
                   background: getRiskBandColor(result.risk_band),
-                  fontSize: '0.875rem',
-                  padding: '0.5rem 1rem',
                 }}
               >
                 {result.risk_band} RISK
@@ -121,17 +117,17 @@ export function PreMortemDrawer({
             </div>
           </div>
 
-          <div className="d-flex gap-4 small" style={{ color: 'rgba(255,255,255,0.7)' }}>
+          <div className="flex gap-4 text-sm text-white/70">
             <div>
-              <i className="bi bi-calendar me-1"></i>
+              <i className="bi bi-calendar mr-1"></i>
               {result.days_open}d open
             </div>
             <div>
-              <i className="bi bi-people me-1"></i>
+              <i className="bi bi-people mr-1"></i>
               {result.active_candidate_count} active
             </div>
             <div>
-              <i className="bi bi-shield-exclamation me-1"></i>
+              <i className="bi bi-shield-exclamation mr-1"></i>
               {getFailureModeLabel(result.failure_mode)}
             </div>
           </div>
@@ -139,16 +135,16 @@ export function PreMortemDrawer({
 
         {/* Failure Mode */}
         <div className="mb-4">
-          <h6 className="text-uppercase mb-3" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+          <h6 className="text-xs uppercase mb-3 tracking-wider text-white/50">
             Primary Failure Mode
           </h6>
           <div
             className="p-3 rounded"
             style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}
           >
-            <div className="d-flex align-items-center gap-2">
+            <div className="flex items-center gap-2">
               <i className="bi bi-exclamation-triangle-fill" style={{ color: '#ef4444' }}></i>
-              <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+              <span className="text-white font-medium">
                 {getFailureModeLabel(result.failure_mode)}
               </span>
             </div>
@@ -157,32 +153,30 @@ export function PreMortemDrawer({
 
         {/* Top Risk Drivers */}
         <div className="mb-4">
-          <h6 className="text-uppercase mb-3" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+          <h6 className="text-xs uppercase mb-3 tracking-wider text-white/50">
             Risk Drivers
           </h6>
-          <div className="d-flex flex-column gap-2">
+          <div className="flex flex-col gap-2">
             {result.top_drivers.map((driver) => (
               <div
                 key={driver.driver_key}
                 className="p-3 rounded"
                 style={{ background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
               >
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-white font-medium">
                     {driver.description}
                   </span>
                   <span
-                    className="badge"
+                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase text-white"
                     style={{
                       background: getSeverityColor(driver.severity),
-                      fontSize: '0.7rem',
-                      textTransform: 'uppercase',
                     }}
                   >
                     {driver.severity}
                   </span>
                 </div>
-                <div className="d-flex gap-3 small" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                <div className="flex gap-3 text-sm text-white/60">
                   <span>
                     <strong>{driver.evidence.actual_value}</strong> {driver.evidence.unit}
                   </span>
@@ -197,25 +191,16 @@ export function PreMortemDrawer({
                     </span>
                   )}
                 </div>
-                <div
-                  className="mt-2"
-                  style={{
-                    height: '4px',
-                    background: 'rgba(255,255,255,0.1)',
-                    borderRadius: '2px',
-                    overflow: 'hidden',
-                  }}
-                >
+                <div className="mt-2 h-1 bg-white/10 rounded overflow-hidden">
                   <div
+                    className="h-full transition-all duration-300"
                     style={{
                       width: `${driver.weight}%`,
-                      height: '100%',
                       background: getSeverityColor(driver.severity),
-                      transition: 'width 0.3s ease',
                     }}
                   />
                 </div>
-                <div className="text-end small mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                <div className="text-right text-sm mt-1 text-white/40">
                   {driver.weight}% weight
                 </div>
               </div>
@@ -225,39 +210,38 @@ export function PreMortemDrawer({
 
         {/* Recommended Interventions */}
         <div className="mb-4">
-          <h6 className="text-uppercase mb-3" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+          <h6 className="text-xs uppercase mb-3 tracking-wider text-white/50">
             Recommended Interventions
           </h6>
-          <div className="d-flex flex-column gap-3">
+          <div className="flex flex-col gap-3">
             {result.recommended_interventions.map((intervention) => (
               <div
                 key={intervention.intervention_id}
                 className="p-3 rounded"
                 style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)' }}
               >
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <span style={{ color: '#f8fafc', fontWeight: 500 }}>
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-white font-medium">
                     {intervention.title}
                   </span>
                   <span
-                    className="badge"
+                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white"
                     style={{
                       background: intervention.priority === 'P0' ? '#ef4444' : intervention.priority === 'P1' ? '#f59e0b' : '#22c55e',
-                      fontSize: '0.7rem',
                     }}
                   >
                     {intervention.priority}
                   </span>
                 </div>
-                <p className="small mb-2" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                <p className="text-sm mb-2 text-white/70">
                   {intervention.description}
                 </p>
-                <div className="small" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  <i className="bi bi-lightning-charge me-1"></i>
+                <div className="text-sm text-white/50">
+                  <i className="bi bi-lightning-charge mr-1"></i>
                   {intervention.estimated_impact}
                 </div>
                 {intervention.steps.length > 0 && (
-                  <ul className="mt-2 mb-0 ps-3 small" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  <ul className="mt-2 mb-0 pl-3 text-sm text-white/60">
                     {intervention.steps.slice(0, 3).map((step, idx) => (
                       <li key={idx}>{step}</li>
                     ))}
@@ -271,23 +255,23 @@ export function PreMortemDrawer({
         {/* Comparable History */}
         {result.comparable_history.length > 0 && (
           <div className="mb-4">
-            <h6 className="text-uppercase mb-3" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+            <h6 className="text-xs uppercase mb-3 tracking-wider text-white/50">
               Comparable History
             </h6>
-            <div className="d-flex flex-column gap-2">
+            <div className="flex flex-col gap-2">
               {result.comparable_history.map((history, idx) => (
                 <div
                   key={idx}
-                  className="p-3 rounded d-flex justify-content-between align-items-center"
+                  className="p-3 rounded flex justify-between items-center"
                   style={{ background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
                 >
                   <div>
-                    <div style={{ color: '#f8fafc', fontWeight: 500 }}>{history.cohort_key}</div>
-                    <div className="small" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    <div className="text-white font-medium">{history.cohort_key}</div>
+                    <div className="text-sm text-white/60">
                       {history.outcome_summary}
                     </div>
                   </div>
-                  <span className="badge bg-secondary">{history.count} reqs</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white/10 text-white/80">{history.count} reqs</span>
                 </div>
               ))}
             </div>
@@ -296,23 +280,22 @@ export function PreMortemDrawer({
 
         {/* Confidence */}
         <div className="mb-4">
-          <h6 className="text-uppercase mb-3" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+          <h6 className="text-xs uppercase mb-3 tracking-wider text-white/50">
             Confidence
           </h6>
           <div
-            className="p-3 rounded d-flex align-items-center gap-3"
+            className="p-3 rounded flex items-center gap-3"
             style={{ background: 'rgba(30, 41, 59, 0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
           >
             <span
-              className="badge"
+              className="inline-flex items-center px-3 py-1 rounded text-sm font-medium text-white"
               style={{
                 background: getConfidenceColor(result.confidence.level),
-                padding: '0.5rem 0.75rem',
               }}
             >
               {result.confidence.level}
             </span>
-            <span className="small" style={{ color: 'rgba(255,255,255,0.7)' }}>
+            <span className="text-sm text-white/70">
               {result.confidence.reason}
             </span>
           </div>
@@ -322,10 +305,10 @@ export function PreMortemDrawer({
         {onAddToQueue && result.recommended_interventions.length > 0 && (
           <button
             type="button"
-            className="btn btn-primary w-100"
+            className="w-full px-4 py-2 text-sm font-medium rounded-md bg-accent hover:bg-accent/90 text-white"
             onClick={handleAddToQueue}
           >
-            <i className="bi bi-plus-circle me-2"></i>
+            <i className="bi bi-plus-circle mr-2"></i>
             Add {result.recommended_interventions.length} Action{result.recommended_interventions.length > 1 ? 's' : ''} to Queue
           </button>
         )}
@@ -333,9 +316,8 @@ export function PreMortemDrawer({
 
       {/* Backdrop */}
       <div
-        className="offcanvas-backdrop fade show"
+        className="fixed inset-0 bg-black/50 -z-10"
         onClick={onClose}
-        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: -1 }}
       />
     </div>
   );

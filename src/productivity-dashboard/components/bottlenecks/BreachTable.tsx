@@ -44,10 +44,10 @@ export function BreachTable({ breaches, onReqClick, onExport }: BreachTableProps
         <SectionHeader
           title="SLA Breaches by Requisition"
           actions={
-            <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+            <div className="flex gap-2 items-center">
               {onExport && (
-                <button className="btn btn-sm btn-outline-secondary" onClick={onExport}>
-                  <i className="bi bi-download me-1" />
+                <button className="px-3 py-1 text-sm border border-gray-500 text-gray-300 rounded hover:bg-gray-700" onClick={onExport}>
+                  <i className="bi bi-download mr-1" />
                   Export
                 </button>
               )}
@@ -83,28 +83,22 @@ export function BreachTable({ breaches, onReqClick, onExport }: BreachTableProps
         title="SLA Breaches by Requisition"
         badge={`${totalBreaches} breaches`}
         actions={
-          <div style={{ display: 'flex', gap: 'var(--space-2)', alignItems: 'center' }}>
+          <div className="flex gap-2 items-center">
             <span
+              className="text-xs px-2 py-1 rounded"
               style={{
-                fontSize: 'var(--text-xs)',
                 color: 'var(--text-secondary)',
-                padding: '4px 8px',
                 background: 'rgba(239, 68, 68, 0.1)',
-                borderRadius: 'var(--radius-sm)',
               }}
             >
               Total: {formatHours(totalBreachHours)} over SLA
             </span>
             {onExport && (
               <button
-                className="btn btn-sm btn-outline-secondary"
+                className="px-2 py-1 text-xs border border-gray-500 text-gray-300 rounded hover:bg-gray-700"
                 onClick={onExport}
-                style={{
-                  padding: '4px 8px',
-                  fontSize: 'var(--text-xs)',
-                }}
               >
-                <i className="bi bi-download me-1" />
+                <i className="bi bi-download mr-1" />
                 Export
               </button>
             )}

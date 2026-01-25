@@ -75,10 +75,14 @@ export function AiSettingsTab() {
             )}
 
             <button
-              className="btn btn-primary"
+              className="px-4 py-2 rounded font-medium"
               onClick={() => setShowSettings(true)}
+              style={{
+                background: 'var(--primary)',
+                color: '#1a1a1a',
+              }}
             >
-              <i className="bi bi-gear me-2" />
+              <i className="bi bi-gear mr-2" />
               {isAiEnabled ? 'Update AI Settings' : 'Configure AI Provider'}
             </button>
           </div>

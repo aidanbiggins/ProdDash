@@ -23,7 +23,7 @@ export function RepairSuggestionsList({
   if (suggestions.length === 0) {
     return (
       <div className="repair-suggestions empty">
-        <p className="text-muted">No suggestions at this time.</p>
+        <p className="text-muted-foreground">No suggestions at this time.</p>
       </div>
     );
   }
@@ -32,7 +32,7 @@ export function RepairSuggestionsList({
     <div className={`repair-suggestions ${variant}`}>
       <div className="repair-suggestions-header">
         <h3 className="repair-suggestions-title">
-          <i className="bi bi-lightbulb me-2" />
+          <i className="bi bi-lightbulb mr-2" />
           Data Improvements
         </h3>
       </div>
@@ -51,7 +51,7 @@ export function RepairSuggestionsList({
       </div>
 
       <p className="unavailable-reassurance mt-3">
-        <i className="bi bi-info-circle me-1" />
+        <i className="bi bi-info-circle mr-1" />
         You can keep going without these.
       </p>
     </div>
@@ -79,7 +79,7 @@ export function RepairSuggestionCard({
         <div className="suggestion-title">{suggestion.title}</div>
         <div className="suggestion-description">{suggestion.description}</div>
         <div className="suggestion-impact">
-          <i className="bi bi-unlock me-1" />
+          <i className="bi bi-unlock mr-1" />
           {suggestion.impact}
         </div>
       </div>
@@ -88,7 +88,7 @@ export function RepairSuggestionCard({
           {formatEffort(suggestion.estimatedEffort)}
         </span>
         <button
-          className="btn btn-outline-primary btn-sm suggestion-cta"
+          className="px-3 py-1 text-sm border border-blue-500 text-blue-500 rounded hover:bg-blue-500/10 suggestion-cta"
           onClick={handleCtaClick}
         >
           {suggestion.cta.label}
@@ -148,7 +148,7 @@ export function RepairsDrawer({
         <div className="repairs-drawer-header">
           <h3 className="repairs-drawer-title">Data Improvements</h3>
           <button
-            className="btn btn-link btn-sm"
+            className="text-gray-400 hover:text-gray-300 text-sm p-0"
             onClick={onClose}
             aria-label="Close drawer"
           >
@@ -157,7 +157,7 @@ export function RepairsDrawer({
         </div>
 
         <div className="repairs-drawer-body">
-          <p className="text-muted mb-3">
+          <p className="text-muted-foreground mb-3">
             These optional improvements can help unlock additional features.
           </p>
 
@@ -194,11 +194,11 @@ export function PostImportSuggestions({
     <div className="post-import-suggestions">
       <div className="post-import-header">
         <h4>
-          <i className="bi bi-lightbulb me-2 text-warning" />
+          <i className="bi bi-lightbulb mr-2 text-yellow-500" />
           Quick improvements available
         </h4>
         <button
-          className="btn btn-link btn-sm"
+          className="text-gray-400 hover:text-gray-300 text-sm p-0"
           onClick={() => {
             setDismissed(true);
             onDismiss?.();
@@ -222,7 +222,7 @@ export function PostImportSuggestions({
       </div>
 
       {suggestions.length > 3 && onViewAll && (
-        <button className="btn btn-link btn-sm" onClick={onViewAll}>
+        <button className="text-blue-500 hover:text-blue-400 text-sm" onClick={onViewAll}>
           View all {suggestions.length} suggestions
         </button>
       )}

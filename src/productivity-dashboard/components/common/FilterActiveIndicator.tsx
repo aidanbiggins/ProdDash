@@ -30,28 +30,19 @@ export function FilterActiveIndicator({
 
   return (
     <div
-      className="filter-active-indicator mb-3 px-3 py-2 rounded d-flex align-items-center justify-content-between"
-      style={{
-        background: 'rgba(245, 158, 11, 0.1)',
-        border: '1px solid rgba(245, 158, 11, 0.3)',
-      }}
+      className="filter-active-indicator mb-3 px-3 py-2 rounded flex items-center justify-between bg-amber-500/10 border border-amber-500/30"
     >
-      <div className="d-flex align-items-center gap-2">
-        <i className="bi bi-funnel-fill" style={{ color: '#f59e0b' }}></i>
-        <span style={{ color: '#f59e0b', fontWeight: 500, fontSize: '0.85rem' }}>
+      <div className="flex items-center gap-2">
+        <i className="bi bi-funnel-fill text-amber-500"></i>
+        <span className="text-amber-500 font-medium text-[0.85rem]">
           Filters Active
         </span>
-        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+        <span className="text-[0.8rem]" style={{ color: 'var(--text-secondary)' }}>
           {filterDescription}
         </span>
         {showCounts && (
           <span
-            className="badge ms-2"
-            style={{
-              background: 'rgba(245, 158, 11, 0.2)',
-              color: '#f59e0b',
-              fontSize: '0.75rem',
-            }}
+            className="ml-2 px-2 py-0.5 rounded bg-amber-500/20 text-amber-500 text-[0.75rem]"
           >
             {filteredCount} of {totalCount} {itemLabel}
           </span>
@@ -60,15 +51,10 @@ export function FilterActiveIndicator({
       {onClearFilters && (
         <button
           type="button"
-          className="btn btn-sm"
+          className="text-amber-500 text-[0.75rem] px-2 py-1"
           onClick={onClearFilters}
-          style={{
-            color: '#f59e0b',
-            fontSize: '0.75rem',
-            padding: '0.2rem 0.5rem',
-          }}
         >
-          <i className="bi bi-x-circle me-1"></i>
+          <i className="bi bi-x-circle mr-1"></i>
           Clear
         </button>
       )}
@@ -92,19 +78,13 @@ export function FilterActiveBadge({
 
   return (
     <span
-      className="badge d-inline-flex align-items-center gap-1"
-      style={{
-        background: 'rgba(245, 158, 11, 0.15)',
-        color: '#f59e0b',
-        fontSize: '0.7rem',
-        padding: '0.25rem 0.5rem',
-      }}
+      className="inline-flex items-center gap-1 bg-amber-500/15 text-amber-500 text-[0.7rem] px-2 py-1 rounded"
       title={getActiveFilterDescription(filters)}
     >
-      <i className="bi bi-funnel-fill" style={{ fontSize: '0.65rem' }}></i>
+      <i className="bi bi-funnel-fill text-[0.65rem]"></i>
       Filtered
       {showDescription && (
-        <span style={{ color: 'rgba(245, 158, 11, 0.8)', marginLeft: '4px' }}>
+        <span className="text-amber-500/80 ml-1">
           {getActiveFilterDescription(filters)}
         </span>
       )}

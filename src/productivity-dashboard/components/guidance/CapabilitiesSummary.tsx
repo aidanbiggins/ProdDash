@@ -170,7 +170,7 @@ export function CapabilitiesSummary({
         <div className="capabilities-actions">
           {onGoToDashboard && (
             <button
-              className="btn btn-primary"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               onClick={onGoToDashboard}
             >
               Go to Dashboard
@@ -178,7 +178,7 @@ export function CapabilitiesSummary({
           )}
           {onImportMore && (
             <button
-              className="btn btn-outline-secondary"
+              className="px-4 py-2 border border-gray-500 text-gray-300 rounded-md hover:bg-gray-700"
               onClick={onImportMore}
             >
               Import More Data
@@ -205,7 +205,7 @@ function CompactSummary({
   return (
     <div className="capabilities-compact">
       <span className="compact-status">
-        <i className="bi bi-check-circle-fill text-success me-1" />
+        <i className="bi bi-check-circle-fill text-green-500 mr-1" />
         {enabledCount} features enabled
       </span>
       {suggestions.length > 0 && (
@@ -249,7 +249,7 @@ function SuggestionCard({
         <span className={`effort-badge ${suggestion.estimatedEffort}`}>
           {formatEffort(suggestion.estimatedEffort)}
         </span>
-        <button className="btn btn-link btn-sm p-0 suggestion-cta">
+        <button className="text-blue-500 hover:text-blue-400 text-sm p-0 suggestion-cta">
           {suggestion.cta.label}
         </button>
       </div>

@@ -261,63 +261,58 @@ export function AiProviderSettings({
     <>
       {/* Backdrop */}
       <div
-        className="modal-backdrop fade show"
-        style={{ zIndex: 1050 }}
+        className="fixed inset-0 bg-black/50 z-[1050]"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div
-        className="modal fade show d-block"
+        className="fixed inset-0 z-[1055] flex items-center justify-center"
         tabIndex={-1}
-        style={{ zIndex: 1055 }}
       >
-        <div className="modal-dialog modal-dialog-centered modal-lg">
-          <div className="modal-content" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="modal-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <h5 className="modal-title" style={{ color: '#f8fafc' }}>
-                <i className="bi bi-robot me-2"></i>
+        <div className="max-w-3xl w-full mx-4">
+          <div className="rounded-lg" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <h5 className="text-lg font-semibold" style={{ color: '#f8fafc' }}>
+                <i className="bi bi-robot mr-2"></i>
                 AI Provider Settings
               </h5>
               <button
                 type="button"
-                className="btn-close"
+                className="p-0 border-0 bg-transparent"
                 onClick={onClose}
                 style={{ filter: 'invert(1) grayscale(100%) brightness(200%)' }}
               />
             </div>
 
-            <div className="modal-body" style={{ color: '#e2e8f0' }}>
+            <div className="px-6 py-4" style={{ color: '#e2e8f0' }}>
               {/* AI Enable/Disable Toggle - Master Switch */}
-              <div className="mb-4 p-3 rounded d-flex align-items-center justify-content-between" style={{
+              <div className="mb-4 p-3 rounded flex items-center justify-between" style={{
                 background: aiEnabled ? theme.tealSubtle : theme.surfaceElevated,
                 border: `1px solid ${aiEnabled ? theme.teal : theme.border}`,
               }}>
                 <div>
-                  <div className="d-flex align-items-center gap-2">
+                  <div className="flex items-center gap-2">
                     <i className={`bi ${aiEnabled ? 'bi-stars' : 'bi-cpu'}`} style={{ color: aiEnabled ? theme.teal : theme.textSecondary }}></i>
                     <span style={{ color: theme.textPrimary, fontWeight: 500 }}>
                       {aiEnabled ? 'AI Mode Enabled' : 'AI Mode Disabled'}
                     </span>
                   </div>
-                  <div className="small mt-1" style={{ color: theme.textMuted }}>
+                  <div className="text-xs mt-1" style={{ color: theme.textMuted }}>
                     {aiEnabled
                       ? 'AI will generate dynamic responses using your configured provider.'
                       : 'Using deterministic mode with pre-built responses.'}
                   </div>
                 </div>
-                <div className="form-check form-switch mb-0">
+                <div className="mb-0">
                   <input
-                    className="form-check-input"
+                    className="w-12 h-6 cursor-pointer"
                     type="checkbox"
                     role="switch"
                     id="aiEnabledToggle"
                     checked={aiEnabled}
                     onChange={(e) => handleAiToggle(e.target.checked)}
                     style={{
-                      width: '3rem',
-                      height: '1.5rem',
-                      cursor: 'pointer',
                       backgroundColor: aiEnabled ? theme.teal : theme.textMuted,
                     }}
                   />
@@ -327,7 +322,7 @@ export function AiProviderSettings({
               {/* Error display */}
               {keyState.error && (
                 <div className="mb-3 p-3" style={styles.alertDanger}>
-                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  <i className="bi bi-exclamation-triangle mr-2"></i>
                   {keyState.error}
                 </div>
               )}
@@ -335,12 +330,12 @@ export function AiProviderSettings({
               {/* Stored Keys Info */}
               {(keyState.userProviders.length > 0 || keyState.orgProviders.length > 0) && (
                 <div className="mb-4 p-3 rounded" style={{ background: theme.surfaceElevated }}>
-                  <div className="small mb-2" style={{ color: theme.textMuted }}>
-                    <i className="bi bi-key me-1"></i>
+                  <div className="text-xs mb-2" style={{ color: theme.textMuted }}>
+                    <i className="bi bi-key mr-1"></i>
                     Stored API Keys
                   </div>
                   {keyState.userProviders.length > 0 && (
-                    <div className="small mb-1">
+                    <div className="text-xs mb-1">
                       <span style={{ color: theme.textSecondary }}>Your keys: </span>
                       <span style={{ color: theme.teal }}>
                         {keyState.userProviders.map(p => PROVIDER_LABELS[p]).join(', ')}
@@ -348,7 +343,7 @@ export function AiProviderSettings({
                     </div>
                   )}
                   {keyState.orgProviders.length > 0 && (
-                    <div className="small">
+                    <div className="text-xs">
                       <span style={{ color: theme.textSecondary }}>Org keys: </span>
                       <span style={{ color: theme.copper }}>
                         {keyState.orgProviders.map(p => PROVIDER_LABELS[p]).join(', ')}
@@ -360,9 +355,9 @@ export function AiProviderSettings({
 
               {/* Provider Selection */}
               <div className="mb-3">
-                <label className="form-label small" style={{ color: theme.textMuted }}>Provider</label>
+                <label className="block text-xs font-medium mb-1" style={{ color: theme.textMuted }}>Provider</label>
                 <select
-                  className="form-select"
+                  className="w-full px-3 py-2 rounded border"
                   value={provider}
                   onChange={(e) => setProvider(e.target.value as AiProvider)}
                   style={styles.input}
@@ -378,11 +373,11 @@ export function AiProviderSettings({
 
               {/* Model Selection */}
               <div className="mb-3">
-                <label className="form-label small" style={{ color: theme.textMuted }}>Model</label>
+                <label className="block text-xs font-medium mb-1" style={{ color: theme.textMuted }}>Model</label>
                 {provider === 'openai_compatible' ? (
                   <input
                     type="text"
-                    className="form-control"
+                    className="w-full px-3 py-2 rounded border"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     placeholder="e.g., llama-3-70b-instruct"
@@ -390,7 +385,7 @@ export function AiProviderSettings({
                   />
                 ) : (
                   <select
-                    className="form-select"
+                    className="w-full px-3 py-2 rounded border"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     style={styles.input}
@@ -420,10 +415,10 @@ export function AiProviderSettings({
               {/* Base URL for OpenAI-Compatible */}
               {provider === 'openai_compatible' && (
                 <div className="mb-3">
-                  <label className="form-label small" style={{ color: theme.textMuted }}>Base URL</label>
+                  <label className="block text-xs font-medium mb-1" style={{ color: theme.textMuted }}>Base URL</label>
                   <input
                     type="url"
-                    className="form-control"
+                    className="w-full px-3 py-2 rounded border"
                     value={baseUrl}
                     onChange={(e) => setBaseUrl(e.target.value)}
                     placeholder="https://api.together.xyz/v1"
@@ -434,11 +429,11 @@ export function AiProviderSettings({
 
               {/* API Key */}
               <div className="mb-3">
-                <label className="form-label small" style={{ color: theme.textMuted }}>API Key</label>
-                <div className="input-group">
+                <label className="block text-xs font-medium mb-1" style={{ color: theme.textMuted }}>API Key</label>
+                <div className="flex">
                   <input
                     type={showApiKey ? 'text' : 'password'}
-                    className="form-control"
+                    className="flex-1 px-3 py-2 rounded-l border"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder={`Enter your ${PROVIDER_LABELS[provider]} API key`}
@@ -446,7 +441,7 @@ export function AiProviderSettings({
                   />
                   <button
                     type="button"
-                    className="btn"
+                    className="px-3 py-2 rounded-r border border-l-0"
                     onClick={() => setShowApiKey(!showApiKey)}
                     style={styles.btnSecondary}
                   >
@@ -454,8 +449,8 @@ export function AiProviderSettings({
                   </button>
                 </div>
                 {hasStoredKey && (
-                  <div className="form-text small" style={{ color: theme.teal }}>
-                    <i className="bi bi-check-circle me-1"></i>
+                  <div className="text-xs mt-1" style={{ color: theme.teal }}>
+                    <i className="bi bi-check-circle mr-1"></i>
                     Key loaded from {existingUserKey ? 'your saved keys' : 'organization'}
                   </div>
                 )}
@@ -463,52 +458,52 @@ export function AiProviderSettings({
 
               {/* Save Key Options */}
               <div className="mb-3 p-3 rounded" style={{ background: theme.surfaceElevated }}>
-                <div className="form-check mb-2">
+                <div className="flex items-center mb-2">
                   <input
-                    className="form-check-input"
+                    className="mr-2"
                     type="checkbox"
                     id="persistKey"
                     checked={shouldPersist}
                     onChange={(e) => setShouldPersist(e.target.checked)}
                   />
-                  <label className="form-check-label" htmlFor="persistKey" style={{ color: theme.textPrimary }}>
+                  <label className="cursor-pointer" htmlFor="persistKey" style={{ color: theme.textPrimary }}>
                     Save API key for future sessions
                   </label>
                 </div>
 
                 {shouldPersist && (
-                  <div className="ms-4">
-                    <div className="form-check">
+                  <div className="ml-4">
+                    <div className="flex items-center">
                       <input
-                        className="form-check-input"
+                        className="mr-2"
                         type="radio"
                         name="saveScope"
                         id="scopeUser"
                         checked={saveScope === 'user'}
                         onChange={() => setSaveScope('user')}
                       />
-                      <label className="form-check-label" htmlFor="scopeUser" style={{ color: theme.textSecondary }}>
-                        <i className="bi bi-person me-1"></i>
+                      <label className="cursor-pointer" htmlFor="scopeUser" style={{ color: theme.textSecondary }}>
+                        <i className="bi bi-person mr-1"></i>
                         Save for me only
                       </label>
                     </div>
                     {canSetOrgKey && (
-                      <div className="form-check">
+                      <div className="flex items-center">
                         <input
-                          className="form-check-input"
+                          className="mr-2"
                           type="radio"
                           name="saveScope"
                           id="scopeOrg"
                           checked={saveScope === 'org'}
                           onChange={() => setSaveScope('org')}
                         />
-                        <label className="form-check-label" htmlFor="scopeOrg" style={{ color: theme.textSecondary }}>
-                          <i className="bi bi-building me-1"></i>
+                        <label className="cursor-pointer" htmlFor="scopeOrg" style={{ color: theme.textSecondary }}>
+                          <i className="bi bi-building mr-1"></i>
                           Share with entire organization
                         </label>
                       </div>
                     )}
-                    <div className="form-text small mt-2" style={{ color: theme.textMuted }}>
+                    <div className="text-xs mt-2" style={{ color: theme.textMuted }}>
                       {saveScope === 'user'
                         ? 'Key will be saved to your account only.'
                         : 'All organization members will be able to use this key.'}
@@ -519,20 +514,19 @@ export function AiProviderSettings({
 
               {/* PII Redaction Toggle */}
               <div className="mb-3">
-                <div className="form-check form-switch">
+                <div className="flex items-center">
                   <input
-                    className="form-check-input"
+                    className="mr-2 cursor-pointer"
                     type="checkbox"
                     id="redactPii"
                     checked={redactPii}
                     onChange={(e) => setRedactPii(e.target.checked)}
-                    style={{ cursor: 'pointer' }}
                   />
-                  <label className="form-check-label" htmlFor="redactPii" style={{ color: theme.textPrimary }}>
+                  <label className="cursor-pointer" htmlFor="redactPii" style={{ color: theme.textPrimary }}>
                     Redact PII before sending to AI
                   </label>
                 </div>
-                <div className="form-text small" style={{ color: redactPii ? theme.textMuted : theme.warning }}>
+                <div className="text-xs mt-1" style={{ color: redactPii ? theme.textMuted : theme.warning }}>
                   {redactPii
                     ? 'Names, emails, and phone numbers will be replaced with placeholders.'
                     : 'Warning: Real PII will be sent to the AI provider.'}
@@ -543,33 +537,33 @@ export function AiProviderSettings({
               <div className="mb-3">
                 <button
                   type="button"
-                  className="btn btn-link p-0 text-decoration-none"
+                  className="p-0 border-0 bg-transparent no-underline"
                   onClick={() => setShowAdvanced(!showAdvanced)}
                   style={{ color: theme.textSecondary }}
                 >
-                  <i className={`bi bi-chevron-${showAdvanced ? 'down' : 'right'} me-1`}></i>
+                  <i className={`bi bi-chevron-${showAdvanced ? 'down' : 'right'} mr-1`}></i>
                   Advanced Settings
                 </button>
               </div>
 
               {/* Advanced Settings */}
               {showAdvanced && (
-                <div className="ps-3 border-start" style={{ borderColor: theme.border }}>
+                <div className="pl-3 border-l" style={{ borderColor: theme.border }}>
                   {/* Temperature */}
                   <div className="mb-3">
-                    <label className="form-label small" style={{ color: theme.textMuted }}>
+                    <label className="block text-xs font-medium mb-1" style={{ color: theme.textMuted }}>
                       Temperature: <span style={{ color: theme.copper }}>{temperature.toFixed(1)}</span>
                     </label>
                     <input
                       type="range"
-                      className="form-range"
+                      className="w-full"
                       min="0"
                       max="1"
                       step="0.1"
                       value={temperature}
                       onChange={(e) => setTemperature(parseFloat(e.target.value))}
                     />
-                    <div className="d-flex justify-content-between small" style={{ color: theme.textMuted }}>
+                    <div className="flex justify-between text-xs" style={{ color: theme.textMuted }}>
                       <span>Precise (0)</span>
                       <span>Creative (1)</span>
                     </div>
@@ -577,10 +571,10 @@ export function AiProviderSettings({
 
                   {/* Max Tokens */}
                   <div className="mb-3">
-                    <label className="form-label small" style={{ color: theme.textMuted }}>Max Output Tokens</label>
+                    <label className="block text-xs font-medium mb-1" style={{ color: theme.textMuted }}>Max Output Tokens</label>
                     <input
                       type="number"
-                      className="form-control"
+                      className="w-full px-3 py-2 rounded border"
                       value={maxTokens}
                       onChange={(e) => setMaxTokens(parseInt(e.target.value) || 1024)}
                       min={256}
@@ -588,7 +582,7 @@ export function AiProviderSettings({
                       step={256}
                       style={styles.input}
                     />
-                    <div className="form-text small" style={{ color: theme.textMuted }}>
+                    <div className="text-xs mt-1" style={{ color: theme.textMuted }}>
                       Controls the maximum length of AI responses (256-4096).
                     </div>
                   </div>
@@ -596,38 +590,40 @@ export function AiProviderSettings({
               )}
             </div>
 
-            <div className="modal-footer" style={{ borderTop: `1px solid ${theme.border}` }}>
+            <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: `1px solid ${theme.border}` }}>
               {currentConfig && (
                 <button
                   type="button"
-                  className="btn me-auto"
+                  className="px-4 py-2 rounded"
                   onClick={handleClear}
                   style={styles.btnDanger}
                 >
-                  <i className="bi bi-trash me-1"></i>
+                  <i className="bi bi-trash mr-1"></i>
                   Clear Config
                 </button>
               )}
-              <button
-                type="button"
-                className="btn"
-                onClick={onClose}
-                style={styles.btnSecondary}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={handleSave}
-                disabled={!isValid}
-                style={{
-                  ...styles.btnPrimary,
-                  opacity: isValid ? 1 : 0.5,
-                }}
-              >
-                <i className="bi bi-check-lg me-1"></i> Save Settings
-              </button>
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded"
+                  onClick={onClose}
+                  style={styles.btnSecondary}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded"
+                  onClick={handleSave}
+                  disabled={!isValid}
+                  style={{
+                    ...styles.btnPrimary,
+                    opacity: isValid ? 1 : 0.5,
+                  }}
+                >
+                  <i className="bi bi-check-lg mr-1"></i> Save Settings
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -641,18 +637,16 @@ export function AiEnabledBadge({ isEnabled, onClick }: { isEnabled: boolean; onC
   return (
     <button
       type="button"
-      className="btn btn-sm"
+      className="text-xs px-2 py-1 rounded"
       onClick={onClick}
       title={isEnabled ? 'AI enabled - click to configure' : 'Configure AI provider'}
       style={{
-        fontSize: '0.75rem',
-        padding: '0.25rem 0.5rem',
         background: isEnabled ? theme.tealSubtle : 'transparent',
         border: `1px solid ${isEnabled ? theme.teal : theme.border}`,
         color: isEnabled ? theme.teal : theme.textSecondary,
       }}
     >
-      <i className="bi bi-robot me-1"></i>
+      <i className="bi bi-robot mr-1"></i>
       {isEnabled ? 'AI Enabled' : 'AI Settings'}
     </button>
   );

@@ -130,7 +130,7 @@ export function BespokeTable<T>({
     // Build header class
     const getHeaderClass = (column: BespokeTableColumn<T>): string => {
         const classes: string[] = [];
-        if (column.align === 'right') classes.push('text-end');
+        if (column.align === 'right') classes.push('text-right');
         if (column.align === 'center') classes.push('text-center');
         if (column.sortable) classes.push('sortable');
         if (sortColumn === column.key) classes.push('sorted');
@@ -141,7 +141,7 @@ export function BespokeTable<T>({
     // Build cell class
     const getCellClass = (column: BespokeTableColumn<T>): string => {
         const classes: string[] = [];
-        if (column.align === 'right') classes.push('text-end');
+        if (column.align === 'right') classes.push('text-right');
         if (column.align === 'center') classes.push('text-center');
         if (column.cellClass) classes.push(column.cellClass);
         return classes.join(' ');

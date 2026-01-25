@@ -47,36 +47,33 @@ export function GlassDrawer({
         <>
             {/* Backdrop */}
             <div
-                className="position-fixed top-0 start-0 w-100 h-100 glass-backdrop"
+                className="fixed top-0 left-0 w-full h-full glass-backdrop transition-opacity duration-300 ease-in-out"
                 style={{
                     zIndex: 1040,
                     opacity: 1,
-                    transition: 'opacity 0.3s ease-in-out',
                 }}
                 onClick={onClose}
             />
 
             {/* Drawer */}
             <div
-                className="position-fixed top-0 end-0 h-100 d-flex flex-column glass-drawer"
+                className="fixed top-0 right-0 h-full flex flex-col glass-drawer max-w-[90vw] transition-transform duration-300 ease-in-out"
                 style={{
                     width,
-                    maxWidth: '90vw',
                     zIndex: 1050,
                     transform: 'translateX(0)',
-                    transition: 'transform 0.3s ease-in-out',
                 }}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="glass-drawer-title"
             >
                 {/* Header */}
-                <div className="d-flex align-items-center justify-content-between p-3 glass-drawer-header">
+                <div className="flex items-center justify-between p-3 glass-drawer-header">
                     <div>
                         {subtitle && (
                             <div
-                                className="small text-uppercase"
-                                style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}
+                                className="text-sm uppercase tracking-wide"
+                                style={{ color: 'var(--text-secondary)' }}
                             >
                                 {subtitle}
                             </div>
@@ -86,7 +83,7 @@ export function GlassDrawer({
                         </h5>
                     </div>
                     <button
-                        className="btn btn-sm"
+                        className="text-sm"
                         onClick={onClose}
                         style={{ color: 'var(--text-secondary)' }}
                         aria-label="Close drawer"
@@ -96,7 +93,7 @@ export function GlassDrawer({
                 </div>
 
                 {/* Content */}
-                <div className="flex-grow-1 overflow-auto p-3">
+                <div className="grow overflow-auto p-3">
                     {children}
                 </div>
             </div>

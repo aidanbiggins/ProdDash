@@ -53,24 +53,24 @@ export function RecruiterUtilizationTable({ rows, privacyMode, onRowClick, selec
     };
 
     const SortIcon = ({ column }: { column: typeof sortBy }) => {
-        if (sortBy !== column) return <i className="bi bi-chevron-expand text-muted" style={{ fontSize: '0.7rem' }}></i>;
+        if (sortBy !== column) return <i className="bi bi-chevron-expand text-muted-foreground text-xs"></i>;
         return sortDir === 'desc'
-            ? <i className="bi bi-chevron-down" style={{ fontSize: '0.7rem' }}></i>
-            : <i className="bi bi-chevron-up" style={{ fontSize: '0.7rem' }}></i>;
+            ? <i className="bi bi-chevron-down text-xs"></i>
+            : <i className="bi bi-chevron-up text-xs"></i>;
     };
 
     if (rows.length === 0) {
         return (
-            <div className="text-center py-4 text-muted">
-                <i className="bi bi-people" style={{ fontSize: '2rem' }}></i>
+            <div className="text-center py-4 text-muted-foreground">
+                <i className="bi bi-people text-3xl"></i>
                 <p className="mt-2 mb-0">No recruiters with assigned requisitions</p>
             </div>
         );
     }
 
     return (
-        <div className="table-responsive">
-            <table className="table table-sm oracle-data-table mb-0" style={{ fontSize: '0.8rem' }}>
+        <div className="overflow-x-auto">
+            <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
                 <thead>
                     <tr>
                         <th style={{ cursor: 'pointer' }} onClick={() => handleSort('utilization')}>
@@ -103,15 +103,13 @@ export function RecruiterUtilizationTable({ rows, privacyMode, onRowClick, selec
                                     ? 'var(--accent-bg)'
                                     : 'transparent'
                             }}
-                            className="hover-highlight"
+                            className="hover:bg-white/5"
                         >
-                            <td>
-                                <div className="d-flex align-items-center gap-2">
+                            <td className="p-2">
+                                <div className="flex items-center gap-2">
                                     <span
-                                        className="d-inline-block rounded-circle"
+                                        className="inline-block rounded-full w-2 h-2"
                                         style={{
-                                            width: '8px',
-                                            height: '8px',
                                             background: LOAD_STATUS_COLORS[row.status]
                                         }}
                                     ></span>
@@ -137,9 +135,9 @@ export function RecruiterUtilizationTable({ rows, privacyMode, onRowClick, selec
                             }}>
                                 {Math.round(row.utilization * 100)}%
                             </td>
-                            <td style={{ textAlign: 'center' }}>
+                            <td className="p-2 text-center">
                                 <span
-                                    className="badge rounded-pill"
+                                    className="inline-flex items-center px-2 py-0.5 rounded-full"
                                     style={{
                                         fontSize: '0.65rem',
                                         background: `${LOAD_STATUS_COLORS[row.status]}22`,
@@ -150,9 +148,9 @@ export function RecruiterUtilizationTable({ rows, privacyMode, onRowClick, selec
                                     {LOAD_STATUS_LABELS[row.status]}
                                 </span>
                             </td>
-                            <td style={{ textAlign: 'center' }}>
+                            <td className="p-2 text-center">
                                 <span
-                                    className="badge rounded-pill"
+                                    className="inline-flex items-center px-2 py-0.5 rounded-full"
                                     style={{
                                         fontSize: '0.6rem',
                                         background: row.confidence === 'HIGH'

@@ -56,14 +56,14 @@ export function KPICard({
 
   return (
     <div
-      className={`card-bespoke h-100 position-relative animate-fade-in ${onClick ? 'cursor-pointer' : ''} ${lowConfidence ? 'border-warning' : ''} ${hasContext ? 'border-primary border-opacity-25' : ''}`}
+      className={`card-bespoke h-full relative animate-fade-in ${onClick ? 'cursor-pointer' : ''} ${lowConfidence ? 'border-warning' : ''} ${hasContext ? 'border-primary border-opacity-25' : ''}`}
       onClick={onClick}
     >
-      <div className={`card-body d-flex flex-column h-100 ${isMobile ? 'p-2' : 'p-4'}`}>
-        <div className="d-flex justify-content-between align-items-start mb-1" style={isMobile ? undefined : { minHeight: '3rem' }}>
-          <span className="stat-label" title={title} style={{ lineHeight: '1.2' }}>{title}</span>
+      <div className={`p-4 flex flex-col h-full ${isMobile ? 'p-2' : ''}`}>
+        <div className={`flex justify-between items-start mb-1 ${isMobile ? '' : 'min-h-[3rem]'}`}>
+          <span className="stat-label leading-tight" title={title}>{title}</span>
           {lowConfidence && (
-            <span className="text-warning ms-2" title="Low confidence due to data quality">
+            <span className="text-warning ml-2" title="Low confidence due to data quality">
               <i className="bi bi-exclamation-triangle-fill"></i>
             </span>
           )}
@@ -83,7 +83,7 @@ export function KPICard({
           }}
         ></div>
 
-        <div className="d-flex flex-column h-100">
+        <div className="flex flex-col h-full">
           {/* Value display - shows "filtered / total" when context is provided */}
           {hasContext ? (
             <div className={isMobile ? 'mb-1' : 'mb-2'} style={{ fontVariantNumeric: 'tabular-nums' }}>
@@ -102,47 +102,47 @@ export function KPICard({
             />
           )}
 
-          <div className="d-flex flex-column mt-auto" style={{ fontSize: isMobile ? '0.65rem' : '0.75rem' }}>
+          <div className={`flex flex-col mt-auto ${isMobile ? 'text-[0.65rem]' : 'text-xs'}`}>
             {/* Show percentage of total when filtered */}
             {percentOfTotal !== null ? (
-              <span className="text-primary fw-medium">
+              <span className="text-primary font-medium">
                 {percentOfTotal}% of total
               </span>
             ) : percentChange !== null ? (
-              <div className="d-flex flex-column">
-                <span className={`fw-bold ${percentChange >= 0 ? 'text-success' : 'text-danger'}`}>
-                  <i className={`bi bi-arrow-${percentChange >= 0 ? 'up' : 'down'}-short me-0`}></i>
+              <div className="flex flex-col">
+                <span className={`font-bold ${percentChange >= 0 ? 'text-success' : 'text-danger'}`}>
+                  <i className={`bi bi-arrow-${percentChange >= 0 ? 'up' : 'down'}-short`}></i>
                   {Math.abs(percentChange).toFixed(0)}%
                 </span>
                 {priorPeriod && (
-                  <span style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: 'var(--text-secondary)' }}>
+                  <span className={`${isMobile ? 'text-[0.7rem]' : 'text-xs'} text-muted-foreground`}>
                     vs {priorPeriod.value} {priorPeriod.label || 'prior period'}
                   </span>
                 )}
               </div>
             ) : showNewComparison ? (
-              <div className="d-flex flex-column">
-                <span className="fw-bold text-success">
-                  <i className="bi bi-plus-lg me-1"></i>
+              <div className="flex flex-col">
+                <span className="font-bold text-success">
+                  <i className="bi bi-plus-lg mr-1"></i>
                   {value}
                 </span>
                 {priorPeriod && (
-                  <span style={{ fontSize: isMobile ? '0.7rem' : '0.75rem', color: 'var(--text-secondary)' }}>
+                  <span className={`${isMobile ? 'text-[0.7rem]' : 'text-xs'} text-muted-foreground`}>
                     vs 0 {priorPeriod.label || 'prior period'}
                   </span>
                 )}
               </div>
             ) : !priorPeriod && trend ? (
-              <span className={`fw-bold ${trend.isPositive ? 'text-success' : 'text-danger'}`}>
-                <i className={`bi bi-arrow-${trend.isPositive ? 'up' : 'down'}-short me-0`}></i>
+              <span className={`font-bold ${trend.isPositive ? 'text-success' : 'text-danger'}`}>
+                <i className={`bi bi-arrow-${trend.isPositive ? 'up' : 'down'}-short`}></i>
                 {Math.abs(trend.value).toFixed(1)}%
               </span>
             ) : (
-              <span style={{ color: 'var(--text-secondary)' }}>–</span>
+              <span className="text-muted-foreground">–</span>
             )}
           </div>
 
-          {subtitle && <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>{subtitle}</div>}
+          {subtitle && <div className="text-muted-foreground text-xs mt-1">{subtitle}</div>}
         </div>
       </div>
     </div>

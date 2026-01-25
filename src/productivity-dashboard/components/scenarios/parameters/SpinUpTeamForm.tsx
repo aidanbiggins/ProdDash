@@ -62,40 +62,40 @@ export default function SpinUpTeamForm({
 
   return (
     <form onSubmit={handleSubmit} className="scenario-form">
-      <div className="row g-3">
+      <div className="grid grid-cols-12 gap-3">
         {/* Headcount */}
-        <div className="col-md-6">
-          <label className="form-label">Team Size</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Team Size</label>
           <input
             type="number"
-            className="form-control"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
             value={headcount}
             onChange={e => setHeadcount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
             min={1}
             max={20}
           />
-          <small className="text-secondary">Number of hires needed (1-20)</small>
+          <small className="text-muted-foreground">Number of hires needed (1-20)</small>
         </div>
 
         {/* Target Days */}
-        <div className="col-md-6">
-          <label className="form-label">Target Timeline (Days)</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Target Timeline (Days)</label>
           <input
             type="number"
-            className="form-control"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
             value={targetDays}
             onChange={e => setTargetDays(Math.max(30, Math.min(180, parseInt(e.target.value) || 60)))}
             min={30}
             max={180}
           />
-          <small className="text-secondary">Days to complete hiring (30-180)</small>
+          <small className="text-muted-foreground">Days to complete hiring (30-180)</small>
         </div>
 
         {/* Function */}
-        <div className="col-md-4">
-          <label className="form-label">Function</label>
+        <div className="col-span-12 md:col-span-4">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Function</label>
           <select
-            className="form-select"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
             value={roleFunction}
             onChange={e => setRoleFunction(e.target.value)}
           >
@@ -106,10 +106,10 @@ export default function SpinUpTeamForm({
         </div>
 
         {/* Level */}
-        <div className="col-md-4">
-          <label className="form-label">Level</label>
+        <div className="col-span-12 md:col-span-4">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Level</label>
           <select
-            className="form-select"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
             value={level}
             onChange={e => setLevel(e.target.value)}
           >
@@ -120,10 +120,10 @@ export default function SpinUpTeamForm({
         </div>
 
         {/* Location Type */}
-        <div className="col-md-4">
-          <label className="form-label">Location Type</label>
+        <div className="col-span-12 md:col-span-4">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Location Type</label>
           <select
-            className="form-select"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
             value={locationType}
             onChange={e => setLocationType(e.target.value as 'Remote' | 'Hybrid' | 'Onsite')}
           >
@@ -134,10 +134,10 @@ export default function SpinUpTeamForm({
         </div>
 
         {/* Hiring Manager (optional) */}
-        <div className="col-md-6">
-          <label className="form-label">Hiring Manager (Optional)</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Hiring Manager (Optional)</label>
           <select
-            className="form-select"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
             value={hiringManagerId}
             onChange={e => setHiringManagerId(e.target.value)}
           >
@@ -148,45 +148,49 @@ export default function SpinUpTeamForm({
               </option>
             ))}
           </select>
-          <small className="text-secondary">HM latency impacts TTF prediction</small>
+          <small className="text-muted-foreground">HM latency impacts TTF prediction</small>
         </div>
 
         {/* Assigned Recruiters (optional) */}
-        <div className="col-12">
-          <label className="form-label">Assigned Recruiters (Optional)</label>
+        <div className="col-span-12">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Assigned Recruiters (Optional)</label>
           <div className="recruiter-chips">
             {recruiters.map((r, idx) => (
               <button
                 key={r.recruiter_id}
                 type="button"
-                className={`btn btn-sm me-2 mb-2 ${assignedRecruiterIds.includes(r.recruiter_id) ? 'btn-primary' : 'btn-outline-secondary'}`}
+                className={`px-3 py-1.5 text-sm rounded-md mr-2 mb-2 transition-colors ${
+                  assignedRecruiterIds.includes(r.recruiter_id)
+                    ? 'bg-accent-primary text-white'
+                    : 'border border-glass-border bg-transparent text-muted-foreground hover:bg-surface-elevated'
+                }`}
                 onClick={() => toggleRecruiter(r.recruiter_id)}
               >
                 Recruiter {idx + 1}
                 {assignedRecruiterIds.includes(r.recruiter_id) && (
-                  <i className="bi bi-check ms-1" />
+                  <i className="bi bi-check ml-1" />
                 )}
               </button>
             ))}
           </div>
-          <small className="text-secondary">Select recruiters to assign (leave empty to distribute evenly)</small>
+          <small className="text-muted-foreground">Select recruiters to assign (leave empty to distribute evenly)</small>
         </div>
       </div>
 
       <div className="mt-4">
         <button
           type="submit"
-          className="btn btn-primary"
+          className="px-4 py-2 rounded-md bg-accent-primary text-white font-medium hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isRunning}
         >
           {isRunning ? (
             <>
-              <span className="spinner-border spinner-border-sm me-2" />
+              <span className="inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
               Running...
             </>
           ) : (
             <>
-              <i className="bi bi-play-fill me-2" />
+              <i className="bi bi-play-fill mr-2" />
               Run Scenario
             </>
           )}

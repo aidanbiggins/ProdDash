@@ -48,7 +48,7 @@ export function UnifiedActionQueue({
   return (
     <div className="unified-action-queue">
       {/* Filter Tabs */}
-      <div className="d-flex gap-1 mb-3" style={{ flexWrap: 'wrap' }}>
+      <div className="flex gap-1 mb-3 flex-wrap">
         {filters.map(f => {
           const count = f.key === 'ALL' ? counts.ALL : counts[f.key as ActionOwnerType];
           const isActive = filter === f.key;
@@ -56,24 +56,21 @@ export function UnifiedActionQueue({
           return (
             <button
               key={f.key}
-              className={`btn btn-sm ${isActive ? 'active' : ''}`}
+              className="px-2 py-1 text-xs font-medium rounded-md"
               onClick={() => setFilter(f.key)}
               style={{
                 backgroundColor: isActive ? 'rgba(45, 212, 191, 0.2)' : 'rgba(255, 255, 255, 0.05)',
                 border: `1px solid ${isActive ? 'rgba(45, 212, 191, 0.5)' : 'rgba(255, 255, 255, 0.1)'}`,
                 color: isActive ? '#2dd4bf' : 'var(--text-secondary)',
-                padding: '0.25rem 0.5rem',
-                fontSize: '0.75rem',
               }}
             >
               {f.label}
               {count > 0 && (
                 <span
-                  className="ms-1 badge"
+                  className="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[0.65rem] font-medium"
                   style={{
                     backgroundColor: isActive ? '#2dd4bf' : 'rgba(255, 255, 255, 0.2)',
                     color: isActive ? '#0f172a' : 'var(--text-primary)',
-                    fontSize: '0.65rem',
                   }}
                 >
                   {count}
@@ -87,12 +84,9 @@ export function UnifiedActionQueue({
       {/* Action List */}
       <div className="action-list">
         {displayActions.length === 0 ? (
-          <div
-            className="text-center py-4"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            <i className="bi bi-check-circle fs-4 mb-2 d-block" style={{ opacity: 0.5 }}></i>
-            <span className="small">No open actions</span>
+          <div className="text-center py-4" style={{ color: 'var(--text-secondary)' }}>
+            <i className="bi bi-check-circle text-4xl mb-2 block opacity-50"></i>
+            <span className="text-sm">No open actions</span>
           </div>
         ) : (
           displayActions.map(action => (
@@ -107,10 +101,7 @@ export function UnifiedActionQueue({
 
       {/* Show more indicator */}
       {counts[filter === 'ALL' ? 'ALL' : filter as ActionOwnerType] > maxDisplay && (
-        <div
-          className="text-center mt-2 small"
-          style={{ color: 'var(--text-secondary)' }}
-        >
+        <div className="text-center mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
           +{counts[filter === 'ALL' ? 'ALL' : filter as ActionOwnerType] - maxDisplay} more actions
         </div>
       )}
@@ -143,22 +134,12 @@ function ActionRow({
 
   return (
     <div
-      className="action-row d-flex align-items-start gap-2 p-2 rounded mb-2"
+      className="action-row flex items-start gap-2 p-2 rounded mb-2 cursor-pointer transition-all duration-150 hover:bg-white/[0.06] hover:border-white/[0.15]"
       onClick={onClick}
       style={{
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
-        cursor: 'pointer',
-        transition: 'all 0.15s ease',
         opacity: isGreyedOut ? 0.4 : 1,
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
-        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
       }}
     >
       {/* Priority indicator */}
@@ -175,15 +156,13 @@ function ActionRow({
       />
 
       {/* Main content */}
-      <div className="flex-grow-1 min-width-0">
+      <div className="flex-1 min-w-0">
         {/* Title row */}
-        <div className="d-flex align-items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1">
           <span
-            className="action-title text-truncate"
+            className="action-title truncate text-[0.85rem] font-medium"
             style={{
               color: isGreyedOut ? 'var(--text-secondary)' : 'var(--text-primary)',
-              fontSize: '0.85rem',
-              fontWeight: 500,
             }}
             title={action.title}
           >
@@ -192,15 +171,13 @@ function ActionRow({
         </div>
 
         {/* Meta row */}
-        <div className="d-flex align-items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Owner badge */}
           <span
-            className="badge"
+            className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.65rem] font-medium"
             style={{
               backgroundColor: isGreyedOut ? greyBg : `${ownerMeta.color}20`,
               color: isGreyedOut ? greyColor : ownerMeta.color,
-              fontSize: '0.65rem',
-              padding: '0.15rem 0.35rem',
             }}
           >
             {ownerMeta.shortLabel}
@@ -209,10 +186,9 @@ function ActionRow({
           {/* Req title */}
           {action.req_title && action.req_id !== 'general' && (
             <span
-              className="text-truncate small"
+              className="truncate text-sm max-w-[120px]"
               style={{
                 color: 'var(--text-secondary)',
-                maxWidth: '120px',
               }}
               title={action.req_title}
             >
@@ -222,10 +198,9 @@ function ActionRow({
 
           {/* Reason */}
           <span
-            className="text-truncate small"
+            className="truncate text-sm max-w-[150px]"
             style={{
               color: 'var(--text-secondary)',
-              maxWidth: '150px',
             }}
             title={action.evidence.short_reason}
           >
@@ -235,23 +210,20 @@ function ActionRow({
       </div>
 
       {/* Right side - priority badge and due */}
-      <div className="d-flex flex-column align-items-end gap-1" style={{ flexShrink: 0 }}>
+      <div className="flex flex-col items-end gap-1 shrink-0">
         <span
-          className="badge"
+          className="inline-flex items-center px-2 py-0.5 rounded text-[0.6rem] font-medium uppercase"
           style={{
             backgroundColor: isGreyedOut ? greyBg : priorityMeta.bgColor,
             color: isGreyedOut ? greyColor : priorityMeta.color,
-            fontSize: '0.6rem',
-            textTransform: 'uppercase',
           }}
         >
           {action.priority}
         </span>
         <span
-          className="small"
+          className="text-[0.7rem]"
           style={{
             color: isGreyedOut ? greyColor : (action.due_in_days <= 0 ? '#ef4444' : 'var(--text-secondary)'),
-            fontSize: '0.7rem',
           }}
         >
           {dueText}

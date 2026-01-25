@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+import { supabase, getSupabaseClient } from '../../lib/supabase';
 import { Requisition, Candidate, Event, User, CanonicalStage, CandidateDisposition, RequisitionStatus } from '../types';
 import {
     createSnapshot,
@@ -145,7 +145,9 @@ async function chunkedUpsert(
             console.log(`[DB] ${table}: chunk ${chunkNum}/${totalChunks}...`);
         }
 
-        const { error } = await supabase!.from(table).upsert(chunk);
+        const client = getSupabaseClient();
+        if (!client) throw new Error("Supabase client not configured");
+        const { error } = await client.from(table).upsert(chunk);
         if (error) {
             console.error(`[DB] Error upserting to ${table} (chunk ${chunkNum}):`, error);
             throw error;
@@ -180,7 +182,8 @@ export const persistDashboardData = async (
         return;
     }
 
-    if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
+    const client = getSupabaseClient();
+    if (!client) throw new Error("Supabase execution skipped: Client not configured");
     if (!organizationId) throw new Error("Organization ID is required for data import");
 
     console.log(`[DB] Starting persist: ${requisitions.length} reqs, ${candidates.length} candidates, ${events.length} events, ${users.length} users`);
@@ -333,7 +336,8 @@ async function chunkedDelete(
     chunkSize: number = 200,
     onProgress?: (rowsDeleted: number) => void
 ): Promise<number> {
-    if (!supabase) return 0;
+    const client = getSupabaseClient();
+    if (!client) return 0;
 
     const startTime = Date.now();
     let totalDeleted = 0;
@@ -345,7 +349,7 @@ async function chunkedDelete(
 
         while (hasMore) {
             // Get a batch of IDs - use smaller chunk to keep URL size manageable
-            const { data, error: selectError } = await supabase
+            const { data, error: selectError } = await client
                 .from(table)
                 .select(idColumn)
                 .eq('organization_id', orgId)
@@ -363,7 +367,7 @@ async function chunkedDelete(
 
             // Delete this batch using .in() with IDs - smaller chunk avoids URL length limits
             const ids = data.map((row: any) => row[idColumn]);
-            const { error: deleteError } = await supabase
+            const { error: deleteError } = await client
                 .from(table)
                 .delete()
                 .in(idColumn, ids);
@@ -391,7 +395,7 @@ async function chunkedDelete(
     let nullDeleted = 0;
     let hasMoreNull = true;
     while (hasMoreNull) {
-        const { data, error: selectError } = await supabase
+        const { data, error: selectError } = await client
             .from(table)
             .select(idColumn)
             .is('organization_id', null)
@@ -408,7 +412,7 @@ async function chunkedDelete(
         }
 
         const ids = data.map((row: any) => row[idColumn]);
-        const { error: deleteError } = await supabase
+        const { error: deleteError } = await client
             .from(table)
             .delete()
             .in(idColumn, ids);
@@ -438,7 +442,8 @@ export const clearAllData = async (
     orgId?: string | null,
     onProgress?: ClearProgressCallback
 ) => {
-    if (!supabase) throw new Error("Supabase execution skipped: Client not configured");
+    const client = getSupabaseClient();
+    if (!client) throw new Error("Supabase execution skipped: Client not configured");
 
     console.log(`[DB Clear] Starting clear for org: ${orgId || 'ALL'}`);
     const startTime = Date.now();

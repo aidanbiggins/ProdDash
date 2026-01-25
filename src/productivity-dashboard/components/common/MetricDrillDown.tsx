@@ -30,33 +30,26 @@ export function MetricDrillDown({
   if (!isOpen) return null;
 
   return (
-    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-lg">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">{metricName}</h5>
-            <button type="button" className="btn-close" onClick={onClose} />
-          </div>
-          <div className="modal-body">
-            {/* Current Value */}
-            <div className="row mb-4">
-              <div className="col-md-6">
-                <div className="card" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div className="card-body text-center">
-                    <h6 className="mb-1" style={{ color: '#94A3B8' }}>Current Value</h6>
-                    <h2 className="mb-0" style={{ color: '#F8FAFC' }}>{value}</h2>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-6">
-                <div className="card" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div className="card-body text-center">
-                    <h6 className="mb-1" style={{ color: '#94A3B8' }}>Records Included</h6>
-                    <h2 className="mb-0" style={{ color: '#F8FAFC' }}>{recordCount}</h2>
-                  </div>
-                </div>
-              </div>
+    <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+      <div className="w-full max-w-4xl mx-4 rounded-lg" style={{ background: 'var(--bg-surface)', border: '1px solid var(--glass-border)' }}>
+        <div className="flex items-center justify-between p-4 border-b border-glass-border">
+          <h5 className="text-lg font-medium" style={{ color: '#F8FAFC' }}>{metricName}</h5>
+          <button type="button" className="p-1 rounded hover:bg-white/10 text-white/60 hover:text-white" onClick={onClose}>
+            <i className="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div className="p-4">
+          {/* Current Value */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <h6 className="mb-1" style={{ color: '#94A3B8' }}>Current Value</h6>
+              <h2 className="mb-0 text-2xl font-bold" style={{ color: '#F8FAFC' }}>{value}</h2>
             </div>
+            <div className="rounded-lg p-4 text-center" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <h6 className="mb-1" style={{ color: '#94A3B8' }}>Records Included</h6>
+              <h2 className="mb-0 text-2xl font-bold" style={{ color: '#F8FAFC' }}>{recordCount}</h2>
+            </div>
+          </div>
 
             {/* Formula */}
             <div className="mb-4">
@@ -69,13 +62,13 @@ export function MetricDrillDown({
             {/* Additional Info */}
             {additionalInfo && Object.keys(additionalInfo).length > 0 && (
               <div className="mb-4">
-                <h6>Calculation Details</h6>
-                <table className="table table-sm">
+                <h6 style={{ color: '#F8FAFC' }}>Calculation Details</h6>
+                <table className="w-full text-sm">
                   <tbody>
                     {Object.entries(additionalInfo).map(([key, val]) => (
-                      <tr key={key}>
-                        <td className="text-muted">{key}</td>
-                        <td className="fw-bold">{val}</td>
+                      <tr key={key} className="border-b border-glass-border">
+                        <td className="py-2 text-muted-foreground">{key}</td>
+                        <td className="py-2 font-bold" style={{ color: '#F8FAFC' }}>{val}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -88,9 +81,9 @@ export function MetricDrillDown({
               <div className="mb-4">
                 <h6 style={{ color: '#F8FAFC' }}>Included Record IDs</h6>
                 <div className="p-3 rounded" style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(30, 41, 59, 0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <div className="d-flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1">
                     {recordIds.map(id => (
-                      <span key={id} className="badge bg-secondary">{id}</span>
+                      <span key={id} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-white/10 text-white/80">{id}</span>
                     ))}
                   </div>
                 </div>
@@ -99,8 +92,8 @@ export function MetricDrillDown({
 
             {recordIds.length > 100 && (
               <div className="mb-4">
-                <h6>Included Record IDs</h6>
-                <p className="text-muted">
+                <h6 style={{ color: '#F8FAFC' }}>Included Record IDs</h6>
+                <p className="text-muted-foreground">
                   {recordIds.length} records included. Export to CSV to see full list.
                 </p>
               </div>
@@ -108,16 +101,19 @@ export function MetricDrillDown({
 
             {/* Computed At */}
             {computedAt && (
-              <div className="text-muted small">
+              <div className="text-muted-foreground text-sm">
                 Computed at: {format(computedAt, 'PPpp')}
               </div>
             )}
-          </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Close
-            </button>
-          </div>
+        </div>
+        <div className="flex justify-end p-4 border-t border-glass-border">
+          <button
+            type="button"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 text-white"
+            onClick={onClose}
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

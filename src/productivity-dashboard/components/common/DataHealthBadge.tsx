@@ -85,22 +85,13 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
       : 'var(--color-danger)';
 
   return (
-    <div className="position-relative">
+    <div className="relative">
       <button
         ref={badgeRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="btn d-flex align-items-center justify-content-center"
+        className="flex items-center justify-center w-[42px] h-[42px] rounded-lg text-white font-bold text-base border-0 cursor-pointer"
         style={{
-          width: '42px',
-          height: '42px',
-          padding: 0,
-          borderRadius: '8px',
-          backgroundColor: badgeBg,
-          color: 'white',
-          fontWeight: 700,
-          fontSize: '1rem',
-          border: 'none',
-          cursor: 'pointer'
+          backgroundColor: badgeBg
         }}
         title={`Data Health: ${healthGrade} (${health.overallHealthScore}%)`}
       >
@@ -111,25 +102,21 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
       {isOpen && (
         <div
           ref={popoverRef}
-          className="position-absolute shadow-lg"
+          className="absolute shadow-lg w-[280px] z-[1050] overflow-hidden rounded-xl"
           style={{
             top: 'calc(100% + 8px)',
             right: 0,
-            width: '280px',
             background: 'rgba(30, 41, 59, 0.95)',
             backdropFilter: 'blur(12px)',
-            borderRadius: '12px',
             border: '1px solid rgba(255,255,255,0.1)',
-            zIndex: 1050,
-            overflow: 'hidden',
             boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
           }}
         >
           {/* Header */}
-          <div className="px-3 py-2" style={{ background: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-            <div className="d-flex justify-content-between align-items-center">
-              <span className="fw-semibold" style={{ fontSize: '0.85rem' }}>Data Health</span>
-              <span className="fw-bold" style={{ color: `var(--color-${healthColor})`, fontSize: '0.9rem' }}>
+          <div className="px-3 py-2 border-b border-white/10" style={{ background: 'rgba(15, 23, 42, 0.8)' }}>
+            <div className="flex justify-between items-center">
+              <span className="font-semibold text-[0.85rem]">Data Health</span>
+              <span className="font-bold text-[0.9rem]" style={{ color: `var(--color-${healthColor})` }}>
                 {health.overallHealthScore}%
               </span>
             </div>
@@ -149,10 +136,10 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
                 {issues.map((issue, i) => (
                   <div
                     key={i}
-                    className="d-flex justify-content-between align-items-center py-1"
+                    className="flex justify-between items-center py-1"
                     style={{ fontSize: '0.8rem' }}
                   >
-                    <span className="text-muted">{issue.label}</span>
+                    <span className="text-muted-foreground">{issue.label}</span>
                     <span className={`badge-bespoke ${issue.percentage > issue.threshold ? 'badge-warning-soft' : 'badge-neutral-soft'}`} style={{ fontSize: '0.7rem' }}>
                       {issue.percentage}%
                     </span>
@@ -164,7 +151,7 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
             {/* Unmapped Stages */}
             {health.unmappedStagesCount > 0 && (
               <div
-                className="d-flex justify-content-between align-items-center py-2 px-2 rounded mb-3"
+                className="flex justify-between items-center py-2 px-2 rounded mb-3"
                 style={{ background: 'var(--color-danger-light)', fontSize: '0.8rem' }}
               >
                 <span style={{ color: 'var(--color-danger)' }}>
@@ -189,10 +176,10 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
             {/* Low Confidence */}
             {health.lowConfidenceMetrics.length > 0 && (
               <div className="mb-2">
-                <div className="text-muted mb-1" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                <div className="text-muted-foreground mb-1" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                   Low Confidence
                 </div>
-                <div className="d-flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1">
                   {health.lowConfidenceMetrics.slice(0, 4).map((metric, i) => (
                     <span key={i} className="badge-bespoke badge-warning-soft" style={{ fontSize: '0.65rem' }}>
                       {metric}
@@ -210,8 +197,8 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
             {/* All Good */}
             {!hasIssues && (
               <div className="text-center py-1">
-                <span className="text-muted" style={{ fontSize: '0.8rem' }}>
-                  <i className="bi bi-check-circle text-success me-1"></i>
+                <span className="text-muted-foreground text-[0.8rem]">
+                  <i className="bi bi-check-circle text-success mr-1"></i>
                   All checks passed
                 </span>
               </div>
@@ -219,36 +206,28 @@ export function DataHealthBadge({ health, onConfigureStages, onExportData, onCle
           </div>
 
           {/* Data Actions */}
-          <div className="border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+          <div className="border-t border-white/10">
             {onConfigureStages && (
               <button
-                className="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2"
-                style={{ fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-primary)' }}
+                className="w-full text-left px-3 py-2 border-0 bg-transparent flex items-center gap-2 text-[0.85rem] cursor-pointer text-[var(--text-primary)] hover:bg-white/10"
                 onClick={() => { onConfigureStages(); setIsOpen(false); }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 Stage Mapping
               </button>
             )}
             {onExportData && (
               <button
-                className="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2"
-                style={{ fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text-primary)' }}
+                className="w-full text-left px-3 py-2 border-0 bg-transparent flex items-center gap-2 text-[0.85rem] cursor-pointer text-[var(--text-primary)] hover:bg-white/10"
                 onClick={() => { onExportData(); setIsOpen(false); }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 Export Data
               </button>
             )}
             {onClearDatabase && (
               <button
-                className="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2"
-                style={{ fontSize: '0.85rem', cursor: 'pointer', color: 'var(--danger)' }}
+                className="w-full text-left px-3 py-2 border-0 bg-transparent flex items-center gap-2 text-[0.85rem] cursor-pointer hover:bg-white/10"
+                style={{ color: 'var(--danger)' }}
                 onClick={() => { onClearDatabase(); setIsOpen(false); }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
               >
                 Clear Database
               </button>

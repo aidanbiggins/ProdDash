@@ -51,26 +51,26 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
 
   return (
     <form onSubmit={handleSubmit} className="scenario-form">
-      <div className="row g-3">
+      <div className="grid grid-cols-12 gap-3">
         {/* Freeze Duration */}
-        <div className="col-md-6">
-          <label className="form-label">Freeze Duration (Weeks)</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Freeze Duration (Weeks)</label>
           <input
             type="number"
-            className="form-control"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
             value={freezeWeeks}
             onChange={e => setFreezeWeeks(Math.max(1, Math.min(26, parseInt(e.target.value) || 4)))}
             min={1}
             max={26}
           />
-          <small className="text-secondary">Duration of hiring freeze (1-26 weeks)</small>
+          <small className="text-muted-foreground">Duration of hiring freeze (1-26 weeks)</small>
         </div>
 
         {/* Candidate Action */}
-        <div className="col-md-6">
-          <label className="form-label">Candidate Action</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Candidate Action</label>
           <select
-            className="form-select"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
             value={candidateAction}
             onChange={e => setCandidateAction(e.target.value as 'HOLD' | 'REJECT_SOFT' | 'WITHDRAW')}
           >
@@ -80,16 +80,16 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
               </option>
             ))}
           </select>
-          <small className="text-secondary">
+          <small className="text-muted-foreground">
             {CANDIDATE_ACTIONS.find(a => a.value === candidateAction)?.description}
           </small>
         </div>
 
         {/* Scope Type */}
-        <div className="col-md-6">
-          <label className="form-label">Scope</label>
+        <div className="col-span-12 md:col-span-6">
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Scope</label>
           <select
-            className="form-select"
+            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
             value={scopeType}
             onChange={e => {
               setScopeType(e.target.value as typeof scopeType);
@@ -106,15 +106,15 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
 
         {/* Scope Filter Value */}
         {scopeType !== 'ALL' && (
-          <div className="col-md-6">
-            <label className="form-label">
+          <div className="col-span-12 md:col-span-6">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">
               {scopeType === 'FUNCTION' && 'Function'}
               {scopeType === 'LEVEL' && 'Level'}
               {scopeType === 'SPECIFIC_REQS' && 'Requisition IDs'}
             </label>
             {scopeType === 'FUNCTION' ? (
               <select
-                className="form-select"
+                className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
                 value={scopeFilterValue}
                 onChange={e => setScopeFilterValue(e.target.value)}
               >
@@ -125,7 +125,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
               </select>
             ) : scopeType === 'LEVEL' ? (
               <select
-                className="form-select"
+                className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
                 value={scopeFilterValue}
                 onChange={e => setScopeFilterValue(e.target.value)}
               >
@@ -137,7 +137,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
             ) : (
               <input
                 type="text"
-                className="form-control"
+                className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
                 value={scopeFilterValue}
                 onChange={e => setScopeFilterValue(e.target.value)}
                 placeholder="REQ-001, REQ-002, ..."
@@ -147,9 +147,9 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
         )}
 
         {/* Impact Preview */}
-        <div className="col-12">
-          <div className="alert alert-info mb-0">
-            <i className="bi bi-info-circle me-2" />
+        <div className="col-span-12">
+          <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400 mb-0">
+            <i className="bi bi-info-circle mr-2" />
             <strong>Impact Preview:</strong> A {freezeWeeks}-week freeze with "{candidateAction.toLowerCase().replace('_', ' ')}"
             action will affect {scopeType === 'ALL' ? 'all open requisitions' : `requisitions in scope`}.
             Expect candidate decay and potential pipeline attrition.
@@ -160,17 +160,17 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
       <div className="mt-4">
         <button
           type="submit"
-          className="btn btn-primary"
+          className="px-4 py-2 rounded-md bg-accent-primary text-white font-medium hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isRunning || (scopeType !== 'ALL' && !scopeFilterValue)}
         >
           {isRunning ? (
             <>
-              <span className="spinner-border spinner-border-sm me-2" />
+              <span className="inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-2" />
               Running...
             </>
           ) : (
             <>
-              <i className="bi bi-play-fill me-2" />
+              <i className="bi bi-play-fill mr-2" />
               Run Scenario
             </>
           )}

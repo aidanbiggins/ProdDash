@@ -553,7 +553,7 @@ export function OverviewTab({
       />
 
       {/* KPI Cards - 7 cards using flex for equal width */}
-      <div className="d-flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
+      <div className="flex gap-3 mb-4" style={{ flexWrap: 'nowrap', overflowX: 'auto' }}>
         <div style={{ flex: '1 1 0', minWidth: '120px' }}>
           <KPICard
             title="Hires"
@@ -638,9 +638,9 @@ export function OverviewTab({
       </div>
 
       {/* Pipeline Health + Productivity Trend Row */}
-      <div className="row g-4 mb-4">
+      <div className="grid grid-cols-12 gap-4 mb-4">
         {/* Pipeline Health Card (Compact) */}
-        <div className="col-lg-4">
+        <div className="col-span-12 lg:col-span-4">
           <PipelineHealthCard
             healthSummary={pipelineHealth}
             compact={true}
@@ -649,10 +649,10 @@ export function OverviewTab({
         </div>
 
         {/* Productivity Trend Chart */}
-        <div className="col-lg-8">
-          <div className="card-bespoke h-100">
+        <div className="col-span-12 lg:col-span-8">
+          <div className="card-bespoke h-full">
             <div className="card-header">
-              <div className="d-flex justify-content-between align-items-center">
+              <div className="flex justify-between items-center">
                 <h6 className="mb-0">Productivity Trend</h6>
                 <small style={{ color: '#94A3B8' }}>Weighted Hires ÷ Open Reqs per Week</small>
               </div>
@@ -722,12 +722,12 @@ export function OverviewTab({
       {/* Weekly Funnel Activity Chart */}
       <div className="card-bespoke mb-4">
         <div className="card-header">
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div className="d-flex align-items-center gap-2">
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <div className="flex items-center gap-2">
               <h6 className="mb-0">Weekly Funnel Activity</h6>
               {isFiltered && <span className="badge-bespoke badge-primary-soft small">Filtered</span>}
             </div>
-            <div className="d-flex align-items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Metric toggle chips */}
               {funnelMetrics.map(metric => {
                 const isActive = selectedFunnelMetrics.has(metric.key);
@@ -736,16 +736,11 @@ export function OverviewTab({
                     key={metric.key}
                     type="button"
                     onClick={() => toggleFunnelMetric(metric.key)}
-                    className="btn btn-sm"
+                    className="px-2.5 py-1 text-xs font-medium rounded-xl transition-all"
                     style={{
-                      fontSize: '0.75rem',
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: '12px',
                       border: `1.5px solid ${metric.color}`,
                       backgroundColor: isActive ? metric.color : 'transparent',
-                      color: isActive ? 'white' : metric.color,
-                      fontWeight: 500,
-                      transition: 'all 0.15s ease'
+                      color: isActive ? 'white' : metric.color
                     }}
                   >
                     {metric.label}
@@ -757,8 +752,8 @@ export function OverviewTab({
                 <button
                   type="button"
                   onClick={resetFunnelMetrics}
-                  className="btn btn-sm btn-bespoke-ghost"
-                  style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}
+                  className="btn-bespoke-ghost px-2 py-0.5 text-xs"
+                  aria-label="Reset funnel metrics"
                 >
                   Reset
                 </button>
@@ -828,8 +823,8 @@ export function OverviewTab({
 
       {/* Recruiter Leaderboard */}
       <div className="card-bespoke">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <div className="d-flex align-items-center gap-3">
+        <div className="card-header flex justify-between items-center">
+          <div className="flex items-center gap-3">
             <h6 className="mb-0">Recruiter Leaderboard</h6>
             {hasTopFilters && selectedRecruiterIds.size === 0 && (
               <span className="badge-bespoke badge-primary-soft">{sortedRecruiters.length} filtered</span>
@@ -838,20 +833,20 @@ export function OverviewTab({
               <span className="badge-bespoke badge-primary-soft">{selectedRecruiterIds.size} selected</span>
             )}
           </div>
-          <div className="d-flex gap-2">
+          <div className="flex gap-2">
             {selectedRecruiterIds.size > 0 && (
               <>
                 {selectedRecruiterIds.size === 1 && (
-                  <button className="btn btn-bespoke-primary btn-sm" onClick={handleViewSelected}>
+                  <button type="button" className="btn-bespoke-primary px-3 py-1.5 text-xs" onClick={handleViewSelected}>
                     View Details
                   </button>
                 )}
-                <button className="btn btn-bespoke-secondary btn-sm" onClick={clearSelection}>
+                <button type="button" className="btn-bespoke-secondary px-3 py-1.5 text-xs" onClick={clearSelection}>
                   Clear Selection
                 </button>
               </>
             )}
-            <button className="btn btn-bespoke-secondary btn-sm" onClick={handleExport}>
+            <button type="button" className="btn-bespoke-secondary px-3 py-1.5 text-xs" onClick={handleExport}>
               Export CSV
             </button>
           </div>
@@ -866,7 +861,7 @@ export function OverviewTab({
                 render: (r) => (
                   <div>
                     <div className="cell-primary text-truncate" style={{ maxWidth: '130px' }} title={r.recruiterName}>{r.recruiterName}</div>
-                    {r.team && <small className="cell-muted cell-small">{r.team}</small>}
+                    {r.team && <span className="cell-muted cell-small text-sm">{r.team}</span>}
                   </div>
                 )
               },

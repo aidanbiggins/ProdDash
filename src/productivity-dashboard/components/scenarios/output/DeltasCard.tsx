@@ -36,7 +36,7 @@ export default function DeltasCard({ deltas, className = '' }: DeltasCardProps) 
 
   return (
     <div className={`deltas-card ${className}`}>
-      <div className="row g-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {displayedMetrics.map(metric => {
           const value = deltas[metric.key];
           if (value === null) return null;
@@ -45,7 +45,7 @@ export default function DeltasCard({ deltas, className = '' }: DeltasCardProps) 
           const isGood = metric.positiveIsGood ? isPositive : !isPositive;
 
           return (
-            <div key={metric.key} className="col-6 col-md-3">
+            <div key={metric.key}>
               <StatLabel>{metric.label}</StatLabel>
               <StatValue
                 size="md"

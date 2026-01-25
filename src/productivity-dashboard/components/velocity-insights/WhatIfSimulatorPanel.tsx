@@ -65,7 +65,7 @@ function ConfidenceBadge({ confidence, reason }: { confidence: 'HIGH' | 'MED' | 
 
   return (
     <span
-      className="badge font-mono"
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono"
       style={{ background: style.bg, color: style.color }}
       title={reason}
     >
@@ -92,7 +92,7 @@ function MetricDisplay({ label, baseline, projected, delta, unit, positiveIsGood
       <div className="glass-panel p-2 mb-2" style={{ opacity: 0.6 }}>
         <div className="stat-label mb-1">{label}</div>
         <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
-          <i className="bi bi-info-circle me-1"></i>
+          <i className="bi bi-info-circle mr-1"></i>
           {unavailableReason || 'Data unavailable'}
         </div>
       </div>
@@ -121,18 +121,18 @@ function MetricDisplay({ label, baseline, projected, delta, unit, positiveIsGood
   return (
     <div className="glass-panel p-2 mb-2">
       <div className="stat-label mb-1">{label}</div>
-      <div className="d-flex align-items-baseline gap-2">
+      <div className="flex items-baseline gap-2">
         <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
           {formatValue(baseline)}
         </span>
         <span style={{ color: 'var(--color-text-secondary)' }}>
           <i className="bi bi-arrow-right"></i>
         </span>
-        <span className="font-mono fw-bold" style={{ color: 'var(--color-text-primary)', fontSize: '1.1rem' }}>
+        <span className="font-mono font-bold" style={{ color: 'var(--color-text-primary)', fontSize: '1.1rem' }}>
           {formatValue(projected)}
         </span>
         <span
-          className="badge font-mono"
+          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono"
           style={{ background: `${deltaColor}20`, color: deltaColor }}
         >
           {formatDelta(delta)}
@@ -163,29 +163,28 @@ function LeverSlider({
 
   return (
     <div className="mb-3">
-      <div className="d-flex justify-content-between align-items-center mb-1">
+      <div className="flex justify-between items-center mb-1">
         <div>
           <span className="stat-label">{label}</span>
-          <small className="d-block" style={{ color: 'var(--color-text-secondary)', fontSize: '0.7rem' }}>
+          <small className="block" style={{ color: 'var(--color-text-secondary)', fontSize: '0.7rem' }}>
             {description}
           </small>
         </div>
-        <span className="font-mono fw-bold" style={{ color: 'var(--color-accent)', fontSize: '1rem' }}>
+        <span className="font-mono font-bold" style={{ color: 'var(--color-accent)', fontSize: '1rem' }}>
           {value} {unit}
         </span>
       </div>
       <input
         type="range"
-        className="form-range"
+        className="w-full h-2 bg-gray-700 rounded-lg cursor-pointer accent-accent"
         min={bounds.min}
         max={bounds.max}
         step={bounds.step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        style={{ accentColor: 'var(--color-accent)' }}
         data-testid={`slider-${leverKey}`}
       />
-      <div className="d-flex justify-content-between" style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)' }}>
+      <div className="flex justify-between" style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)' }}>
         <span>{bounds.min}</span>
         <span>{bounds.max}</span>
       </div>
@@ -212,7 +211,7 @@ function NarrativeDisplay({
   if (isLoading) {
     return (
       <div className="mt-3 p-3 glass-panel text-center" style={{ color: 'var(--color-text-secondary)' }}>
-        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+        <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin inline-block mr-2" role="status"></span>
         Generating narrative...
       </div>
     );
@@ -222,7 +221,7 @@ function NarrativeDisplay({
     return (
       <div className="mt-3 p-2 glass-panel" style={{ borderLeft: '3px solid #ef4444' }}>
         <small style={{ color: '#ef4444' }}>
-          <i className="bi bi-exclamation-triangle me-1"></i>
+          <i className="bi bi-exclamation-triangle mr-1"></i>
           {error}
         </small>
       </div>
@@ -236,14 +235,14 @@ function NarrativeDisplay({
   return (
     <div className="mt-3 glass-panel p-3">
       <div className="stat-label mb-2">
-        <i className="bi bi-stars me-1"></i>
+        <i className="bi bi-stars mr-1"></i>
         AI Analysis
       </div>
-      <ul className="mb-0 ps-3" style={{ color: 'var(--color-text-primary)', fontSize: '0.85rem' }}>
+      <ul className="mb-0 pl-3" style={{ color: 'var(--color-text-primary)', fontSize: '0.85rem' }}>
         {bullets.map((bullet, idx) => (
           <li key={idx} className="mb-2">
             {bullet.text}
-            <small className="d-block" style={{ color: 'var(--color-text-secondary)', fontSize: '0.7rem' }}>
+            <small className="block" style={{ color: 'var(--color-text-secondary)', fontSize: '0.7rem' }}>
               Source: {bullet.citation}
             </small>
           </li>
@@ -431,8 +430,8 @@ Format each bullet as: • [insight] (Citation: [data source])`;
   return (
     <div className="glass-panel p-3 mb-4" data-testid="what-if-simulator-panel">
       {/* Header - matches KEY INSIGHTS section styling */}
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <div className="d-flex align-items-center gap-2">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
           <span
             style={{
               width: 28,
@@ -460,11 +459,11 @@ Format each bullet as: • [insight] (Citation: [data source])`;
         <ConfidenceBadge confidence={output.confidence} reason={output.confidence_reason} />
       </div>
 
-      <div className="row">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left: Levers */}
-        <div className="col-md-6">
+        <div>
           <div className="stat-label mb-2">
-            <i className="bi bi-sliders2 me-1"></i>
+            <i className="bi bi-sliders2 mr-1"></i>
             Intervention Levers
           </div>
 
@@ -482,9 +481,9 @@ Format each bullet as: • [insight] (Citation: [data source])`;
         </div>
 
         {/* Right: Outputs */}
-        <div className="col-md-6">
+        <div>
           <div className="stat-label mb-2">
-            <i className="bi bi-graph-up-arrow me-1"></i>
+            <i className="bi bi-graph-up-arrow mr-1"></i>
             Projected Impact
           </div>
 
@@ -530,17 +529,17 @@ Format each bullet as: • [insight] (Citation: [data source])`;
             unavailableReason={output.unavailable_reasons['pipeline_gap']}
           />
 
-          <small className="d-block mt-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem' }}>
-            <i className="bi bi-info-circle me-1"></i>
+          <small className="block mt-2" style={{ color: 'var(--color-text-secondary)', fontSize: '0.75rem' }}>
+            <i className="bi bi-info-circle mr-1"></i>
             {output.confidence_reason}
           </small>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="d-flex gap-2 mt-3 flex-wrap">
+      <div className="flex gap-2 mt-3 flex-wrap">
         <button
-          className="btn btn-bespoke-secondary"
+          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
           onClick={handleGenerateNarrative}
           disabled={narrativeLoading}
           title={hasAI ? 'Generate AI analysis' : 'Generate analysis (deterministic)'}
@@ -548,23 +547,23 @@ Format each bullet as: • [insight] (Citation: [data source])`;
         >
           {narrativeLoading ? (
             <>
-              <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+              <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin inline-block mr-1" role="status"></span>
               Generating...
             </>
           ) : (
             <>
-              <i className={`bi ${hasAI ? 'bi-stars' : 'bi-calculator'} me-1`}></i>
+              <i className={`bi ${hasAI ? 'bi-stars' : 'bi-calculator'} mr-1`}></i>
               {hasAI ? 'AI Narration' : 'Analysis'}
             </>
           )}
         </button>
 
         <button
-          className="btn btn-bespoke-secondary"
+          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
           onClick={handleReset}
           data-testid="reset-btn"
         >
-          <i className="bi bi-arrow-counterclockwise me-1"></i>
+          <i className="bi bi-arrow-counterclockwise mr-1"></i>
           Reset
         </button>
       </div>

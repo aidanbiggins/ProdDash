@@ -134,15 +134,15 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
         <div className="animate-fade-in">
             {/* Filter Indicator */}
             {summary.isFiltered && (
-                <div className="d-flex justify-content-between align-items-center mb-3 bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded p-2 px-3">
-                    <div className="d-flex align-items-center">
+                <div className="flex justify-between items-center mb-3 bg-primary/10 border border-primary/25 rounded p-2 px-3">
+                    <div className="flex items-center">
                         <span style={{ color: 'var(--color-primary)', marginRight: '0.5rem' }}>🔽</span>
-                        <span className="text-primary fw-medium">
+                        <span className="text-primary font-medium">
                             Showing stats for {selectedHmUserIds.size} selected HM{selectedHmUserIds.size > 1 ? 's' : ''}
                         </span>
                     </div>
                     <button
-                        className="btn btn-sm btn-outline-primary"
+                        className="px-3 py-1 text-sm border border-blue-500 text-blue-500 rounded hover:bg-blue-500/10 transition-colors"
                         onClick={onClearSelection}
                     >
                         Show All
@@ -151,30 +151,30 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
             )}
 
             {/* Summary Cards */}
-            <div className="row g-3 mb-4">
-                <div className="col-md-3">
-                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #94A3B8' }}>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                <div>
+                    <div className="p-3 h-full flex flex-col justify-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #94A3B8' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Hiring Managers</div>
                         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#94A3B8' }}>{summary.totalHMs}</div>
                         <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>{summary.isFiltered ? 'Selected' : 'Active users'}</div>
                     </div>
                 </div>
-                <div className="col-md-3">
-                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #f59e0b' }}>
+                <div>
+                    <div className="p-3 h-full flex flex-col justify-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #f59e0b' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Open Requisitions</div>
                         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#f59e0b' }}>{summary.totalOpenReqs}</div>
                         <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>Active positions</div>
                     </div>
                 </div>
-                <div className="col-md-3">
-                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #F59E0B' }}>
+                <div>
+                    <div className="p-3 h-full flex flex-col justify-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #F59E0B' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Pending Actions</div>
                         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#F59E0B' }}>{summary.totalPendingActions}</div>
                         <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>Requiring attention</div>
                     </div>
                 </div>
-                <div className="col-md-3">
-                    <div className="p-3 h-100 d-flex flex-column justify-content-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #2dd4bf' }}>
+                <div>
+                    <div className="p-3 h-full flex flex-col justify-center" style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px', borderTop: '2px solid #2dd4bf' }}>
                         <div style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8', marginBottom: '0.5rem' }}>Active Candidates</div>
                         <div style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, fontSize: '1.75rem', color: '#2dd4bf' }}>{summary.totalActiveCandidates}</div>
                         <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>In pipeline</div>
@@ -184,19 +184,19 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
 
             {/* Speed & Benchmarks */}
             <div className="card-bespoke mb-4">
-                <div className="card-header border-bottom-0 pb-0">
+                <div className="card-header border-b-0 pb-0">
                     <h6 className="mb-0">Speed & Benchmarks</h6>
                 </div>
                 <div className="card-body">
-                    <div className="row g-4">
-                        <div className="col-md-4">
-                            <div className="d-flex align-items-center gap-3">
-                                <div className="p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 rounded-full bg-primary/10 text-primary">
                                     💬
                                 </div>
-                                <div className="flex-grow-1">
-                                    <div className="text-muted small">Median Feedback Speed</div>
-                                    <div className="d-flex align-items-baseline gap-2">
+                                <div className="grow">
+                                    <div className="text-muted-foreground text-sm">Median Feedback Speed</div>
+                                    <div className="flex items-baseline gap-2">
                                         <h4 className="mb-0">
                                             {(() => {
                                                 const targetHMs = selectedHmUserIds.size > 0
@@ -217,20 +217,20 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
 
                                                 return Math.round(median * 10) / 10;
                                             })()}
-                                            <small className="fs-6 fw-normal text-muted ms-1">days</small>
+                                            <small className="text-base font-normal text-muted-foreground ml-1">days</small>
                                         </h4>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-md-4">
-                            <div className="d-flex align-items-center gap-3">
-                                <div className="p-3 rounded-circle bg-info bg-opacity-10 text-info">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 rounded-full bg-cyan-500/10 text-cyan-500">
                                     🔍
                                 </div>
-                                <div className="flex-grow-1">
-                                    <div className="text-muted small">Median Review Speed</div>
-                                    <div className="d-flex align-items-baseline gap-2">
+                                <div className="grow">
+                                    <div className="text-muted-foreground text-sm">Median Review Speed</div>
+                                    <div className="flex items-baseline gap-2">
                                         <h4 className="mb-0">
                                             {(() => {
                                                 const targetHMs = selectedHmUserIds.size > 0
@@ -251,24 +251,24 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
 
                                                 return Math.round(median * 10) / 10;
                                             })()}
-                                            <small className="fs-6 fw-normal text-muted ms-1">days</small>
+                                            <small className="text-base font-normal text-muted-foreground ml-1">days</small>
                                         </h4>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-md-4">
-                            <div className="d-flex align-items-center gap-3 text-muted">
-                                <div className="p-3 rounded-circle bg-slate-100 text-slate-400">
+                        <div>
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                                <div className="p-3 rounded-full bg-slate-100 text-slate-400">
                                     🎯
                                 </div>
-                                <div className="flex-grow-1">
-                                    <div className="text-muted small">Team Median (Global)</div>
-                                    <div className="d-flex align-items-baseline gap-2">
+                                <div className="grow">
+                                    <div className="text-muted-foreground text-sm">Team Median (Global)</div>
+                                    <div className="flex items-baseline gap-2">
                                         <h4 className="mb-0">
                                             {/* We can improve this math later */}
                                             {Math.round(hmRollups.reduce((acc, r) => acc + (r.latencyMetrics.feedbackLatency.median || 0), 0) / (hmRollups.filter(r => r.latencyMetrics.feedbackLatency.median !== null).length || 1))}
-                                            <small className="fs-6 fw-normal text-muted ms-1">days</small>
+                                            <small className="text-base font-normal text-muted-foreground ml-1">days</small>
                                         </h4>
                                     </div>
                                 </div>
@@ -284,11 +284,11 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                     <SectionHeader
                         title="Hiring Manager Leaderboard"
                         badge={selectedHmUserIds.size > 0 ? (
-                            <span className="badge bg-primary">{selectedHmUserIds.size} selected</span>
+                            <span className="px-2 py-1 text-xs bg-primary text-white rounded">{selectedHmUserIds.size} selected</span>
                         ) : undefined}
                         actions={selectedHmUserIds.size > 0 ? (
                             <button
-                                className="btn btn-sm btn-outline-secondary"
+                                className="px-3 py-1 text-sm border border-slate-400 text-slate-400 rounded hover:bg-slate-400/10 transition-colors"
                                 onClick={onClearSelection}
                             >
                                 Clear Selection
@@ -297,14 +297,14 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                     />
                 </div>
                 <div className="card-body p-0">
-                    <div className="table-responsive">
-                        <table className="table table-hover mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full mb-0" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
                             <thead>
                                 <tr style={{ background: '#0a0a0a' }}>
                                     <th style={{ width: '40px', ...thStyle }}>
                                         <input
                                             type="checkbox"
-                                            className="form-check-input"
+                                            className="w-4 h-4 rounded"
                                             checked={selectedHmUserIds.size === hmRollups.length && hmRollups.length > 0}
                                             onChange={handleSelectAll}
                                             title="Select all"
@@ -319,7 +319,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                     </th>
                                     <th style={thStyle}>Team</th>
                                     <th
-                                        className="text-end"
+                                        className="text-right"
                                         style={sortableThStyle('totalOpenReqs')}
                                         onClick={() => handleSort('totalOpenReqs')}
                                     >
@@ -327,7 +327,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                         {sortField === 'totalOpenReqs' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
                                     <th
-                                        className="text-end"
+                                        className="text-right"
                                         style={sortableThStyle('totalActiveCandidates')}
                                         onClick={() => handleSort('totalActiveCandidates')}
                                     >
@@ -335,7 +335,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                         {sortField === 'totalActiveCandidates' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
                                     <th
-                                        className="text-end"
+                                        className="text-right"
                                         style={sortableThStyle('pendingActionsCount')}
                                         onClick={() => handleSort('pendingActionsCount')}
                                     >
@@ -343,7 +343,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                         {sortField === 'pendingActionsCount' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
                                     <th
-                                        className="text-end"
+                                        className="text-right"
                                         style={sortableThStyle('feedbackDueCount')}
                                         onClick={() => handleSort('feedbackDueCount')}
                                     >
@@ -351,7 +351,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                         {sortField === 'feedbackDueCount' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
                                     <th
-                                        className="text-end"
+                                        className="text-right"
                                         style={sortableThStyle('reviewDueCount')}
                                         onClick={() => handleSort('reviewDueCount')}
                                     >
@@ -359,15 +359,15 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                         {sortField === 'reviewDueCount' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
                                     <th
-                                        className="text-end"
+                                        className="text-right"
                                         style={sortableThStyle('reqsWithRiskFlags')}
                                         onClick={() => handleSort('reqsWithRiskFlags')}
                                     >
                                         Risk
                                         {sortField === 'reqsWithRiskFlags' && <span style={{ marginLeft: '2px', fontSize: '0.6rem' }}>{sortDirection === 'desc' ? '▼' : '▲'}</span>}
                                     </th>
-                                    <th className="text-end" style={thStyle}>FB Speed</th>
-                                    <th className="text-end" style={thStyle}>RV Speed</th>
+                                    <th className="text-right" style={thStyle}>FB Speed</th>
+                                    <th className="text-right" style={thStyle}>RV Speed</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -377,24 +377,24 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                         <tr
                                             key={hm.hmUserId}
                                             onClick={() => onToggleHM(hm.hmUserId)}
-                                            className={`cursor-pointer ${isSelected ? 'table-primary' : ''}`}
+                                            className={`cursor-pointer hover:bg-white hover:bg-opacity-5 transition-colors ${isSelected ? 'table-primary' : ''}`}
                                         >
                                             <td style={tdStyle} onClick={e => e.stopPropagation()}>
                                                 <input
                                                     type="checkbox"
-                                                    className="form-check-input"
+                                                    className="w-4 h-4 rounded"
                                                     checked={isSelected}
                                                     onChange={() => onToggleHM(hm.hmUserId)}
                                                 />
                                             </td>
                                             <td style={tdStyle}>
                                                 <strong style={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}>{hm.hmName}</strong>
-                                                {hm.team && <small className="text-muted d-block" style={{ fontSize: '0.7rem' }}>{hm.team}</small>}
+                                                {hm.team && <small className="text-muted-foreground block" style={{ fontSize: '0.7rem' }}>{hm.team}</small>}
                                             </td>
-                                            <td style={tdStyle} className="text-muted">{hm.team || '—'}</td>
-                                            <td className="text-end" style={tdStyle}>{hm.totalOpenReqs}</td>
-                                            <td className="text-end" style={tdStyle}>{hm.totalActiveCandidates}</td>
-                                            <td className="text-end" style={tdStyle}>
+                                            <td style={tdStyle} className="text-muted-foreground">{hm.team || '—'}</td>
+                                            <td className="text-right" style={tdStyle}>{hm.totalOpenReqs}</td>
+                                            <td className="text-right" style={tdStyle}>{hm.totalActiveCandidates}</td>
+                                            <td className="text-right" style={tdStyle}>
                                                 {hm.pendingActionsCount > 0 ? (
                                                     <span className="badge-bespoke badge-warning-soft" style={{ fontSize: '0.75rem' }}>
                                                         {hm.pendingActionsCount}
@@ -403,7 +403,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>0</span>
                                                 )}
                                             </td>
-                                            <td className="text-end" style={tdStyle}>
+                                            <td className="text-right" style={tdStyle}>
                                                 {hm.feedbackDueCount > 0 ? (
                                                     <span className="badge-bespoke badge-danger-soft" style={{ fontSize: '0.75rem' }}>
                                                         {hm.feedbackDueCount}
@@ -412,7 +412,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>0</span>
                                                 )}
                                             </td>
-                                            <td className="text-end" style={tdStyle}>
+                                            <td className="text-right" style={tdStyle}>
                                                 {hm.reviewDueCount > 0 ? (
                                                     <span className="badge-bespoke badge-warning-soft" style={{ fontSize: '0.75rem' }}>
                                                         {hm.reviewDueCount}
@@ -421,7 +421,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>0</span>
                                                 )}
                                             </td>
-                                            <td className="text-end" style={tdStyle}>
+                                            <td className="text-right" style={tdStyle}>
                                                 {hm.reqsWithRiskFlags > 0 ? (
                                                     <span className="badge-bespoke badge-danger-soft" style={{ fontSize: '0.75rem' }}>
                                                         {hm.reqsWithRiskFlags}
@@ -432,7 +432,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="text-end" style={tdStyle}>
+                                            <td className="text-right" style={tdStyle}>
                                                 {hm.latencyMetrics.feedbackLatency.median !== null ? (
                                                     <span style={{
                                                         color: (hm.latencyMetrics.feedbackLatency.median > (hm.peerComparison?.metrics.find(m => m.metricName === 'Feedback Speed')?.cohortP75 ?? 999)) ? 'var(--color-danger)' : 'var(--color-slate-700)',
@@ -442,7 +442,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                                     </span>
                                                 ) : <span className="text-slate-300">—</span>}
                                             </td>
-                                            <td className="text-end" style={tdStyle}>
+                                            <td className="text-right" style={tdStyle}>
                                                 {hm.latencyMetrics.reviewLatency.median !== null ? (
                                                     <span style={{
                                                         color: (hm.latencyMetrics.reviewLatency.median > (hm.peerComparison?.metrics.find(m => m.metricName === 'Review Speed')?.cohortP75 ?? 999)) ? 'var(--color-danger)' : 'var(--color-slate-700)',
@@ -457,7 +457,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                 })}
                                 {sortedHMs.length === 0 && (
                                     <tr>
-                                        <td colSpan={9} className="text-center text-muted py-5">
+                                        <td colSpan={9} className="text-center text-muted-foreground py-5">
                                             No hiring managers found matching criteria
                                         </td>
                                     </tr>

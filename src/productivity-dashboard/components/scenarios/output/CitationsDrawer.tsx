@@ -55,26 +55,28 @@ export default function CitationsDrawer({ citations, show, onClose }: CitationsD
           padding: '1.5rem',
         }}
       >
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="flex justify-between items-center mb-4">
           <h5 className="mb-0">
-            <i className="bi bi-quote me-2" />
+            <i className="bi bi-quote mr-2" />
             Citations
           </h5>
           <button
-            className="btn btn-close"
+            className="w-6 h-6 flex items-center justify-center rounded-full bg-surface-elevated hover:bg-glass-border transition-colors"
             onClick={onClose}
             aria-label="Close"
-          />
+          >
+            <i className="bi bi-x text-muted-foreground" />
+          </button>
         </div>
 
-        <p className="text-secondary small mb-4">
+        <p className="text-muted-foreground text-sm mb-4">
           Every computed value in this scenario is backed by data from your recruiting system.
           Citations link to the source of each metric.
         </p>
 
         {Object.entries(groupedCitations).map(([source, sourceCitations]) => (
           <div key={source} className="citation-group mb-4">
-            <h6 className="text-secondary text-uppercase small mb-3">
+            <h6 className="text-muted-foreground uppercase text-sm mb-3">
               {formatSourceName(source)}
             </h6>
             <div className="citation-list">
@@ -109,7 +111,7 @@ export default function CitationsDrawer({ citations, show, onClose }: CitationsD
         ))}
 
         {citations.length === 0 && (
-          <p className="text-secondary">No citations available.</p>
+          <p className="text-muted-foreground">No citations available.</p>
         )}
       </div>
     </>

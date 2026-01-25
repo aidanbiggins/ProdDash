@@ -46,7 +46,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
     <>
       {/* Backdrop */}
       <div
-        className="position-fixed top-0 start-0 w-100 h-100 glass-backdrop"
+        className="fixed top-0 left-0 w-full h-full glass-backdrop"
         style={{
           zIndex: 1040,
           opacity: isOpen ? 1 : 0,
@@ -58,7 +58,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
 
       {/* Drawer */}
       <div
-        className="position-fixed top-0 end-0 h-100 d-flex flex-column glass-drawer"
+        className="fixed top-0 right-0 h-full flex flex-col glass-drawer"
         style={{
           width: '420px',
           maxWidth: '90vw',
@@ -72,10 +72,10 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         aria-labelledby="help-drawer-title"
       >
         {/* Header */}
-        <div className="d-flex align-items-center justify-content-between p-3 glass-drawer-header">
+        <div className="flex items-center justify-between p-3 glass-drawer-header">
           <div>
             <div
-              className="small text-uppercase"
+              className="text-sm uppercase"
               style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}
             >
               Help
@@ -85,7 +85,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
             </h5>
           </div>
           <button
-            className="btn btn-sm"
+            className="p-1 text-sm rounded hover:bg-white/10"
             onClick={onClose}
             style={{ color: 'var(--text-secondary)' }}
             aria-label="Close help drawer"
@@ -95,11 +95,11 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         </div>
 
         {/* Content */}
-        <div className="flex-grow-1 overflow-auto p-3">
+        <div className="grow overflow-auto p-3">
           {/* What You're Looking At */}
           <div className="mb-4">
             <SectionHeader icon="bi-eye">What You're Looking At</SectionHeader>
-            <div className="small" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
+            <div className="text-sm" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
               {content.whatYouSee}
             </div>
           </div>
@@ -107,7 +107,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {/* How It Works */}
           <div className="mb-4">
             <SectionHeader icon="bi-gear">How It Works</SectionHeader>
-            <div className="small" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
+            <div className="text-sm" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
               {content.howItWorks}
             </div>
           </div>
@@ -115,7 +115,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {/* What to Look For */}
           <div className="mb-4">
             <SectionHeader icon="bi-search">What to Look For</SectionHeader>
-            <ul className="mb-0 ps-3 small" style={{ color: 'var(--text-primary)' }}>
+            <ul className="mb-0 pl-3 text-sm" style={{ color: 'var(--text-primary)' }}>
               {content.whatToLookFor.map((item, index) => (
                 <li key={index} className="mb-1">{item}</li>
               ))}
@@ -125,7 +125,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {/* Watch Out For */}
           <div className="mb-4">
             <SectionHeader icon="bi-exclamation-triangle">Watch Out For</SectionHeader>
-            <ul className="mb-0 ps-3 small" style={{ color: 'var(--text-primary)' }}>
+            <ul className="mb-0 pl-3 text-sm" style={{ color: 'var(--text-primary)' }}>
               {content.watchOutFor.map((item, index) => (
                 <li key={index} className="mb-1">{item}</li>
               ))}
@@ -134,8 +134,8 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         </div>
 
         {/* Footer */}
-        <div className="p-3 small glass-drawer-footer" style={{ color: 'var(--text-secondary)' }}>
-          <i className="bi bi-lightbulb me-1"></i>
+        <div className="p-3 text-sm glass-drawer-footer" style={{ color: 'var(--text-secondary)' }}>
+          <i className="bi bi-lightbulb mr-1"></i>
           Tip: Click outside or press Escape to close
         </div>
       </div>
@@ -148,7 +148,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
 function SectionHeader({ children, icon }: { children: React.ReactNode; icon: string }) {
   return (
     <div
-      className="text-uppercase small mb-2 d-flex align-items-center gap-2"
+      className="uppercase text-sm mb-2 flex items-center gap-2"
       style={{
         color: 'var(--text-secondary)',
         letterSpacing: '0.05em',

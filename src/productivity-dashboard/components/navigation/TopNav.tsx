@@ -162,7 +162,7 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                           onClick={() => { toggleMasking(); }}
                           role="menuitem"
                         >
-                          <i className={`bi bi-${isMasked ? 'eye-slash' : 'eye'}`} style={{ opacity: 0.7, width: '16px' }} />
+                          <i className={`bi bi-${isMasked ? 'eye-slash' : 'eye'} opacity-70 w-4`} />
                           <span>{isMasked ? 'Show Real Names' : 'Mask PII'}</span>
                           {isMasked && <i className="bi bi-check2 item-check" />}
                         </button>
@@ -172,7 +172,7 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                           role="menuitem"
                           disabled={state.isLoading}
                         >
-                          <i className="bi bi-arrow-clockwise" style={{ opacity: 0.7, width: '16px' }} />
+                          <i className="bi bi-arrow-clockwise opacity-70 w-4" />
                           <span>{state.isLoading ? 'Refreshing...' : 'Refresh Data'}</span>
                         </button>
                         {canImportData && onImportData && (
@@ -181,7 +181,7 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                             onClick={() => { onImportData(); setSettingsMenuOpen(false); }}
                             role="menuitem"
                           >
-                            <i className="bi bi-upload" style={{ opacity: 0.7, width: '16px' }} />
+                            <i className="bi bi-upload opacity-70 w-4" />
                             <span>Import Data</span>
                           </button>
                         )}
@@ -191,7 +191,7 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                             onClick={() => { onImportReview(); setSettingsMenuOpen(false); }}
                             role="menuitem"
                           >
-                            <i className="bi bi-file-earmark-check" style={{ opacity: 0.7, width: '16px' }} />
+                            <i className="bi bi-file-earmark-check opacity-70 w-4" />
                             <span>Import Review</span>
                           </button>
                         )}
@@ -266,9 +266,9 @@ export function TopNav({ useLegacyNav, onToggleLegacy, activeTab, onNavigate, us
                   <i className="bi bi-chevron-down dropdown-chevron" />
                 </button>
                 {userMenuOpen && (
-                  <div className="nav-dropdown-menu" style={{ right: 0, left: 'auto' }}>
+                  <div className="nav-dropdown-menu right-0 left-auto">
                     {userEmail && (
-                      <div className="nav-dropdown-item" style={{ cursor: 'default', opacity: 0.7 }}>
+                      <div className="nav-dropdown-item cursor-default opacity-70">
                         <i className="bi bi-envelope" />
                         <span className="text-sm">{userEmail}</span>
                       </div>

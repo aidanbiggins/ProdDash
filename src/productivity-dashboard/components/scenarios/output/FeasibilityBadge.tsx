@@ -51,9 +51,18 @@ export default function FeasibilityBadge({
     lg: 'badge-lg',
   };
 
+  const bgClasses: Record<string, string> = {
+    'bg-success': 'bg-green-500 text-white',
+    'bg-warning text-dark': 'bg-yellow-500 text-gray-900',
+    'bg-danger': 'bg-red-500 text-white',
+    'bg-secondary': 'bg-gray-500 text-white',
+  };
+
+  const tailwindBg = bgClasses[config.className] || 'bg-gray-500 text-white';
+
   return (
-    <span className={`badge ${config.className} ${sizeClasses[size]} feasibility-badge`}>
-      <i className={`bi bi-${config.icon} me-1`} />
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${tailwindBg} ${sizeClasses[size]} feasibility-badge`}>
+      <i className={`bi bi-${config.icon} mr-1`} />
       {config.label}
     </span>
   );

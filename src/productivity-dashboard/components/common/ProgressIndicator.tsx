@@ -44,31 +44,24 @@ export function ProgressIndicator({ loadingState, onDismiss }: ProgressIndicator
   if (!isExpanded) {
     return (
       <button
-        className="btn d-flex align-items-center gap-2"
+        className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium border-0 ${
+          hasError ? 'bg-red-500/15 text-red-400' : 'bg-amber-500/15 text-amber-500'
+        }`}
         onClick={() => setIsExpanded(true)}
-        style={{
-          background: hasError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(212, 163, 115, 0.15)',
-          border: 'none',
-          borderRadius: '20px',
-          padding: '6px 16px',
-          fontSize: '0.85rem',
-          fontWeight: 500,
-          color: hasError ? '#f87171' : '#f59e0b'
-        }}
       >
         {hasError ? (
           <>
-            <span style={{ color: 'var(--color-red-500)' }}>!</span>
+            <span className="text-red-500">!</span>
             Error
           </>
         ) : isFullyReady ? (
           <>
-            <span style={{ color: 'var(--color-green-500)' }}>✓</span>
+            <span className="text-green-500">✓</span>
             Ready
           </>
         ) : (
           <>
-            <span className="spinner-border spinner-border-sm" />
+            <span className="inline-block w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
             {overallProgress}%
           </>
         )}
@@ -79,34 +72,29 @@ export function ProgressIndicator({ loadingState, onDismiss }: ProgressIndicator
   // Expanded panel view
   return (
     <div
-      className="position-fixed"
+      className="fixed w-[380px] z-[1050] rounded-2xl overflow-hidden"
       style={{
         top: '80px',
         right: '24px',
-        width: '380px',
-        zIndex: 1050,
-        borderRadius: '16px',
-        overflow: 'hidden',
         boxShadow: '0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
         background: 'linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%)'
       }}
     >
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center p-3 pb-2">
-        <div className="d-flex align-items-center gap-2">
+      <div className="flex justify-between items-center p-3 pb-2">
+        <div className="flex items-center gap-2">
           {!isFullyReady && !hasError && (
-            <span className="spinner-grow spinner-grow-sm" style={{ color: '#818cf8' }} />
+            <span className="inline-block w-4 h-4 rounded-full animate-pulse" style={{ backgroundColor: '#818cf8', opacity: 0.75 }} />
           )}
-          {isFullyReady && <span style={{ fontSize: '1.2rem' }}>✓</span>}
-          {hasError && <span style={{ fontSize: '1.2rem' }}>⚠️</span>}
-          <span className="text-white fw-medium">
+          {isFullyReady && <span className="text-xl">✓</span>}
+          {hasError && <span className="text-xl">⚠️</span>}
+          <span className="text-white font-medium">
             {isFullyReady ? 'All Done!' : hasError ? 'Error Occurred' : 'Loading Dashboard'}
           </span>
         </div>
         <button
-          className="btn btn-sm p-1"
+          className="p-1 bg-transparent border-0 text-white/50 hover:text-white/80"
           onClick={() => setIsExpanded(false)}
-          style={{ color: 'rgba(255,255,255,0.5)', background: 'transparent', border: 'none' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="18,15 12,9 6,15" />
@@ -117,7 +105,7 @@ export function ProgressIndicator({ loadingState, onDismiss }: ProgressIndicator
       {/* Encouragement message */}
       {!isFullyReady && !hasError && (
         <div className="px-3 pb-2">
-          <p className="mb-0 small" style={{ color: 'rgba(255,255,255,0.6)' }}>
+          <p className="mb-0 text-sm text-white/60">
             {getLoadingMessage(overallProgress)}
           </p>
         </div>
@@ -125,28 +113,23 @@ export function ProgressIndicator({ loadingState, onDismiss }: ProgressIndicator
 
       {/* Progress bar */}
       <div className="px-3 pb-2">
-        <div
-          className="progress"
-          style={{ height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px' }}
-        >
+        <div className="h-2 bg-white/10 rounded overflow-hidden">
           <div
-            className="progress-bar"
+            className="h-full transition-all duration-300 ease-in-out rounded"
             style={{
               width: `${overallProgress}%`,
               background: hasError
                 ? 'linear-gradient(90deg, #ef4444, #dc2626)'
                 : isFullyReady
                   ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                  : 'linear-gradient(90deg, #818cf8, #6366f1)',
-              transition: 'width 0.3s ease',
-              borderRadius: '4px'
+                  : 'linear-gradient(90deg, #818cf8, #6366f1)'
             }}
           />
         </div>
       </div>
 
       {/* Operations list */}
-      <div className="px-3 pb-3" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+      <div className="px-3 pb-3 max-h-[200px] overflow-y-auto">
         {operations.map((op) => (
           <OperationRow key={op.id} operation={op} />
         ))}
@@ -154,14 +137,11 @@ export function ProgressIndicator({ loadingState, onDismiss }: ProgressIndicator
 
       {/* Time remaining */}
       {currentOp && !isFullyReady && (
-        <div
-          className="px-3 py-2 d-flex justify-content-between align-items-center"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
-        >
-          <span className="small" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <div className="px-3 py-2 flex justify-between items-center border-t border-white/10">
+          <span className="text-sm text-white/50">
             {currentOp.current.toLocaleString()} / {currentOp.total.toLocaleString()}
           </span>
-          <span className="small fw-medium" style={{ color: '#818cf8' }}>
+          <span className="text-sm font-medium" style={{ color: '#818cf8' }}>
             {getTimeRemaining(currentOp)}
           </span>
         </div>
@@ -171,12 +151,10 @@ export function ProgressIndicator({ loadingState, onDismiss }: ProgressIndicator
       {isFullyReady && onDismiss && (
         <div className="px-3 pb-3">
           <button
-            className="btn btn-sm w-100"
+            className="w-full px-4 py-2 text-sm font-medium rounded-md text-white border-0"
             onClick={onDismiss}
             style={{
-              background: 'rgba(255,255,255,0.1)',
-              color: 'white',
-              border: 'none'
+              background: 'rgba(255,255,255,0.1)'
             }}
           >
             Dismiss
@@ -192,17 +170,14 @@ function OperationRow({ operation }: { operation: BackgroundOperation }) {
   const progress = total > 0 ? Math.round((current / total) * 100) : 0;
 
   return (
-    <div className="d-flex align-items-center gap-2 py-1">
+    <div className="flex items-center gap-2 py-1">
       {/* Status icon */}
-      <div style={{ width: '20px', textAlign: 'center' }}>
+      <div className="w-5 text-center">
         {status === 'complete' && (
           <span style={{ color: '#22c55e', fontSize: '0.9rem' }}>✓</span>
         )}
         {status === 'running' && (
-          <span
-            className="spinner-border spinner-border-sm"
-            style={{ width: '12px', height: '12px', color: '#818cf8' }}
-          />
+          <span className="inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin" style={{ color: '#818cf8' }} />
         )}
         {status === 'pending' && (
           <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>○</span>
@@ -214,7 +189,7 @@ function OperationRow({ operation }: { operation: BackgroundOperation }) {
 
       {/* Label */}
       <span
-        className="flex-grow-1 small"
+        className="flex-1 text-sm"
         style={{
           color: status === 'complete' ? 'rgba(255,255,255,0.5)' :
                  status === 'running' ? 'white' :
@@ -226,7 +201,7 @@ function OperationRow({ operation }: { operation: BackgroundOperation }) {
 
       {/* Progress percentage for running ops */}
       {status === 'running' && total > 0 && (
-        <span className="small" style={{ color: 'rgba(255,255,255,0.5)' }}>
+        <span className="text-sm text-white/50">
           {progress}%
         </span>
       )}
@@ -262,17 +237,12 @@ export function ProgressPill({ loadingState, onClick }: { loadingState: LoadingS
 
   return (
     <button
-      className="btn d-flex align-items-center gap-2"
+      className="flex items-center gap-2 border-0 rounded-full px-3.5 py-1.5 text-xs font-semibold"
       onClick={onClick}
       style={{
         background: hasError
           ? 'var(--color-red-100, #fee2e2)'
           : 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
-        border: 'none',
-        borderRadius: '20px',
-        padding: '6px 14px',
-        fontSize: '0.8rem',
-        fontWeight: 600,
         color: hasError ? 'var(--color-red-700, #b91c1c)' : 'white',
         boxShadow: hasError ? 'none' : '0 2px 8px rgba(99, 102, 241, 0.3)'
       }}
@@ -281,10 +251,7 @@ export function ProgressPill({ loadingState, onClick }: { loadingState: LoadingS
         <>⚠️ Error</>
       ) : (
         <>
-          <span
-            className="spinner-border spinner-border-sm"
-            style={{ width: '12px', height: '12px' }}
-          />
+          <span className="inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin" />
           Syncing {overallProgress}%
         </>
       )}

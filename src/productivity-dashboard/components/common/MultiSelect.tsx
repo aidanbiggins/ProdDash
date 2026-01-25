@@ -122,23 +122,21 @@ export function MultiSelect({
     >
       {/* Quick actions */}
       <div
-        className="d-flex justify-content-between px-3 py-2"
+        className="flex justify-between px-3 py-2"
         style={{ borderBottom: '1px solid #27272a', backgroundColor: '#0a0a0a' }}
       >
         <button
           type="button"
-          className="btn btn-link btn-sm p-0 text-decoration-none"
+          className="p-0 text-xs text-accent hover:underline"
           onClick={selectAll}
-          style={{ fontSize: '0.75rem' }}
         >
           Select all ({availableCount})
         </button>
         {hasSelection && (
           <button
             type="button"
-            className="btn btn-link btn-sm p-0 text-decoration-none text-muted"
+            className="p-0 text-xs text-muted-foreground hover:underline"
             onClick={clearAll}
-            style={{ fontSize: '0.75rem' }}
           >
             Clear
           </button>
@@ -174,22 +172,20 @@ export function MultiSelect({
   ) : null;
 
   return (
-    <div className="multi-select" style={{ position: 'relative' }}>
+    <div className="multi-select relative">
       <button
         ref={triggerRef}
         type="button"
-        className={`form-select form-select-sm ${hasSelection ? 'has-selection' : ''}`}
+        className={`w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md text-left ${hasSelection ? 'has-selection' : ''}`}
         onClick={() => isOpen ? setIsOpen(false) : openDropdown()}
         style={{
-          textAlign: 'left',
           paddingRight: hasSelection ? '2rem' : '1.5rem',
           backgroundColor: hasSelection ? 'rgba(45, 212, 191, 0.15)' : undefined,
           borderColor: hasSelection ? '#2dd4bf' : undefined,
           color: hasSelection ? '#2dd4bf' : undefined,
-          width: '100%'
         }}
       >
-        <span className="text-truncate d-block" style={{ maxWidth: '100%' }}>
+        <span className="truncate block" style={{ maxWidth: '100%' }}>
           {getDisplayText()}
         </span>
         {hasSelection && (

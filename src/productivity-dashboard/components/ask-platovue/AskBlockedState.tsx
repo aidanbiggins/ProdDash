@@ -37,12 +37,12 @@ export function AskBlockedState({ issues, onNavigateToTab }: AskBlockedStateProp
         </div>
 
         <div className="ask-blocked-actions">
-          <button className="btn btn-primary" onClick={() => window.location.reload()}>
-            <i className="bi bi-arrow-clockwise me-2" />
+          <button className="px-4 py-2 bg-primary text-white rounded font-medium hover:bg-primary/90 transition-colors" onClick={() => window.location.reload()}>
+            <i className="bi bi-arrow-clockwise ml-2" />
             Refresh Data
           </button>
-          <button className="btn btn-outline-secondary" onClick={() => onNavigateToTab('data-health')}>
-            <i className="bi bi-upload me-2" />
+          <button className="px-4 py-2 border border-border rounded font-medium hover:bg-accent transition-colors" onClick={() => onNavigateToTab('data-health')}>
+            <i className="bi bi-upload ml-2" />
             Go to Import
           </button>
         </div>

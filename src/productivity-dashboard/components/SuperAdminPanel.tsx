@@ -105,20 +105,20 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
 
   if (!isSuperAdmin) {
     return (
-      <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Access Denied</h5>
-              <button type="button" className="btn-close" onClick={onClose}></button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" tabIndex={-1}>
+        <div className="w-full max-w-lg mx-4">
+          <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
+            <div className="flex items-center justify-between p-4 border-b border-glass-border">
+              <h5 className="font-semibold text-foreground">Access Denied</h5>
+              <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
             </div>
-            <div className="modal-body">
-              <div className="alert alert-danger">
+            <div className="p-4">
+              <div className="p-3 rounded-lg bg-bad/10 border border-bad/30 text-bad">
                 You do not have super admin privileges.
               </div>
             </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
+              <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80" onClick={onClose}>
                 Close
               </button>
             </div>
@@ -129,37 +129,33 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
   }
 
   return (
-    <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-xl">
-        <div className="modal-content">
-          <div className="modal-header bg-danger text-white">
-            <h5 className="modal-title">Super Admin Panel</h5>
-            <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" tabIndex={-1}>
+      <div className="w-full max-w-5xl mx-4">
+        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
+          <div className="flex items-center justify-between p-4 bg-bad text-white rounded-t-lg">
+            <h5 className="font-semibold">Super Admin Panel</h5>
+            <button type="button" className="text-white/70 hover:text-white" onClick={onClose}>&times;</button>
           </div>
-          <div className="modal-body">
+          <div className="p-4">
             {/* Error/Success Messages */}
-            {error && <div className="alert alert-danger">{error}</div>}
-            {success && <div className="alert alert-success">{success}</div>}
+            {error && <div className="p-3 rounded-lg bg-bad/10 border border-bad/30 text-bad mb-4">{error}</div>}
+            {success && <div className="p-3 rounded-lg bg-good/10 border border-good/30 text-good mb-4">{success}</div>}
 
             {/* Navigation */}
-            <ul className="nav nav-tabs mb-4">
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeSection === 'orgs' ? 'active' : ''}`}
-                  onClick={() => setActiveSection('orgs')}
-                >
-                  Organizations ({organizations.length})
-                </button>
-              </li>
-              <li className="nav-item">
-                <button
-                  className={`nav-link ${activeSection === 'users' ? 'active' : ''}`}
-                  onClick={() => setActiveSection('users')}
-                >
-                  Super Admins
-                </button>
-              </li>
-            </ul>
+            <div className="flex gap-1 mb-4 border-b border-glass-border">
+              <button
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeSection === 'orgs' ? 'border-accent text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveSection('orgs')}
+              >
+                Organizations ({organizations.length})
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeSection === 'users' ? 'border-accent text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                onClick={() => setActiveSection('users')}
+              >
+                Super Admins
+              </button>
+            </div>
 
             {/* Organizations Section */}
             {activeSection === 'orgs' && (
@@ -169,41 +165,41 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                     <LogoSpinner size={40} layout="stacked" />
                   </div>
                 ) : organizations.length === 0 ? (
-                  <p className="text-muted">No organizations found</p>
+                  <p className="text-muted-foreground">No organizations found</p>
                 ) : (
-                  <div className="table-responsive">
-                    <table className="table table-striped">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
                       <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Slug</th>
-                          <th>Created</th>
-                          <th>Actions</th>
+                        <tr className="border-b border-glass-border">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Slug</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Created</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {organizations.map((org) => (
-                          <tr key={org.id}>
-                            <td>
-                              <strong>{org.name}</strong>
+                          <tr key={org.id} className="border-b border-glass-border hover:bg-bg-elevated/50">
+                            <td className="px-3 py-2">
+                              <strong className="text-foreground">{org.name}</strong>
                               <br />
-                              <code className="small text-muted">{org.id.slice(0, 8)}...</code>
+                              <code className="text-xs text-muted-foreground">{org.id.slice(0, 8)}...</code>
                             </td>
-                            <td><code>{org.slug}</code></td>
-                            <td className="small text-muted">
+                            <td className="px-3 py-2"><code className="text-foreground">{org.slug}</code></td>
+                            <td className="px-3 py-2 text-xs text-muted-foreground">
                               {new Date(org.created_at).toLocaleDateString()}
                             </td>
-                            <td>
-                              <div className="btn-group btn-group-sm">
+                            <td className="px-3 py-2">
+                              <div className="flex gap-1">
                                 <button
-                                  className="btn btn-outline-primary"
+                                  className="px-2 py-1 text-xs font-medium rounded border border-accent text-accent hover:bg-accent hover:text-bg-base transition-colors"
                                   onClick={() => handleImpersonateOrg(org.id)}
                                   title="Switch to this organization"
                                 >
                                   View As
                                 </button>
                                 <button
-                                  className="btn btn-outline-danger"
+                                  className="px-2 py-1 text-xs font-medium rounded border border-bad text-bad hover:bg-bad hover:text-white transition-colors disabled:opacity-50"
                                   onClick={() => handleDeleteOrg(org)}
                                   disabled={isLoading}
                                   title="Delete organization"
@@ -220,7 +216,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                 )}
 
                 <button
-                  className="btn btn-secondary mt-3"
+                  className="mt-3 px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80 disabled:opacity-50"
                   onClick={loadData}
                   disabled={isLoading}
                 >
@@ -232,31 +228,31 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
             {/* Super Admins Section */}
             {activeSection === 'users' && (
               <div>
-                <div className="alert alert-info">
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent/30 text-foreground mb-4">
                   <strong>Note:</strong> Super admin management requires direct database access.
-                  Use the Supabase dashboard to add/remove entries from the <code>super_admins</code> table.
+                  Use the Supabase dashboard to add/remove entries from the <code className="text-accent">super_admins</code> table.
                 </div>
 
-                <h6 style={{ color: '#F8FAFC' }}>How to Add a Super Admin</h6>
-                <ol className="mb-4" style={{ color: '#94A3B8' }}>
-                  <li>Get the user's UUID from the <code>auth.users</code> table in Supabase</li>
-                  <li>Insert into <code>super_admins</code> table:
-                    <pre className="p-2 rounded mt-2" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)', color: '#F8FAFC' }}>
+                <h6 className="font-semibold text-foreground mb-2">How to Add a Super Admin</h6>
+                <ol className="mb-4 text-muted-foreground list-decimal list-inside space-y-1">
+                  <li>Get the user's UUID from the <code className="text-accent">auth.users</code> table in Supabase</li>
+                  <li>Insert into <code className="text-accent">super_admins</code> table:
+                    <pre className="p-2 rounded mt-2 bg-bg-elevated border border-glass-border text-foreground text-sm">
 {`INSERT INTO super_admins (user_id)
 VALUES ('user-uuid-here');`}
                     </pre>
                   </li>
                 </ol>
 
-                <h6>Current Super Admins</h6>
-                <p className="text-muted small">
-                  Query the <code>super_admins</code> table in Supabase to see current super admins.
+                <h6 className="font-semibold text-foreground mb-2">Current Super Admins</h6>
+                <p className="text-muted-foreground text-sm">
+                  Query the <code className="text-accent">super_admins</code> table in Supabase to see current super admins.
                 </p>
               </div>
             )}
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
+            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80" onClick={onClose}>
               Close
             </button>
           </div>

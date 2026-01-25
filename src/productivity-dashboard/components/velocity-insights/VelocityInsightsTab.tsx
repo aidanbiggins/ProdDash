@@ -71,15 +71,12 @@ function ConfidenceBadge({ level, sampleSize }: { level: ConfidenceLevel; sample
 
   return (
     <span
+      className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold uppercase"
       style={{
         background: bg,
         color: text,
-        padding: '2px 6px',
         fontSize: '0.6rem',
-        fontWeight: 600,
-        borderRadius: '2px',
-        fontFamily: "'JetBrains Mono', monospace",
-        textTransform: 'uppercase'
+        fontFamily: "'JetBrains Mono', monospace"
       }}
       title={`Sample size: ${sampleSize}`}
     >
@@ -106,7 +103,7 @@ function ChartFooter({
 
   return (
     <div
-      className="d-flex align-items-center justify-content-between mt-2 px-2 py-1"
+      className="flex items-center justify-between mt-2 px-2 py-1"
       style={{
         background: 'rgba(0, 0, 0, 0.2)',
         borderRadius: '2px',
@@ -132,17 +129,16 @@ function LimitedDataBanner({ sections }: { sections: Array<{ name: string; n: nu
 
   return (
     <div
-      className="alert mb-4 d-flex align-items-start gap-2"
+      className="p-3 rounded mb-4 flex items-start gap-2"
       style={{
         background: 'rgba(245, 158, 11, 0.1)',
         border: '1px solid rgba(245, 158, 11, 0.3)',
-        borderRadius: '4px',
         color: '#f59e0b'
       }}
     >
       <i className="bi bi-exclamation-triangle-fill mt-1"></i>
       <div>
-        <div className="fw-semibold" style={{ fontSize: '0.85rem' }}>Limited Data Available</div>
+        <div className="font-semibold" style={{ fontSize: '0.85rem' }}>Limited Data Available</div>
         <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
           Some sections have insufficient data for reliable analysis:
           {limitedSections.map((s, i) => (
@@ -198,7 +194,7 @@ function StageTimingEmptyState({ reason }: { reason: string }) {
         }}
       >
         <span style={{ color: '#d4a373', fontSize: '0.75rem' }}>
-          <i className="bi bi-arrow-up-circle me-2"></i>
+          <i className="bi bi-arrow-up-circle mr-2"></i>
           Import daily snapshots to unlock
         </span>
       </div>
@@ -250,25 +246,23 @@ function EvidenceDrawer({
 
   return (
     <div
-      className="position-fixed top-0 end-0 h-100"
+      className="fixed top-0 right-0 h-full flex flex-col"
       style={{
         width: '440px',
         maxWidth: '100vw',
         background: '#1a1a1a',
         borderLeft: '1px solid #3f3f46',
         zIndex: 1050,
-        boxShadow: '-4px 0 20px rgba(0,0,0,0.5)',
-        display: 'flex',
-        flexDirection: 'column'
+        boxShadow: '-4px 0 20px rgba(0,0,0,0.5)'
       }}
       data-testid="evidence-drawer"
     >
       {/* Header */}
       <div
-        className="d-flex align-items-center justify-content-between p-3"
+        className="flex items-center justify-between p-3"
         style={{ borderBottom: '1px solid #3f3f46', background: '#141414' }}
       >
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <span style={{
             width: 8,
             height: 8,
@@ -280,7 +274,7 @@ function EvidenceDrawer({
           </h6>
         </div>
         <button
-          className="btn btn-sm"
+          className="px-3 py-1.5 text-sm font-medium rounded"
           onClick={onClose}
           style={{ color: '#94A3B8', padding: '4px 8px' }}
         >
@@ -289,7 +283,7 @@ function EvidenceDrawer({
       </div>
 
       {/* Content */}
-      <div className="flex-grow-1 overflow-auto">
+      <div className="grow overflow-auto">
         {/* Hero Section - Big Number */}
         <div
           className="p-4 text-center"
@@ -321,7 +315,7 @@ function EvidenceDrawer({
           {/* Why This Matters */}
           {insight.soWhat && (
             <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2">
                 <i className="bi bi-lightbulb" style={{ color: '#f59e0b', fontSize: '0.85rem' }}></i>
                 <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Why This Matters
@@ -336,7 +330,7 @@ function EvidenceDrawer({
           {/* Recommended Action */}
           {insight.nextStep && (
             <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2">
                 <i className="bi bi-arrow-right-circle" style={{ color: '#10b981', fontSize: '0.85rem' }}></i>
                 <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Recommended Action
@@ -354,18 +348,18 @@ function EvidenceDrawer({
           {/* TTF Insight - Show Req Decay Breakdown */}
           {(isTTFInsight || isFillRateInsight) && reqDecay.dataPoints.length > 0 && (
             <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2">
                 <i className="bi bi-bar-chart" style={{ color: '#60a5fa', fontSize: '0.85rem' }}></i>
                 <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Fill Rate by Days Open
                 </span>
               </div>
-              <div className="d-flex flex-column gap-1">
+              <div className="flex flex-col gap-1">
                 {reqDecay.dataPoints.slice(0, 6).map((dp, idx) => {
                   const fillPct = Math.round(dp.rate * 100);
                   const barColor = fillPct >= 60 ? '#10b981' : fillPct >= 40 ? '#f59e0b' : '#ef4444';
                   return (
-                    <div key={idx} className="d-flex align-items-center gap-2">
+                    <div key={idx} className="flex items-center gap-2">
                       <div style={{ width: '80px', fontSize: '0.7rem', color: '#94A3B8', textAlign: 'right' }}>
                         {dp.bucket}
                       </div>
@@ -391,19 +385,19 @@ function EvidenceDrawer({
           {/* Acceptance Rate Insight - Show Candidate Decay */}
           {(isAcceptanceInsight || isDecayInsight) && candidateDecay.dataPoints.length > 0 && (
             <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2">
                 <i className="bi bi-graph-down" style={{ color: '#f59e0b', fontSize: '0.85rem' }}></i>
                 <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Acceptance Rate by Time in Process
                 </span>
               </div>
-              <div className="d-flex flex-column gap-1">
+              <div className="flex flex-col gap-1">
                 {candidateDecay.dataPoints.slice(0, 6).map((dp, idx) => {
                   const acceptPct = Math.round(dp.rate * 100);
                   const barColor = acceptPct >= 80 ? '#10b981' : acceptPct >= 60 ? '#f59e0b' : '#ef4444';
                   const isDecayPoint = candidateDecay.decayStartDay && dp.minDays >= candidateDecay.decayStartDay;
                   return (
-                    <div key={idx} className="d-flex align-items-center gap-2">
+                    <div key={idx} className="flex items-center gap-2">
                       <div style={{ width: '80px', fontSize: '0.7rem', color: isDecayPoint ? '#f59e0b' : '#94A3B8', textAlign: 'right' }}>
                         {dp.bucket} {isDecayPoint && '⚠️'}
                       </div>
@@ -436,20 +430,20 @@ function EvidenceDrawer({
           {/* Cohort Comparison Insight */}
           {isCohortInsight && cohortComparison && (
             <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2">
                 <i className="bi bi-people" style={{ color: '#8b5cf6', fontSize: '0.85rem' }}></i>
                 <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Fast vs Slow Hire Comparison
                 </span>
               </div>
-              <div className="d-flex gap-2 mb-2">
-                <div className="flex-grow-1 p-2 rounded text-center" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+              <div className="flex gap-2 mb-2">
+                <div className="grow p-2 rounded text-center" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                   <div style={{ color: '#10b981', fontSize: '1.25rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
                     {Math.round(cohortComparison.fastHires.avgTimeToFill)}d
                   </div>
                   <div style={{ color: '#6b7280', fontSize: '0.65rem' }}>Fast Hires (n={cohortComparison.fastHires.count})</div>
                 </div>
-                <div className="flex-grow-1 p-2 rounded text-center" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                <div className="grow p-2 rounded text-center" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                   <div style={{ color: '#ef4444', fontSize: '1.25rem', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
                     {Math.round(cohortComparison.slowHires.avgTimeToFill)}d
                   </div>
@@ -457,9 +451,9 @@ function EvidenceDrawer({
                 </div>
               </div>
               {cohortComparison.factors.slice(0, 4).map((factor, idx) => (
-                <div key={idx} className="d-flex align-items-center justify-content-between p-2 rounded mb-1" style={{ background: '#27272a' }}>
+                <div key={idx} className="flex items-center justify-between p-2 rounded mb-1" style={{ background: '#27272a' }}>
                   <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>{factor.factor}</span>
-                  <div className="d-flex align-items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <span style={{ color: '#10b981', fontSize: '0.75rem', fontFamily: "'JetBrains Mono', monospace" }}>
                       {factor.fastHiresValue} {factor.unit}
                     </span>
@@ -476,20 +470,20 @@ function EvidenceDrawer({
           {/* Contributing Items (if any) */}
           {insight.contributingItems && insight.contributingItems.length > 0 && (
             <div className="mb-4">
-              <div className="d-flex align-items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2">
                 <i className="bi bi-list-check" style={{ color: '#60a5fa', fontSize: '0.85rem' }}></i>
                 <span style={{ color: '#f5f5f5', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Contributing Items ({insight.contributingItems.length})
                 </span>
               </div>
-              <div className="d-flex flex-column gap-1">
+              <div className="flex flex-col gap-1">
                 {insight.contributingItems.slice(0, 8).map((item, idx) => (
                   <div
                     key={item.id}
-                    className="p-2 rounded d-flex justify-content-between align-items-center"
+                    className="p-2 rounded flex justify-between items-center"
                     style={{ background: '#27272a', fontSize: '0.75rem' }}
                   >
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <span style={{ color: '#6b7280', width: '16px' }}>{idx + 1}.</span>
                       <span style={{ color: '#f5f5f5' }}>{item.title || item.id}</span>
                     </div>
@@ -506,7 +500,7 @@ function EvidenceDrawer({
 
           {/* Data Source */}
           <div className="mt-4 pt-3" style={{ borderTop: '1px solid #27272a' }}>
-            <div className="d-flex align-items-center justify-content-between">
+            <div className="flex items-center justify-between">
               <span style={{ color: '#6b7280', fontSize: '0.65rem' }}>
                 Based on {insight.sampleSize ?? reqDecay.totalReqs} records
               </span>
@@ -536,7 +530,7 @@ function DrawerBackdrop({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   if (!isOpen) return null;
   return (
     <div
-      className="position-fixed top-0 start-0 w-100 h-100"
+      className="fixed top-0 left-0 w-full h-full"
       style={{ background: 'rgba(0,0,0,0.5)', zIndex: 1040 }}
       onClick={onClose}
     />
@@ -560,8 +554,8 @@ function SectionHeader({ icon, title, subtitle, rightContent }: {
   rightContent?: React.ReactNode;
 }) {
   return (
-    <div className="d-flex align-items-center justify-content-between mb-3">
-      <div className="d-flex align-items-center gap-2">
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
         <span style={{
           width: 28,
           height: 28,
@@ -589,15 +583,8 @@ function ChartHelp({ text }: { text: string }) {
   return (
     <div className="mt-2">
       <button
-        className="btn btn-sm d-flex align-items-center gap-1"
+        className="flex items-center gap-1 bg-transparent border-0 text-muted-foreground px-1 py-0.5 text-xs"
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          color: '#6b7280',
-          fontSize: '0.7rem',
-          padding: '2px 4px'
-        }}
       >
         <i className={`bi ${isOpen ? 'bi-info-circle-fill' : 'bi-info-circle'}`}></i>
         {isOpen ? 'Hide help' : 'How to read'}
@@ -624,7 +611,7 @@ function DataChip({ n, confidence, label }: { n: number; confidence?: Confidence
   };
 
   return (
-    <div className="d-flex align-items-center gap-2">
+    <div className="flex items-center gap-2">
       <span style={{
         background: 'rgba(96, 165, 250, 0.1)',
         color: '#60a5fa',
@@ -688,14 +675,14 @@ function CompactInsightCard({
       }}
     >
       {/* Row 1: Icon + Title | Metric chips */}
-      <div className="d-flex align-items-start justify-content-between gap-2 mb-2">
-        <div className="d-flex align-items-center gap-2" style={{ flex: '1 1 auto', minWidth: 0 }}>
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2" style={{ flex: '1 1 auto', minWidth: 0 }}>
           <i className={`bi ${icon}`} style={{ color, fontSize: '0.85rem', flexShrink: 0 }}></i>
-          <span className="fw-semibold text-truncate" style={{ color: '#f5f5f5', fontSize: '0.8rem' }}>
+          <span className="font-semibold truncate" style={{ color: '#f5f5f5', fontSize: '0.8rem' }}>
             {insight.title}
           </span>
         </div>
-        <div className="d-flex align-items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           {insight.sampleSize !== undefined && (
             <span style={{
               background: 'rgba(96, 165, 250, 0.1)',
@@ -743,27 +730,25 @@ function CompactInsightCard({
       </div>
 
       {/* Row 3: Action buttons */}
-      <div className="d-flex align-items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         {onViewEvidence && (
           <button
-            className="btn btn-sm"
+            className="px-1.5 py-0.5 rounded bg-bg-glass border border-glass-border hover:bg-white/10"
             onClick={() => onViewEvidence(insight)}
             style={{
               background: 'rgba(96, 165, 250, 0.1)',
-              border: '1px solid rgba(96, 165, 250, 0.2)',
+              borderColor: 'rgba(96, 165, 250, 0.2)',
               color: '#60a5fa',
-              fontSize: '0.6rem',
-              padding: '2px 6px',
-              borderRadius: '2px'
+              fontSize: '0.6rem'
             }}
             data-testid="view-evidence-btn"
           >
-            <i className="bi bi-eye me-1"></i>Evidence
+            <i className="bi bi-eye mr-1"></i>Evidence
           </button>
         )}
         {onCreateAction && insight.action && (
           <button
-            className="btn btn-sm"
+            className="px-1.5 py-0.5 rounded"
             onClick={() => onCreateAction(insight)}
             disabled={isActionCreated}
             style={{
@@ -771,13 +756,11 @@ function CompactInsightCard({
               border: `1px solid ${isActionCreated ? 'rgba(107, 114, 128, 0.2)' : 'rgba(212, 163, 115, 0.2)'}`,
               color: isActionCreated ? '#6b7280' : '#d4a373',
               fontSize: '0.6rem',
-              padding: '2px 6px',
-              borderRadius: '2px',
               opacity: isActionCreated ? 0.7 : 1
             }}
             data-testid="create-action-btn"
           >
-            <i className={`bi ${isActionCreated ? 'bi-check' : 'bi-plus-circle'} me-1`}></i>
+            <i className={`bi ${isActionCreated ? 'bi-check' : 'bi-plus-circle'} mr-1`}></i>
             {isActionCreated ? 'Added' : 'Action'}
           </button>
         )}
@@ -1067,58 +1050,50 @@ export function VelocityInsightsTab({
 
       {/* ===== SECTION 1: KPIs ===== */}
       <SectionHeader icon="📊" title="Key Metrics" subtitle="Velocity performance indicators" />
-      <div className="row g-2 mb-3">
-        <div className="col-6 col-md-3">
-          <div className="glass-panel p-3 h-100 text-center">
-            <div className="stat-label mb-1">Median TTF</div>
-            <div className="font-mono fw-bold" style={{ fontSize: '1.5rem', color: 'var(--color-accent)' }}>
-              {reqDecay.totalFilled >= MIN_DENOM_FOR_PASS_RATE && reqDecay.medianDaysToFill !== null
-                ? `${reqDecay.medianDaysToFill}d`
-                : '—'}
-            </div>
-            <DataChip n={reqDecay.totalFilled} confidence={reqConfidence.level} label="closed" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+        <div className="glass-panel p-3 h-full text-center">
+          <div className="stat-label mb-1">Median TTF</div>
+          <div className="font-mono font-bold" style={{ fontSize: '1.5rem', color: 'var(--color-accent)' }}>
+            {reqDecay.totalFilled >= MIN_DENOM_FOR_PASS_RATE && reqDecay.medianDaysToFill !== null
+              ? `${reqDecay.medianDaysToFill}d`
+              : '—'}
           </div>
+          <DataChip n={reqDecay.totalFilled} confidence={reqConfidence.level} label="closed" />
         </div>
-        <div className="col-6 col-md-3">
-          <div className="glass-panel p-3 h-100 text-center">
-            <div className="stat-label mb-1">Accept Rate</div>
-            <div className="font-mono fw-bold" style={{ fontSize: '1.5rem', color: '#10b981' }}>
-              {candidateDecay.totalOffers >= MIN_DENOM_FOR_PASS_RATE
-                ? `${Math.round(candidateDecay.overallAcceptanceRate * 100)}%`
-                : '—'}
-            </div>
-            <DataChip
-              n={candidateDecay.totalOffers > 0 ? candidateDecay.totalAccepted : 0}
-              confidence={offerConfidence.level}
-              label={candidateDecay.totalOffers > 0 ? `/${candidateDecay.totalOffers}` : ''}
-            />
+        <div className="glass-panel p-3 h-full text-center">
+          <div className="stat-label mb-1">Accept Rate</div>
+          <div className="font-mono font-bold" style={{ fontSize: '1.5rem', color: '#10b981' }}>
+            {candidateDecay.totalOffers >= MIN_DENOM_FOR_PASS_RATE
+              ? `${Math.round(candidateDecay.overallAcceptanceRate * 100)}%`
+              : '—'}
           </div>
+          <DataChip
+            n={candidateDecay.totalOffers > 0 ? candidateDecay.totalAccepted : 0}
+            confidence={offerConfidence.level}
+            label={candidateDecay.totalOffers > 0 ? `/${candidateDecay.totalOffers}` : ''}
+          />
         </div>
-        <div className="col-6 col-md-3">
-          <div className="glass-panel p-3 h-100 text-center">
-            <div className="stat-label mb-1">Fill Rate</div>
-            <div className="font-mono fw-bold" style={{ fontSize: '1.5rem', color: '#6366f1' }}>
-              {reqDecay.totalReqs >= MIN_DENOM_FOR_PASS_RATE
-                ? `${Math.round(reqDecay.overallFillRate * 100)}%`
-                : '—'}
-            </div>
-            <DataChip
-              n={reqDecay.totalReqs > 0 ? reqDecay.totalFilled : 0}
-              confidence={reqConfidence.level}
-              label={reqDecay.totalReqs > 0 ? `/${reqDecay.totalReqs}` : ''}
-            />
+        <div className="glass-panel p-3 h-full text-center">
+          <div className="stat-label mb-1">Fill Rate</div>
+          <div className="font-mono font-bold" style={{ fontSize: '1.5rem', color: '#6366f1' }}>
+            {reqDecay.totalReqs >= MIN_DENOM_FOR_PASS_RATE
+              ? `${Math.round(reqDecay.overallFillRate * 100)}%`
+              : '—'}
           </div>
+          <DataChip
+            n={reqDecay.totalReqs > 0 ? reqDecay.totalFilled : 0}
+            confidence={reqConfidence.level}
+            label={reqDecay.totalReqs > 0 ? `/${reqDecay.totalReqs}` : ''}
+          />
         </div>
-        <div className="col-6 col-md-3">
-          <div className="glass-panel p-3 h-100 text-center">
-            <div className="stat-label mb-1">Decay Start</div>
-            <div className="font-mono fw-bold" style={{ fontSize: '1.5rem', color: '#eab308' }}>
-              {candidateDecay.totalOffers >= MIN_OFFERS_FOR_DECAY && candidateDecay.decayStartDay !== null
-                ? `Day ${candidateDecay.decayStartDay}`
-                : '—'}
-            </div>
-            <DataChip n={candidateDecay.totalOffers} confidence={offerConfidence.level} label="offers" />
+        <div className="glass-panel p-3 h-full text-center">
+          <div className="stat-label mb-1">Decay Start</div>
+          <div className="font-mono font-bold" style={{ fontSize: '1.5rem', color: '#eab308' }}>
+            {candidateDecay.totalOffers >= MIN_OFFERS_FOR_DECAY && candidateDecay.decayStartDay !== null
+              ? `Day ${candidateDecay.decayStartDay}`
+              : '—'}
           </div>
+          <DataChip n={candidateDecay.totalOffers} confidence={offerConfidence.level} label="offers" />
         </div>
       </div>
 
@@ -1157,11 +1132,11 @@ export function VelocityInsightsTab({
 
       {/* ===== SECTION 4: Decay Curves ===== */}
       <SectionHeader icon="📉" title="Decay Analysis" subtitle="How time affects outcomes" />
-      <div className="row g-3 mb-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
         {/* Candidate Decay Curve */}
-        <div className="col-12 col-lg-6">
-          <div className="glass-panel p-3 h-100">
-            <div className="d-flex align-items-center justify-content-between mb-2">
+        <div>
+          <div className="glass-panel p-3 h-full">
+            <div className="flex items-center justify-between mb-2">
               <div>
                 <h6 className="mb-0" style={{ fontSize: '0.8rem', color: '#f5f5f5' }}>Candidate Decay</h6>
                 <small style={{ color: '#6b7280', fontSize: '0.65rem' }}>Acceptance by time in process</small>
@@ -1205,9 +1180,9 @@ export function VelocityInsightsTab({
         </div>
 
         {/* Req Decay Curve */}
-        <div className="col-12 col-lg-6">
-          <div className="glass-panel p-3 h-100">
-            <div className="d-flex align-items-center justify-content-between mb-2">
+        <div>
+          <div className="glass-panel p-3 h-full">
+            <div className="flex items-center justify-between mb-2">
               <div>
                 <h6 className="mb-0" style={{ fontSize: '0.8rem', color: '#f5f5f5' }}>Requisition Decay</h6>
                 <small style={{ color: '#6b7280', fontSize: '0.65rem' }}>Fill probability by days open</small>
@@ -1261,8 +1236,8 @@ export function VelocityInsightsTab({
             rightContent={<DataChip n={metrics.cohortComparison.fastHires.count + metrics.cohortComparison.slowHires.count} confidence={cohortConfidence.level} />}
           />
           <div className="glass-panel p-0 overflow-hidden">
-            <div className="table-responsive">
-              <table className="table table-sm mb-0" style={{ fontSize: '0.75rem' }}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm mb-0" style={{ fontSize: '0.75rem' }}>
                 <thead>
                   <tr style={{ background: '#1a1a1a' }}>
                     <th style={{ padding: '0.5rem 0.75rem', color: '#6b7280', fontWeight: 500 }}>Factor</th>
@@ -1310,9 +1285,9 @@ export function VelocityInsightsTab({
               </span>
             }
           />
-          <div className="row g-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {insights.map((insight, idx) => (
-              <div key={idx} className="col-12 col-md-6">
+              <div key={idx}>
                 <CompactInsightCard
                   insight={insight}
                   onCreateAction={onAddToActionQueue ? handleCreateAction : undefined}
@@ -1331,7 +1306,7 @@ export function VelocityInsightsTab({
       <div className="glass-panel p-4 text-center mb-3">
         <div className="empty-state-icon mb-2">🔮</div>
         <div className="section-header-title mb-2">What-if Analysis</div>
-        <p className="text-secondary mb-3" style={{ fontSize: 'var(--text-sm)' }}>
+        <p className="text-muted-foreground mb-3" style={{ fontSize: 'var(--text-sm)' }}>
           Run hiring scenarios to understand potential outcomes.
         </p>
         <a
@@ -1339,7 +1314,7 @@ export function VelocityInsightsTab({
           className="btn-cta-link"
           style={{ display: 'inline-flex' }}
         >
-          Open Scenario Library <i className="bi bi-arrow-right ms-1"></i>
+          Open Scenario Library <i className="bi bi-arrow-right ml-1"></i>
         </a>
       </div>
 

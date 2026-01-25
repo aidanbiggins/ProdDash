@@ -26,16 +26,24 @@ export default function ConfidenceCard({ confidence, className = '' }: Confidenc
     <GlassPanel className={className}>
       <SectionHeader title="Confidence" />
 
-      <div className="confidence-badge d-flex align-items-center mb-3">
-        <i className={`bi bi-${config.icon} text-${config.color} fs-4 me-2`} />
-        <span className={`text-${config.color} fw-bold`}>{config.label}</span>
+      <div className="confidence-badge flex items-center mb-3">
+        <i className={`bi bi-${config.icon} text-xl mr-2 ${
+          config.color === 'success' ? 'text-green-400' :
+          config.color === 'warning' ? 'text-yellow-400' :
+          'text-red-400'
+        }`} />
+        <span className={`font-bold ${
+          config.color === 'success' ? 'text-green-400' :
+          config.color === 'warning' ? 'text-yellow-400' :
+          'text-red-400'
+        }`}>{config.label}</span>
       </div>
 
       {confidence.reasons.length > 0 && (
         <div className="confidence-reasons mb-3">
           {confidence.reasons.map((reason, idx) => (
-            <div key={idx} className="text-secondary small mb-1">
-              <i className="bi bi-info-circle me-1" />
+            <div key={idx} className="text-muted-foreground text-sm mb-1">
+              <i className="bi bi-info-circle mr-1" />
               {reason}
             </div>
           ))}
@@ -44,22 +52,22 @@ export default function ConfidenceCard({ confidence, className = '' }: Confidenc
 
       {confidence.sample_sizes.length > 0 && (
         <div className="sample-sizes">
-          <small className="text-secondary d-block mb-2">Sample Sizes:</small>
+          <small className="text-muted-foreground block mb-2">Sample Sizes:</small>
           <div className="sample-sizes-list">
             {confidence.sample_sizes.map(sample => (
               <div
                 key={sample.metric_key}
-                className="sample-size-item d-flex justify-content-between mb-1"
+                className="sample-size-item flex justify-between mb-1"
               >
-                <span className="text-secondary small">
+                <span className="text-muted-foreground text-sm">
                   {formatMetricKey(sample.metric_key)}
                 </span>
-                <span className={`small ${sample.sufficient ? 'text-success' : 'text-danger'}`}>
+                <span className={`text-sm ${sample.sufficient ? 'text-green-400' : 'text-red-400'}`}>
                   n={sample.n}
                   {sample.sufficient ? (
-                    <i className="bi bi-check ms-1" />
+                    <i className="bi bi-check ml-1" />
                   ) : (
-                    <span className="ms-1">(need {sample.threshold})</span>
+                    <span className="ml-1">(need {sample.threshold})</span>
                   )}
                 </span>
               </div>

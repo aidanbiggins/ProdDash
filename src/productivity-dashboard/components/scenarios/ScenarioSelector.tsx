@@ -63,7 +63,7 @@ function ScenarioCard({ scenarioId, meta, onSelect }: ScenarioCardProps) {
       <div className="scenario-card-cta">
         <span style={{ color: accentColor }}>
           Configure
-          <i className="bi bi-arrow-right ms-2" />
+          <i className="bi bi-arrow-right ml-2" />
         </span>
       </div>
     </GlassPanel>

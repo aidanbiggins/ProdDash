@@ -113,31 +113,11 @@ export function ReqDrilldownDrawer({
 
       {/* Drawer */}
       <div
-        className="glass-drawer"
+        className="glass-drawer fixed top-0 right-0 w-[500px] max-w-[90vw] h-screen z-[1000] flex flex-col overflow-hidden"
         data-testid="req-drilldown-drawer"
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          width: '500px',
-          maxWidth: '90vw',
-          height: '100vh',
-          zIndex: 1000,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
       >
         {/* Header */}
-        <div
-          className="glass-drawer-header"
-          style={{
-            padding: 'var(--space-4)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-          }}
-        >
+        <div className="glass-drawer-header p-4 flex justify-between items-start">
           <div>
             <div
               style={{
@@ -175,14 +155,7 @@ export function ReqDrilldownDrawer({
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-4)' }}>
           {/* Req Info */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 'var(--space-4)',
-              marginBottom: 'var(--space-4)',
-              fontSize: 'var(--text-sm)',
-            }}
-          >
+          <div className="flex gap-4 mb-4 text-sm">
             <div>
               <span style={{ color: 'var(--text-tertiary)' }}>Recruiter:</span>{' '}
               {recruiterName ?? 'Unassigned'}
@@ -340,35 +313,20 @@ export function ReqDrilldownDrawer({
           {/* All Dwell Periods */}
           <div>
             <div
-              style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-tertiary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 'var(--space-2)',
-              }}
+              className="text-xs uppercase tracking-wide mb-2"
+              style={{ color: 'var(--text-tertiary)' }}
             >
               All Stage Dwell Periods
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+            <div className="flex flex-col gap-2">
               {sortedMetrics.map((metric, index) => (
                 <div
                   key={`${metric.candidate_id}-${metric.stage_key}-${index}`}
-                  style={{
-                    padding: 'var(--space-2) var(--space-3)',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: 'var(--text-sm)',
-                  }}
+                  className="p-2 px-3 rounded text-sm"
+                  style={{ background: 'rgba(255, 255, 255, 0.02)' }}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
+                  <div className="flex justify-between items-center">
                     <div style={{ fontWeight: 'var(--font-medium)' }}>
                       {metric.stage_key}
                       {metric.breached && (
@@ -405,49 +363,34 @@ export function ReqDrilldownDrawer({
         </div>
 
         {/* Footer Actions */}
-        <div
-          style={{
-            padding: 'var(--space-3) var(--space-4)',
-            borderTop: '1px solid var(--glass-border)',
-            display: 'flex',
-            gap: 'var(--space-2)',
-          }}
-        >
+        <div className="p-3 px-4 border-t border-glass-border flex gap-2">
           {worstBreach?.attribution_owner_id &&
             worstBreach.attribution_owner_type === 'HM' &&
             onViewHMScorecard && (
               <button
                 onClick={() => onViewHMScorecard(worstBreach.attribution_owner_id!)}
+                className="flex-1 p-2 text-sm rounded cursor-pointer"
                 style={{
-                  flex: 1,
-                  padding: 'var(--space-2)',
                   background: 'rgba(139, 92, 246, 0.1)',
                   border: '1px solid rgba(139, 92, 246, 0.3)',
                   color: '#8b5cf6',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  fontSize: 'var(--text-sm)',
                 }}
               >
-                <i className="bi bi-person-badge me-1" />
+                <i className="bi bi-person-badge mr-1" />
                 View HM Scorecard
               </button>
             )}
           {onCreateAction && (
             <button
               onClick={() => onCreateAction(reqId)}
+              className="flex-1 p-2 text-sm rounded cursor-pointer"
               style={{
-                flex: 1,
-                padding: 'var(--space-2)',
                 background: 'rgba(34, 197, 94, 0.1)',
                 border: '1px solid rgba(34, 197, 94, 0.3)',
                 color: '#22c55e',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                fontSize: 'var(--text-sm)',
               }}
             >
-              <i className="bi bi-plus-circle me-1" />
+              <i className="bi bi-plus-circle mr-1" />
               Create Action
             </button>
           )}

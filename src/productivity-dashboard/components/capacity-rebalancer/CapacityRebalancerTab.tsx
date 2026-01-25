@@ -130,12 +130,12 @@ export function CapacityRebalancerTab() {
     // No data state
     if (!result) {
         return (
-            <div className="container-fluid py-4">
+            <div className="w-full px-4 py-4">
                 <GlassPanel elevated padding="lg">
-                    <div className="text-center py-5">
-                        <i className="bi bi-arrow-left-right text-muted empty-state-icon"></i>
+                    <div className="text-center py-8">
+                        <i className="bi bi-arrow-left-right text-muted-foreground empty-state-icon"></i>
                         <h5 className="mt-3">No Data Available</h5>
-                        <p className="text-muted">
+                        <p className="text-muted-foreground">
                             Load data to view capacity rebalancing analysis.
                         </p>
                     </div>
@@ -148,22 +148,21 @@ export function CapacityRebalancerTab() {
     const { utilizationResult, suggestions, isBalanced, confidence, hedgeMessage } = result;
 
     return (
-        <div className="container-fluid py-4">
+        <div className="w-full px-4 py-4">
             {/* Page Header */}
-            <div className="d-flex justify-content-between align-items-start mb-4">
+            <div className="flex justify-between items-start mb-4">
                 <div>
                     <h4 className="mb-1" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
                         Capacity Rebalancer
                     </h4>
-                    <p className="text-muted mb-0 small">
+                    <p className="text-muted-foreground mb-0 text-sm">
                         Identify overloaded recruiters and suggest workload rebalancing
                     </p>
                 </div>
-                <div className="d-flex align-items-center gap-2">
+                <div className="flex items-center gap-2">
                     <span
-                        className="badge rounded-pill"
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
                         style={{
-                            fontSize: '0.7rem',
                             background: confidence === 'HIGH' ? 'var(--color-good-bg)' :
                                 confidence === 'MED' ? 'var(--color-warn-bg)' :
                                     'var(--color-bad-bg)',
@@ -178,16 +177,15 @@ export function CapacityRebalancerTab() {
 
             {/* Degraded Mode Banner */}
             {utilizationResult.dataQuality.recruiterIdCoverage < 0.5 && (
-                <div className="alert alert-warning mb-4" style={{
+                <div className="p-3 rounded-lg mb-4" style={{
                     background: 'var(--color-warn-bg)',
-                    border: '1px solid var(--color-warn-border)',
-                    borderRadius: '0.5rem'
+                    border: '1px solid var(--color-warn-border)'
                 }}>
-                    <div className="d-flex align-items-start gap-2">
-                        <i className="bi bi-exclamation-triangle text-warning"></i>
+                    <div className="flex items-start gap-2">
+                        <i className="bi bi-exclamation-triangle text-yellow-500"></i>
                         <div>
                             <strong>Limited Data Coverage</strong>
-                            <p className="mb-0 small">
+                            <p className="mb-0 text-sm">
                                 Only {Math.round(utilizationResult.dataQuality.recruiterIdCoverage * 100)}% of requisitions have recruiter_id assigned.
                                 Map the "Owner" or "Recruiter" column during import to unlock full analysis.
                             </p>
@@ -200,20 +198,20 @@ export function CapacityRebalancerTab() {
             <GlassPanel elevated className="mb-4">
                 <SectionHeader
                     title="Capacity Overview"
-                    badge={<span className="text-muted small">{hedgeMessage}</span>}
+                    badge={<span className="text-muted-foreground text-sm">{hedgeMessage}</span>}
                 />
-                <div className="row g-4 mt-2">
-                    <div className="col-md-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                    <div>
                         <StatLabel>Total Demand</StatLabel>
                         <StatValue size="lg">{utilizationResult.summary.totalDemand}</StatValue>
-                        <span className="text-muted small">candidates in flight</span>
+                        <span className="text-muted-foreground text-sm">candidates in flight</span>
                     </div>
-                    <div className="col-md-3">
+                    <div>
                         <StatLabel>Team Capacity</StatLabel>
                         <StatValue size="lg">{Math.round(utilizationResult.summary.totalCapacity)}</StatValue>
-                        <span className="text-muted small">per week</span>
+                        <span className="text-muted-foreground text-sm">per week</span>
                     </div>
-                    <div className="col-md-3">
+                    <div>
                         <StatLabel>Utilization</StatLabel>
                         <StatValue
                             size="lg"
@@ -221,23 +219,23 @@ export function CapacityRebalancerTab() {
                         >
                             {Math.round(utilizationResult.summary.overallUtilization * 100)}%
                         </StatValue>
-                        <span className="text-muted small">{utilizationResult.summary.overallStatus}</span>
+                        <span className="text-muted-foreground text-sm">{utilizationResult.summary.overallStatus}</span>
                     </div>
-                    <div className="col-md-3">
+                    <div>
                         <StatLabel>Status</StatLabel>
-                        <div className="d-flex flex-wrap gap-2 mt-1">
+                        <div className="flex flex-wrap gap-2 mt-1">
                             {utilizationResult.summary.criticalCount > 0 && (
-                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.critical, color: 'var(--text-heading)' }}>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs" style={{ background: LOAD_STATUS_COLORS.critical, color: 'var(--text-heading)' }}>
                                     {utilizationResult.summary.criticalCount} Critical
                                 </span>
                             )}
                             {utilizationResult.summary.overloadedCount > 0 && (
-                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.overloaded, color: 'var(--text-heading)' }}>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs" style={{ background: LOAD_STATUS_COLORS.overloaded, color: 'var(--text-heading)' }}>
                                     {utilizationResult.summary.overloadedCount} Overloaded
                                 </span>
                             )}
                             {utilizationResult.summary.availableCount > 0 && (
-                                <span className="badge" style={{ background: LOAD_STATUS_COLORS.available, color: 'var(--text-heading)' }}>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs" style={{ background: LOAD_STATUS_COLORS.available, color: 'var(--text-heading)' }}>
                                     {utilizationResult.summary.availableCount} Available
                                 </span>
                             )}
@@ -247,9 +245,9 @@ export function CapacityRebalancerTab() {
             </GlassPanel>
 
             {/* Main Content - Two Columns */}
-            <div className="row g-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Left Column - Utilization Table */}
-                <div className="col-lg-6">
+                <div>
                     <GlassPanel elevated>
                         <SectionHeader title="Recruiter Utilization" />
                         <RecruiterUtilizationTable
@@ -259,8 +257,8 @@ export function CapacityRebalancerTab() {
                             selectedRecruiterId={selectedRecruiter?.recruiterId}
                         />
                         {utilizationResult.dataQuality.reqsWithoutRecruiter > 0 && (
-                            <div className="text-muted small mt-3 px-2">
-                                <i className="bi bi-info-circle me-1"></i>
+                            <div className="text-muted-foreground text-sm mt-3 px-2">
+                                <i className="bi bi-info-circle mr-1"></i>
                                 {utilizationResult.dataQuality.reqsWithoutRecruiter} reqs missing recruiter_id (not shown)
                             </div>
                         )}
@@ -268,36 +266,36 @@ export function CapacityRebalancerTab() {
                 </div>
 
                 {/* Right Column - Suggested Moves */}
-                <div className="col-lg-6">
+                <div>
                     <GlassPanel elevated>
                         <SectionHeader
                             title="Suggested Moves"
                             badge={
                                 suggestions.length > 0 ? (
-                                    <span className="badge bg-primary">{suggestions.length}</span>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-600 text-white">{suggestions.length}</span>
                                 ) : null
                             }
                         />
 
                         {isBalanced ? (
                             <div className="text-center py-4">
-                                <i className="bi bi-check-circle text-success empty-state-icon"></i>
-                                <h6 className="mt-2 text-success">Capacity Balanced</h6>
-                                <p className="text-muted small mb-0">
+                                <i className="bi bi-check-circle text-green-500 empty-state-icon"></i>
+                                <h6 className="mt-2 text-green-500">Capacity Balanced</h6>
+                                <p className="text-muted-foreground text-sm mb-0">
                                     No recruiters are currently overloaded. All recruiters are operating within capacity.
                                 </p>
                             </div>
                         ) : suggestions.length === 0 ? (
                             <div className="text-center py-4">
-                                <i className="bi bi-dash-circle text-muted empty-state-icon"></i>
+                                <i className="bi bi-dash-circle text-muted-foreground empty-state-icon"></i>
                                 <h6 className="mt-2">No Moves Suggested</h6>
-                                <p className="text-muted small mb-0">
+                                <p className="text-muted-foreground text-sm mb-0">
                                     {hedgeMessage}
                                 </p>
                             </div>
                         ) : (
                             <>
-                                <div className="d-flex flex-column gap-3 mt-3">
+                                <div className="flex flex-col gap-3 mt-3">
                                     {suggestions.map(suggestion => (
                                         <SuggestedMoveCard
                                             key={`${suggestion.reqId}-${suggestion.toRecruiterId}`}
@@ -314,25 +312,25 @@ export function CapacityRebalancerTab() {
                                     ))}
                                 </div>
 
-                                <div className="d-flex gap-2 mt-4 pt-3 border-top" style={{ borderColor: 'var(--glass-border)' }}>
+                                <div className="flex gap-2 mt-4 pt-3 border-t border-glass-border">
                                     <button
-                                        className="btn btn-primary flex-grow-1"
+                                        className="grow px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                                         onClick={() => handleApplyPlan(suggestions)}
                                         disabled={suggestions.every(s =>
                                             appliedPlanIds.has(generateActionId('TA_OPS', 'ta_ops_team', s.reqId, 'REASSIGN_REQ'))
                                         )}
                                     >
-                                        <i className="bi bi-check-lg me-1"></i>
+                                        <i className="bi bi-check-lg mr-1"></i>
                                         Apply Plan
                                     </button>
-                                    <button className="btn btn-outline-secondary">
-                                        <i className="bi bi-download me-1"></i>
+                                    <button className="px-4 py-2 border border-gray-500 text-gray-300 rounded-md hover:bg-gray-700">
+                                        <i className="bi bi-download mr-1"></i>
                                         Export CSV
                                     </button>
                                 </div>
 
-                                <p className="text-muted small mt-3 mb-0">
-                                    <i className="bi bi-info-circle me-1"></i>
+                                <p className="text-muted-foreground text-sm mt-3 mb-0">
+                                    <i className="bi bi-info-circle mr-1"></i>
                                     {hedgeMessage}. Apply Plan creates action items in the Unified Action Queue.
                                 </p>
                             </>

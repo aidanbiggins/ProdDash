@@ -54,29 +54,28 @@ export function PIIWarningModal({
 
       {/* Modal */}
       <div
-        className="modal fade show d-block"
+        className="fixed inset-0 flex items-center justify-center"
         tabIndex={-1}
         role="dialog"
         style={{ zIndex: 1055 }}
       >
-        <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="w-full max-w-3xl mx-4">
           <div
-            className="modal-content"
+            className="rounded-2xl"
             style={{
               background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
-              borderRadius: '16px',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
             }}
           >
             {/* Header */}
             <div
-              className="modal-header border-0 pb-0"
+              className="border-0 pb-0"
               style={{ padding: '1.5rem 1.5rem 1rem' }}
             >
-              <div className="d-flex align-items-center gap-3">
+              <div className="flex items-center gap-3">
                 <div
-                  className="d-flex align-items-center justify-content-center"
+                  className="flex items-center justify-center"
                   style={{
                     width: '48px',
                     height: '48px',
@@ -87,35 +86,37 @@ export function PIIWarningModal({
                 >
                   <i className="bi bi-shield-exclamation" style={{ fontSize: '1.5rem' }}></i>
                 </div>
-                <div>
-                  <h5 className="modal-title mb-1" style={{ color: '#f8fafc', fontWeight: 600 }}>
+                <div className="flex-1">
+                  <h5 className="mb-1 text-lg" style={{ color: '#f8fafc', fontWeight: 600 }}>
                     Sensitive Data Detected
                   </h5>
-                  <p className="mb-0 small" style={{ color: '#94a3b8' }}>
+                  <p className="mb-0 text-sm" style={{ color: '#94a3b8' }}>
                     {candidateCount.toLocaleString()} candidates contain personally identifiable information
                   </p>
                 </div>
+                <button
+                  type="button"
+                  className="p-1 rounded hover:bg-white/10 text-white/60 hover:text-white"
+                  onClick={onClose}
+                  disabled={isProcessing}
+                >
+                  <i className="bi bi-x-lg"></i>
+                </button>
               </div>
-              <button
-                type="button"
-                className="btn-close btn-close-white"
-                onClick={onClose}
-                disabled={isProcessing}
-              />
             </div>
 
             {/* Body */}
-            <div className="modal-body" style={{ padding: '1.5rem' }}>
+            <div style={{ padding: '1.5rem' }}>
               {/* Warning Message */}
               <div
-                className="p-3 rounded-3 mb-4"
+                className="p-3 rounded-lg mb-4"
                 style={{
                   background: 'rgba(239, 68, 68, 0.1)',
                   border: '1px solid rgba(239, 68, 68, 0.2)'
                 }}
               >
                 <p className="mb-0" style={{ color: '#fca5a5', fontSize: '0.9rem' }}>
-                  <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                  <i className="bi bi-exclamation-triangle-fill mr-2"></i>
                   Your import contains candidate PII including names and contact information.
                   Consider anonymizing this data to protect candidate privacy while maintaining
                   full dashboard functionality.
@@ -127,7 +128,7 @@ export function PIIWarningModal({
                 <h6 className="mb-3" style={{ color: '#e2e8f0', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Detected PII Types
                 </h6>
-                <div className="d-flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2">
                   {detectedFields.map((field, idx) => (
                     <FieldBadge key={idx} field={field} />
                   ))}
@@ -141,10 +142,10 @@ export function PIIWarningModal({
                     Sample Data (Masked)
                   </h6>
                   <div
-                    className="rounded-3 overflow-hidden"
+                    className="rounded-lg overflow-hidden"
                     style={{ border: '1px solid rgba(255,255,255,0.1)' }}
                   >
-                    <table className="table table-sm mb-0" style={{ fontSize: '0.85rem' }}>
+                    <table className="w-full text-sm mb-0">
                       <thead>
                         <tr style={{ background: 'rgba(15, 23, 42, 0.8)' }}>
                           <th style={{ color: '#94a3b8', fontWeight: 500, padding: '0.75rem', border: 'none' }}>Type</th>
@@ -157,11 +158,10 @@ export function PIIWarningModal({
                           <tr key={idx} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                             <td style={{ color: '#e2e8f0', padding: '0.75rem', border: 'none' }}>
                               <span
-                                className="badge"
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                                 style={{
                                   background: `${PII_TYPE_COLORS[sample.type]}20`,
                                   color: PII_TYPE_COLORS[sample.type],
-                                  fontSize: '0.75rem'
                                 }}
                               >
                                 {sample.type}
@@ -183,14 +183,14 @@ export function PIIWarningModal({
 
               {/* What Anonymization Does */}
               <div
-                className="p-3 rounded-3"
+                className="p-3 rounded-lg"
                 style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)' }}
               >
                 <h6 className="mb-2" style={{ color: '#86efac', fontSize: '0.85rem' }}>
-                  <i className="bi bi-shield-check me-2"></i>
+                  <i className="bi bi-shield-check mr-2"></i>
                   What Anonymization Does
                 </h6>
-                <ul className="mb-0 ps-3" style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                <ul className="mb-0 pl-3" style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
                   <li>Replaces candidate names with realistic pseudonyms</li>
                   <li>Converts email addresses to anonymous placeholders</li>
                   <li>Removes phone numbers and other sensitive identifiers</li>
@@ -203,12 +203,12 @@ export function PIIWarningModal({
 
             {/* Footer */}
             <div
-              className="modal-footer border-0 pt-0"
-              style={{ padding: '0 1.5rem 1.5rem', gap: '0.75rem' }}
+              className="flex justify-end gap-3 border-0 pt-0"
+              style={{ padding: '0 1.5rem 1.5rem' }}
             >
               <button
                 type="button"
-                className="btn btn-bespoke-secondary"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 text-white"
                 onClick={onClose}
                 disabled={isProcessing}
               >
@@ -216,7 +216,7 @@ export function PIIWarningModal({
               </button>
               <button
                 type="button"
-                className="btn"
+                className="px-4 py-2 text-sm font-medium rounded-md"
                 onClick={onImportAsIs}
                 disabled={isProcessing}
                 style={{
@@ -226,27 +226,27 @@ export function PIIWarningModal({
                 }}
               >
                 {isProcessing ? (
-                  <span className="spinner-border spinner-border-sm me-2" />
+                  <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin inline-block mr-2" />
                 ) : (
-                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  <i className="bi bi-exclamation-triangle mr-2"></i>
                 )}
                 Import with PII
               </button>
               <button
                 type="button"
-                className="btn btn-success"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-green-600 hover:bg-green-700 text-white"
                 onClick={onAnonymize}
                 disabled={isProcessing}
                 style={{ minWidth: '160px' }}
               >
                 {isProcessing ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" />
+                    <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin inline-block mr-2" />
                     Processing...
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-shield-check me-2"></i>
+                    <i className="bi bi-shield-check mr-2"></i>
                     Anonymize & Import
                   </>
                 )}
@@ -266,7 +266,7 @@ function FieldBadge({ field }: { field: PIIField }) {
 
   return (
     <div
-      className="d-flex align-items-center gap-2 px-3 py-2 rounded-pill"
+      className="flex items-center gap-2 px-3 py-2 rounded-full"
       style={{
         background: `${color}15`,
         border: `1px solid ${color}30`
@@ -275,8 +275,8 @@ function FieldBadge({ field }: { field: PIIField }) {
       <i className={icon} style={{ color, fontSize: '0.9rem' }}></i>
       <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>{field.description}</span>
       <span
-        className="badge rounded-pill"
-        style={{ background: color, color: 'white', fontSize: '0.7rem' }}
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+        style={{ background: color, color: 'white' }}
       >
         {field.count.toLocaleString()}
       </span>

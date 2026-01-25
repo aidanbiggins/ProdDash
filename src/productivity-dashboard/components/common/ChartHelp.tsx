@@ -29,7 +29,7 @@ export function ChartHelp({
   return (
     <div className={`chart-help ${className}`}>
       <button
-        className="btn btn-sm d-flex align-items-center gap-1"
+        className="px-1 py-0.5 text-sm flex items-center gap-1"
         onClick={() => setIsOpen(!isOpen)}
         style={{
           background: 'transparent',

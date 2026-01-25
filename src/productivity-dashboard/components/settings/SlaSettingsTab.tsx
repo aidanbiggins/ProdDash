@@ -114,14 +114,14 @@ export function SlaSettingsTab() {
       {/* Success Message */}
       {success && (
         <div
-          className="alert d-flex align-items-center mb-4"
+          className="p-3 rounded flex items-center mb-4"
           style={{
             backgroundColor: 'rgba(34, 197, 94, 0.1)',
             border: '1px solid rgba(34, 197, 94, 0.3)',
             color: '#22c55e',
           }}
         >
-          <i className="bi bi-check-circle me-2"></i>
+          <i className="bi bi-check-circle mr-2"></i>
           {success}
         </div>
       )}
@@ -176,7 +176,7 @@ export function SlaSettingsTab() {
                   <td style={tdStyle}>
                     <input
                       type="text"
-                      className="form-control form-control-sm"
+                      className="px-2 py-1 rounded border text-xs"
                       value={policy.display_name}
                       onChange={(e) => handleUpdatePolicy(index, 'display_name', e.target.value)}
                       style={{ maxWidth: '180px' }}
@@ -185,12 +185,12 @@ export function SlaSettingsTab() {
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
                     <input
                       type="number"
-                      className="form-control form-control-sm"
+                      className="px-2 py-1 rounded border text-xs text-center"
                       value={policy.sla_hours}
                       onChange={(e) => handleUpdatePolicy(index, 'sla_hours', parseInt(e.target.value) || 0)}
                       min={1}
                       max={720}
-                      style={{ width: '80px', textAlign: 'center' }}
+                      style={{ width: '80px' }}
                     />
                   </td>
                   <td
@@ -205,7 +205,7 @@ export function SlaSettingsTab() {
                   </td>
                   <td style={tdStyle}>
                     <select
-                      className="form-select form-select-sm"
+                      className="px-2 py-1 rounded border text-xs"
                       value={policy.owner_type}
                       onChange={(e) => handleUpdatePolicy(index, 'owner_type', e.target.value)}
                       style={{ width: '120px' }}
@@ -218,14 +218,14 @@ export function SlaSettingsTab() {
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
                     <input
                       type="checkbox"
-                      className="form-check-input"
+                      className="cursor-pointer"
                       checked={policy.enabled}
                       onChange={(e) => handleUpdatePolicy(index, 'enabled', e.target.checked)}
                     />
                   </td>
                   <td style={{ ...tdStyle, textAlign: 'center' }}>
                     <button
-                      className="btn btn-sm btn-outline-danger"
+                      className="px-2 py-1 text-xs rounded border border-red-500 text-red-500 hover:bg-red-500/10"
                       onClick={() => handleRemovePolicy(index)}
                       title="Remove this SLA policy"
                     >
@@ -256,31 +256,33 @@ export function SlaSettingsTab() {
           }}
         >
           <button
-            className="btn btn-primary"
+            className="px-4 py-2 rounded font-medium"
+            style={{
+              background: 'var(--primary)',
+              color: '#1a1a1a',
+            }}
             onClick={handleSave}
             disabled={!isDirty}
           >
-            <i className="bi bi-check-lg me-1"></i>
+            <i className="bi bi-check-lg mr-1"></i>
             Save Changes
           </button>
           <button
-            className="btn btn-outline-secondary"
+            className="px-4 py-2 rounded border border-white/10 text-muted-foreground hover:bg-white/5"
             onClick={handleReset}
           >
-            <i className="bi bi-arrow-counterclockwise me-1"></i>
+            <i className="bi bi-arrow-counterclockwise mr-1"></i>
             Reset to Defaults
           </button>
           {isDirty && (
             <span
+              className="ml-auto flex items-center"
               style={{
-                marginLeft: 'auto',
                 color: '#f59e0b',
                 fontSize: 'var(--text-sm)',
-                display: 'flex',
-                alignItems: 'center',
               }}
             >
-              <i className="bi bi-exclamation-circle me-1"></i>
+              <i className="bi bi-exclamation-circle mr-1"></i>
               Unsaved changes
             </span>
           )}
@@ -304,30 +306,30 @@ export function SlaSettingsTab() {
           }}
         >
           <div>
-            <label className="form-label small">Stage Key</label>
+            <label className="block text-xs font-medium mb-1 text-muted-foreground">Stage Key</label>
             <input
               type="text"
-              className="form-control form-control-sm"
+              className="w-full px-2 py-1 rounded border text-xs"
               placeholder="e.g., PHONE_SCREEN"
               value={newStageKey}
               onChange={(e) => setNewStageKey(e.target.value.toUpperCase().replace(/\s+/g, '_'))}
             />
           </div>
           <div>
-            <label className="form-label small">Display Name</label>
+            <label className="block text-xs font-medium mb-1 text-muted-foreground">Display Name</label>
             <input
               type="text"
-              className="form-control form-control-sm"
+              className="w-full px-2 py-1 rounded border text-xs"
               placeholder="e.g., Phone Screen"
               value={newDisplayName}
               onChange={(e) => setNewDisplayName(e.target.value)}
             />
           </div>
           <div>
-            <label className="form-label small">SLA (hours)</label>
+            <label className="block text-xs font-medium mb-1 text-muted-foreground">SLA (hours)</label>
             <input
               type="number"
-              className="form-control form-control-sm"
+              className="w-full px-2 py-1 rounded border text-xs"
               value={newSlaHours}
               onChange={(e) => setNewSlaHours(parseInt(e.target.value) || 72)}
               min={1}
@@ -335,9 +337,9 @@ export function SlaSettingsTab() {
             />
           </div>
           <div>
-            <label className="form-label small">Owner</label>
+            <label className="block text-xs font-medium mb-1 text-muted-foreground">Owner</label>
             <select
-              className="form-select form-select-sm"
+              className="w-full px-2 py-1 rounded border text-xs"
               value={newOwnerType}
               onChange={(e) => setNewOwnerType(e.target.value as SlaOwnerType)}
             >
@@ -347,12 +349,12 @@ export function SlaSettingsTab() {
             </select>
           </div>
           <button
-            className="btn btn-outline-primary btn-sm"
+            className="px-3 py-1 text-xs rounded border border-primary text-primary hover:bg-primary/10"
             onClick={handleAddPolicy}
             disabled={!newStageKey.trim() || !newDisplayName.trim()}
             style={{ height: '31px' }}
           >
-            <i className="bi bi-plus-lg me-1"></i>
+            <i className="bi bi-plus-lg mr-1"></i>
             Add
           </button>
         </div>

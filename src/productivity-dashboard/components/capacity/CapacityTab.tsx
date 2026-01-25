@@ -75,19 +75,19 @@ export function CapacityTab() {
   // Blocked state
   if (!analysis || analysis.blocked) {
     return (
-      <div className="container-fluid py-4">
-        <div className="row">
-          <div className="col-12">
+      <div className="w-full px-4 py-4">
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12">
             <div className="card-bespoke">
               <div className="card-body text-center py-5">
                 <i className="bi bi-exclamation-triangle text-warning" style={{ fontSize: '3rem' }}></i>
                 <h5 className="mt-3">Insufficient Data for Capacity Analysis</h5>
-                <p className="text-muted">
+                <p className="text-muted-foreground">
                   {analysis?.blockReason || 'Please load data to view capacity analysis.'}
                 </p>
-                <div className="small text-muted mt-3">
+                <div className="text-sm text-muted-foreground mt-3">
                   <strong>Requirements:</strong>
-                  <ul className="list-unstyled mt-2">
+                  <ul className="list-none mt-2">
                     <li>At least 3 recruiters with req assignments</li>
                     <li>At least 10 open requisitions</li>
                     <li>Recruiter ID coverage on 50%+ of reqs</li>
@@ -102,7 +102,7 @@ export function CapacityTab() {
   }
 
   return (
-    <div className="container-fluid py-4">
+    <div className="w-full px-4 py-4">
       {/* Page Header */}
       <PageHeader
         title="Capacity Planning"
@@ -116,9 +116,9 @@ export function CapacityTab() {
         content={CAPACITY_PAGE_HELP}
       />
 
-      <div className="row g-4">
+      <div className="grid grid-cols-12 gap-4">
         {/* Left Column: Summary + Load Table */}
-        <div className="col-lg-8">
+        <div className="col-span-12 lg:col-span-8">
           {/* Team Summary */}
           {analysis.teamSummary && (
             <div className="mb-4">
@@ -144,8 +144,8 @@ export function CapacityTab() {
         </div>
 
         {/* Right Column: Rebalance Recommendations */}
-        <div className="col-lg-4">
-          <div className="position-sticky" style={{ top: '1rem' }}>
+        <div className="col-span-12 lg:col-span-4">
+          <div className="sticky" style={{ top: '1rem' }}>
             <RebalanceRecommendations
               recommendations={analysis.rebalanceRecommendations}
               onApply={handleRebalanceApply}

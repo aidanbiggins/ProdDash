@@ -52,7 +52,7 @@ export function CoverageBanner({ summary, onViewCoverageMap, onLoadDemo }: Cover
         {onViewCoverageMap && (
           <button
             type="button"
-            className="btn btn-link btn-sm p-0 text-decoration-none"
+            className="p-0 no-underline text-sm"
             onClick={onViewCoverageMap}
             style={{ color: '#2dd4bf', fontSize: '0.75rem' }}
           >
@@ -62,7 +62,7 @@ export function CoverageBanner({ summary, onViewCoverageMap, onLoadDemo }: Cover
         {onLoadDemo && features_blocked > 0 && (
           <button
             type="button"
-            className="btn btn-link btn-sm p-0 text-decoration-none"
+            className="p-0 no-underline text-sm"
             onClick={onLoadDemo}
             style={{ color: '#d4a373', fontSize: '0.75rem' }}
           >

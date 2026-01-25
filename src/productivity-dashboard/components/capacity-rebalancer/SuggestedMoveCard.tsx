@@ -51,33 +51,32 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
             }}
         >
             {/* Header */}
-            <div className="d-flex justify-content-between align-items-start mb-2">
-                <div className="d-flex align-items-center gap-2">
+            <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2">
                     <span
-                        className="badge bg-primary rounded-circle"
-                        style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-xs"
                     >
                         #{rank}
                     </span>
                     <div>
-                        <div className="fw-semibold" style={{ fontSize: '0.85rem' }}>
+                        <div className="font-semibold text-sm">
                             Move "{reqTitle.length > 30 ? reqTitle.substring(0, 30) + '...' : reqTitle}"
                         </div>
-                        <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                        <div className="text-muted-foreground text-xs">
                             {privacyMode === 'anonymized' ? 'Recruiter A' : fromRecruiterName}
                             {' '}<i className="bi bi-arrow-right"></i>{' '}
                             {privacyMode === 'anonymized' ? 'Recruiter B' : toRecruiterName}
                         </div>
                     </div>
                 </div>
-                <div className="d-flex align-items-center gap-2">
+                <div className="flex items-center gap-2">
                     {isApplied && (
-                        <span className="badge bg-success" style={{ fontSize: '0.65rem' }}>
-                            <i className="bi bi-check me-1"></i>Applied
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-600 text-white">
+                            <i className="bi bi-check mr-1"></i>Applied
                         </span>
                     )}
                     <span
-                        className="badge rounded-pill"
+                        className="inline-flex items-center px-2 py-0.5 rounded-full"
                         style={{
                             fontSize: '0.6rem',
                             background: confidence === 'HIGH'
@@ -98,13 +97,13 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
             </div>
 
             {/* Rationale */}
-            <p className="text-muted mb-3" style={{ fontSize: '0.75rem' }}>
+            <p className="text-muted-foreground mb-3 text-xs">
                 {rationale}
             </p>
 
             {/* Impact Table */}
-            <div className="table-responsive mb-3">
-                <table className="table table-sm mb-0" style={{ fontSize: '0.7rem' }}>
+            <div className="overflow-x-auto mb-3">
+                <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
                     <thead>
                         <tr>
                             <th style={{ width: '30%' }}></th>
@@ -115,7 +114,7 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="text-muted">Source</td>
+                            <td className="text-muted-foreground p-1">Source</td>
                             <td style={{
                                 textAlign: 'center',
                                 fontFamily: 'var(--font-mono)',
@@ -139,7 +138,7 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
                             </td>
                         </tr>
                         <tr>
-                            <td className="text-muted">Target</td>
+                            <td className="text-muted-foreground p-1">Target</td>
                             <td style={{
                                 textAlign: 'center',
                                 fontFamily: 'var(--font-mono)',
@@ -164,7 +163,7 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
                         </tr>
                         {estimatedImpact.delayReductionDays > 0 && (
                             <tr>
-                                <td className="text-muted">Net Delay</td>
+                                <td className="text-muted-foreground p-1">Net Delay</td>
                                 <td colSpan={2}></td>
                                 <td style={{
                                     textAlign: 'center',
@@ -181,9 +180,9 @@ export function SuggestedMoveCard({ suggestion, privacyMode, onViewDetails, isAp
             </div>
 
             {/* Actions */}
-            <div className="d-flex justify-content-end">
+            <div className="flex justify-end">
                 <button
-                    className="btn btn-sm btn-outline-secondary"
+                    className="px-3 py-1 text-sm border border-gray-500 text-gray-300 rounded hover:bg-gray-700"
                     onClick={onViewDetails}
                 >
                     View Details <i className="bi bi-chevron-right"></i>

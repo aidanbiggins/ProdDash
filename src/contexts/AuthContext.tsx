@@ -171,15 +171,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 const fakeSession = JSON.parse(devBypass);
                 setSession(fakeSession as Session);
                 setUser(fakeSession.user as User);
-                // For dev bypass, set a mock org
+                // For dev bypass, set a mock org (use valid UUID format for Supabase compatibility)
+                const devOrgId = '00000000-0000-0000-0000-000000000001';
                 setMemberships([{
-                    id: 'dev-membership',
-                    organization_id: 'dev-org',
+                    id: '00000000-0000-0000-0000-000000000002',
+                    organization_id: devOrgId,
                     user_id: fakeSession.user.id,
                     role: 'admin',
                     created_at: new Date().toISOString(),
                     organization: {
-                        id: 'dev-org',
+                        id: devOrgId,
                         name: 'Development',
                         slug: 'dev',
                         created_at: new Date().toISOString(),
@@ -187,7 +188,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         deleted_at: null
                     }
                 }]);
-                setCurrentOrgId('dev-org');
+                setCurrentOrgId(devOrgId);
                 setIsSuperAdmin(true); // Dev user is super admin
                 setLoading(false);
                 return;

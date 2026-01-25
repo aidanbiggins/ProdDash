@@ -94,33 +94,33 @@ export function StageMappingModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-xl">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">Stage Mapping Configuration</h5>
-            <button type="button" className="btn-close" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-5xl mx-4">
+        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated max-h-[90vh] flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-glass-border">
+            <h5 className="font-semibold text-foreground">Stage Mapping Configuration</h5>
+            <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
           </div>
-          <div className="modal-body">
+          <div className="p-4 overflow-y-auto flex-1">
             {/* Instructions */}
-            <div className="alert alert-info mb-4">
+            <div className="p-3 rounded-lg bg-accent/10 border border-accent/30 text-foreground mb-4">
               <strong>Map your ATS stages to canonical stages.</strong>
-              <p className="mb-0 small">
+              <p className="mb-0 text-sm mt-1">
                 This mapping is required for funnel conversion metrics. Each ATS stage should be
                 mapped to one canonical stage. Multiple ATS stages can map to the same canonical stage.
               </p>
             </div>
 
             {/* Validation Status */}
-            <div className={`alert ${validation.isComplete ? 'alert-success' : 'alert-warning'} mb-4`}>
+            <div className={`p-3 rounded-lg mb-4 ${validation.isComplete ? 'bg-good/10 border border-good/30 text-good' : 'bg-warn/10 border border-warn/30 text-warn'}`}>
               {validation.isComplete ? (
-                <span>✓ All required stages are mapped</span>
+                <span>All required stages are mapped</span>
               ) : (
                 <div>
                   <strong>Missing mappings for:</strong>
-                  <div className="mt-1">
+                  <div className="mt-1 flex flex-wrap gap-1">
                     {validation.missingStages.map(s => (
-                      <span key={s} className="badge bg-warning text-dark me-1">{s}</span>
+                      <span key={s} className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-warn text-bg-base">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -129,38 +129,38 @@ export function StageMappingModal({
 
             {/* Auto-suggest button */}
             <div className="mb-4">
-              <button className="btn btn-outline-secondary btn-sm" onClick={handleAutoSuggest}>
+              <button className="px-3 py-1.5 text-sm font-medium rounded border border-glass-border text-muted-foreground hover:text-foreground hover:bg-bg-elevated transition-colors" onClick={handleAutoSuggest}>
                 Auto-suggest Mappings
               </button>
-              <small className="text-muted ms-2">
+              <span className="text-muted-foreground text-sm ml-2">
                 Attempts to match stage names based on common patterns
-              </small>
+              </span>
             </div>
 
-            <div className="row">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Mapping Table */}
-              <div className="col-md-8">
-                <h6 className="mb-3">Stage Mappings</h6>
-                <div className="table-responsive" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                  <table className="table table-sm">
-                    <thead className="table-light sticky-top">
+              <div className="md:col-span-2">
+                <h6 className="mb-3 font-semibold text-foreground">Stage Mappings</h6>
+                <div className="overflow-auto max-h-[400px] border border-glass-border rounded">
+                  <table className="w-full text-sm">
+                    <thead className="bg-bg-elevated sticky top-0">
                       <tr>
-                        <th>ATS Stage Name</th>
-                        <th>Canonical Stage</th>
-                        <th>Status</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">ATS Stage Name</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Canonical Stage</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {allStages.map(stage => {
                         const mapping = mappings.find(m => m.atsStage === stage);
                         return (
-                          <tr key={stage}>
-                            <td>
-                              <code>{stage}</code>
+                          <tr key={stage} className="border-b border-glass-border">
+                            <td className="px-3 py-2">
+                              <code className="text-accent">{stage}</code>
                             </td>
-                            <td>
+                            <td className="px-3 py-2">
                               <select
-                                className="form-select form-select-sm"
+                                className="w-full px-2 py-1 text-sm bg-bg-surface/30 border border-glass-border rounded text-foreground focus:outline-none focus:border-accent"
                                 value={mapping?.canonicalStage || ''}
                                 onChange={(e) => handleMappingChange(
                                   stage,
@@ -175,11 +175,11 @@ export function StageMappingModal({
                                 ))}
                               </select>
                             </td>
-                            <td>
+                            <td className="px-3 py-2">
                               {mapping ? (
-                                <span className="badge bg-success">Mapped</span>
+                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-good text-white">Mapped</span>
                               ) : (
-                                <span className="badge bg-secondary">Unmapped</span>
+                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-bg-elevated text-muted-foreground">Unmapped</span>
                               )}
                             </td>
                           </tr>
@@ -191,18 +191,18 @@ export function StageMappingModal({
               </div>
 
               {/* Canonical Stage Reference */}
-              <div className="col-md-4">
-                <h6 className="mb-3">Canonical Stages Reference</h6>
-                <div className="list-group small">
+              <div>
+                <h6 className="mb-3 font-semibold text-foreground">Canonical Stages Reference</h6>
+                <div className="space-y-1 text-sm">
                   {CANONICAL_STAGES.map(cs => (
-                    <div key={cs.value} className="list-group-item py-2">
-                      <div className="d-flex justify-content-between">
-                        <strong>{cs.label}</strong>
+                    <div key={cs.value} className="p-2 rounded bg-bg-elevated border border-glass-border">
+                      <div className="flex justify-between items-center">
+                        <strong className="text-foreground">{cs.label}</strong>
                         {validation.mappedStages.includes(cs.value) && (
-                          <span className="badge bg-success">✓</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded bg-good text-white">ok</span>
                         )}
                       </div>
-                      <small className="text-muted">{cs.description}</small>
+                      <p className="text-muted-foreground text-xs mt-0.5">{cs.description}</p>
                     </div>
                   ))}
                 </div>
@@ -210,30 +210,30 @@ export function StageMappingModal({
             </div>
 
             {/* Summary */}
-            <div className="mt-4 p-3 rounded" style={{ background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div className="row text-center">
-                <div className="col">
-                  <div className="h4 mb-0" style={{ color: '#F8FAFC' }}>{allStages.length}</div>
-                  <small style={{ color: '#94A3B8' }}>Total Stages</small>
+            <div className="mt-4 p-3 rounded bg-bg-elevated border border-glass-border">
+              <div className="grid grid-cols-3 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-foreground">{allStages.length}</div>
+                  <p className="text-xs text-muted-foreground">Total Stages</p>
                 </div>
-                <div className="col">
-                  <div className="h4 mb-0 text-success">{mappings.length}</div>
-                  <small style={{ color: '#94A3B8' }}>Mapped</small>
+                <div>
+                  <div className="text-2xl font-bold text-good">{mappings.length}</div>
+                  <p className="text-xs text-muted-foreground">Mapped</p>
                 </div>
-                <div className="col">
-                  <div className="h4 mb-0 text-warning">{unmappedStages.length}</div>
-                  <small style={{ color: '#94A3B8' }}>Unmapped</small>
+                <div>
+                  <div className="text-2xl font-bold text-warn">{unmappedStages.length}</div>
+                  <p className="text-xs text-muted-foreground">Unmapped</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+          <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
+            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80" onClick={onClose}>
               Cancel
             </button>
             <button
               type="button"
-              className="btn btn-primary"
+              className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50"
               onClick={handleSave}
               disabled={!validation.isComplete}
             >

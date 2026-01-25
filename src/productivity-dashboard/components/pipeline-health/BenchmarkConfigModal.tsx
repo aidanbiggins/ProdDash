@@ -116,37 +116,40 @@ export function BenchmarkConfigModal({
 
   return (
     <div
-      className="modal show d-block"
+      className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="modal-dialog modal-lg modal-dialog-scrollable">
-        <div className="modal-content">
-          <div className="modal-header">
-            <div>
-              <h5 className="modal-title mb-1">
-                <i className="bi bi-sliders me-2"></i>
-                Configure Pipeline Benchmarks
-              </h5>
-              <small className="text-muted">
-                Set your target SLAs for each stage of the hiring process
-              </small>
-            </div>
-            <button type="button" className="btn-close" onClick={onClose} />
+      <div className="max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col bg-[#1a1a1a] rounded-lg border border-white/10">
+        <div className="flex items-start justify-between px-6 py-4 border-b border-white/10">
+          <div>
+            <h5 className="text-lg font-semibold mb-1">
+              <i className="bi bi-sliders mr-2"></i>
+              Configure Pipeline Benchmarks
+            </h5>
+            <small className="text-muted-foreground text-xs">
+              Set your target SLAs for each stage of the hiring process
+            </small>
           </div>
+          <button type="button" className="p-0 border-0 bg-transparent text-2xl" onClick={onClose}>&times;</button>
+        </div>
 
-          <div className="modal-body">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
             {/* Quick Actions */}
-            <div className="d-flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4">
               <button
-                className="btn btn-bespoke-secondary btn-sm"
+                className="px-3 py-1.5 text-xs rounded border border-white/10 text-muted-foreground hover:bg-white/5"
                 onClick={handleLoadDefaults}
               >
-                <i className="bi bi-arrow-counterclockwise me-1"></i>
+                <i className="bi bi-arrow-counterclockwise mr-1"></i>
                 Reset to Defaults
               </button>
               <button
-                className="btn btn-bespoke-primary btn-sm"
+                className="px-3 py-1.5 text-xs rounded font-medium"
+                style={{
+                  background: 'var(--primary)',
+                  color: '#1a1a1a',
+                }}
                 onClick={() => {
                   if (!historicalBenchmarks) {
                     onLoadHistorical();
@@ -157,12 +160,12 @@ export function BenchmarkConfigModal({
               >
                 {isLoadingHistorical ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                    <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin mr-1 inline-block" role="status"></span>
                     Calculating...
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-database me-1"></i>
+                    <i className="bi bi-database mr-1"></i>
                     Load from Historical Data
                   </>
                 )}
@@ -171,35 +174,35 @@ export function BenchmarkConfigModal({
 
             {/* Historical Preview */}
             {showHistoricalPreview && historicalBenchmarks && (
-              <div className="alert alert-info mb-4">
-                <div className="d-flex justify-content-between align-items-start">
+              <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 mb-4">
+                <div className="flex justify-between items-start">
                   <div>
                     <strong>
-                      <i className="bi bi-graph-up me-1"></i>
+                      <i className="bi bi-graph-up mr-1"></i>
                       Historical Benchmarks Available
                     </strong>
                     <div className="small mt-1">
                       Based on {historicalBenchmarks.sampleSize} closed requisitions
-                      <span className={`badge ms-2 ${
-                        historicalBenchmarks.confidence === 'high' ? 'bg-success' :
-                        historicalBenchmarks.confidence === 'medium' ? 'bg-warning' : 'bg-danger'
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ml-2 ${
+                        historicalBenchmarks.confidence === 'high' ? 'bg-green-500 text-white' :
+                        historicalBenchmarks.confidence === 'medium' ? 'bg-yellow-500 text-gray-900' : 'bg-red-500 text-white'
                       }`}>
                         {historicalBenchmarks.confidence} confidence
                       </span>
                     </div>
                     {historicalBenchmarks.notes.map((note, i) => (
-                      <div key={i} className="small text-muted">{note}</div>
+                      <div key={i} className="small text-muted-foreground">{note}</div>
                     ))}
                   </div>
-                  <div className="d-flex gap-2">
+                  <div className="flex gap-2">
                     <button
-                      className="btn btn-sm btn-success"
+                      className="px-3 py-1 text-xs rounded bg-green-500/20 text-green-500 hover:bg-green-500/30"
                       onClick={handleApplyHistorical}
                     >
                       Apply
                     </button>
                     <button
-                      className="btn btn-sm btn-outline-secondary"
+                      className="px-3 py-1 text-xs rounded border border-white/10 text-muted-foreground hover:bg-white/5"
                       onClick={() => setShowHistoricalPreview(false)}
                     >
                       Cancel
@@ -211,20 +214,20 @@ export function BenchmarkConfigModal({
 
             {/* Total TTF Target */}
             <div className="mb-4">
-              <label className="form-label fw-medium">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Target Total Time-to-Fill
               </label>
-              <div className="input-group" style={{ maxWidth: 200 }}>
+              <div className="flex" style={{ maxWidth: 200 }}>
                 <input
                   type="number"
-                  className="form-control"
+                  className="flex-1 px-3 py-2 rounded-l border"
                   value={editedConfig.targetTotalTTF}
                   onChange={(e) => handleTotalTTFChange(parseInt(e.target.value) || 0)}
                   min={1}
                 />
-                <span className="input-group-text">days</span>
+                <span className="px-3 py-2 rounded-r border border-l-0 bg-white/5 text-xs">days</span>
               </div>
-              <small className="text-muted">
+              <small className="text-muted-foreground text-xs">
                 Sum of stage targets: {calculateTotalTargetDays()} days
               </small>
             </div>
@@ -237,19 +240,19 @@ export function BenchmarkConfigModal({
                     <th>Stage</th>
                     <th className="text-center" style={{ width: 120 }}>
                       Target Days
-                      <div className="small fw-normal">SLA target</div>
+                      <div className="small font-normal">SLA target</div>
                     </th>
                     <th className="text-center" style={{ width: 120 }}>
                       Max Days
-                      <div className="small fw-normal">Red flag</div>
+                      <div className="small font-normal">Red flag</div>
                     </th>
                     <th className="text-center" style={{ width: 120 }}>
                       Target Pass %
-                      <div className="small fw-normal">Conversion</div>
+                      <div className="small font-normal">Conversion</div>
                     </th>
                     <th className="text-center" style={{ width: 120 }}>
                       Min Pass %
-                      <div className="small fw-normal">Red flag</div>
+                      <div className="small font-normal">Red flag</div>
                     </th>
                   </tr>
                 </thead>
@@ -260,11 +263,11 @@ export function BenchmarkConfigModal({
 
                     return (
                       <tr key={stageKey}>
-                        <td className="fw-medium">{STAGE_NAMES[stageKey]}</td>
+                        <td className="font-medium">{STAGE_NAMES[stageKey]}</td>
                         <td>
                           <input
                             type="number"
-                            className="form-control form-control-sm text-center"
+                            className="w-full px-2 py-1 rounded border text-xs text-center"
                             value={stage.targetDays}
                             onChange={(e) => handleStageChange(stageKey, 'targetDays', parseInt(e.target.value) || 0)}
                             min={1}
@@ -273,36 +276,36 @@ export function BenchmarkConfigModal({
                         <td>
                           <input
                             type="number"
-                            className="form-control form-control-sm text-center"
+                            className="w-full px-2 py-1 rounded border text-xs text-center"
                             value={stage.maxDays}
                             onChange={(e) => handleStageChange(stageKey, 'maxDays', parseInt(e.target.value) || 0)}
                             min={1}
                           />
                         </td>
                         <td>
-                          <div className="input-group input-group-sm">
+                          <div className="flex">
                             <input
                               type="number"
-                              className="form-control text-center"
+                              className="flex-1 px-2 py-1 rounded-l border text-xs text-center"
                               value={Math.round(stage.targetPassRate * 100)}
                               onChange={(e) => handleStageChange(stageKey, 'targetPassRate', (parseInt(e.target.value) || 0) / 100)}
                               min={0}
                               max={100}
                             />
-                            <span className="input-group-text">%</span>
+                            <span className="px-2 py-1 rounded-r border border-l-0 bg-white/5 text-xs">%</span>
                           </div>
                         </td>
                         <td>
-                          <div className="input-group input-group-sm">
+                          <div className="flex">
                             <input
                               type="number"
-                              className="form-control text-center"
+                              className="flex-1 px-2 py-1 rounded-l border text-xs text-center"
                               value={Math.round(stage.minPassRate * 100)}
                               onChange={(e) => handleStageChange(stageKey, 'minPassRate', (parseInt(e.target.value) || 0) / 100)}
                               min={0}
                               max={100}
                             />
-                            <span className="input-group-text">%</span>
+                            <span className="px-2 py-1 rounded-r border border-l-0 bg-white/5 text-xs">%</span>
                           </div>
                         </td>
                       </tr>
@@ -314,7 +317,7 @@ export function BenchmarkConfigModal({
 
             {/* Info Box */}
             <div className="small mb-0 p-3" style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '6px' }}>
-              <i className="bi bi-info-circle me-1" style={{ color: '#94A3B8' }}></i>
+              <i className="bi bi-info-circle mr-1" style={{ color: '#94A3B8' }}></i>
               <strong style={{ color: '#F8FAFC' }}>How benchmarks work:</strong>
               <ul className="mb-0 mt-2" style={{ color: '#94A3B8' }}>
                 <li><strong style={{ color: '#F8FAFC' }}>Target</strong>: Your ideal SLA - performance at or better than this is "On Track"</li>
@@ -324,27 +327,40 @@ export function BenchmarkConfigModal({
             </div>
           </div>
 
-          <div className="modal-footer">
-            <div className="text-muted small me-auto">
-              {editedConfig.source === 'historical' && (
-                <i className="bi bi-database me-1"></i>
-              )}
-              {editedConfig.source === 'manual' && (
-                <i className="bi bi-pencil me-1"></i>
-              )}
-              {editedConfig.source === 'default' && (
-                <i className="bi bi-gear me-1"></i>
-              )}
-              Source: {editedConfig.source}
-              {editedConfig.lastUpdated && (
-                <> | Last updated: {new Date(editedConfig.lastUpdated).toLocaleDateString()}</>
-              )}
-            </div>
-            <button type="button" className="btn btn-bespoke-secondary" onClick={onClose}>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-white/10">
+          <div className="text-muted-foreground text-xs">
+            {editedConfig.source === 'historical' && (
+              <i className="bi bi-database mr-1"></i>
+            )}
+            {editedConfig.source === 'manual' && (
+              <i className="bi bi-pencil mr-1"></i>
+            )}
+            {editedConfig.source === 'default' && (
+              <i className="bi bi-gear mr-1"></i>
+            )}
+            Source: {editedConfig.source}
+            {editedConfig.lastUpdated && (
+              <> | Last updated: {new Date(editedConfig.lastUpdated).toLocaleDateString()}</>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 rounded border border-white/10 text-muted-foreground hover:bg-white/5"
+              onClick={onClose}
+            >
               Cancel
             </button>
-            <button type="button" className="btn btn-bespoke-primary" onClick={handleSave}>
-              <i className="bi bi-check-lg me-1"></i>
+            <button
+              type="button"
+              className="px-4 py-2 rounded font-medium"
+              style={{
+                background: 'var(--primary)',
+                color: '#1a1a1a',
+              }}
+              onClick={handleSave}
+            >
+              <i className="bi bi-check-lg mr-1"></i>
               Save Benchmarks
             </button>
           </div>

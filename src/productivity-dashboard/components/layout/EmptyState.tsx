@@ -20,7 +20,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
       <p className="empty-state-description">{description}</p>
       {action && (
         <button
-          className="btn btn-outline-primary empty-state-action"
+          className="px-4 py-2 text-sm font-medium border border-accent-primary text-accent-primary rounded-md hover:bg-accent-primary/10 transition-colors empty-state-action"
           onClick={action.onClick}
         >
           {action.label}

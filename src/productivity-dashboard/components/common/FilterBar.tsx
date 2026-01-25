@@ -170,26 +170,17 @@ export function FilterBar({
   if (isMobile) {
     return (
       <div className="filter-panel-mobile">
-        <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center gap-2">
           <DateRangePicker
             dateRange={filters.dateRange}
             onChange={(dateRange) => onChange({ dateRange })}
           />
           <button
-            className={`btn btn-sm ${isExpanded ? 'btn-bespoke-primary' : ''}`}
+            className={`text-sm px-2 py-1.5 whitespace-nowrap rounded transition-transform ${isExpanded ? 'btn-bespoke-primary' : 'bg-white/10 border border-white/20 text-[var(--text-primary)]'}`}
             onClick={() => setIsExpanded(!isExpanded)}
-            style={{
-              padding: '0.375rem 0.5rem',
-              whiteSpace: 'nowrap',
-              ...(!isExpanded && {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                color: 'var(--text-primary, #F8FAFC)'
-              })
-            }}
           >
             {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
-            <svg className={`ms-1 ${isExpanded ? 'rotate-180' : ''}`} width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style={{ transition: 'transform 0.2s' }}>
+            <svg className={`ml-1 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
               <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
             </svg>
           </button>
@@ -197,8 +188,8 @@ export function FilterBar({
 
         {isExpanded && (
           <div className="mt-3">
-            <div className="row g-2 mb-2">
-              <div className="col-6" style={{ position: 'relative' }}>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="relative">
                 <MultiSelect
                   options={recruiters.map(r => ({
                     value: r.user_id,
@@ -211,7 +202,7 @@ export function FilterBar({
                   allLabel="All Recruiters"
                 />
               </div>
-              <div className="col-6" style={{ position: 'relative' }}>
+              <div className="relative">
                 <MultiSelect
                   options={allFunctions.map(f => ({
                     value: f,
@@ -224,7 +215,7 @@ export function FilterBar({
                   allLabel="All Functions"
                 />
               </div>
-              <div className="col-6" style={{ position: 'relative' }}>
+              <div className="relative">
                 <MultiSelect
                   options={allLevels.map(l => ({
                     value: l,
@@ -237,7 +228,7 @@ export function FilterBar({
                   allLabel="All Levels"
                 />
               </div>
-              <div className="col-6" style={{ position: 'relative' }}>
+              <div className="relative">
                 <MultiSelect
                   options={hiringManagers.map(hm => ({
                     value: hm.user_id,
@@ -261,8 +252,8 @@ export function FilterBar({
   return (
     <div className={`filter-panel ${!isExpanded ? 'collapsed' : ''}`}>
       {/* Header Row - Always Visible */}
-      <div className="d-flex justify-content-between align-items-center">
-        <div className="d-flex align-items-center gap-3">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
           <button
             className="filter-toggle-btn"
             onClick={() => setIsExpanded(!isExpanded)}
@@ -272,7 +263,7 @@ export function FilterBar({
             </svg>
             <span>Filters</span>
             {activeFilterCount > 0 && (
-              <span className="badge-bespoke badge-neutral-soft ms-1">
+              <span className="badge-bespoke badge-neutral-soft ml-1">
                 {activeFilterCount} active
               </span>
             )}
@@ -288,10 +279,10 @@ export function FilterBar({
 
       {/* Expandable Filter Content */}
       <div className="filter-panel-content mt-4">
-        <div className="row g-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
           {/* Recruiter */}
-          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
-            <label className="form-label">Recruiter</label>
+          <div className="relative">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Recruiter</label>
             <MultiSelect
               options={recruiters.map(r => ({
                 value: r.user_id,
@@ -306,8 +297,8 @@ export function FilterBar({
           </div>
 
           {/* Function */}
-          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
-            <label className="form-label">Function</label>
+          <div className="relative">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Function</label>
             <MultiSelect
               options={allFunctions.map(f => ({
                 value: f,
@@ -322,8 +313,8 @@ export function FilterBar({
           </div>
 
           {/* Job Family */}
-          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
-            <label className="form-label">Job Family</label>
+          <div className="relative">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Job Family</label>
             <MultiSelect
               options={allJobFamilies.map(jf => ({
                 value: jf,
@@ -338,8 +329,8 @@ export function FilterBar({
           </div>
 
           {/* Level */}
-          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
-            <label className="form-label">Level</label>
+          <div className="relative">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Level</label>
             <MultiSelect
               options={allLevels.map(l => ({
                 value: l,
@@ -354,8 +345,8 @@ export function FilterBar({
           </div>
 
           {/* Region */}
-          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
-            <label className="form-label">Region</label>
+          <div className="relative">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Region</label>
             <MultiSelect
               options={allRegions.map(r => ({
                 value: r,
@@ -370,8 +361,8 @@ export function FilterBar({
           </div>
 
           {/* Hiring Manager */}
-          <div className="col-6 col-md-2" style={{ position: 'relative' }}>
-            <label className="form-label">Hiring Manager</label>
+          <div className="relative">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Hiring Manager</label>
             <MultiSelect
               options={hiringManagers.map(hm => ({
                 value: hm.user_id,
@@ -388,7 +379,7 @@ export function FilterBar({
 
         {/* Active Filter Chips */}
         {activeFilterCount > 0 && (
-          <div className="d-flex flex-wrap gap-2 mt-3 pt-3" style={{ borderTop: '1px solid var(--color-slate-100)' }}>
+          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--color-slate-100)]">
             {filters.recruiterIds?.map(id => {
               const recruiter = recruiters.find(r => r.user_id === id);
               return (

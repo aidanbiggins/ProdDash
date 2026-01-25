@@ -33,18 +33,18 @@ export default function ScenarioOutputPanel({
   if (output.blocked) {
     return (
       <GlassPanel className="scenario-output-blocked mt-3">
-        <div className="text-center py-4">
-          <i className="bi bi-exclamation-octagon display-4 text-danger mb-3" />
+        <div className="text-center py-8">
+          <i className="bi bi-exclamation-octagon text-5xl text-red-400 mb-3 block" />
           <h5>Cannot Run Scenario</h5>
-          <p className="text-secondary mb-3">{output.blocked.reason}</p>
+          <p className="text-muted-foreground mb-3">{output.blocked.reason}</p>
 
           {output.blocked.missing_data.length > 0 && (
-            <div className="text-start mt-3">
+            <div className="text-left mt-3">
               <h6>Missing Data:</h6>
-              <ul className="list-unstyled">
+              <ul className="list-none p-0">
                 {output.blocked.missing_data.map((item, idx) => (
                   <li key={idx} className="mb-2">
-                    <i className="bi bi-x-circle text-danger me-2" />
+                    <i className="bi bi-x-circle text-red-400 mr-2" />
                     <strong>{item.field}:</strong> {item.description}
                   </li>
                 ))}
@@ -53,7 +53,7 @@ export default function ScenarioOutputPanel({
           )}
 
           {output.blocked.fix_instructions.length > 0 && (
-            <div className="text-start mt-3">
+            <div className="text-left mt-3">
               <h6>To Fix:</h6>
               <ul>
                 {output.blocked.fix_instructions.map((instruction, idx) => (
@@ -71,10 +71,10 @@ export default function ScenarioOutputPanel({
     <div className="scenario-output-panel mt-3">
       {/* Header with feasibility */}
       <GlassPanel className="scenario-output-header mb-3">
-        <div className="d-flex justify-content-between align-items-start">
+        <div className="flex justify-between items-start">
           <div>
             <h4 className="mb-1">{output.scenario_name}</h4>
-            <p className="text-secondary mb-0">
+            <p className="text-muted-foreground mb-0">
               Generated {output.generated_at.toLocaleString()}
             </p>
           </div>
@@ -86,8 +86,8 @@ export default function ScenarioOutputPanel({
       </GlassPanel>
 
       {/* Main content in 2-column layout */}
-      <div className="row">
-        <div className="col-lg-7">
+      <div className="grid grid-cols-12 gap-4">
+        <div className="col-span-12 lg:col-span-7">
           {/* Bottlenecks */}
           {output.bottlenecks.length > 0 && (
             <BottlenecksCard
@@ -105,15 +105,15 @@ export default function ScenarioOutputPanel({
           )}
         </div>
 
-        <div className="col-lg-5">
+        <div className="col-span-12 lg:col-span-5">
           {/* Resource Impact */}
           {output.resource_impact && (
             <GlassPanel className="mb-3">
               <SectionHeader title="Resource Impact" />
               <div className="resource-impact-content">
-                <div className="d-flex justify-content-between mb-2">
-                  <span className="text-secondary">Team Utilization Change</span>
-                  <span className={output.resource_impact.team_utilization_delta > 0 ? 'text-danger' : 'text-success'}>
+                <div className="flex justify-between mb-2">
+                  <span className="text-muted-foreground">Team Utilization Change</span>
+                  <span className={output.resource_impact.team_utilization_delta > 0 ? 'text-red-400' : 'text-green-400'}>
                     {output.resource_impact.team_utilization_delta > 0 ? '+' : ''}
                     {Math.round(output.resource_impact.team_utilization_delta * 100)}%
                   </span>
@@ -121,15 +121,15 @@ export default function ScenarioOutputPanel({
 
                 {output.resource_impact.recruiter_impacts.length > 0 && (
                   <div className="recruiter-impacts mt-3">
-                    <small className="text-secondary">Per-Recruiter Impact:</small>
+                    <small className="text-muted-foreground">Per-Recruiter Impact:</small>
                     <div className="mt-2">
                       {output.resource_impact.recruiter_impacts
                         .filter(r => r.status_change !== 'NO_CHANGE')
                         .slice(0, 5)
                         .map(impact => (
-                          <div key={impact.recruiter_id} className="d-flex justify-content-between mb-1">
+                          <div key={impact.recruiter_id} className="flex justify-between mb-1">
                             <span>{impact.recruiter_name_anon}</span>
-                            <span className={impact.status_change === 'BECOMES_OVERLOADED' ? 'text-danger' : 'text-success'}>
+                            <span className={impact.status_change === 'BECOMES_OVERLOADED' ? 'text-red-400' : 'text-green-400'}>
                               {impact.status_change === 'BECOMES_OVERLOADED' ? 'Overloaded' : 'Available'}
                             </span>
                           </div>
@@ -153,11 +153,11 @@ export default function ScenarioOutputPanel({
                   <a
                     key={idx}
                     href={`/${link.tab}?${new URLSearchParams(link.params).toString()}`}
-                    className="deep-link-item d-block mb-2"
+                    className="deep-link-item block mb-2"
                   >
-                    <i className="bi bi-arrow-right-circle me-2" />
+                    <i className="bi bi-arrow-right-circle mr-2" />
                     {link.label}
-                    <small className="d-block text-secondary">{link.rationale}</small>
+                    <small className="block text-muted-foreground">{link.rationale}</small>
                   </a>
                 ))}
               </div>
@@ -167,7 +167,7 @@ export default function ScenarioOutputPanel({
       </div>
 
       {/* Action buttons */}
-      <div className="scenario-actions mt-3 d-flex gap-2 flex-wrap">
+      <div className="scenario-actions mt-3 flex gap-2 flex-wrap">
         <GenerateActionPlanButton
           actions={output.action_plan}
           datasetId={datasetId}
@@ -176,10 +176,10 @@ export default function ScenarioOutputPanel({
         <ExplainForExecsButton output={output} />
 
         <button
-          className="btn btn-outline-secondary"
+          className="px-4 py-2 rounded-md border border-glass-border bg-transparent text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors"
           onClick={() => setShowCitations(true)}
         >
-          <i className="bi bi-quote me-2" />
+          <i className="bi bi-quote mr-2" />
           View Citations ({output.citations.length})
         </button>
       </div>

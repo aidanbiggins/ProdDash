@@ -54,14 +54,13 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
         >
             {/* Overall Status */}
             <div className="mb-4">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                    <span className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div className="flex justify-between items-center mb-2">
+                    <span className="text-muted-foreground text-xs uppercase tracking-wide">
                         Overall Status
                     </span>
                     <span
-                        className="badge rounded-pill"
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs"
                         style={{
-                            fontSize: '0.7rem',
                             background: `${LOAD_STATUS_COLORS[recruiter.status]}22`,
                             color: LOAD_STATUS_COLORS[recruiter.status],
                             border: `1px solid ${LOAD_STATUS_COLORS[recruiter.status]}44`
@@ -71,18 +70,18 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
                     </span>
                 </div>
                 <div
-                    className="p-3 rounded"
+                    className="p-3 rounded-md"
                     style={{
                         background: `${LOAD_STATUS_COLORS[recruiter.status]}11`,
                         border: `1px solid ${LOAD_STATUS_COLORS[recruiter.status]}33`
                     }}
                 >
-                    <div className="d-flex justify-content-between align-items-center">
+                    <div className="flex justify-between items-center">
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.5rem', fontWeight: 700, color: LOAD_STATUS_COLORS[recruiter.status] }}>
                             {Math.round(recruiter.utilization * 100)}%
                         </span>
                         <span
-                            className="badge rounded-pill"
+                            className="inline-flex items-center px-2 py-0.5 rounded-full"
                             style={{
                                 fontSize: '0.6rem',
                                 background: recruiter.confidence === 'HIGH'
@@ -100,7 +99,7 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
                             {recruiter.confidence}
                         </span>
                     </div>
-                    <div className="text-muted" style={{ fontSize: '0.75rem' }}>
+                    <div className="text-muted-foreground text-xs">
                         {recruiter.totalDemand} candidates / {Math.round(recruiter.totalCapacity)}/wk capacity
                     </div>
                 </div>
@@ -108,10 +107,10 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
 
             {/* Stage Breakdown */}
             <div className="mb-4">
-                <div className="text-muted mb-2" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div className="text-muted-foreground mb-2 text-xs uppercase tracking-wide">
                     Stage Breakdown
                 </div>
-                <table className="table table-sm mb-0" style={{ fontSize: '0.75rem' }}>
+                <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
                     <thead>
                         <tr>
                             <th>Stage</th>
@@ -152,26 +151,25 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
 
             {/* Open Requisitions */}
             <div>
-                <div className="text-muted mb-2" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div className="text-muted-foreground mb-2 text-xs uppercase tracking-wide">
                     Open Reqs ({recruiterReqs.length})
                 </div>
-                <div className="d-flex flex-column gap-2" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto">
                     {reqPipelines.length === 0 ? (
-                        <div className="text-muted small">No open requisitions</div>
+                        <div className="text-muted-foreground text-sm">No open requisitions</div>
                     ) : (
                         reqPipelines.map(req => (
                             <div
                                 key={req.reqId}
-                                className="d-flex justify-content-between align-items-center p-2 rounded"
+                                className="flex justify-between items-center p-2 rounded-md"
                                 style={{ background: 'var(--color-bg-overlay)' }}
                             >
-                                <span style={{ fontSize: '0.8rem' }}>
+                                <span className="text-sm">
                                     {req.reqTitle.length > 35 ? req.reqTitle.substring(0, 35) + '...' : req.reqTitle}
                                 </span>
                                 <span
-                                    className="badge"
+                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs"
                                     style={{
-                                        fontSize: '0.7rem',
                                         background: 'var(--accent-bg)',
                                         color: 'var(--accent)'
                                     }}
@@ -186,18 +184,18 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
 
             {/* Confidence Reasons */}
             {recruiter.confidenceReasons.length > 0 && (
-                <div className="mt-4 pt-3 border-top" style={{ borderColor: 'var(--glass-border)' }}>
-                    <div className="text-muted mb-2" style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div className="mt-4 pt-3 border-t border-glass-border">
+                    <div className="text-muted-foreground mb-2 text-[0.7rem] uppercase tracking-wide">
                         Confidence Notes
                     </div>
-                    <ul className="list-unstyled mb-0">
+                    <ul className="list-none m-0 p-0">
                         {recruiter.confidenceReasons.map((reason, i) => (
-                            <li key={i} className="d-flex align-items-start gap-2 mb-1" style={{ fontSize: '0.75rem' }}>
-                                <i className={`bi ${reason.impact === 'positive' ? 'bi-check-circle text-success' :
-                                        reason.impact === 'negative' ? 'bi-exclamation-circle text-warning' :
-                                            'bi-info-circle text-muted'
+                            <li key={i} className="flex items-start gap-2 mb-1 text-xs">
+                                <i className={`bi ${reason.impact === 'positive' ? 'bi-check-circle text-green-500' :
+                                        reason.impact === 'negative' ? 'bi-exclamation-circle text-yellow-500' :
+                                            'bi-info-circle text-muted-foreground'
                                     }`}></i>
-                                <span className="text-muted">{reason.message}</span>
+                                <span className="text-muted-foreground">{reason.message}</span>
                             </li>
                         ))}
                     </ul>

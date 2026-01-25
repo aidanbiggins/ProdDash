@@ -21,8 +21,8 @@ export function FeatureBlockedState({
 
   if (variant === 'inline') {
     return (
-      <span className="feature-blocked-inline text-muted" style={{ fontSize: '0.8rem' }}>
-        <i className="bi bi-lock-fill me-1" style={{ color: 'var(--color-bad)' }}></i>
+      <span className="feature-blocked-inline text-muted-foreground text-[0.8rem]">
+        <i className="bi bi-lock-fill mr-1" style={{ color: 'var(--color-bad)' }}></i>
         {name}: Not enough data
       </span>
     );
@@ -30,17 +30,12 @@ export function FeatureBlockedState({
 
   if (variant === 'card') {
     return (
-      <div className="feature-blocked-card" style={{
-        padding: '1rem',
-        borderRadius: '4px',
-        border: '1px solid var(--color-bad-bg)',
-        backgroundColor: 'var(--color-bad-bg)',
-      }}>
-        <div className="d-flex align-items-center gap-2 mb-2">
+      <div className="feature-blocked-card p-4 rounded border border-[var(--color-bad-bg)] bg-[var(--color-bad-bg)]">
+        <div className="flex items-center gap-2 mb-2">
           <i className="bi bi-lock-fill" style={{ color: 'var(--color-bad)' }}></i>
-          <strong style={{ color: 'var(--text-heading)', fontSize: '0.875rem' }}>{name}</strong>
+          <strong className="text-[0.875rem]" style={{ color: 'var(--text-heading)' }}>{name}</strong>
         </div>
-        <p className="mb-2" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
+        <p className="mb-2 text-[0.8rem]" style={{ color: 'var(--text-secondary)' }}>
           {featureEntry.reasons[0] || 'Not enough data to display this feature.'}
         </p>
         {repairs.length > 0 && (
@@ -52,16 +47,10 @@ export function FeatureBlockedState({
 
   // Panel variant (default, full-width)
   return (
-    <div className="feature-blocked-panel" style={{
-      padding: '1.5rem',
-      borderRadius: '4px',
-      border: '1px solid var(--color-bad-bg)',
-      backgroundColor: 'var(--color-bad-bg)',
-      margin: '0.5rem 0',
-    }}>
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <i className="bi bi-lock-fill" style={{ color: 'var(--color-bad)', fontSize: '1.25rem' }}></i>
-        <h5 style={{ color: 'var(--text-heading)', margin: 0, fontSize: '1rem' }}>
+    <div className="feature-blocked-panel p-6 rounded border border-[var(--color-bad-bg)] bg-[var(--color-bad-bg)] my-2">
+      <div className="flex items-center gap-2 mb-3">
+        <i className="bi bi-lock-fill text-[1.25rem]" style={{ color: 'var(--color-bad)' }}></i>
+        <h5 className="m-0 text-base" style={{ color: 'var(--text-heading)' }}>
           {name} — Not Enough Data
         </h5>
       </div>

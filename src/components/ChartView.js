@@ -51,7 +51,7 @@ const ChartView = ({ scenario, socket }) => {
   return (
     <div>
       <div className="mb-3">
-        <label className="me-2">Chart Type:</label>
+        <label className="mr-2">Chart Type:</label>
         <select value={chartType} onChange={(e) => setChartType(e.target.value)}>
           <option value="line">Line Chart</option>
           <option value="bar">Bar Chart</option>

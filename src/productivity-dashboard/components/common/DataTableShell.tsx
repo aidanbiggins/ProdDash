@@ -54,7 +54,7 @@ export function DataTableShell<T extends Record<string, unknown>>({
                 <th
                   key={col.key}
                   style={col.width ? { width: col.width } : undefined}
-                  className={col.numeric ? 'text-end' : ''}
+                  className={col.numeric ? 'text-right' : ''}
                 >
                   {col.header}
                 </th>
