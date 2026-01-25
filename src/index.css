@@ -1,3 +1,36 @@
+/* Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   TAILWIND COMPONENT LAYER - V0 Glass System
+   ============================================ */
+@layer components {
+  /* Glass Panel - Main container component */
+  .glass-panel {
+    @apply bg-bg-glass backdrop-blur-glass border border-glass-border rounded-md shadow-glass;
+  }
+
+  .glass-panel-elevated {
+    @apply bg-bg-elevated backdrop-blur-glass-lg;
+  }
+
+  /* Stat Value - Monospace numbers */
+  .stat-value {
+    @apply font-mono tabular-nums tracking-tight;
+  }
+
+  /* Status color utilities */
+  .status-good { @apply text-good; }
+  .status-warn { @apply text-warn; }
+  .status-bad { @apply text-bad; }
+
+  .bg-status-good { @apply bg-good-bg; }
+  .bg-status-warn { @apply bg-warn-bg; }
+  .bg-status-bad { @apply bg-bad-bg; }
+}
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap");
 
 /* ============================================

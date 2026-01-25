@@ -35,6 +35,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "audit:bootstrap": "node scripts/bootstrap-audit.js",
     "ui:audit": "node scripts/ui-style-audit.js",
     "ui:style-audit": "node scripts/ui-style-audit.js",
     "ui:overlay-audit": "node scripts/ui-overlay-audit.js",
@@ -60,7 +61,10 @@
   },
   "devDependencies": {
     "@types/seedrandom": "^3.0.8",
+    "autoprefixer": "^10.4.23",
     "node-fetch": "^3.3.2",
-    "serve-handler": "^6.1.6"
+    "postcss": "^8.5.6",
+    "serve-handler": "^6.1.6",
+    "tailwindcss": "^3.4.19"
   }
 }
