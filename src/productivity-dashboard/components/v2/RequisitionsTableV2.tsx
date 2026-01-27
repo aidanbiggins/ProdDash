@@ -23,26 +23,26 @@ interface RequisitionsTableV2Props {
 }
 
 const priorityConfig = {
-  critical: { bg: 'bg-[rgba(239,68,68,0.15)]', text: 'text-[#fca5a5]', label: 'Critical' },
-  high: { bg: 'bg-[rgba(245,158,11,0.15)]', text: 'text-[#fcd34d]', label: 'High' },
-  medium: { bg: 'bg-[rgba(59,130,246,0.15)]', text: 'text-[#93c5fd]', label: 'Medium' },
-  low: { bg: 'bg-[rgba(100,116,139,0.15)]', text: 'text-[#94a3b8]', label: 'Low' },
+  critical: { bg: 'bg-red-500/15', text: 'text-red-400', label: 'Critical' },
+  high: { bg: 'bg-amber-500/15', text: 'text-amber-400', label: 'High' },
+  medium: { bg: 'bg-blue-500/15', text: 'text-blue-400', label: 'Medium' },
+  low: { bg: 'bg-slate-500/15', text: 'text-slate-400', label: 'Low' },
 };
 
 const statusConfig = {
-  open: { dot: 'bg-[#3b82f6]', label: 'Open' },
-  sourcing: { dot: 'bg-[#8b5cf6]', label: 'Sourcing' },
-  screening: { dot: 'bg-[#f59e0b]', label: 'Screening' },
-  interviewing: { dot: 'bg-[#06b6d4]', label: 'Interviewing' },
-  offer: { dot: 'bg-[#22c55e]', label: 'Offer' },
-  closed: { dot: 'bg-[#64748b]', label: 'Closed' },
-  'on-hold': { dot: 'bg-[#ef4444]', label: 'On Hold' },
+  open: { dot: 'bg-blue-500', label: 'Open' },
+  sourcing: { dot: 'bg-violet-500', label: 'Sourcing' },
+  screening: { dot: 'bg-amber-500', label: 'Screening' },
+  interviewing: { dot: 'bg-cyan-500', label: 'Interviewing' },
+  offer: { dot: 'bg-green-500', label: 'Offer' },
+  closed: { dot: 'bg-slate-500', label: 'Closed' },
+  'on-hold': { dot: 'bg-red-500', label: 'On Hold' },
 };
 
 function getHealthColor(score: number): string {
-  if (score >= 80) return 'text-[#22c55e]';
-  if (score >= 60) return 'text-[#f59e0b]';
-  return 'text-[#ef4444]';
+  if (score >= 80) return 'text-green-500';
+  if (score >= 60) return 'text-amber-500';
+  return 'text-red-500';
 }
 
 export function RequisitionsTableV2({ requisitions, recruiters = [] }: RequisitionsTableV2Props) {
@@ -74,12 +74,12 @@ export function RequisitionsTableV2({ requisitions, recruiters = [] }: Requisiti
   return (
     <div className="glass-panel">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Open Requisitions</h3>
           <p className="text-xs text-muted-foreground">{requisitions.length} total</p>
         </div>
-        <Button variant="outline" size="sm" className="text-xs gap-2 bg-transparent border-white/[0.08]">
+        <Button variant="outline" size="sm" className="text-xs gap-2 bg-transparent border-border">
           <span>All Statuses</span>
           <ChevronDown className="w-3.5 h-3.5" />
         </Button>
@@ -89,7 +89,7 @@ export function RequisitionsTableV2({ requisitions, recruiters = [] }: Requisiti
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/[0.06] hover:bg-transparent">
+            <TableRow className="border-border hover:bg-transparent">
               <TableHead className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 <button
                   type="button"
@@ -142,7 +142,7 @@ export function RequisitionsTableV2({ requisitions, recruiters = [] }: Requisiti
               return (
                 <TableRow
                   key={req.id}
-                  className="border-white/[0.04] hover:bg-[rgba(6,182,212,0.04)] cursor-pointer"
+                  className="border-border/50 hover:bg-primary/5 cursor-pointer"
                 >
                   <TableCell>
                     <div>
@@ -173,7 +173,7 @@ export function RequisitionsTableV2({ requisitions, recruiters = [] }: Requisiti
                     <span className="text-sm text-foreground">{recruiter?.name || 'Unassigned'}</span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className={`font-mono text-xs sm:text-sm ${req.daysOpen > 90 ? 'text-[#ef4444]' : req.daysOpen > 60 ? 'text-[#f59e0b]' : 'text-foreground'}`}>
+                    <span className={`font-mono text-xs sm:text-sm ${req.daysOpen > 90 ? 'text-red-500' : req.daysOpen > 60 ? 'text-amber-500' : 'text-foreground'}`}>
                       {req.daysOpen}
                     </span>
                   </TableCell>

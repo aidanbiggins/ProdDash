@@ -4,11 +4,12 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Database, Clock, Bot, Building2, Upload } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboardContext';
 
-// Import real baseline components
-import { DataHealthTab } from '../data-health/DataHealthTab';
-import { SlaSettingsTab } from '../settings/SlaSettingsTab';
-import { AiSettingsTab } from '../settings/AiSettingsTab';
-import { OrgSettingsTab } from '../settings/OrgSettingsTab';
+// Import legacy v1 tab components (embedded until native V2 versions exist)
+// @see ../\_legacy/README.md for migration status
+import { DataHealthTab } from '../_legacy/data-health/DataHealthTab';
+import { SlaSettingsTab } from '../_legacy/settings/SlaSettingsTab';
+import { AiSettingsTab } from '../_legacy/settings/AiSettingsTab';
+import { OrgSettingsTab } from '../_legacy/settings/OrgSettingsTab';
 import { CSVUpload } from '../CSVUpload';
 
 // Sub-view types for Settings tab
@@ -54,9 +55,9 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
   // No data empty state for Data Health
   const renderNoDataState = () => (
     <div className="glass-panel p-6 text-center">
-      <Database className="w-12 h-12 text-[#94a3b8] mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-[#f8fafc] mb-2">No Data Loaded</h3>
-      <p className="text-sm text-[#94a3b8] max-w-md mx-auto">
+      <Database className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-foreground mb-2">No Data Loaded</h3>
+      <p className="text-sm text-muted-foreground max-w-md mx-auto">
         Import your recruiting data to view data health metrics and hygiene analysis.
       </p>
     </div>
@@ -101,10 +102,10 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
     <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-[#f8fafc] tracking-tight mb-1">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-1">
           Settings
         </h1>
-        <p className="text-xs md:text-sm text-[#94a3b8]">
+        <p className="text-xs md:text-sm text-muted-foreground">
           Configure data sources, SLAs, AI integrations, and organization settings
         </p>
       </div>
@@ -118,8 +119,8 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
             onClick={() => handleSubViewChange(view.id)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
               activeSubView === view.id
-                ? 'bg-[#06b6d4]/10 text-[#06b6d4]'
-                : 'text-[#94a3b8] hover:bg-white/[0.06] hover:text-[#f8fafc]'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
           >
             {view.icon}

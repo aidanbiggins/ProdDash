@@ -8,28 +8,28 @@ interface BottleneckPanelV2Props {
 
 const severityColors: Record<RiskLevel, { bg: string; border: string; text: string; dot: string }> = {
   bad: {
-    bg: 'bg-[rgba(239,68,68,0.08)]',
-    border: 'border-l-[#ef4444]',
-    text: 'text-[#fca5a5]',
-    dot: 'bg-[#ef4444]',
+    bg: 'bg-red-500/10',
+    border: 'border-l-red-500',
+    text: 'text-red-400',
+    dot: 'bg-red-500',
   },
   warn: {
-    bg: 'bg-[rgba(245,158,11,0.08)]',
-    border: 'border-l-[#f59e0b]',
-    text: 'text-[#fcd34d]',
-    dot: 'bg-[#f59e0b]',
+    bg: 'bg-amber-500/10',
+    border: 'border-l-amber-500',
+    text: 'text-amber-400',
+    dot: 'bg-amber-500',
   },
   good: {
-    bg: 'bg-[rgba(34,197,94,0.08)]',
-    border: 'border-l-[#22c55e]',
-    text: 'text-[#86efac]',
-    dot: 'bg-[#22c55e]',
+    bg: 'bg-green-500/10',
+    border: 'border-l-green-500',
+    text: 'text-green-400',
+    dot: 'bg-green-500',
   },
   neutral: {
-    bg: 'bg-[rgba(100,116,139,0.08)]',
-    border: 'border-l-[#64748b]',
-    text: 'text-[#94a3b8]',
-    dot: 'bg-[#64748b]',
+    bg: 'bg-slate-500/10',
+    border: 'border-l-slate-500',
+    text: 'text-slate-400',
+    dot: 'bg-slate-500',
   },
 };
 
@@ -49,10 +49,10 @@ export function BottleneckPanelV2({ bottlenecks }: BottleneckPanelV2Props) {
   return (
     <div className="glass-panel h-full">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-        <AlertTriangle className="w-4 h-4 text-[#f59e0b]" />
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+        <AlertTriangle className="w-4 h-4 text-amber-500" />
         <h3 className="text-sm font-semibold text-foreground">Bottlenecks & Risks</h3>
-        <span className="ml-auto px-2 py-0.5 rounded text-xs font-medium bg-[rgba(239,68,68,0.15)] text-[#fca5a5]">
+        <span className="ml-auto px-2 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-400">
           {bottlenecks.filter(b => b.severity === 'bad').length} Critical
         </span>
       </div>
@@ -65,11 +65,11 @@ export function BottleneckPanelV2({ bottlenecks }: BottleneckPanelV2Props) {
           return (
             <div
               key={bottleneck.id}
-              className={`p-3 rounded-lg border-l-2 ${colors.bg} ${colors.border} transition-colors hover:bg-white/[0.04]`}
+              className={`p-3 rounded-lg border-l-2 ${colors.bg} ${colors.border} transition-colors hover:bg-accent/30`}
             >
               {/* Header Row */}
               <div className="flex items-start gap-2 mb-2">
-                <div className="flex items-center justify-center w-5 h-5 rounded bg-white/[0.06] text-muted-foreground shrink-0">
+                <div className="flex items-center justify-center w-5 h-5 rounded bg-muted text-muted-foreground shrink-0">
                   <span className="text-xs font-bold">{index + 1}</span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -105,7 +105,7 @@ export function BottleneckPanelV2({ bottlenecks }: BottleneckPanelV2Props) {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-white/[0.06]">
+      <div className="px-4 py-3 border-t border-border">
         <button
           type="button"
           className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"

@@ -173,7 +173,10 @@ function AppRoutes() {
       <Route path="/plan/*" element={<HomeRoute />} />
       <Route path="/settings/*" element={<HomeRoute />} />
 
-      {/* Legacy V1 Dashboard - accessible via /v1 */}
+      {/* Legacy V1 Dashboard - accessible via /v1
+          @deprecated Use V0/V2 dashboard at '/' for new development.
+          This route is maintained for backward compatibility only.
+          See src/productivity-dashboard/components/_legacy/README.md */}
       <Route path="/v1" element={
         <ProtectedRoute>
           <RecruiterProductivityDashboard />

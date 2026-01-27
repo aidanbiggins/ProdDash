@@ -38,7 +38,7 @@ function SectionHeaderV2({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.08]">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
       <div className="flex items-center gap-3">
         <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">{title}</h3>
         {badge}
@@ -69,8 +69,8 @@ function KPICardV2({
     <button
       type="button"
       onClick={onClick}
-      className={`glass-panel p-4 text-left transition-all hover:bg-white/[0.04] flex-1 min-w-0 ${
-        isActive ? 'ring-1 ring-accent bg-white/[0.04]' : ''
+      className={`glass-panel p-4 text-left transition-all hover:bg-accent/50 flex-1 min-w-0 ${
+        isActive ? 'ring-1 ring-accent bg-accent/30' : ''
       }`}
     >
       <div className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -319,7 +319,7 @@ function HMOverviewV2({
 
       {/* HM Leaderboard Table */}
       <div className="glass-panel overflow-hidden">
-        <div className="p-4 border-b border-white/[0.08]">
+        <div className="p-4 border-b border-border">
           <SectionHeaderV2
             title="Hiring Manager Leaderboard"
             badge={selectedHmUserIds.size > 0 ? (
@@ -338,7 +338,7 @@ function HMOverviewV2({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white/[0.02]">
+              <tr className="bg-muted/30">
                 <th className="w-10 px-3 py-3 text-left">
                   <input
                     type="checkbox"
@@ -401,14 +401,14 @@ function HMOverviewV2({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05]">
+            <tbody className="divide-y divide-border">
               {sortedHMs.map(hm => {
                 const isSelected = selectedHmUserIds.has(hm.hmUserId);
                 return (
                   <tr
                     key={hm.hmUserId}
                     onClick={() => onToggleHM(hm.hmUserId)}
-                    className={`cursor-pointer transition-colors ${isSelected ? 'bg-accent/10' : 'hover:bg-white/[0.02]'}`}
+                    className={`cursor-pointer transition-colors ${isSelected ? 'bg-accent/10' : 'hover:bg-muted/30'}`}
                   >
                     <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                       <input
@@ -557,7 +557,7 @@ function HMScorecardV2({
 
   return (
     <div className="glass-panel overflow-hidden">
-      <div className="p-4 border-b border-white/[0.08] flex justify-between items-center">
+      <div className="p-4 border-b border-border flex justify-between items-center">
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">Open Requisitions Scorecard</h3>
           <BadgeV2 variant="neutral">{sortedRollups.length} reqs</BadgeV2>
@@ -576,7 +576,7 @@ function HMScorecardV2({
       <div className="overflow-x-auto">
         <table className="w-full text-sm" style={{ minWidth: '900px' }}>
           <thead>
-            <tr className="bg-white/[0.02]">
+            <tr className="bg-muted/30">
               <th
                 className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground w-40"
                 onClick={() => handleSort('reqTitle')}
@@ -611,20 +611,20 @@ function HMScorecardV2({
               >
                 <span className="flex items-center justify-end">Pipe <SortIcon field="pipelineDepth" /></span>
               </th>
-              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground border-l border-white/[0.08] w-10">Rev</th>
+              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground border-l border-border w-10">Rev</th>
               <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground w-10">Int</th>
               <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground w-10">Dec</th>
               <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground w-10">Off</th>
-              <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground border-l border-white/[0.08] w-20">Fill</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground border-l border-border w-20">Fill</th>
               <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground w-20">Risk</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.05]">
+          <tbody className="divide-y divide-border">
             {sortedRollups.map(r => (
               <tr
                 key={r.reqId}
                 onClick={() => onSelectReq?.(r.reqId)}
-                className="cursor-pointer hover:bg-white/[0.02] transition-colors"
+                className="cursor-pointer hover:bg-muted/30 transition-colors"
               >
                 <td className="px-3 py-3">
                   <div className="font-medium text-foreground truncate max-w-[150px]" title={r.reqTitle}>{r.reqTitle}</div>
@@ -666,7 +666,7 @@ function HMScorecardV2({
                 </td>
                 {/* Bucket columns */}
                 {[HMDecisionBucket.HM_REVIEW, HMDecisionBucket.HM_INTERVIEW_DECISION, HMDecisionBucket.HM_FINAL_DECISION, HMDecisionBucket.OFFER_DECISION].map((bucket, idx) => (
-                  <td key={bucket} className={`px-3 py-3 text-center ${idx === 0 ? 'border-l border-white/[0.08]' : ''}`}>
+                  <td key={bucket} className={`px-3 py-3 text-center ${idx === 0 ? 'border-l border-border' : ''}`}>
                     {r.candidatesByBucket[bucket] > 0 ? (
                       <span
                         className="inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-medium"
@@ -682,7 +682,7 @@ function HMScorecardV2({
                     )}
                   </td>
                 ))}
-                <td className="px-3 py-3 border-l border-white/[0.08]">
+                <td className="px-3 py-3 border-l border-border">
                   {r.forecast?.likelyDate ? (
                     <span className="font-semibold">
                       {new Date(r.forecast.likelyDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -829,7 +829,7 @@ function HMActionQueueV2({
               key={type}
               type="button"
               onClick={() => setFilterType(filterType === type as HMActionType ? 'ALL' : type as HMActionType)}
-              className={`glass-panel p-4 text-center transition-all ${isActive ? 'ring-2' : 'hover:bg-white/[0.04]'}`}
+              className={`glass-panel p-4 text-center transition-all ${isActive ? 'ring-2' : 'hover:bg-accent/50'}`}
               style={{ borderColor: isActive ? meta.color : undefined }}
             >
               <div className="mb-2" style={{ color: meta.color }}>{meta.icon}</div>
@@ -863,14 +863,14 @@ function HMActionQueueV2({
 
       {/* Actions Table */}
       <div className="glass-panel overflow-hidden">
-        <div className="p-4 border-b border-white/[0.08] flex justify-between items-center">
+        <div className="p-4 border-b border-border flex justify-between items-center">
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">Pending Actions Queue</h3>
           <BadgeV2 variant="neutral">{sortedActions.length} actions</BadgeV2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white/[0.02]">
+              <tr className="bg-muted/30">
                 <th
                   className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground"
                   onClick={() => handleSort('actionType')}
@@ -914,11 +914,11 @@ function HMActionQueueV2({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05]">
+            <tbody className="divide-y divide-border">
               {sortedActions.map(a => {
                 const meta = ACTION_TYPE_META[a.actionType];
                 return (
-                  <tr key={`${a.reqId}-${a.candidateId}-${a.actionType}`} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={`${a.reqId}-${a.candidateId}-${a.actionType}`} className="hover:bg-muted/30 transition-colors">
                     <td className="px-3 py-3">
                       <BadgeV2 variant={a.actionType === HMActionType.FEEDBACK_DUE ? 'danger' : a.actionType === HMActionType.REVIEW_DUE ? 'warning' : 'info'}>
                         {meta.label}
@@ -1093,7 +1093,7 @@ export function HiringManagersTabV2() {
     <div className="space-y-4">
       {/* Sub-Navigation */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <div className="flex gap-1 p-1 rounded-lg bg-white/[0.03] border border-white/[0.08]">
+        <div className="flex gap-1 p-1 rounded-lg bg-muted/20 border border-border">
           {[
             { id: 'overview' as HMSubTab, label: 'Overview', count: hmRollups.length },
             { id: 'scorecard' as HMSubTab, label: 'Req Scorecard', count: selectedHmUserIds.size > 0 ? filteredReqRollups.length : reqRollups.length },

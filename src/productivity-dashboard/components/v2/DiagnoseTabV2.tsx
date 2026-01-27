@@ -20,11 +20,12 @@ import {
 import { Button } from 'components/ui/button';
 import { useDashboard } from '../../hooks/useDashboardContext';
 
-// Import v1 tab components (still used for some views)
-import { BottlenecksTab } from '../bottlenecks';
-import { QualityTab } from '../quality';
-import { SourceEffectivenessTab } from '../source-effectiveness/SourceEffectivenessTab';
-import { VelocityInsightsTab } from '../velocity-insights/VelocityInsightsTab';
+// Import legacy v1 tab components (embedded until native V2 versions exist)
+// @see ../\_legacy/README.md for migration status
+import { BottlenecksTab } from '../_legacy/bottlenecks';
+import { QualityTab } from '../_legacy/quality';
+import { SourceEffectivenessTab } from '../_legacy/source-effectiveness/SourceEffectivenessTab';
+import { VelocityInsightsTab } from '../_legacy/velocity-insights/VelocityInsightsTab';
 
 // Import v2 tab components
 import { OverviewTabV2 } from './OverviewTabV2';
@@ -124,13 +125,13 @@ const categoryConfig = {
 function TabSkeleton() {
   return (
     <div className="glass-panel p-6 animate-pulse">
-      <div className="h-6 bg-white/[0.06] rounded w-48 mb-4" />
+      <div className="h-6 bg-muted rounded w-48 mb-4" />
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="h-24 bg-white/[0.06] rounded" />
+          <div key={i} className="h-24 bg-muted rounded" />
         ))}
       </div>
-      <div className="h-64 bg-white/[0.06] rounded" />
+      <div className="h-64 bg-muted rounded" />
     </div>
   );
 }
@@ -593,7 +594,7 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
                           {diag.affectedItems.slice(0, 3).map((item, idx) => (
                             <span
                               key={idx}
-                              className="px-2 py-0.5 rounded text-[10px] bg-white/[0.06] text-muted-foreground"
+                              className="px-2 py-0.5 rounded text-[10px] bg-muted text-muted-foreground"
                             >
                               {item}
                             </span>
@@ -732,7 +733,7 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
   return (
     <div className="min-h-screen">
       {/* Page Header with Sub-navigation */}
-      <div className="sticky top-[52px] z-40 bg-[rgba(15,23,42,0.97)] backdrop-blur-xl border-b border-white/[0.06]">
+      <div className="sticky top-[52px] z-40 bg-background/95 backdrop-blur-xl border-b border-border">
         <div className="px-4 md:px-6 py-3 max-w-[1600px] mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
             <div>
@@ -749,7 +750,7 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
                 size="sm"
                 onClick={handleScan}
                 disabled={isScanning}
-                className="bg-transparent border-white/[0.08] text-foreground hover:bg-white/[0.06]"
+                className="bg-transparent border-border text-foreground hover:bg-accent"
               >
                 <RefreshCw className={`w-4 h-4 mr-2 ${isScanning ? 'animate-spin' : ''}`} />
                 {isScanning ? 'Scanning...' : 'Run Diagnostics'}
@@ -767,7 +768,7 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                   activeSubView === view.id
                     ? 'bg-accent/10 text-accent'
-                    : 'text-muted-foreground hover:bg-white/[0.06] hover:text-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                 }`}
               >
                 {view.icon}

@@ -93,7 +93,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
   return (
     <div className="glass-panel mb-6">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between p-3 border-b border-border">
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
@@ -131,7 +131,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
             </span>
 
             {/* Preset Buttons */}
-            <div className="flex gap-1 p-1 rounded-md bg-[rgba(255,255,255,0.03)] overflow-x-auto">
+            <div className="flex gap-1 p-1 rounded-md bg-muted/30 overflow-x-auto">
               {datePresets.map((preset) => (
                 <button
                   key={preset.label}
@@ -140,7 +140,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
                   className={`px-2 md:px-3 py-1.5 rounded text-[11px] md:text-xs font-medium transition-colors whitespace-nowrap ${
                     selectedPreset === preset.label
                       ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.06]'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                   }`}
                 >
                   {preset.label}
@@ -154,7 +154,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2 text-[11px] md:text-xs bg-transparent border-white/[0.08] hover:bg-white/[0.04] w-full sm:w-auto justify-center sm:justify-start"
+                  className="gap-2 text-[11px] md:text-xs bg-transparent border-border hover:bg-accent/30 w-full sm:w-auto justify-center sm:justify-start"
                 >
                   <Calendar className="w-3.5 h-3.5" />
                   {formatDateRange(filters.dateRange)}
@@ -186,7 +186,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2 text-xs bg-transparent border-white/[0.08] hover:bg-white/[0.04]"
+                    className="gap-2 text-xs bg-transparent border-border hover:bg-accent/30"
                   >
                     {filters.recruiters.length === 0
                       ? 'All Recruiters'
@@ -199,7 +199,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
                     {recruiters.map((recruiter) => (
                       <label
                         key={recruiter.id}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.06] cursor-pointer"
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent/50 cursor-pointer"
                       >
                         <Checkbox
                           checked={filters.recruiters.includes(recruiter.id)}
@@ -249,7 +249,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2 text-xs bg-transparent border-white/[0.08] hover:bg-white/[0.04]"
+                    className="gap-2 text-xs bg-transparent border-border hover:bg-accent/30"
                   >
                     {filters.departments.length === 0
                       ? 'All Departments'
@@ -262,7 +262,7 @@ export function FilterBarV2({ filters, onFiltersChange, recruiters = [], departm
                     {departments.map((dept) => (
                       <label
                         key={dept}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-white/[0.06] cursor-pointer"
+                        className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent/50 cursor-pointer"
                       >
                         <Checkbox
                           checked={filters.departments.includes(dept)}

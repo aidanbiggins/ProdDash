@@ -45,7 +45,7 @@ function KPICardV2({
     <button
       type="button"
       onClick={onClick}
-      className="glass-panel p-4 text-left transition-all hover:bg-white/[0.04] hover:border-white/[0.12] flex-1 min-w-0 group"
+      className="glass-panel p-4 text-left transition-all hover:bg-accent/50 hover:border-border flex-1 min-w-0 group"
     >
       <div className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
         {label}
@@ -79,7 +79,7 @@ function SectionHeaderV2({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.08]">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
           {title}
@@ -536,7 +536,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
             <h2 className="text-xl font-bold text-foreground tracking-tight">
               {detail.recruiterName === 'All Recruiters' ? 'Recruiter Performance' : detail.recruiterName}
             </h2>
-            <button type="button" className="p-1 rounded hover:bg-white/[0.06] text-muted-foreground">
+            <button type="button" className="p-1 rounded hover:bg-accent text-muted-foreground">
               <HelpCircle className="w-4 h-4" />
             </button>
           </div>
@@ -624,7 +624,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
             <YAxis fontSize={10} stroke="#94a3b8" axisLine={false} tickLine={false} domain={[0, 'auto']} tickFormatter={(v) => v.toFixed(2)} />
             <Tooltip
               formatter={(value: number | undefined) => [value != null ? value.toFixed(3) : '-', 'Productivity']}
-              contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }}
+              contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }}
             />
             <Area type="monotone" dataKey="productivityIndex" fill="#8b5cf6" fillOpacity={0.15} stroke="#8b5cf6" strokeWidth={2} dot={{ fill: '#8b5cf6', r: 3 }} connectNulls />
           </ComposedChart>
@@ -639,7 +639,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
             <XAxis dataKey="name" fontSize={11} stroke="#94a3b8" axisLine={false} tickLine={false} />
             <YAxis fontSize={11} stroke="#94a3b8" axisLine={false} tickLine={false} />
-            <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }} />
+            <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }} />
             <Legend iconType="circle" />
             <Bar dataKey="screens" name="Screens" stackId="a" fill="#3b82f6" barSize={20} radius={[0, 0, 4, 4]} />
             <Bar dataKey="submittals" name="Submittals to HM" stackId="a" fill="#8b5cf6" barSize={20} radius={[4, 4, 0, 0]} />
@@ -661,7 +661,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
               <Tooltip
                 cursor={{ fill: 'transparent' }}
                 formatter={(value) => [`${Number(value).toFixed(1)}%`]}
-                contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }}
+                contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }}
               />
               <Legend iconType="circle" />
               <Bar dataKey="rate" name="Recruiter" fill="#06b6d4" radius={[0, 4, 4, 0]} barSize={12} />
@@ -678,7 +678,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="name" fontSize={11} stroke="#94a3b8" axisLine={false} tickLine={false} />
               <YAxis fontSize={11} stroke="#94a3b8" axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }} />
+              <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--popover))', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '6px' }} />
               <Bar dataKey="count" fill="#8b5cf6">
                 {agingData.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={index <= 1 ? '#22c55e' : index === 2 ? '#f59e0b' : '#ef4444'} />
@@ -720,8 +720,8 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
           </div>
 
           {/* Hiring Manager */}
-          <div className="rounded-lg bg-[#2dd4bf]/10 border-l-[3px] border-[#2dd4bf] p-4">
-            <div className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-[#2dd4bf] mb-3">
+          <div className="rounded-lg bg-teal-500/10 border-l-[3px] border-teal-500 p-4">
+            <div className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-teal-500 mb-3">
               <Briefcase className="w-3.5 h-3.5" />
               Hiring Manager
             </div>
@@ -746,7 +746,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
           </div>
 
           {/* TA Ops */}
-          <div className="rounded-lg bg-white/[0.04] border-l-[3px] border-muted-foreground p-4">
+          <div className="rounded-lg bg-accent/30 border-l-[3px] border-muted-foreground p-4">
             <div className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
               <Settings className="w-3.5 h-3.5" />
               TA Ops
@@ -769,14 +769,14 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
 
       {/* Requisitions Table */}
       <div className="glass-panel overflow-hidden">
-        <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+        <div className="p-4 border-b border-border flex items-center justify-between">
           <h3 className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
             Requisitions ({recruiterReqs.length})
           </h3>
           <button
             type="button"
             onClick={handleExportReqs}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             <Download className="w-3 h-3" />
             Export CSV
@@ -784,8 +784,8 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-white/[0.02]">
-              <tr className="border-b border-white/[0.06]">
+            <thead className="bg-muted/30">
+              <tr className="border-b border-border">
                 <th className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-left">Req</th>
                 <SortHeader column="title" label="Title" />
                 <SortHeader column="level" label="Level" />
@@ -796,9 +796,9 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
                 <SortHeader column="status" label="Status" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-border">
               {sortedReqDetails.map(rd => (
-                <tr key={rd.req.req_id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={rd.req.req_id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-3 py-3">
                     <code className="text-xs text-muted-foreground font-mono">{rd.req.req_id}</code>
                   </td>
@@ -829,7 +829,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
                   <td className="px-3 py-3">
                     <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
                       rd.req.status === 'Open' ? 'bg-good/20 text-good' :
-                      rd.req.status === 'Closed' ? 'bg-white/[0.08] text-muted-foreground' :
+                      rd.req.status === 'Closed' ? 'bg-muted text-muted-foreground' :
                       rd.req.status === 'OnHold' ? 'bg-warn/20 text-warn' :
                       'bg-bad/20 text-bad'
                     }`}>

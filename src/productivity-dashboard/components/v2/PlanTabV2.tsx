@@ -4,11 +4,12 @@ import React, { useState, useMemo } from 'react';
 import { Users, TrendingUp, Layers, Scale } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboardContext';
 
-// Import real baseline components
-import { CapacityTab } from '../capacity/CapacityTab';
-import { CapacityRebalancerTab } from '../capacity-rebalancer/CapacityRebalancerTab';
-import { ForecastingTab } from '../forecasting/ForecastingTab';
-import ScenarioLibraryTab from '../scenarios/ScenarioLibraryTab';
+// Import legacy v1 tab components (embedded until native V2 versions exist)
+// @see ../\_legacy/README.md for migration status
+import { CapacityTab } from '../_legacy/capacity/CapacityTab';
+import { CapacityRebalancerTab } from '../_legacy/capacity-rebalancer/CapacityRebalancerTab';
+import { ForecastingTab } from '../_legacy/forecasting/ForecastingTab';
+import ScenarioLibraryTab from '../_legacy/scenarios/ScenarioLibraryTab';
 
 // Types
 import { ActionItem } from '../../types/actionTypes';
@@ -69,9 +70,9 @@ export function PlanTabV2({
     if (!state.dataStore.requisitions.length) {
       return (
         <div className="glass-panel p-6 text-center">
-          <Users className="w-12 h-12 text-[#94a3b8] mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-[#f8fafc] mb-2">No Data Loaded</h3>
-          <p className="text-sm text-[#94a3b8] max-w-md mx-auto">
+          <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No Data Loaded</h3>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
             Import your recruiting data to view capacity planning, forecasting, and scenario analysis.
           </p>
         </div>
@@ -107,10 +108,10 @@ export function PlanTabV2({
     <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-[#f8fafc] tracking-tight mb-1">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-1">
           Plan
         </h1>
-        <p className="text-xs md:text-sm text-[#94a3b8]">
+        <p className="text-xs md:text-sm text-muted-foreground">
           Capacity planning, forecasting, and scenario modeling
         </p>
       </div>
@@ -124,8 +125,8 @@ export function PlanTabV2({
             onClick={() => handleSubViewChange(view.id)}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
               activeSubView === view.id
-                ? 'bg-[#06b6d4]/10 text-[#06b6d4]'
-                : 'text-[#94a3b8] hover:bg-white/[0.06] hover:text-[#f8fafc]'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
             }`}
           >
             {view.icon}

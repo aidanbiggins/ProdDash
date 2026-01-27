@@ -43,21 +43,21 @@ function AskEmptyState() {
     <div className="p-4 md:p-6 max-w-[1600px] mx-auto min-h-[calc(100vh-200px)]">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-[#f8fafc] tracking-tight mb-1">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-1">
           Ask PlatoVue
         </h1>
-        <p className="text-xs md:text-sm text-[#94a3b8]">
+        <p className="text-xs md:text-sm text-muted-foreground">
           Ask questions about your recruiting data in plain English
         </p>
       </div>
 
       {/* Empty State Content */}
-      <div className="bg-[#1e293b]/70 backdrop-blur-sm rounded-xl border border-white/[0.08] p-8 flex flex-col items-center justify-center min-h-[500px]">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#06b6d4]/20 to-violet-500/20 flex items-center justify-center mb-6">
-          <MessageSquareText className="w-8 h-8 text-[#06b6d4]" />
+      <div className="bg-card/70 backdrop-blur-sm rounded-xl border border-border p-8 flex flex-col items-center justify-center min-h-[500px]">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-violet-500/20 flex items-center justify-center mb-6">
+          <MessageSquareText className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-xl font-semibold text-[#f8fafc] mb-2">Import data to get started</h2>
-        <p className="text-sm text-[#94a3b8] max-w-md text-center mb-8">
+        <h2 className="text-xl font-semibold text-foreground mb-2">Import data to get started</h2>
+        <p className="text-sm text-muted-foreground max-w-md text-center mb-8">
           Ask PlatoVue uses your recruiting data to provide personalized insights and recommendations.
           Import your data to unlock these features.
         </p>
@@ -66,15 +66,15 @@ function AskEmptyState() {
           {suggestedQuestions.map((item) => (
             <div
               key={item.question}
-              className="text-left p-4 rounded-lg bg-[#1e293b]/90 border border-white/[0.08]"
+              className="text-left p-4 rounded-lg bg-card/90 border border-border"
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[#06b6d4]">{item.icon}</span>
-                <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-[#64748b]">
+                <span className="text-primary">{item.icon}</span>
+                <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
                   {item.category}
                 </span>
               </div>
-              <p className="text-sm text-[#f8fafc]">
+              <p className="text-sm text-foreground">
                 {item.question}
               </p>
             </div>

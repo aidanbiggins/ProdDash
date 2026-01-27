@@ -67,8 +67,8 @@ function KPICardV2({
     <button
       type="button"
       onClick={onClick}
-      className={`glass-panel p-4 text-left transition-all hover:bg-white/[0.04] flex-1 min-w-0 ${
-        isActive ? 'ring-2 ring-accent bg-white/[0.04]' : ''
+      className={`glass-panel p-4 text-left transition-all hover:bg-accent/50 flex-1 min-w-0 ${
+        isActive ? 'ring-2 ring-accent bg-accent/30' : ''
       }`}
     >
       <div className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -161,7 +161,7 @@ function WeightLegendV2() {
 // V0 Design: Chart Help Text
 function ChartHelpV2({ text }: { text: string }) {
   return (
-    <div className="flex items-start gap-2 mt-3 p-3 rounded-md bg-white/[0.02] border border-white/[0.05]">
+    <div className="flex items-start gap-2 mt-3 p-3 rounded-md bg-muted/30 border border-border">
       <HelpCircle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
       <p className="text-xs text-muted-foreground">{text}</p>
     </div>
@@ -443,7 +443,7 @@ export function HMFrictionTabV2() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-white/[0.02]">
+                  <tr className="bg-muted/30">
                     <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Hiring Manager</th>
                     <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Reqs</th>
                     <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Loops</th>
@@ -452,9 +452,9 @@ export function HMFrictionTabV2() {
                     <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Weight</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.05]">
+                <tbody className="divide-y divide-border">
                   {filteredFriction.slice(0, 20).map(f => (
-                    <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white/[0.02] transition-colors">
+                    <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
                       <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
                       <td className="px-3 py-2 text-right text-muted-foreground">{f.reqsInRange}</td>
                       <td className="px-3 py-2 text-right">{f.loopCount}</td>
@@ -512,11 +512,11 @@ export function HMFrictionTabV2() {
                           <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Decision Latency</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/[0.05]">
+                      <tbody className="divide-y divide-border">
                         {timeTaxDistribution.filter(b => b.min >= 30).flatMap(b => b.hms)
                           .sort((a, b) => b.composition.timeTaxPercent - a.composition.timeTaxPercent)
                           .map(f => (
-                            <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white/[0.02] transition-colors">
+                            <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
                               <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
                               <td className="px-3 py-2 text-right text-bad font-bold">{f.composition.timeTaxPercent}%</td>
                               <td className="px-3 py-2 text-right">{f.feedbackLatencyMedian ? `${Math.round(f.feedbackLatencyMedian)} hrs` : '-'}</td>
@@ -542,7 +542,7 @@ export function HMFrictionTabV2() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-white/[0.02]">
+                    <tr className="bg-muted/30">
                       <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Hiring Manager</th>
                       <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Latency</th>
                       <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">% of Total</th>
@@ -550,13 +550,13 @@ export function HMFrictionTabV2() {
                       <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Decision</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/[0.05]">
+                  <tbody className="divide-y divide-border">
                     {hmsByLatencyImpact.slice(0, 10).map(f => {
                       const pctOfTotal = totalLatencyImpactDays > 0
                         ? Math.round((f.composition.totalLatencyHours / 24) / totalLatencyImpactDays * 100)
                         : 0;
                       return (
-                        <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white/[0.02] transition-colors">
+                        <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
                           <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
                           <td className="px-3 py-2 text-right font-mono font-bold">{Math.round(f.composition.totalLatencyHours / 24)}d</td>
                           <td className="px-3 py-2 text-right">
@@ -599,9 +599,9 @@ export function HMFrictionTabV2() {
                           <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Offer Accept</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/[0.05]">
+                      <tbody className="divide-y divide-border">
                         {fastHMs.map(f => (
-                          <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-white/[0.02] transition-colors">
+                          <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
                             <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
                             <td className="px-3 py-2 text-right">
                               <BadgeV2 variant="success">{f.hmWeight.toFixed(2)}x</BadgeV2>
@@ -779,19 +779,19 @@ export function HMFrictionTabV2() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-white/[0.02]">
+                  <tr className="bg-muted/30">
                     <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">HM</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Feedback (hrs)</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Decision (hrs)</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total (hrs)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.05]">
+                <tbody className="divide-y divide-border">
                   {heatmapData.map(row => (
                     <tr
                       key={row.hmId}
                       onClick={() => setSelectedHM(row.hmId)}
-                      className={`cursor-pointer transition-colors ${selectedHM === row.hmId ? 'bg-accent/10' : 'hover:bg-white/[0.02]'}`}
+                      className={`cursor-pointer transition-colors ${selectedHM === row.hmId ? 'bg-accent/10' : 'hover:bg-muted/30'}`}
                     >
                       <td className="px-3 py-2" title={row.fullName}>
                         <span className="font-medium text-foreground">{row.hmName}</span>
@@ -822,7 +822,7 @@ export function HMFrictionTabV2() {
 
       {/* All Hiring Managers Table */}
       <div className="glass-panel overflow-hidden">
-        <div className="p-4 border-b border-white/[0.08] flex justify-between items-center">
+        <div className="p-4 border-b border-border flex justify-between items-center">
           <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">All Hiring Managers</h3>
           <button
             className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-white/10 rounded hover:bg-white/5 transition-colors flex items-center gap-2"
@@ -835,7 +835,7 @@ export function HMFrictionTabV2() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white/[0.02]">
+              <tr className="bg-muted/30">
                 <th
                   className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:text-foreground"
                   onClick={() => handleSort('hmName')}
@@ -880,11 +880,11 @@ export function HMFrictionTabV2() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05]">
+            <tbody className="divide-y divide-border">
               {sortedFriction.map(f => (
                 <tr
                   key={f.hmId}
-                  className={`cursor-pointer transition-colors ${selectedHM === f.hmId ? 'bg-accent/10' : 'hover:bg-white/[0.02]'}`}
+                  className={`cursor-pointer transition-colors ${selectedHM === f.hmId ? 'bg-accent/10' : 'hover:bg-muted/30'}`}
                   onClick={() => setSelectedHM(selectedHM === f.hmId ? null : f.hmId)}
                 >
                   <td className="px-3 py-3 font-medium text-foreground">{f.hmName}</td>

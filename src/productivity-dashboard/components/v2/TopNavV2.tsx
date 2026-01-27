@@ -31,14 +31,14 @@ export function TopNavV2({ activeTab, onTabChange }: TopNavV2Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 h-[52px] border-b border-white/[0.06] bg-[rgba(15,23,42,0.97)] backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 h-[52px] border-b border-border bg-background/95 backdrop-blur-xl">
       <div className="flex h-full items-center justify-between px-4 mx-auto max-w-[1600px]">
         {/* Logo */}
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => onTabChange('command-center')}
-            className="text-base font-semibold tracking-tight text-[#f8fafc] hover:text-[#06b6d4] transition-colors"
+            className="text-base font-semibold tracking-tight text-foreground hover:text-primary transition-colors"
           >
             PlatoVue
           </button>
@@ -56,8 +56,8 @@ export function TopNavV2({ activeTab, onTabChange }: TopNavV2Props) {
               onClick={() => onTabChange(item.id)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 activeTab === item.id
-                  ? 'bg-[#06b6d4]/10 text-[#06b6d4]'
-                  : 'text-[#94a3b8] hover:bg-white/[0.06] hover:text-[#f8fafc]'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
               }`}
             >
               {item.icon}
@@ -70,7 +70,7 @@ export function TopNavV2({ activeTab, onTabChange }: TopNavV2Props) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-[#94a3b8] bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-colors"
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-muted-foreground bg-muted/50 border border-border hover:bg-accent hover:border-border transition-colors"
           >
             <Search className="w-4 h-4" />
             <span className="text-xs opacity-60 font-mono">Ctrl+K</span>
@@ -80,7 +80,7 @@ export function TopNavV2({ activeTab, onTabChange }: TopNavV2Props) {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-[#f8fafc]"
+            className="md:hidden p-2 text-foreground"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -98,10 +98,10 @@ export function TopNavV2({ activeTab, onTabChange }: TopNavV2Props) {
             tabIndex={0}
             aria-label="Close menu"
           />
-          <div className="fixed top-0 left-0 bottom-0 w-[280px] max-w-[85vw] bg-[rgba(26,26,26,0.98)] backdrop-blur-xl border-r border-white/[0.1] z-50 md:hidden animate-in slide-in-from-left">
-            <div className="p-4 border-b border-white/[0.1]">
+          <div className="fixed top-0 left-0 bottom-0 w-[280px] max-w-[85vw] bg-background/98 backdrop-blur-xl border-r border-border z-50 md:hidden animate-in slide-in-from-left">
+            <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between">
-                <span className="text-base font-semibold text-[#f8fafc]">PlatoVue</span>
+                <span className="text-base font-semibold text-foreground">PlatoVue</span>
                 <button type="button" onClick={() => setMobileMenuOpen(false)} className="p-2">
                   <X className="w-5 h-5" />
                 </button>
@@ -118,8 +118,8 @@ export function TopNavV2({ activeTab, onTabChange }: TopNavV2Props) {
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors ${
                     activeTab === item.id
-                      ? 'bg-[#06b6d4]/10 text-[#06b6d4]'
-                      : 'text-[#94a3b8] hover:bg-white/[0.06] hover:text-[#f8fafc]'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                   }`}
                 >
                   {item.icon}

@@ -61,6 +61,8 @@
     "ui:no-bootstrap": "node scripts/no-bootstrap-audit.js",
     "qa:all": "npm test -- --watchAll=false && npm run build && npm run ui:style-audit && npm run ui:overlay-audit && npm run route:smoke",
     "ui:smoke": "npm run build && npm run ui:no-bootstrap && npm run ui:style-audit",
+    "ui:theme-audit": "node scripts/theme-audit.js",
+    "ui:legacy-audit": "node scripts/legacy-audit.js",
     "landing:smoke": "node scripts/landing-smoke.js",
     "landing:screenshots": "node scripts/landing-screenshots.js",
     "landing:check": "npm run build && npm run landing:smoke && npm run landing:screenshots",

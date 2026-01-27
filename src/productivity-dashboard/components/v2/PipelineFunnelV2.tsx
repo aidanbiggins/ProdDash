@@ -21,7 +21,7 @@ export function PipelineFunnelV2({ stages }: PipelineFunnelV2Props) {
   return (
     <div className="glass-panel h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Pipeline Funnel</h3>
           <p className="text-xs text-muted-foreground">Candidate flow through stages</p>
@@ -81,7 +81,7 @@ export function PipelineFunnelV2({ stages }: PipelineFunnelV2Props) {
                     {/* Conversion Arrow */}
                     {index < stages.length - 1 && (
                       <div className={`flex items-center gap-1 text-xs font-medium ${
-                        isLowConversion ? 'text-[#f59e0b]' : 'text-muted-foreground'
+                        isLowConversion ? 'text-amber-500' : 'text-muted-foreground'
                       }`}>
                         <ArrowRight className="w-3.5 h-3.5" />
                         <span>{stage.conversionRate}%</span>
@@ -95,7 +95,7 @@ export function PipelineFunnelV2({ stages }: PipelineFunnelV2Props) {
         </div>
 
         {/* Summary Stats */}
-        <div className="mt-6 pt-4 border-t border-white/[0.06] grid grid-cols-3 gap-4">
+        <div className="mt-6 pt-4 border-t border-border grid grid-cols-3 gap-4">
           <div className="text-center">
             <p className="font-mono text-2xl font-semibold text-foreground">
               {stages[0]?.count || 0}
@@ -103,7 +103,7 @@ export function PipelineFunnelV2({ stages }: PipelineFunnelV2Props) {
             <p className="text-xs text-muted-foreground">Total Applied</p>
           </div>
           <div className="text-center">
-            <p className="font-mono text-2xl font-semibold text-[#22c55e]">
+            <p className="font-mono text-2xl font-semibold text-green-500">
               {stages[stages.length - 1]?.count || 0}
             </p>
             <p className="text-xs text-muted-foreground">Total Hired</p>

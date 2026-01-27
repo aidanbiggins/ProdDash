@@ -8,18 +8,18 @@ interface TeamCapacityPanelV2Props {
 
 function getUtilizationColor(utilization: number): { bar: string; text: string } {
   if (utilization > 100) {
-    return { bar: 'bg-[#ef4444]', text: 'text-[#fca5a5]' };
+    return { bar: 'bg-red-500', text: 'text-red-400' };
   }
   if (utilization > 85) {
-    return { bar: 'bg-[#f59e0b]', text: 'text-[#fcd34d]' };
+    return { bar: 'bg-amber-500', text: 'text-amber-400' };
   }
   if (utilization > 60) {
-    return { bar: 'bg-[#3b82f6]', text: 'text-[#93c5fd]' };
+    return { bar: 'bg-blue-500', text: 'text-blue-400' };
   }
   if (utilization > 40) {
-    return { bar: 'bg-[#22c55e]', text: 'text-[#86efac]' };
+    return { bar: 'bg-green-500', text: 'text-green-400' };
   }
-  return { bar: 'bg-[#64748b]', text: 'text-[#94a3b8]' };
+  return { bar: 'bg-slate-500', text: 'text-slate-400' };
 }
 
 function getUtilizationLabel(utilization: number): string {
@@ -38,13 +38,13 @@ export function TeamCapacityPanelV2({ teams }: TeamCapacityPanelV2Props) {
   return (
     <div className="glass-panel h-full">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         <Users className="w-4 h-4 text-primary" />
         <h3 className="text-sm font-semibold text-foreground">Team Capacity</h3>
       </div>
 
       {/* Overall Stats */}
-      <div className="p-4 border-b border-white/[0.06]">
+      <div className="p-4 border-b border-border">
         <div className="flex items-baseline justify-between mb-2">
           <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Overall Utilization
@@ -53,7 +53,7 @@ export function TeamCapacityPanelV2({ teams }: TeamCapacityPanelV2Props) {
             {overallUtilization}%
           </span>
         </div>
-        <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+        <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${getUtilizationColor(overallUtilization).bar}`}
             style={{ width: `${Math.min(overallUtilization, 100)}%` }}
@@ -74,7 +74,7 @@ export function TeamCapacityPanelV2({ teams }: TeamCapacityPanelV2Props) {
           return (
             <div
               key={team.team}
-              className="p-3 rounded-lg bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+              className="p-3 rounded-lg bg-muted/30 hover:bg-accent/30 transition-colors"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-foreground">{team.team}</span>
@@ -82,7 +82,7 @@ export function TeamCapacityPanelV2({ teams }: TeamCapacityPanelV2Props) {
               </div>
 
               {/* Progress Bar */}
-              <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden mb-2">
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden mb-2">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${colors.bar}`}
                   style={{ width: `${Math.min(team.utilization, 100)}%` }}
@@ -105,7 +105,7 @@ export function TeamCapacityPanelV2({ teams }: TeamCapacityPanelV2Props) {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-white/[0.06]">
+      <div className="px-4 py-3 border-t border-border">
         <button
           type="button"
           className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"

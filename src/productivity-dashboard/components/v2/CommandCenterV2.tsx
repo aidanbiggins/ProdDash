@@ -446,7 +446,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
                   <button
                     key={item.id}
                     type="button"
-                    className={`group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-bg-surface ${idx % 2 === 0 ? 'bg-white/[0.02]' : ''
+                    className={`group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/30 ${idx % 2 === 0 ? 'bg-muted/30' : ''
                       }`}
                   >
                     <div className={`mt-1 h-9 w-1 shrink-0 rounded-full ${item.severity === 'bad' ? 'bg-bad' : item.severity === 'warn' ? 'bg-warn' : 'bg-good'

@@ -53,7 +53,7 @@ function KPICardV2({
     <button
       type="button"
       onClick={onClick}
-      className="glass-panel p-4 text-left transition-all hover:bg-white/[0.04] hover:border-white/[0.12] flex-1 min-w-0 group"
+      className="glass-panel p-4 text-left transition-all hover:bg-accent/50 hover:border-border flex-1 min-w-0 group"
     >
       <div className="flex items-center justify-between mb-2">
         <span className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -65,7 +65,7 @@ function KPICardV2({
       </div>
 
       {/* Accent bar - V0 uses cyan accent prominently */}
-      <div className="w-8 h-0.5 bg-[#06b6d4] mb-3" />
+      <div className="w-8 h-0.5 bg-primary mb-3" />
 
       <div className="font-mono text-3xl font-bold text-foreground tracking-tight mb-1">
         {value}
@@ -165,7 +165,7 @@ function PipelineHealthCardV2({
         <button
           type="button"
           onClick={onConfigureClick}
-          className="p-1 rounded hover:bg-white/[0.06] text-muted-foreground hover:text-foreground transition-colors"
+          className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
         >
           <Settings2 className="w-4 h-4" />
         </button>
@@ -228,7 +228,7 @@ function SectionHeaderV2({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/[0.08]">
+    <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
           {title}
@@ -443,7 +443,7 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
     const activeMetrics = funnelMetrics.filter(m => selectedFunnelMetrics.has(m.key));
 
     return (
-      <div className="bg-[#0a0a0a] border border-white/[0.12] rounded-md p-3 shadow-xl">
+      <div className="bg-popover border border-border rounded-md p-3 shadow-xl">
         <div className="font-semibold text-foreground mb-2">{label}</div>
         {activeMetrics.map(metric => {
           const value = data[metric.dataKey] || 0;
@@ -493,7 +493,7 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
             <h2 className="text-xl font-bold text-foreground tracking-tight">Overview</h2>
             <button
               type="button"
-              className="p-1 rounded hover:bg-white/[0.06] text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
             >
               <HelpCircle className="w-4 h-4" />
             </button>
@@ -612,28 +612,28 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
-                  stroke="rgba(255,255,255,0.06)"
+                  stroke="hsl(var(--border))"
                 />
                 <XAxis
                   dataKey="week"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
                   domain={[0, 'auto']}
                   tickFormatter={(v) => v.toFixed(2)}
                 />
                 <Tooltip
                   formatter={(value: number | undefined) => [value != null ? value.toFixed(3) : '-', 'Productivity']}
                   contentStyle={{
-                    backgroundColor: '#0a0a0a',
-                    border: '1px solid rgba(255,255,255,0.12)',
+                    backgroundColor: 'hsl(var(--popover))',
+                    border: '1px solid hsl(var(--border))',
                     borderRadius: '6px',
-                    color: '#94a3b8',
+                    color: 'hsl(var(--muted-foreground))',
                     fontFamily: "'JetBrains Mono', monospace",
                     fontSize: '12px'
                   }}
@@ -698,19 +698,19 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke="rgba(255,255,255,0.06)"
+              stroke="hsl(var(--border))"
             />
             <XAxis
               dataKey="week"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}
               dy={8}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#94a3b8', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}
             />
             <Tooltip content={<FunnelTooltip />} />
             <Legend
@@ -734,7 +734,7 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
 
       {/* Recruiter Leaderboard */}
       <div className="glass-panel overflow-hidden">
-        <div className="p-4 border-b border-white/[0.06]">
+        <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <h3 className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -761,7 +761,7 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
                 <button
                   type="button"
                   onClick={() => setSelectedRecruiterIds(new Set())}
-                  className="px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                 >
                   Clear
                 </button>
@@ -769,7 +769,7 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
               <button
                 type="button"
                 onClick={handleExport}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               >
                 <Download className="w-3 h-3" />
                 Export CSV

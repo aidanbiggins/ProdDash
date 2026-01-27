@@ -1,0 +1,62 @@
+// Ask Blocked State - Displayed when Ask PlatoVue is blocked due to missing data
+import React from 'react';
+import { CoverageIssue } from '../../../services/askCoverageGateService';
+
+export interface AskBlockedStateProps {
+  issues: CoverageIssue[];
+  onNavigateToTab: (tab: string) => void;
+}
+
+export function AskBlockedState({ issues, onNavigateToTab }: AskBlockedStateProps) {
+  return (
+    <div className="ask-blocked-state">
+      <div className="ask-blocked-content">
+        <div className="ask-blocked-icon">
+          <i className="bi bi-exclamation-triangle-fill" />
+        </div>
+
+        <div className="ask-blocked-title section-header-title">Ask PlatoVue Requires More Data</div>
+
+        <p className="ask-blocked-description">
+          To enable intelligent insights, Ask PlatoVue needs the following data to be available:
+        </p>
+
+        <div className="ask-blocked-issues">
+          {issues.map((issue, index) => (
+            <div key={index} className="ask-blocked-issue">
+              <div className="issue-header">
+                <span className="issue-code">{issue.code}</span>
+                <span className="issue-message">{issue.message}</span>
+              </div>
+              <div className="issue-fix">
+                <i className="bi bi-lightbulb" />
+                <span>{issue.howToFix}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="ask-blocked-actions">
+          <button className="px-4 py-2 bg-primary text-white rounded font-medium hover:bg-primary/90 transition-colors" onClick={() => window.location.reload()}>
+            <i className="bi bi-arrow-clockwise ml-2" />
+            Refresh Data
+          </button>
+          <button className="px-4 py-2 border border-border rounded font-medium hover:bg-accent transition-colors" onClick={() => onNavigateToTab('data-health')}>
+            <i className="bi bi-upload ml-2" />
+            Go to Import
+          </button>
+        </div>
+
+        <div className="ask-blocked-help">
+          <p>
+            <strong>Why is this required?</strong> Ask PlatoVue uses deterministic analytics
+            to answer questions about your recruiting data. Without recruiter and hiring manager
+            assignments, it cannot provide accurate insights about team performance and ownership.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default AskBlockedState;

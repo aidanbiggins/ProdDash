@@ -18,20 +18,58 @@ npm run ui:style-audit # Check for UI styling violations
 
 ## Architecture
 
-### Entry Point Flow
+### V0/V2 UI Architecture (Active)
+
+V0/V2 is the active design system. Legacy V1 components are fenced in `_legacy/`.
+
+**Entry Points:**
+- **V0/V2 (Active)**: `/` → `AppLayoutV2` → V2 tab components
+- **Legacy V1**: `/v1` → `RecruiterProductivityDashboard` → Legacy tab components
+
+**Component Locations:**
+- **V2 Components**: `/src/productivity-dashboard/components/v2/`
+- **Legacy Components**: `/src/productivity-dashboard/components/_legacy/`
+
+**V2 Wrapper Pattern:**
+V2 tabs may embed legacy sub-components until native V2 versions exist:
+- `DiagnoseTabV2` → embeds `BottlenecksTab`, `QualityTab`, `SourceEffectivenessTab`, `VelocityInsightsTab`
+- `PlanTabV2` → embeds `CapacityTab`, `CapacityRebalancerTab`, `ForecastingTab`, `ScenarioLibraryTab`
+- `SettingsTabV2` → embeds `DataHealthTab`, `SlaSettingsTab`, `AiSettingsTab`, `OrgSettingsTab`
+
+**Legacy Audit:**
+```bash
+npm run ui:legacy-audit  # Check for unapproved legacy imports in V2 components
+```
+
+See `/src/productivity-dashboard/components/_legacy/README.md` for migration status.
+
+### Entry Point Flow (V0/V2)
 ```
 src/index.js → App.js → AuthProvider → Router
                                          ↓
-                            RecruiterProductivityDashboard (/)
+                                    HomeRoute
+                                         ↓
+                                   AppLayoutV2
                                          ↓
                          DashboardProvider + DataMaskingProvider
                                          ↓
-                              ProductivityDashboard
+                     CommandCenterV2 / DiagnoseTabV2 / PlanTabV2 / etc.
+```
+
+### Entry Point Flow (Legacy V1)
+```
+src/index.js → App.js → AuthProvider → Router
+                                         ↓ (/v1)
+                            RecruiterProductivityDashboard
+                                         ↓
+                         DashboardProvider + DataMaskingProvider
+                                         ↓
+                         ProductivityDashboard (_legacy/)
 ```
 
 ### Main Module: `/src/productivity-dashboard/`
 
-The modern dashboard lives here. Legacy components in `/src/components/` are deprecated.
+The modern dashboard lives here. Very old legacy components in `/src/components/` are deprecated.
 
 **State Management**: Context + Reducer pattern in `hooks/useDashboardContext.tsx`
 - `DashboardProvider` wraps the app and exposes `useDashboard()` hook
