@@ -188,7 +188,7 @@
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -198,7 +198,7 @@
 
 .nav-bucket-btn:hover {
   background: rgba(255, 255, 255, 0.04);
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .nav-bucket-btn.active {
@@ -226,7 +226,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.8125rem;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -235,7 +235,7 @@
 .quick-find-btn:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .quick-find-hint {
@@ -263,7 +263,7 @@
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
@@ -274,7 +274,7 @@
 .nav-dropdown-trigger:hover,
 .nav-dropdown.open .nav-dropdown-trigger {
   background: rgba(255, 255, 255, 0.04);
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .nav-dropdown.active .nav-dropdown-trigger {
@@ -338,7 +338,7 @@
   background: transparent;
   border: none;
   border-radius: 5px;
-  color: #e2e8f0;
+  color: var(--text-primary);
   font-size: 0.8125rem;
   text-align: left;
   cursor: pointer;
