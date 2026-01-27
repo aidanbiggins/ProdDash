@@ -6,11 +6,15 @@
  * 1. Inline style={{...}} with typography props (fontSize, fontWeight, color, letterSpacing, lineHeight)
  *    outside of common components
  * 2. Raw <h1>/<h2>/<h3> usage inside productivity-dashboard components
- *    (only allowed inside PageHeader and SectionHeader)
+ *    (only allowed inside designated header components or V2 files with design tokens)
  * 3. stat-label/stat-value class definitions outside the shared theme CSS
  * 4. Hardcoded color values (#hex, rgb, rgba) outside theme files
  * 5. card-bespoke usage (should migrate to GlassPanel)
- * 6. Glow/shadow outside focus states
+ *
+ * V2 Design System:
+ *   V2 components use Tailwind with design tokens (text-foreground, text-muted-foreground,
+ *   bg-background, border-border, etc.). Raw h1/h2/h3 are allowed in V2 IF they use
+ *   these design tokens. See docs/UI_AUDIT_EXCEPTIONS.md for details.
  *
  * Exit codes:
  *   0 - No violations found
@@ -23,335 +27,179 @@ const path = require('path');
 // Configuration
 const SRC_DIR = path.join(__dirname, '..', 'src', 'productivity-dashboard');
 const COMMON_DIR = path.join(SRC_DIR, 'components', 'common');
+const V2_DIR = path.join(SRC_DIR, 'components', 'v2');
+
+// V2 design tokens - raw headers using these are compliant
+const V2_DESIGN_TOKENS = [
+  'text-foreground',
+  'text-muted-foreground',
+  'bg-background',
+  'bg-muted',
+  'border-border',
+  'border-glass-border'
+];
+
+// Typography allowlist - files that legitimately need inline typography
+// Common categories:
+// 1. UI Primitives that DEFINE the typography system
+// 2. Components with tooltip/chart-specific sizing
+// 3. Modal/drawer components with complex layouts
+//
+// All exemptions must be documented in docs/UI_AUDIT_EXCEPTIONS.md
 const ALLOWED_TYPOGRAPHY_FILES = [
-  // UI Primitives - these define the typography system
+  // UI Primitives that DEFINE the typography system
   'PageHeader.tsx',
   'SectionHeader.tsx',
   'StatLabel.tsx',
   'StatValue.tsx',
   'KPICard.tsx',
   'AnimatedNumber.tsx',
-  // Common components that may need typography control
-  'DataHealthPanel.tsx',
-  'DataHealthBadge.tsx',
-  'DavosBadge.tsx',
+  'HeadingsV2.tsx',
+  // Core components that need dynamic typography
   'EmptyState.tsx',
-  'ExplainDrawer.tsx',
-  'ActionDetailDrawer.tsx',
-  'MetricDrillDown.tsx',
-  'DataDrillDownModal.tsx',
-  'BespokeTable.tsx',
   'Skeletons.tsx',
-  'ProgressIndicator.tsx',
-  'PreMortemDrawer.tsx',
-  'UnifiedActionQueue.tsx',
-  'FilterBar.tsx',
-  'DateRangePicker.tsx',
+  // Components with justified typography exceptions
+  'PIIWarningModal.tsx',        // Modal with dense field lists
+  'ProgressIndicator.tsx',      // Step indicators with symbols
+  'PipelineHealthCard.tsx',     // Chart tooltips
+  'DataCoveragePanel.tsx',      // Coverage indicators
+  // Drawer components with complex layouts
+  'ActionDetailDrawer.tsx',     // Action detail with evidence
+  'ExplainDrawer.tsx',          // AI explanations
+  'HMDetailDrawer.tsx',         // HM detail view
+  'ReqDrilldownDrawer.tsx',     // Requisition drilldown
+  'HelpDrawer.tsx',             // Help content
+  'PreMortemDrawer.tsx',        // Pre-mortem analysis
+  // Modal components
   'ClearDataConfirmationModal.tsx',
-  'ImportProgressModal.tsx',
-  'PIIWarningModal.tsx',
-  'MultiSelect.tsx',
-  'FilterActiveIndicator.tsx',
-  // Hiring manager components
-  'StallReasonBadge.tsx',
-  // Dashboard tabs (complex data viz components)
-  'ControlTowerTab.tsx',
-  'VelocityInsightsTab.tsx',
-  'VelocityCopilotPanel.tsx',
-  'WhatIfSimulatorPanel.tsx',
-  'ForecastingTab.tsx',
-  'OracleConfidenceWidget.tsx',
-  'HMFrictionTab.tsx',
-  'OverviewTab.tsx',
-  'DataHealthTab.tsx',
-  'QualityTab.tsx',
-  'SourceEffectivenessTab.tsx',
-  'RecruiterDetailTab.tsx',
-  'HiringManagersTab.tsx',
-  'HMActionQueue.tsx',
-  'HMOverview.tsx',
-  'HMScorecard.tsx',
-  'HMForecastsTab.tsx',
-  'PipelineHealthCard.tsx',
-  // Capacity module (data visualization with dynamic styling)
-  'CapacityTab.tsx',
-  'FitMatrix.tsx',
-  'OverloadExplainDrawer.tsx',
-  'RebalanceRecommendations.tsx',
-  'RecruiterLoadTable.tsx',
-  // Layout and settings
-  'ProductivityDashboard.tsx',
-  'CSVUpload.tsx',
-  'ImportGuide.tsx',
-  'StageMappingModal.tsx',
-  'OrgSettings.tsx',
-  'OrgSwitcher.tsx',
-  'SuperAdminPanel.tsx',
-  'AiProviderSettings.tsx',
   'BenchmarkConfigModal.tsx',
-  // Bottleneck components with data-driven typography
-  'BottleneckStagesPanel.tsx',
-  'BreachTable.tsx',
+  'StageMappingModal.tsx',
+  // Banner/indicator components
   'CoverageBanner.tsx',
-  'OwnerLeaderboard.tsx',
-  'ReqDrilldownDrawer.tsx',
-  // Guidance components
-  'UnavailablePanels.tsx',
-  'CapabilitiesSummary.tsx',
-  'RepairSuggestions.tsx',
-  // Data display components with rich typography
-  'HelpDrawer.tsx',
-  'HMDetailDrawer.tsx',
-  'ReqHealthDrawer.tsx',
-  'BottlenecksTab.tsx',
-  'SlaSettingsTab.tsx',
-  // Capacity rebalancer - complex data visualization with dynamic sizing
-  'SuggestedMoveCard.tsx',
-  'MoveDetailDrawer.tsx',
-  'RecruiterWorkloadDrawer.tsx',
-  'RecruiterUtilizationTable.tsx',
-  // Common components with intentional typography control
-  'CoverageMapPanel.tsx',
+  'FilterActiveIndicator.tsx',
+  'ConfidenceBadge.tsx',
+  'DavosBadge.tsx',
+  'DataHealthBadge.tsx',
+  // Feature state components
   'FeatureBlockedState.tsx',
   'FeatureLimitedState.tsx',
-  'UltimateDemoModal.tsx',
-  'GlassDrawer.tsx',
-  // Forecasting - complex data visualization
-  'CalibrationCard.tsx',
-  'OracleBackside.tsx',
-  // V2 components - new design system
-  'AppLayoutV2.tsx',
-  'AppSidebar.tsx',
-  'AskPlatoVueTabV2.tsx',
-  'AskPlatoVueV2.tsx',
-  'BottleneckPanelV2.tsx',
-  'CommandCenterV2.tsx',
-  'DiagnoseTabV2.tsx',
-  'FilterBarV2.tsx',
-  'HiringManagersTabV2.tsx',
-  'HMFrictionTabV2.tsx',
-  'KPICardV2.tsx',
-  'OverviewTabV2.tsx',
-  'PipelineFunnelV2.tsx',
-  'PlanTabV2.tsx',
-  'RecruiterDetailTabV2.tsx',
-  'RequisitionsTableV2.tsx',
-  'SettingsTabV2.tsx',
-  'TeamCapacityPanelV2.tsx',
-  'TopNavV2.tsx',
-  'PipelineChartV2.tsx'
+  // Chart utilities
+  'ChartHelp.tsx',
+  // Data display components
+  'MetricDrillDown.tsx',
+  'DataDrillDownModal.tsx',
+  'DataHealthPanel.tsx',
+  // Date/select controls
+  'DateRangePicker.tsx',
+  'MultiSelect.tsx',
+  // Coverage/progress components
+  'CoverageMapPanel.tsx',
+  'ImportProgressModal.tsx',
 ];
+
+// Files with explicit header exemptions - must be documented in UI_AUDIT_EXCEPTIONS.md
 const ALLOWED_HEADER_FILES = [
+  // UI Primitives that define headers
   'PageHeader.tsx',
   'SectionHeader.tsx',
-  'MetricDrillDown.tsx',  // Uses h2 for metric values - acceptable in data display
+  'HeadingsV2.tsx',
+  // Components with documented exceptions
+  'MetricDrillDown.tsx',  // Uses h2 for metric values - data display
   'DataDrillDownModal.tsx',
-  'ProductivityDashboard.tsx',  // Main layout component with complex header
-  'EmptyState.tsx',  // Uses h3 for empty state title - part of UI primitive
-  'AiSettingsTab.tsx',  // Uses h3 for section headers within page
-  'SlaSettingsTab.tsx',  // Uses h3 for section headers
-  'OrgSettingsTab.tsx',  // Uses h3 for section headers
-  'BottlenecksTab.tsx',  // Uses h3 in empty states
-  'CapabilitiesSummary.tsx',  // Guidance component with intentional h2
-  'RepairSuggestions.tsx',  // Guidance component with intentional h3
-  'UnavailablePanels.tsx',  // Guidance component with intentional h2
-  'SectionCard.tsx',  // Command center section card with BEM-styled title
-  'CommandCenterView.tsx',  // Command center with styled header
-  // V2 components - new design system with raw headers
-  'AppLayoutV2.tsx',
-  'AskPlatoVueTabV2.tsx',
-  'AskPlatoVueV2.tsx',
+  'EmptyState.tsx',  // Uses h3 for empty state title
+  // Command center components (V2 design tokens in non-V2 path)
   'BottleneckPanelV2.tsx',
   'CommandCenterV2.tsx',
-  'HiringManagersTabV2.tsx',
-  'HMFrictionTabV2.tsx',
-  'OverviewTabV2.tsx',
-  'PipelineFunnelV2.tsx',
-  'RecruiterDetailTabV2.tsx',
-  'RequisitionsTableV2.tsx',
-  'TeamCapacityPanelV2.tsx',
-  'TopNavV2.tsx',
   'PipelineChartV2.tsx',
-  'KPICardV2.tsx',
-  'AiProviderSettings.tsx',
-  'DiagnoseTabV2.tsx',
-  'PlanTabV2.tsx',
-  'SettingsTabV2.tsx'
+  'RequisitionsTableV2.tsx',
+  'SectionCard.tsx',
+  'TeamCapacityPanelV2.tsx',
+  // Guidance components with intentional headers
+  'CapabilitiesSummary.tsx',
+  'RepairSuggestions.tsx',
+  'UnavailablePanels.tsx',
+  // V2 layout
+  'AppLayoutV2.tsx',
+  // V2 design system components are handled separately via V2_DESIGN_TOKENS check
 ];
+
 const ALLOWED_STAT_CLASS_FILES = [
   'dashboard-theme.css'
 ];
 
-// Files allowed to have hardcoded colors (theme files, chart configs)
-// These files use colors for semantic/data visualization purposes
-// and are exempt from the hardcoded color rule
+// Color allowlist - files that legitimately need raw colors
+// Common categories:
+// 1. Theme/config files
+// 2. Chart-heavy components (data visualization)
+// 3. Components with semantic status colors (good/warn/bad)
+//
+// All exemptions must be documented in docs/UI_AUDIT_EXCEPTIONS.md
 const ALLOWED_COLOR_FILES = [
+  // Theme and config files
   'dashboard-theme.css',
   'chartColors.ts',
   'chartPalette.ts',
-  // Chart-heavy components that need color arrays
-  'VelocityInsightsTab.tsx',
-  'SourceEffectivenessTab.tsx',
-  'OverviewTab.tsx',
-  'HMFrictionTab.tsx',
-  'QualityTab.tsx',
-  'CapacityTab.tsx',
-  'FitMatrix.tsx',
-  'PipelineHealthCard.tsx',
-  'ForecastingTab.tsx',
-  'OracleConfidenceWidget.tsx',
-  'DataHealthTab.tsx',
-  'RecruiterDetailTab.tsx',
-  'BottlenecksTab.tsx',
-  'HiringManagersTab.tsx',
-  'HMScorecard.tsx',
-  'HMOverview.tsx',
-  'HMForecastsTab.tsx',
-  'WhatIfSimulatorPanel.tsx',
-  'VelocityCopilotPanel.tsx',
-  // Scenario components
-  'ScenarioLibraryTab.tsx',
-  'ScenarioResults.tsx',
-  'ScenarioOutput.tsx',
-  // Common components that use semantic colors
-  'ControlTowerTab.tsx',
-  'DataHealthBadge.tsx',
-  'DavosBadge.tsx',
-  'ConfidenceBadge.tsx',
-  'CoverageBanner.tsx',
-  'ImportProgressModal.tsx',
-  'ProgressIndicator.tsx',
-  // Navigation
-  'TopNav.tsx',
   'navigation.css',
   'layout.css',
-  // Drawer components (use glass theme colors)
-  'ExplainDrawer.tsx',
-  'ActionDetailDrawer.tsx',
+  // V2 chart components - data visualization colors
+  'HMFrictionTabV2.tsx',        // HM latency charts with category colors
+  'HiringManagersTabV2.tsx',    // HM dashboard charts
+  'OverviewTabV2.tsx',          // Overview charts
+  'RecruiterDetailTabV2.tsx',   // Recruiter performance charts
+  'PipelineFunnelV2.tsx',       // Funnel chart colors
+  'PipelineChartV2.tsx',        // Pipeline visualization
+  // Common components with legitimate color needs
+  'ActionDetailDrawer.tsx',     // Status colors (done/overdue)
+  'ExplainDrawer.tsx',          // Explanation panels
+  'DataHealthBadge.tsx',        // Health status colors
+  'DavosBadge.tsx',             // Badge colors
+  'ConfidenceBadge.tsx',        // Confidence colors
+  'CoverageBanner.tsx',         // Coverage status
+  'ImportProgressModal.tsx',    // Progress colors
+  'ProgressIndicator.tsx',      // Step indicator colors
+  'PIIWarningModal.tsx',        // Warning colors
+  'PipelineHealthCard.tsx',     // Pipeline health chart
+  'UnifiedActionQueue.tsx',     // Action queue status colors
+  'FilterActiveIndicator.tsx',  // Filter state
+  'OrgSwitcher.tsx',            // Org selector
+  // Skeleton components (loading state styling)
+  'Skeletons.tsx',
+  // Modal components
+  'BenchmarkConfigModal.tsx',
+  'StageMappingModal.tsx',
+  'ClearDataConfirmationModal.tsx',
+  // Data display components
+  'DataCoveragePanel.tsx',
   'HelpDrawer.tsx',
   'PreMortemDrawer.tsx',
   'HMDetailDrawer.tsx',
-  'ReqHealthDrawer.tsx',
   'ReqDrilldownDrawer.tsx',
-  'FitExplainDrawer.tsx',
-  'OverloadExplainDrawer.tsx',
-  'CitationsDrawer.tsx',
-  // Modal components (use theme colors)
-  'PIIWarningModal.tsx',
-  'ClearDataConfirmationModal.tsx',
-  'MetricDrillDown.tsx',
-  'StageMappingModal.tsx',
-  'BenchmarkConfigModal.tsx',
-  // Other common components
-  'Skeletons.tsx',
-  'FilterActiveIndicator.tsx',
-  'MultiSelect.tsx',
-  'UnifiedActionQueue.tsx',
-  // Bottleneck components
-  'BreachTable.tsx',
-  'OwnerLeaderboard.tsx',
-  'BottleneckStagesPanel.tsx',
-  'BottlenecksTab.tsx',
-  // Settings tabs
-  'AiSettingsTab.tsx',
-  'SlaSettingsTab.tsx',
-  'OrgSettingsTab.tsx',
-  // HM components
-  'HMActionQueue.tsx',
-  // Other
-  'ProductivityDashboard.tsx',
-  'CSVUpload.tsx',
-  'ImportGuide.tsx',
-  'OrgSettings.tsx',
-  'OrgSwitcher.tsx',
-  'SuperAdminPanel.tsx',
-  // Capacity components with data visualization colors
-  'RebalanceRecommendations.tsx',
-  'RecruiterLoadTable.tsx',
-  'TeamCapacitySummary.tsx',
-  // Other common components
+  // Common UI components
   'ChartHelp.tsx',
   'DataDrillDownModal.tsx',
   'DataHealthPanel.tsx',
+  'MetricDrillDown.tsx',
   'DateRangePicker.tsx',
-  'FilterBar.tsx',
-  // Settings
-  'AiProviderSettings.tsx',
-  // Help content
-  'recruiterHelpContent.tsx',
-  // V2 components - new design system with chart colors
-  'AppLayoutV2.tsx',
-  'AppSidebar.tsx',
-  'AskPlatoVueTabV2.tsx',
-  'AskPlatoVueV2.tsx',
-  'BottleneckPanelV2.tsx',
-  'CommandCenterV2.tsx',
-  'DiagnoseTabV2.tsx',
-  'FilterBarV2.tsx',
-  'HiringManagersTabV2.tsx',
-  'HMFrictionTabV2.tsx',
-  'KPICardV2.tsx',
-  'OverviewTabV2.tsx',
-  'PipelineFunnelV2.tsx',
-  'PlanTabV2.tsx',
-  'RecruiterDetailTabV2.tsx',
-  'RequisitionsTableV2.tsx',
-  'SettingsTabV2.tsx',
-  'TeamCapacityPanelV2.tsx',
-  'TopNavV2.tsx',
-  'PipelineChartV2.tsx',
-  // Data coverage components
-  'DataCoveragePanel.tsx'
+  'MultiSelect.tsx',
+  // Feature state components
+  'FeatureBlockedState.tsx',
+  'FeatureLimitedState.tsx',
 ];
 
-// Files allowed to use card-bespoke (glass-themed cards used throughout the app)
-// card-bespoke IS the themed card class in this design system (see dashboard-theme.css)
+// Files allowed to use card-bespoke
+// card-bespoke IS part of the V1 design system (defined in dashboard-theme.css)
+// Only allow in components where it's being actively used as the standard card style
 const ALLOWED_CARD_BESPOKE_FILES = [
-  'SourceEffectivenessTab.tsx',
-  'ControlTowerTab.tsx',
-  'OverviewTab.tsx',
-  'CapacityTab.tsx',
-  'FitMatrix.tsx',
-  'RebalanceRecommendations.tsx',
-  'RecruiterLoadTable.tsx',
-  'TeamCapacitySummary.tsx',
-  'DataHealthPanel.tsx',
-  'DataHealthTab.tsx',
-  'HiringManagersTab.tsx',
-  'HMScorecard.tsx',
-  'HMOverview.tsx',
-  'HMActionQueue.tsx',
-  'HMFrictionTab.tsx',
-  'HMDetailDrawer.tsx',
-  'ReqHealthDrawer.tsx',
-  'QualityTab.tsx',
-  'RecruiterDetailTab.tsx',
-  'VelocityInsightsTab.tsx',
-  'ForecastingTab.tsx',
-  'OracleConfidenceWidget.tsx',
-  'PipelineHealthCard.tsx',
-  'BottlenecksTab.tsx',
-  'BreachTable.tsx',
-  'OwnerLeaderboard.tsx',
-  'BottleneckStagesPanel.tsx',
-  'ExplainDrawer.tsx',
-  'ActionDetailDrawer.tsx',
-  'AskPlatoVueTab.tsx',
-  'AskMainPanel.tsx',
-  'AskLeftRail.tsx',
-  'ScenarioLibraryTab.tsx',
-  'HMForecastsTab.tsx',
-  'SuggestedMoveCard.tsx'
+  'DataHealthPanel.tsx',        // Data health indicators
+  'PipelineHealthCard.tsx',     // Pipeline visualization card
 ];
 
 // Typography properties to check for in inline styles
-// Note: 'color' is excluded as it's commonly used for data visualization/status colors
-// Focus on font-related properties that indicate typography drift
 const TYPOGRAPHY_PROPS = ['fontSize', 'fontWeight', 'letterSpacing', 'lineHeight'];
 
 // Patterns
 const INLINE_STYLE_REGEX = /style=\{\{([^}]+)\}\}/g;
-const RAW_HEADER_REGEX = /<h[123][^>]*>/g;
+const RAW_HEADER_REGEX = /<h([123])([^>]*)>/g;
 const STAT_CLASS_DEF_REGEX = /\.stat-(label|value)\s*\{/g;
 const HARDCODED_COLOR_REGEX = /#[0-9a-fA-F]{3,8}\b|rgb\s*\(|rgba\s*\(/g;
 const CARD_BESPOKE_REGEX = /className=["'][^"']*card-bespoke[^"']*["']/g;
@@ -367,6 +215,27 @@ function isAllowedFile(filePath, allowedFiles) {
 }
 
 /**
+ * Check if a file is in the V2 components directory
+ */
+function isV2Component(filePath) {
+  return filePath.includes(path.sep + 'v2' + path.sep) || filePath.includes('/v2/');
+}
+
+/**
+ * Check if a file is in the _legacy directory
+ */
+function isLegacyComponent(filePath) {
+  return filePath.includes(path.sep + '_legacy' + path.sep) || filePath.includes('/_legacy/');
+}
+
+/**
+ * Check if a header tag uses V2 design tokens
+ */
+function headerUsesV2Tokens(tagAttributes) {
+  return V2_DESIGN_TOKENS.some(token => tagAttributes.includes(token));
+}
+
+/**
  * Check if a file is in the common components directory
  */
 function isInCommonDir(filePath) {
@@ -378,7 +247,6 @@ function isInCommonDir(filePath) {
  */
 function hasTypographyProps(styleContent) {
   return TYPOGRAPHY_PROPS.some(prop => {
-    // Check for both camelCase and string literals
     const camelCaseRegex = new RegExp(`\\b${prop}\\s*:`);
     return camelCaseRegex.test(styleContent);
   });
@@ -393,6 +261,13 @@ function scanFile(filePath) {
   const relativePath = path.relative(process.cwd(), filePath);
   const fileName = path.basename(filePath);
   const ext = path.extname(filePath);
+  const isV2 = isV2Component(filePath);
+  const isLegacy = isLegacyComponent(filePath);
+
+  // Skip _legacy components - they're explicitly fenced off
+  if (isLegacy) {
+    return;
+  }
 
   // Only scan TSX/JSX files for inline styles and headers
   if (ext === '.tsx' || ext === '.jsx') {
@@ -416,27 +291,39 @@ function scanFile(filePath) {
         }
       }
 
-      // Rule 2: Check for raw h1/h2/h3 tags (only allowed in PageHeader/SectionHeader)
+      // Rule 2: Check for raw h1/h2/h3 tags
+      // V2 components: Allow if using design tokens
+      // Non-V2 components: Only allow in designated files
       if (!isAllowedFile(filePath, ALLOWED_HEADER_FILES)) {
-        const headerMatches = line.matchAll(RAW_HEADER_REGEX);
+        const headerMatches = [...line.matchAll(RAW_HEADER_REGEX)];
         for (const match of headerMatches) {
+          const tagAttributes = match[2] || '';
+
+          // For V2 components, allow headers that use design tokens
+          if (isV2 && headerUsesV2Tokens(tagAttributes)) {
+            continue; // Compliant V2 header
+          }
+
+          // For V2 components with headers NOT using tokens, or non-V2 components
           violations.push({
             type: 'RAW_HEADER',
             file: relativePath,
             line: lineNum,
             content: line.trim().substring(0, 100),
-            message: 'Raw <h1>/<h2>/<h3> tag detected. Use PageHeader or SectionHeader instead.'
+            message: isV2
+              ? 'Raw header without design tokens. Use text-foreground/text-muted-foreground classes.'
+              : 'Raw <h1>/<h2>/<h3> tag detected. Use PageHeader or SectionHeader instead.'
           });
         }
       }
 
       // Rule 4: Check for hardcoded colors outside allowed files
       if (!isAllowedFile(filePath, ALLOWED_COLOR_FILES)) {
-        // Only check style attributes and color-related props, not all hex values
+        // Only check style attributes and color-related props
         if (line.includes('style=') || line.includes('color') || line.includes('background') || line.includes('fill') || line.includes('stroke')) {
           const colorMatches = line.match(HARDCODED_COLOR_REGEX);
           if (colorMatches) {
-            // Filter out common false positives (git hashes, IDs, etc.)
+            // Filter out common false positives
             const realColors = colorMatches.filter(match => {
               // Skip if it looks like an ID or hash (7+ chars without rgb)
               if (match.startsWith('#') && match.length > 8) return false;
@@ -450,14 +337,14 @@ function scanFile(filePath) {
                 file: relativePath,
                 line: lineNum,
                 content: line.trim().substring(0, 100),
-                message: `Hardcoded color (${realColors[0]}) detected. Use CSS variables from design tokens.`
+                message: `Hardcoded color (${realColors[0]}) detected. Use CSS variables or Tailwind tokens.`
               });
             }
           }
         }
       }
 
-      // Rule 5: Check for card-bespoke usage (should migrate to GlassPanel)
+      // Rule 5: Check for card-bespoke usage
       if (!isAllowedFile(filePath, ALLOWED_CARD_BESPOKE_FILES)) {
         if (CARD_BESPOKE_REGEX.test(line)) {
           violations.push({
@@ -465,7 +352,7 @@ function scanFile(filePath) {
             file: relativePath,
             line: lineNum,
             content: line.trim().substring(0, 100),
-            message: 'card-bespoke class detected. Migrate to GlassPanel component.'
+            message: 'card-bespoke class detected. Migrate to glass-panel or Card component.'
           });
           // Reset regex lastIndex
           CARD_BESPOKE_REGEX.lastIndex = 0;
@@ -533,6 +420,9 @@ function printReport() {
   if (violations.length === 0) {
     console.log('\u2705 No violations found!\n');
     console.log('All UI styling follows the design system guidelines.\n');
+    console.log('Design Systems:');
+    console.log('  - V1 (legacy): Uses PageHeader, SectionHeader, StatLabel, StatValue');
+    console.log('  - V2 (current): Uses Tailwind with tokens (text-foreground, etc.)\n');
     return 0;
   }
 
@@ -569,11 +459,12 @@ function printReport() {
   console.log(`Total: ${violations.length} violation(s)`);
   console.log('----------------------------------------\n');
   console.log('To fix these violations:');
-  console.log('  1. Replace inline typography styles with StatLabel/StatValue components');
-  console.log('  2. Replace raw <h1>/<h2>/<h3> with PageHeader or SectionHeader');
-  console.log('  3. Move stat-label/stat-value CSS to dashboard-theme.css');
-  console.log('  4. Replace hardcoded colors with CSS variables (var(--color-*))');
-  console.log('  5. Replace card-bespoke with GlassPanel component\n');
+  console.log('  1. Replace inline typography styles with StatLabel/StatValue or Tailwind classes');
+  console.log('  2. For V2: Use text-foreground/text-muted-foreground on headers');
+  console.log('  3. For V1: Use PageHeader or SectionHeader components');
+  console.log('  4. Replace hardcoded colors with CSS variables or Tailwind tokens');
+  console.log('  5. Replace card-bespoke with glass-panel or Card component\n');
+  console.log('See docs/UI_AUDIT_EXCEPTIONS.md for exception documentation.\n');
 
   return 1;
 }

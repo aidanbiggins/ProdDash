@@ -177,10 +177,17 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Note: Auth removed - security comes from:
-    // 1. Master encryption key (only server knows it)
-    // 2. RLS on database tables (controls who can read/write encrypted blobs)
-    // The encrypted blob is useless without the master key.
+    // SECURITY: Require authenticated user for all operations
+    // This prevents unauthenticated callers from encrypting or decrypting data.
+    const userId = await verifyAuth(req);
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: { code: 'unauthorized', message: 'Valid user JWT required' } }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('[VaultCrypto] Authenticated request from user:', userId);
 
     // Parse request
     const request: VaultRequest = await req.json();

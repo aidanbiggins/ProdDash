@@ -4,12 +4,47 @@
  * Client service for server-side encryption/decryption of AI API keys.
  * Calls the ai-vault-crypto Edge Function which holds the master encryption key.
  *
- * SECURITY: Plaintext keys are sent over HTTPS to the Edge Function.
- * The Edge Function encrypts with a master key stored in Supabase secrets.
- * Client never has access to the master key.
+ * SECURITY:
+ * - Plaintext keys are sent over HTTPS to the Edge Function.
+ * - The Edge Function encrypts with a master key stored in Supabase secrets.
+ * - Client never has access to the master key.
+ * - REQUIRES authenticated user JWT - will fail if user is not signed in.
  */
 
 import { supabase } from '../../lib/supabase';
+
+/**
+ * Error thrown when vault operations fail due to missing authentication
+ */
+export class VaultAuthError extends Error {
+  constructor(message: string = 'User must be signed in to use vault operations') {
+    super(message);
+    this.name = 'VaultAuthError';
+  }
+}
+
+/**
+ * Get the current user's access token for vault operations.
+ * Throws VaultAuthError if user is not authenticated.
+ */
+async function getUserAccessToken(): Promise<string> {
+  if (!supabase) {
+    throw new VaultAuthError('Supabase not configured');
+  }
+
+  const { data: { session }, error } = await supabase.auth.getSession();
+
+  if (error) {
+    console.error('[VaultCrypto] Failed to get session:', error.message);
+    throw new VaultAuthError('Failed to verify authentication');
+  }
+
+  if (!session?.access_token) {
+    throw new VaultAuthError('User must be signed in to use vault operations');
+  }
+
+  return session.access_token;
+}
 
 export interface EncryptedBlob {
   ciphertext: string;
@@ -30,8 +65,11 @@ export function isValidEncryptedBlob(obj: unknown): obj is EncryptedBlob {
 /**
  * Encrypt an API key using the server-side Edge Function
  *
+ * SECURITY: Requires authenticated user. Throws VaultAuthError if not signed in.
+ *
  * @param plaintext - The API key to encrypt
- * @returns Encrypted blob for storage, or null on failure
+ * @returns Encrypted blob for storage
+ * @throws VaultAuthError if user is not authenticated
  */
 export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | null> {
   if (!supabase) {
@@ -39,6 +77,8 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
     return null;
   }
 
+  // Get user's JWT - throws if not authenticated
+  const accessToken = await getUserAccessToken();
   const anonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
 
   try {
@@ -53,7 +93,7 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
         headers: {
           'Content-Type': 'application/json',
           'apikey': anonKey,
-          'Authorization': `Bearer ${anonKey}`,
+          'Authorization': `Bearer ${accessToken}`, // Use user JWT, not anon key
         },
         body: JSON.stringify({
           action: 'encrypt',
@@ -65,6 +105,10 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
 
     clearTimeout(timeoutId);
 
+    if (response.status === 401) {
+      throw new VaultAuthError('Authentication required for vault operations');
+    }
+
     if (!response.ok) {
       const error = await response.json();
       console.error('[VaultCrypto] Encryption failed:', error.error?.message);
@@ -74,6 +118,9 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
     const result = await response.json();
     return result.encrypted_blob;
   } catch (err: any) {
+    if (err instanceof VaultAuthError) {
+      throw err; // Re-throw auth errors
+    }
     if (err.name === 'AbortError') {
       console.error('[VaultCrypto] Encryption timed out');
     } else {
@@ -86,14 +133,21 @@ export async function encryptApiKey(plaintext: string): Promise<EncryptedBlob | 
 /**
  * Decrypt an API key using the server-side Edge Function
  *
+ * SECURITY: Requires authenticated user. Throws VaultAuthError if not signed in.
+ *
  * @param blob - The encrypted blob from storage
  * @returns Decrypted API key, or null on failure
+ * @throws VaultAuthError if user is not authenticated
  */
 export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null> {
   if (!supabase) {
     console.error('[VaultCrypto] Supabase not configured');
     return null;
   }
+
+  // Get user's JWT - throws if not authenticated
+  const accessToken = await getUserAccessToken();
+  const anonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
 
   try {
     const response = await fetch(
@@ -102,7 +156,8 @@ export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null>
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY || '',
+          'apikey': anonKey,
+          'Authorization': `Bearer ${accessToken}`, // Use user JWT, not anon key
         },
         body: JSON.stringify({
           action: 'decrypt',
@@ -110,6 +165,10 @@ export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null>
         }),
       }
     );
+
+    if (response.status === 401) {
+      throw new VaultAuthError('Authentication required for vault operations');
+    }
 
     if (!response.ok) {
       const error = await response.json();
@@ -120,6 +179,9 @@ export async function decryptApiKey(blob: EncryptedBlob): Promise<string | null>
     const result = await response.json();
     return result.plaintext;
   } catch (err) {
+    if (err instanceof VaultAuthError) {
+      throw err; // Re-throw auth errors
+    }
     console.error('[VaultCrypto] Decryption error:', err);
     return null;
   }

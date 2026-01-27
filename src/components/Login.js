@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { isDevBypassAllowed, activateDevBypass } from '../lib/devBypass';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,9 @@ const Login = () => {
 
   // Get return URL from query params (for invite redirects, etc.)
   const returnUrl = searchParams.get('returnUrl') || '/';
+
+  // Check if dev bypass is allowed (localhost + env flag)
+  const devBypassEnabled = isDevBypassAllowed();
 
   // Google Sign-In handler
   const handleGoogleSignIn = async () => {
@@ -37,28 +41,15 @@ const Login = () => {
     // On success, user is redirected to Google, so no need to reset state
   };
 
+  // Handle dev bypass button click
+  const handleDevBypass = () => {
+    if (devBypassEnabled) {
+      activateDevBypass(returnUrl);
+    }
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    // 🔐 Secret dev bypass - just for us!
-    if (email.toLowerCase() === 'admin@dev.local') {
-      // Create fake session in localStorage
-      const fakeSession = {
-        access_token: 'dev-bypass-token',
-        token_type: 'bearer',
-        expires_in: 86400,
-        expires_at: Math.floor(Date.now() / 1000) + 86400,
-        user: {
-          id: 'dev-admin-001',
-          email: 'admin@dev.local',
-          role: 'admin',
-          user_metadata: { name: 'Dev Admin' }
-        }
-      };
-      localStorage.setItem('dev-auth-bypass', JSON.stringify(fakeSession));
-      window.location.href = returnUrl;
-      return;
-    }
 
     if (!supabase) {
       setMessage('Error: Application is missing Supabase configuration. Please see setup_supabase.md');
@@ -154,6 +145,23 @@ const Login = () => {
         {message && (
           <div className={`mt-3 p-3 rounded-lg border ${message.includes('Error') ? 'bg-bad-bg border-bad/20 text-bad-text' : 'bg-good-bg border-good/20 text-good-text'}`}>
             {message}
+          </div>
+        )}
+
+        {/* Dev Bypass - Only shown on localhost with env flag */}
+        {devBypassEnabled && (
+          <div className="mt-4 pt-4 border-t border-dashed border-amber-500/30">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-xs font-medium text-amber-500">Dev bypass enabled</span>
+            </div>
+            <button
+              type="button"
+              onClick={handleDevBypass}
+              className="w-full px-3 py-2 text-xs font-medium rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20"
+            >
+              Skip auth (localhost only)
+            </button>
           </div>
         )}
       </div>

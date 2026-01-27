@@ -13,6 +13,11 @@ import {
     checkIsSuperAdmin,
     addSuperAdmin
 } from '../productivity-dashboard/services/organizationService';
+import {
+    isDevBypassAllowed,
+    getDevBypassSession,
+    clearDevBypassSession
+} from '../lib/devBypass';
 
 // Super admin email - always seeded as super admin on sign-in
 const SUPER_ADMIN_EMAIL = 'aidanbiggins@gmail.com';
@@ -164,13 +169,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
         }, 10000); // 10 second timeout
 
-        // Check for dev bypass first
-        const devBypass = localStorage.getItem('dev-auth-bypass');
-        if (devBypass) {
+        // Check for dev bypass - ONLY allowed on localhost with env flag
+        // Security: getDevBypassSession() returns null if not on localhost or env flag not set
+        const devBypassSession = getDevBypassSession();
+        if (devBypassSession && isDevBypassAllowed()) {
             try {
-                const fakeSession = JSON.parse(devBypass);
-                setSession(fakeSession as Session);
-                setUser(fakeSession.user as User);
+                const fakeSession = devBypassSession as { user: { id: string } };
+                setSession(fakeSession as unknown as Session);
+                setUser(fakeSession.user as unknown as User);
                 // For dev bypass, set a mock org (use valid UUID format for Supabase compatibility)
                 const devOrgId = '00000000-0000-0000-0000-000000000001';
                 setMemberships([{
@@ -181,7 +187,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     created_at: new Date().toISOString(),
                     organization: {
                         id: devOrgId,
-                        name: 'Development',
+                        name: 'Development (localhost)',
                         slug: 'dev',
                         created_at: new Date().toISOString(),
                         created_by: null,
@@ -191,10 +197,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setCurrentOrgId(devOrgId);
                 setIsSuperAdmin(true); // Dev user is super admin
                 setLoading(false);
+                console.log('[Auth] Dev bypass activated (localhost only)');
                 return;
             } catch (e) {
-                localStorage.removeItem('dev-auth-bypass');
+                // Invalid session, clear it
+                clearDevBypassSession();
             }
+        } else if (!isDevBypassAllowed()) {
+            // Security: Clear any lingering bypass data if we're not on localhost
+            clearDevBypassSession();
         }
 
         if (!supabase) {
@@ -284,8 +295,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const signOut = async () => {
         console.log('[Auth] Signing out...');
 
-        // Clear local storage first
-        localStorage.removeItem('dev-auth-bypass');
+        // Clear dev bypass session
+        clearDevBypassSession();
+        // Clear other local storage
         localStorage.removeItem(CURRENT_ORG_KEY);
         // Also clear Supabase session storage directly as backup
         localStorage.removeItem('plato-vue-auth');
