@@ -162,7 +162,7 @@ function WeightLegendV2() {
 function ChartHelpV2({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-2 mt-3 p-3 rounded-md bg-white/[0.02] border border-white/[0.05]">
-      <HelpCircle className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+      <HelpCircle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
       <p className="text-xs text-muted-foreground">{text}</p>
     </div>
   );

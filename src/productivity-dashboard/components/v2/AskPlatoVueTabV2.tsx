@@ -375,7 +375,7 @@ export function AskPlatoVueTabV2({ onNavigateToTab }: AskPlatoVueTabV2Props = {}
             <button
               onClick={() => handleSubmit()}
               disabled={isLoading || !query.trim()}
-              className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#06b6d4] text-[#0f172a] flex items-center justify-center hover:bg-[#22d3ee] disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
+              className="shrink-0 w-9 h-9 rounded-lg bg-[#06b6d4] text-[#0f172a] flex items-center justify-center hover:bg-[#22d3ee] disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -412,12 +412,12 @@ export function AskPlatoVueTabV2({ onNavigateToTab }: AskPlatoVueTabV2Props = {}
               {currentQuery && (
                 <div className="flex justify-between items-start gap-4 p-3 bg-white/[0.03] rounded-lg border border-white/[0.08] mb-4">
                   <div className="flex items-start gap-2 flex-1 min-w-0">
-                    <MessageSquareText className="w-4 h-4 text-[#06b6d4] mt-0.5 flex-shrink-0" />
+                    <MessageSquareText className="w-4 h-4 text-[#06b6d4] mt-0.5 shrink-0" />
                     <span className="text-sm text-[#94a3b8] italic line-clamp-2">
                       {currentQuery}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-3 shrink-0">
                     {generatedAt && (
                       <span className="flex items-center gap-1.5 text-xs text-[#64748b]">
                         <Clock className="w-3 h-3" />

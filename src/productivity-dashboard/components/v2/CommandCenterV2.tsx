@@ -449,7 +449,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
                     className={`group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-bg-surface ${idx % 2 === 0 ? 'bg-white/[0.02]' : ''
                       }`}
                   >
-                    <div className={`mt-1 h-9 w-1 flex-shrink-0 rounded-full ${item.severity === 'bad' ? 'bg-bad' : item.severity === 'warn' ? 'bg-warn' : 'bg-good'
+                    <div className={`mt-1 h-9 w-1 shrink-0 rounded-full ${item.severity === 'bad' ? 'bg-bad' : item.severity === 'warn' ? 'bg-warn' : 'bg-good'
                       }`} />
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 truncate text-sm font-medium text-foreground">{item.recommendation}</div>
@@ -460,7 +460,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
                         <span className="truncate text-xs text-muted-foreground">{item.impact}</span>
                       </div>
                     </div>
-                    <ChevronRight className="mt-2 h-4 w-4 flex-shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                    <ChevronRight className="mt-2 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
                 ))}
               </div>

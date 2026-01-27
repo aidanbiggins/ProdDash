@@ -110,7 +110,7 @@ export function UltimateDemoModal({
             }}
           >
             {/* Header */}
-            <div className="px-6 pt-6 pb-4 border-0 flex-shrink-0">
+            <div className="px-6 pt-6 pb-4 border-0 shrink-0">
               <div className="flex items-center gap-3">
                 <div
                   className="flex items-center justify-center w-12 h-12 rounded-xl"
@@ -227,7 +227,7 @@ export function UltimateDemoModal({
             </div>
 
             {/* Footer */}
-            <div className="px-6 pb-6 pt-4 flex justify-end gap-3 flex-shrink-0 border-t border-white/10">
+            <div className="px-6 pb-6 pt-4 flex justify-end gap-3 shrink-0 border-t border-white/10">
               <button
                 type="button"
                 className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-glass-border"

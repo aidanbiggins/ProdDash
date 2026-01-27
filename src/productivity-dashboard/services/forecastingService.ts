@@ -689,16 +689,18 @@ export function calculateActiveRoleHealth(
     };
 
     const { benchmark } = getCohortBenchmark(roleProfile, benchmarks);
-    const daysOpen = req.opened_at ? differenceInDays(new Date(), req.opened_at) : 0;
+    // STRICT: null opened_at means insufficient data - don't fabricate with 0
+    const daysOpen = req.opened_at ? differenceInDays(new Date(), req.opened_at) : null;
     const reqCandidates = candidates.filter(c => c.req_id === req.req_id);
     const activeCandidates = reqCandidates.filter(c => c.disposition === CandidateDisposition.Active);
 
     // Calculate velocity
     const reqEvents = events.filter(e => e.req_id === req.req_id);
+    // STRICT: Use actual last activity, or opened_at. If neither exists, lastActivity is null (insufficient data)
     const lastActivity = reqEvents.length > 0
       ? new Date(Math.max(...reqEvents.map(e => e.event_at.getTime())))
-      : (req.opened_at || new Date());  // Fallback to now if no opened_at
-    const daysSinceActivity = differenceInDays(new Date(), lastActivity);
+      : req.opened_at;  // null if no opened_at - indicates insufficient data
+    const daysSinceActivity = lastActivity ? differenceInDays(new Date(), lastActivity) : null;
 
     // Group candidates by stage
     const candidatesByStage: Record<string, number> = {};
@@ -709,14 +711,15 @@ export function calculateActiveRoleHealth(
     }
 
     // Calculate health metrics
-    const paceVsBenchmark = benchmark.medianTTF > 0 ? daysOpen / benchmark.medianTTF : 1;
+    // STRICT: If daysOpen is null (missing opened_at), set paceVsBenchmark to null (insufficient data)
+    const paceVsBenchmark = daysOpen !== null && benchmark.medianTTF > 0 ? daysOpen / benchmark.medianTTF : null;
     const healthScore = calculateHealthScore(daysOpen, activeCandidates.length, daysSinceActivity, benchmark);
     const healthStatus = getHealthStatus(healthScore);
 
-    // Predict fill date
-    const remainingDays = Math.max(0, benchmark.medianTTF - daysOpen);
-    const predictedFillDate = remainingDays > 0 ? addDays(new Date(), remainingDays) : null;
-    const predictedFillDateRange = remainingDays > 0 ? {
+    // Predict fill date - STRICT: if daysOpen is null, cannot predict
+    const remainingDays = daysOpen !== null ? Math.max(0, benchmark.medianTTF - daysOpen) : null;
+    const predictedFillDate = remainingDays !== null && remainingDays > 0 ? addDays(new Date(), remainingDays) : null;
+    const predictedFillDateRange = remainingDays !== null && remainingDays > 0 && daysOpen !== null ? {
       min: addDays(new Date(), Math.max(0, benchmark.p25TTF - daysOpen)),
       max: addDays(new Date(), Math.max(0, benchmark.p75TTF - daysOpen))
     } : null;
@@ -766,26 +769,34 @@ export function calculateActiveRoleHealth(
 }
 
 function calculateHealthScore(
-  daysOpen: number,
+  daysOpen: number | null,
   pipelineDepth: number,
-  daysSinceActivity: number,
+  daysSinceActivity: number | null,
   benchmark: CohortBenchmark
 ): number {
-  // Pace score (40%): How far along vs expected
-  const expectedProgress = daysOpen / benchmark.medianTTF;
-  const paceScore = expectedProgress <= 1
-    ? 100 - (expectedProgress * 30) // Gradually decrease as we approach benchmark
-    : Math.max(0, 100 - ((expectedProgress - 1) * 100)); // Sharply decrease if over
+  // STRICT: If we don't have daysOpen, we can't calculate pace properly - use neutral score
+  let paceScore = 50; // Neutral default for insufficient data
+  if (daysOpen !== null && benchmark.medianTTF > 0) {
+    // Pace score (40%): How far along vs expected
+    const expectedProgress = daysOpen / benchmark.medianTTF;
+    paceScore = expectedProgress <= 1
+      ? 100 - (expectedProgress * 30) // Gradually decrease as we approach benchmark
+      : Math.max(0, 100 - ((expectedProgress - 1) * 100)); // Sharply decrease if over
+  }
 
   // Pipeline score (35%): Pipeline depth vs benchmark
   const pipelineRatio = pipelineDepth / Math.max(benchmark.medianPipelineDepth, 1);
   const pipelineScore = Math.min(100, pipelineRatio * 100);
 
-  // Activity score (25%): Recency of activity
-  const activityScore = daysSinceActivity <= 3 ? 100
-    : daysSinceActivity <= 7 ? 80
-      : daysSinceActivity <= 14 ? 50
-        : Math.max(0, 100 - daysSinceActivity * 5);
+  // STRICT: If we don't have daysSinceActivity, use neutral score
+  let activityScore = 50; // Neutral default for insufficient data
+  if (daysSinceActivity !== null) {
+    // Activity score (25%): Recency of activity
+    activityScore = daysSinceActivity <= 3 ? 100
+      : daysSinceActivity <= 7 ? 80
+        : daysSinceActivity <= 14 ? 50
+          : Math.max(0, 100 - daysSinceActivity * 5);
+  }
 
   return Math.round(paceScore * 0.4 + pipelineScore * 0.35 + activityScore * 0.25);
 }
@@ -798,8 +809,10 @@ function getHealthStatus(score: number): HealthStatus {
 
 function calculateVelocityTrend(
   events: Event[],
-  daysSinceActivity: number
+  daysSinceActivity: number | null
 ): 'improving' | 'stable' | 'declining' | 'stalled' {
+  // STRICT: If we don't have activity data, we can't determine trend
+  if (daysSinceActivity === null) return 'stable'; // Return neutral when insufficient data
   if (daysSinceActivity > 14) return 'stalled';
   if (daysSinceActivity > 7) return 'declining';
 
@@ -818,11 +831,12 @@ function calculateVelocityTrend(
 
 function identifyPrimaryIssue(
   activeCandidates: Candidate[],
-  daysSinceActivity: number,
-  paceVsBenchmark: number,
+  daysSinceActivity: number | null,
+  paceVsBenchmark: number | null,
   benchmark: CohortBenchmark
 ): string | null {
-  if (daysSinceActivity > 14) {
+  // STRICT: Only check daysSinceActivity if we have valid data
+  if (daysSinceActivity !== null && daysSinceActivity > 14) {
     return 'Stalled - no activity in 14+ days';
   }
 
@@ -830,7 +844,8 @@ function identifyPrimaryIssue(
     return `Pipeline too thin (${activeCandidates.length} vs ${benchmark.medianPipelineDepth} needed)`;
   }
 
-  if (paceVsBenchmark > 1.3) {
+  // STRICT: Only check paceVsBenchmark if we have valid data
+  if (paceVsBenchmark !== null && paceVsBenchmark > 1.3) {
     return 'Behind pace - taking longer than similar roles';
   }
 
@@ -839,8 +854,8 @@ function identifyPrimaryIssue(
 
 function generateActionRecommendations(
   activeCandidates: Candidate[],
-  daysSinceActivity: number,
-  paceVsBenchmark: number,
+  daysSinceActivity: number | null,
+  paceVsBenchmark: number | null,
   benchmark: CohortBenchmark
 ): ActionRecommendation[] {
   const actions: ActionRecommendation[] = [];
@@ -856,8 +871,8 @@ function generateActionRecommendations(
     });
   }
 
-  // Activity actions
-  if (daysSinceActivity > 7) {
+  // Activity actions - STRICT: only if we have valid daysSinceActivity
+  if (daysSinceActivity !== null && daysSinceActivity > 7) {
     actions.push({
       action: 'Follow up on pending candidates',
       priority: daysSinceActivity > 14 ? 'urgent' : 'important',
@@ -866,8 +881,8 @@ function generateActionRecommendations(
     });
   }
 
-  // HM alignment actions
-  if (paceVsBenchmark > 1.2) {
+  // HM alignment actions - STRICT: only if we have valid paceVsBenchmark
+  if (paceVsBenchmark !== null && paceVsBenchmark > 1.2) {
     actions.push({
       action: 'Schedule HM calibration call',
       priority: 'important',

@@ -205,7 +205,7 @@ function PipelineHealthCardV2({
       {topInsight && (
         <div className="rounded-md bg-blue-500/10 border border-blue-500/20 p-2 text-xs">
           <div className="flex items-start gap-2">
-            <HelpCircle className="w-3.5 h-3.5 text-blue-400 mt-0.5 flex-shrink-0" />
+            <HelpCircle className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
             <span className="text-blue-300">{topInsight.message}</span>
           </div>
         </div>

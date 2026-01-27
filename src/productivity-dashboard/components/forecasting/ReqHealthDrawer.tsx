@@ -268,9 +268,13 @@ export function ReqHealthDrawer({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Last Activity</span>
-                  <span className={healthData.daysSinceActivity > 7 ? 'text-warn' : 'text-foreground'}>
-                    {healthData.daysSinceActivity}d ago
-                  </span>
+                  {healthData.daysSinceActivity !== null ? (
+                    <span className={healthData.daysSinceActivity > 7 ? 'text-warn' : 'text-foreground'}>
+                      {healthData.daysSinceActivity}d ago
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">N/A</span>
+                  )}
                 </div>
               </div>
             </div>

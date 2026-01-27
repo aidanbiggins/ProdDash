@@ -87,7 +87,7 @@ const features: Feature[] = [
 ];
 
 interface FeaturesSectionProps {
-  sectionRef: React.RefObject<HTMLElement | null>;
+  sectionRef: React.MutableRefObject<HTMLElement | null>;
 }
 
 export function FeaturesSection({ sectionRef }: FeaturesSectionProps) {

@@ -115,11 +115,12 @@ export interface RoleHealthMetrics {
   recruiterName: string;
 
   // Timing
-  daysOpen: number;
+  // STRICT: null means insufficient data (no fabrication allowed)
+  daysOpen: number | null;
   predictedFillDate: Date | null;
   predictedFillDateRange: { min: Date; max: Date } | null;
   benchmarkTTF: number;       // What similar roles took historically
-  paceVsBenchmark: number;    // Ratio: actual pace vs expected pace
+  paceVsBenchmark: number | null;    // Ratio: actual pace vs expected pace. null if daysOpen is null.
 
   // Pipeline health
   currentPipelineDepth: number;
@@ -129,7 +130,8 @@ export interface RoleHealthMetrics {
 
   // Velocity
   lastActivityDate: Date | null;
-  daysSinceActivity: number;
+  // STRICT: null means insufficient data (no fabrication allowed)
+  daysSinceActivity: number | null;
   velocityTrend: 'improving' | 'stable' | 'declining' | 'stalled';
 
   // Overall status

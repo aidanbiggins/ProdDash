@@ -328,54 +328,70 @@ export async function generateEventsFromCandidates(
     }
 
     // 6. Handle rejected candidates - different events depending on stage
+    // STRICT: Only generate rejection event if we have a valid timestamp (no fabrication)
     if (candidate.disposition === CandidateDisposition.Rejected && !candidate.hired_at) {
-      const rejectionDate = candidate.current_stage_entered_at || new Date();
-      const lastStage = stageTimeline.length > 0
-        ? stageTimeline[stageTimeline.length - 1].stage
-        : CanonicalStage.APPLIED;
+      const rejectionDate = candidate.current_stage_entered_at;
 
-      // Check if they were rejected after offer (OFFER_DECLINED)
-      const wasInOffer = lastStage === CanonicalStage.OFFER ||
-        candidate.offer_extended_at !== null;
-
-      if (wasInOffer) {
-        // Offer was declined
-        candidateEvents.push(createEvent({
-          candidateId: candidate.candidate_id,
-          reqId: candidate.req_id,
-          eventType: EventType.OFFER_DECLINED,
-          fromStage: CanonicalStage.OFFER,
-          toStage: CanonicalStage.REJECTED,
-          eventAt: rejectionDate
-        }));
+      // STRICT: Skip event generation if no timestamp available
+      if (!rejectionDate) {
+        stats.skippedCandidates++;
+        // Continue with other events for this candidate, just skip rejection event
       } else {
-        // Regular rejection - create STAGE_CHANGE with proper from_stage
-        candidateEvents.push(createEvent({
-          candidateId: candidate.candidate_id,
-          reqId: candidate.req_id,
-          eventType: EventType.STAGE_CHANGE,
-          fromStage: lastStage,
-          toStage: CanonicalStage.REJECTED,
-          eventAt: rejectionDate
-        }));
+        const lastStage = stageTimeline.length > 0
+          ? stageTimeline[stageTimeline.length - 1].stage
+          : CanonicalStage.APPLIED;
+
+        // Check if they were rejected after offer (OFFER_DECLINED)
+        const wasInOffer = lastStage === CanonicalStage.OFFER ||
+          candidate.offer_extended_at !== null;
+
+        if (wasInOffer) {
+          // Offer was declined
+          candidateEvents.push(createEvent({
+            candidateId: candidate.candidate_id,
+            reqId: candidate.req_id,
+            eventType: EventType.OFFER_DECLINED,
+            fromStage: CanonicalStage.OFFER,
+            toStage: CanonicalStage.REJECTED,
+            eventAt: rejectionDate
+          }));
+        } else {
+          // Regular rejection - create STAGE_CHANGE with proper from_stage
+          candidateEvents.push(createEvent({
+            candidateId: candidate.candidate_id,
+            reqId: candidate.req_id,
+            eventType: EventType.STAGE_CHANGE,
+            fromStage: lastStage,
+            toStage: CanonicalStage.REJECTED,
+            eventAt: rejectionDate
+          }));
+        }
       }
     }
 
     // 7. Handle withdrawn candidates - use CANDIDATE_WITHDREW event type
+    // STRICT: Only generate withdrawal event if we have a valid timestamp (no fabrication)
     if (candidate.disposition === CandidateDisposition.Withdrawn) {
-      const withdrawnDate = candidate.current_stage_entered_at || new Date();
-      const lastStage = stageTimeline.length > 0
-        ? stageTimeline[stageTimeline.length - 1].stage
-        : CanonicalStage.APPLIED;
+      const withdrawnDate = candidate.current_stage_entered_at;
 
-      candidateEvents.push(createEvent({
-        candidateId: candidate.candidate_id,
-        reqId: candidate.req_id,
-        eventType: EventType.CANDIDATE_WITHDREW,
-        fromStage: lastStage,
-        toStage: CanonicalStage.WITHDREW,
-        eventAt: withdrawnDate
-      }));
+      // STRICT: Skip event generation if no timestamp available
+      if (!withdrawnDate) {
+        stats.skippedCandidates++;
+        // Continue with other events for this candidate, just skip withdrawal event
+      } else {
+        const lastStage = stageTimeline.length > 0
+          ? stageTimeline[stageTimeline.length - 1].stage
+          : CanonicalStage.APPLIED;
+
+        candidateEvents.push(createEvent({
+          candidateId: candidate.candidate_id,
+          reqId: candidate.req_id,
+          eventType: EventType.CANDIDATE_WITHDREW,
+          fromStage: lastStage,
+          toStage: CanonicalStage.WITHDREW,
+          eventAt: withdrawnDate
+        }));
+      }
     }
 
     // Sort events by date and add to main array

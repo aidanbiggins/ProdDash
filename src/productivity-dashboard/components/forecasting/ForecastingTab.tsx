@@ -293,13 +293,13 @@ export function ForecastingTab({
 
   const handleRunCalibration = useCallback(async () => {
     setIsCalibrating(true);
-    // Find completed reqs
+    // Find completed reqs - STRICT: require both closed_at AND opened_at (no fabrication)
     const completedReqs = requisitions
-      .filter(r => r.status === 'Closed' && r.closed_at)
+      .filter(r => r.status === 'Closed' && r.closed_at && r.opened_at)
       .map(r => ({
         reqId: r.req_id,
         hiredDate: r.closed_at!,
-        openedDate: r.opened_at || new Date(),
+        openedDate: r.opened_at!, // STRICT: guaranteed by filter above
         roleProfile: {
           function: r.function,
           level: r.level,
@@ -960,10 +960,16 @@ export function ForecastingTab({
                                 <div className="text-sm text-muted-foreground">{req.function} {req.level}</div>
                               </td>
                               <td className="px-4 py-3 text-right">
-                                <span className={req.daysOpen > req.benchmarkTTF ? 'text-bad font-bold' : 'text-foreground'}>
-                                  {req.daysOpen}d
-                                </span>
-                                <div className="text-sm text-muted-foreground">/ {req.benchmarkTTF}d benchmark</div>
+                                {req.daysOpen !== null ? (
+                                  <>
+                                    <span className={req.daysOpen > req.benchmarkTTF ? 'text-bad font-bold' : 'text-foreground'}>
+                                      {req.daysOpen}d
+                                    </span>
+                                    <div className="text-sm text-muted-foreground">/ {req.benchmarkTTF}d benchmark</div>
+                                  </>
+                                ) : (
+                                  <span className="text-muted-foreground">N/A</span>
+                                )}
                               </td>
                               <td className="px-4 py-3 text-right">
                                 <span className={req.pipelineGap < 0 ? 'text-bad font-bold' : 'text-foreground'}>

@@ -266,7 +266,7 @@ export function FilterBar({
                   ? displayFn(selectedValues[0])
                   : `${selectedValues.length} selected`}
             </span>
-            <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[240px] p-2" align="start">

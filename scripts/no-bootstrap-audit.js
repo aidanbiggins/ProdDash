@@ -149,9 +149,9 @@ const BOOTSTRAP_PATTERNS = [
   { pattern: /\bbtn-group\b/, name: 'btn-group' },
   { pattern: /\bbtn-group-/, name: 'btn-group-*' },
 
-  // Dropdown (Bootstrap-specific)
-  { pattern: /\bdropdown\b/, name: 'dropdown' },
-  { pattern: /\bdropdown-/, name: 'dropdown-*' },
+  // Dropdown (Bootstrap-specific) - exclude Radix UI CSS variable patterns
+  { pattern: /(?<!--radix-)\bdropdown\b(?!-menu-trigger-width)/, name: 'dropdown' },
+  { pattern: /(?<!--radix-)\bdropdown-(?!menu-trigger)/, name: 'dropdown-*' },
 
   // Tooltip/Popover (Bootstrap-specific)
   { pattern: /\btooltip\b/, name: 'tooltip' },

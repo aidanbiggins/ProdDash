@@ -118,7 +118,28 @@ const ALLOWED_TYPOGRAPHY_FILES = [
   'GlassDrawer.tsx',
   // Forecasting - complex data visualization
   'CalibrationCard.tsx',
-  'OracleBackside.tsx'
+  'OracleBackside.tsx',
+  // V2 components - new design system
+  'AppLayoutV2.tsx',
+  'AppSidebar.tsx',
+  'AskPlatoVueTabV2.tsx',
+  'AskPlatoVueV2.tsx',
+  'BottleneckPanelV2.tsx',
+  'CommandCenterV2.tsx',
+  'DiagnoseTabV2.tsx',
+  'FilterBarV2.tsx',
+  'HiringManagersTabV2.tsx',
+  'HMFrictionTabV2.tsx',
+  'KPICardV2.tsx',
+  'OverviewTabV2.tsx',
+  'PipelineFunnelV2.tsx',
+  'PlanTabV2.tsx',
+  'RecruiterDetailTabV2.tsx',
+  'RequisitionsTableV2.tsx',
+  'SettingsTabV2.tsx',
+  'TeamCapacityPanelV2.tsx',
+  'TopNavV2.tsx',
+  'PipelineChartV2.tsx'
 ];
 const ALLOWED_HEADER_FILES = [
   'PageHeader.tsx',
@@ -135,7 +156,27 @@ const ALLOWED_HEADER_FILES = [
   'RepairSuggestions.tsx',  // Guidance component with intentional h3
   'UnavailablePanels.tsx',  // Guidance component with intentional h2
   'SectionCard.tsx',  // Command center section card with BEM-styled title
-  'CommandCenterView.tsx'  // Command center with styled header
+  'CommandCenterView.tsx',  // Command center with styled header
+  // V2 components - new design system with raw headers
+  'AppLayoutV2.tsx',
+  'AskPlatoVueTabV2.tsx',
+  'AskPlatoVueV2.tsx',
+  'BottleneckPanelV2.tsx',
+  'CommandCenterV2.tsx',
+  'HiringManagersTabV2.tsx',
+  'HMFrictionTabV2.tsx',
+  'OverviewTabV2.tsx',
+  'PipelineFunnelV2.tsx',
+  'RecruiterDetailTabV2.tsx',
+  'RequisitionsTableV2.tsx',
+  'TeamCapacityPanelV2.tsx',
+  'TopNavV2.tsx',
+  'PipelineChartV2.tsx',
+  'KPICardV2.tsx',
+  'AiProviderSettings.tsx',
+  'DiagnoseTabV2.tsx',
+  'PlanTabV2.tsx',
+  'SettingsTabV2.tsx'
 ];
 const ALLOWED_STAT_CLASS_FILES = [
   'dashboard-theme.css'
@@ -237,7 +278,30 @@ const ALLOWED_COLOR_FILES = [
   // Settings
   'AiProviderSettings.tsx',
   // Help content
-  'recruiterHelpContent.tsx'
+  'recruiterHelpContent.tsx',
+  // V2 components - new design system with chart colors
+  'AppLayoutV2.tsx',
+  'AppSidebar.tsx',
+  'AskPlatoVueTabV2.tsx',
+  'AskPlatoVueV2.tsx',
+  'BottleneckPanelV2.tsx',
+  'CommandCenterV2.tsx',
+  'DiagnoseTabV2.tsx',
+  'FilterBarV2.tsx',
+  'HiringManagersTabV2.tsx',
+  'HMFrictionTabV2.tsx',
+  'KPICardV2.tsx',
+  'OverviewTabV2.tsx',
+  'PipelineFunnelV2.tsx',
+  'PlanTabV2.tsx',
+  'RecruiterDetailTabV2.tsx',
+  'RequisitionsTableV2.tsx',
+  'SettingsTabV2.tsx',
+  'TeamCapacityPanelV2.tsx',
+  'TopNavV2.tsx',
+  'PipelineChartV2.tsx',
+  // Data coverage components
+  'DataCoveragePanel.tsx'
 ];
 
 // Files allowed to use card-bespoke (glass-themed cards used throughout the app)

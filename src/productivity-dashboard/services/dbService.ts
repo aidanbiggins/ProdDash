@@ -79,9 +79,10 @@ export const fetchDashboardData = async (orgId?: string | null) => {
     }
 
     // Transform ISO strings back to Date objects
+    // CRITICAL: null must stay null - never convert to 1970 via new Date(null)
     const requisitions: Requisition[] = reqs.data.map((r: any) => ({
         ...r,
-        opened_at: new Date(r.opened_at),
+        opened_at: r.opened_at ? new Date(r.opened_at) : null,
         closed_at: r.closed_at ? new Date(r.closed_at) : null
     }));
 

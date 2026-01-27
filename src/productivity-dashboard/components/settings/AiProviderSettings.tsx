@@ -194,7 +194,7 @@ export function AiProviderSettings({
         <div className="w-full max-w-2xl max-h-[90vh] flex flex-col bg-[#0f172a] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
 
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 flex-shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
                 <Bot className="w-5 h-5 text-accent" />
@@ -245,7 +245,7 @@ export function AiProviderSettings({
             {/* Error Display */}
             {keyState.error && (
               <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
                 <span className="text-sm text-red-400">{keyState.error}</span>
               </div>
             )}
@@ -521,7 +521,7 @@ export function AiProviderSettings({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 flex-shrink-0 bg-white/[0.02]">
+          <div className="flex items-center justify-between px-6 py-4 border-t border-white/10 shrink-0 bg-white/[0.02]">
             {currentConfig && (
               <button
                 type="button"
