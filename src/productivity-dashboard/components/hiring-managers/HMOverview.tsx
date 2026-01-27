@@ -4,6 +4,7 @@
 import React, { useMemo, useState } from 'react';
 import { HMRollup } from '../../types/hmTypes';
 import { SectionHeader } from '../common/SectionHeader';
+import { Checkbox } from '../../../components/ui/toggles';
 
 interface HMOverviewProps {
     hmRollups: HMRollup[];
@@ -302,12 +303,9 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                             <thead>
                                 <tr style={{ background: '#0a0a0a' }}>
                                     <th style={{ width: '40px', ...thStyle }}>
-                                        <input
-                                            type="checkbox"
-                                            className="w-4 h-4 rounded"
+                                        <Checkbox
                                             checked={selectedHmUserIds.size === hmRollups.length && hmRollups.length > 0}
                                             onChange={handleSelectAll}
-                                            title="Select all"
                                         />
                                     </th>
                                     <th
@@ -380,9 +378,7 @@ export function HMOverview({ hmRollups, onToggleHM, selectedHmUserIds, onClearSe
                                             className={`cursor-pointer hover:bg-white hover:bg-opacity-5 transition-colors ${isSelected ? 'table-primary' : ''}`}
                                         >
                                             <td style={tdStyle} onClick={e => e.stopPropagation()}>
-                                                <input
-                                                    type="checkbox"
-                                                    className="w-4 h-4 rounded"
+                                                <Checkbox
                                                     checked={isSelected}
                                                     onChange={() => onToggleHM(hm.hmUserId)}
                                                 />

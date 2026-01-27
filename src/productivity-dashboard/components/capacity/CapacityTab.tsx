@@ -78,16 +78,16 @@ export function CapacityTab() {
       <div className="w-full px-4 py-4">
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12">
-            <div className="card-bespoke">
-              <div className="card-body text-center py-5">
-                <i className="bi bi-exclamation-triangle text-warning" style={{ fontSize: '3rem' }}></i>
-                <h5 className="mt-3">Insufficient Data for Capacity Analysis</h5>
-                <p className="text-muted-foreground">
+            <div className="rounded-lg border border-glass-border bg-bg-glass">
+              <div className="text-center py-8 px-4">
+                <i className="bi bi-exclamation-triangle text-warn text-4xl"></i>
+                <h5 className="mt-3 text-lg font-semibold text-foreground">Insufficient Data for Capacity Analysis</h5>
+                <p className="text-muted-foreground mt-2">
                   {analysis?.blockReason || 'Please load data to view capacity analysis.'}
                 </p>
-                <div className="text-sm text-muted-foreground mt-3">
-                  <strong>Requirements:</strong>
-                  <ul className="list-none mt-2">
+                <div className="text-sm text-muted-foreground mt-4">
+                  <strong className="text-foreground">Requirements:</strong>
+                  <ul className="list-none mt-2 space-y-1">
                     <li>At least 3 recruiters with req assignments</li>
                     <li>At least 10 open requisitions</li>
                     <li>Recruiter ID coverage on 50%+ of reqs</li>
@@ -145,7 +145,7 @@ export function CapacityTab() {
 
         {/* Right Column: Rebalance Recommendations */}
         <div className="col-span-12 lg:col-span-4">
-          <div className="sticky" style={{ top: '1rem' }}>
+          <div className="sticky top-4">
             <RebalanceRecommendations
               recommendations={analysis.rebalanceRecommendations}
               onApply={handleRebalanceApply}

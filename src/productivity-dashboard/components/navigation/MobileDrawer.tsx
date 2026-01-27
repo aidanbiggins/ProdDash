@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NAV_STRUCTURE, NavBucket } from './navStructure';
 import { OrgSwitcher } from '../OrgSwitcher';
+import { ToggleSwitch } from '../../../components/ui/toggles';
 import './navigation.css';
 
 export interface MobileDrawerProps {
@@ -190,14 +191,14 @@ export function MobileDrawer({
               <span>Sign Out</span>
             </button>
           )}
-          <label className="legacy-toggle">
-            <input
-              type="checkbox"
+          <div className="flex items-center gap-3">
+            <ToggleSwitch
               checked={useLegacyNav}
               onChange={onToggleLegacy}
+              size="sm"
             />
-            <span>Use Classic Navigation</span>
-          </label>
+            <span className="text-sm text-white/70">Use Classic Navigation</span>
+          </div>
         </div>
       </div>
     </>

@@ -2,6 +2,7 @@
 // Single source of truth for all data tables with Swiss Modern styling
 
 import React, { useMemo, useCallback } from 'react';
+import { Checkbox } from '../../../components/ui/toggles';
 
 // ============================================
 // TYPES
@@ -163,12 +164,9 @@ export function BespokeTable<T>({
                     <tr>
                         {selectable && (
                             <th style={{ width: '40px' }}>
-                                <input
-                                    type="checkbox"
-                                    className="form-check-input"
+                                <Checkbox
                                     checked={isAllSelected}
                                     onChange={handleSelectAll}
-                                    title="Select all"
                                 />
                             </th>
                         )}
@@ -216,9 +214,7 @@ export function BespokeTable<T>({
                                 >
                                     {selectable && (
                                         <td onClick={e => e.stopPropagation()}>
-                                            <input
-                                                type="checkbox"
-                                                className="form-check-input"
+                                            <Checkbox
                                                 checked={isSelected}
                                                 onChange={() => handleRowSelect(key)}
                                             />

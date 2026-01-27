@@ -10,21 +10,21 @@ interface RecruiterLoadTableProps {
   onRecruiterClick?: (recruiterId: string) => void;
 }
 
-// Map status to badge class - uses CSS classes from dashboard-theme.css
+// Map status to Tailwind badge classes
 const STATUS_BADGE_CLASS: Record<LoadStatus, { className: string; label: string }> = {
-  critical: { className: 'badge-danger-soft', label: 'Critical' },
-  overloaded: { className: 'badge-warning-soft', label: 'Overloaded' },
-  balanced: { className: 'badge-primary-soft', label: 'Balanced' },
-  available: { className: 'badge-success-soft', label: 'Available' },
-  underutilized: { className: 'badge-neutral-soft', label: 'Underutilized' }
+  critical: { className: 'bg-bad-bg text-bad', label: 'Critical' },
+  overloaded: { className: 'bg-warn-bg text-warn', label: 'Overloaded' },
+  balanced: { className: 'bg-accent/15 text-accent', label: 'Balanced' },
+  available: { className: 'bg-good-bg text-good', label: 'Available' },
+  underutilized: { className: 'bg-white/10 text-muted-foreground', label: 'Underutilized' }
 };
 
-// Map confidence to CSS class for the indicator dots
-const CONFIDENCE_CLASS: Record<ConfidenceLevel, string> = {
-  HIGH: 'confidence-high',
-  MED: 'confidence-med',
-  LOW: 'confidence-low',
-  INSUFFICIENT: 'confidence-insufficient'
+// Map confidence to Tailwind color
+const CONFIDENCE_COLOR: Record<ConfidenceLevel, string> = {
+  HIGH: 'text-good',
+  MED: 'text-warn',
+  LOW: 'text-muted-foreground',
+  INSUFFICIENT: 'text-bad'
 };
 
 function ConfidenceIndicator({ confidence }: { confidence: ConfidenceLevel }) {
@@ -36,11 +36,11 @@ function ConfidenceIndicator({ confidence }: { confidence: ConfidenceLevel }) {
   }[confidence];
 
   return (
-    <span title={`${confidence} confidence`} className={`confidence-dots ${CONFIDENCE_CLASS[confidence]}`}>
+    <span title={`${confidence} confidence`} className={`inline-flex gap-0.5 ${CONFIDENCE_COLOR[confidence]}`}>
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className={`confidence-dot ${i < dots ? 'active' : ''}`}
+          className={`w-1.5 h-1.5 rounded-full ${i < dots ? 'bg-current' : 'bg-white/20'}`}
         />
       ))}
     </span>
@@ -58,20 +58,24 @@ function StatusBadge({ status }: { status: LoadStatus }) {
 
 function UtilizationBar({ utilization }: { utilization: number }) {
   const percent = Math.min(utilization * 100, 150);
-  const colorClass = utilization > 1.2 ? 'utilization-critical' :
-                     utilization > 1.1 ? 'utilization-warning' :
-                     utilization > 0.9 ? 'utilization-balanced' :
-                     utilization > 0.7 ? 'utilization-good' : 'utilization-low';
+  const barColor = utilization > 1.2 ? 'bg-bad' :
+                   utilization > 1.1 ? 'bg-warn' :
+                   utilization > 0.9 ? 'bg-accent' :
+                   utilization > 0.7 ? 'bg-good' : 'bg-muted-foreground';
+  const textColor = utilization > 1.2 ? 'text-bad' :
+                    utilization > 1.1 ? 'text-warn' :
+                    utilization > 0.9 ? 'text-accent' :
+                    utilization > 0.7 ? 'text-good' : 'text-muted-foreground';
 
   return (
     <div className="flex items-center gap-2">
-      <div className="utilization-bar-track">
+      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
         <div
-          className={`utilization-bar-fill ${colorClass}`}
+          className={`h-full rounded-full transition-all ${barColor}`}
           style={{ width: `${Math.min(percent, 100)}%` }}
         />
       </div>
-      <span className={`utilization-value ${colorClass}`}>
+      <span className={`font-mono text-xs ${textColor}`}>
         {Math.round(utilization * 100)}%
       </span>
     </div>
@@ -129,8 +133,8 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
       sortable: true,
       render: (row) => (
         <div>
-          <div className="cell-primary">{row.recruiterName}</div>
-          <div className="cell-muted cell-small">{row.reqCount} reqs</div>
+          <div className="text-sm font-medium text-foreground">{row.recruiterName}</div>
+          <div className="text-xs text-muted-foreground">{row.reqCount} reqs</div>
         </div>
       )
     },
@@ -141,7 +145,7 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
       align: 'right',
       sortable: true,
       render: (row) => (
-        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{row.demandWU}</span>
+        <span className="font-mono text-sm">{row.demandWU}</span>
       )
     },
     {
@@ -151,7 +155,7 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
       align: 'right',
       sortable: true,
       render: (row) => (
-        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{row.capacityWU}</span>
+        <span className="font-mono text-sm">{row.capacityWU}</span>
       )
     },
     {
@@ -173,7 +177,7 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
       header: 'Top Driver',
       width: '180px',
       render: (row) => (
-        <span className="truncate block text-sm" style={{ maxWidth: 170 }} title={row.topDriver}>
+        <span className="truncate block text-sm max-w-[170px]" title={row.topDriver}>
           {row.topDriver}
         </span>
       )
@@ -188,14 +192,14 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
   ];
 
   return (
-    <div className="card-bespoke">
-      <div className="card-header">
-        <h6 className="mb-0">
+    <div className="rounded-lg border border-glass-border bg-bg-glass">
+      <div className="px-4 py-3 border-b border-white/10">
+        <h6 className="text-sm font-semibold text-foreground">
           <i className="bi bi-bar-chart mr-2"></i>
           Recruiter Workload
         </h6>
       </div>
-      <div className="card-body p-0">
+      <div className="p-0">
         <BespokeTable<RecruiterLoadRow>
           columns={columns}
           data={sortedRows}
@@ -205,8 +209,8 @@ export function RecruiterLoadTable({ rows, onRecruiterClick }: RecruiterLoadTabl
           onSort={handleSort}
           onRowClick={(row) => onRecruiterClick?.(row.recruiterId)}
           emptyState={
-            <div className="text-center py-4 text-muted-foreground">
-              <i className="bi bi-inbox" style={{ fontSize: '2rem' }}></i>
+            <div className="text-center py-8 text-muted-foreground">
+              <i className="bi bi-inbox text-3xl"></i>
               <div className="mt-2">No recruiter data available</div>
             </div>
           }

@@ -2,6 +2,7 @@
 // Shows what data enables which features
 
 import React, { useState } from 'react';
+import { Checkbox } from '../../components/ui/toggles';
 
 interface ImportGuideProps {
   onClose: () => void;
@@ -196,32 +197,32 @@ function RequirementsTab() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="glass-panel p-3">
           <h6 className="text-good font-semibold mb-2">Requisitions / Jobs</h6>
-          <div className="text-sm space-y-1">
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Job ID / Requisition ID</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Job Title</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Open Date / Created Date</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Status (Open/Closed/On Hold)</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Close Date / Filled Date</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Recruiter Name</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Hiring Manager Name</label>
-            <label className="flex items-center gap-2 text-muted-foreground"><input type="checkbox" className="rounded" readOnly /> Department / Function</label>
-            <label className="flex items-center gap-2 text-muted-foreground"><input type="checkbox" className="rounded" readOnly /> Level / Grade</label>
-            <label className="flex items-center gap-2 text-muted-foreground"><input type="checkbox" className="rounded" readOnly /> Location</label>
+          <div className="text-sm space-y-2">
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Job ID / Requisition ID</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Job Title</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Open Date / Created Date</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Status (Open/Closed/On Hold)</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Close Date / Filled Date</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Recruiter Name</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Hiring Manager Name</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><Checkbox checked={false} onChange={() => {}} disabled /> Department / Function</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><Checkbox checked={false} onChange={() => {}} disabled /> Level / Grade</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><Checkbox checked={false} onChange={() => {}} disabled /> Location</div>
           </div>
         </div>
         <div className="glass-panel p-3">
           <h6 className="text-accent font-semibold mb-2">Candidates / Applications</h6>
-          <div className="text-sm space-y-1">
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Candidate ID / Person ID</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Job ID (to link to requisition)</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Current Stage / Status</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Application Date</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Stage Entry Date (when entered current stage)</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Source (where they came from)</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Hire Date (if hired)</label>
-            <label className="flex items-center gap-2 text-foreground"><input type="checkbox" className="rounded" checked readOnly /> Offer Date (if offered)</label>
-            <label className="flex items-center gap-2 text-muted-foreground"><input type="checkbox" className="rounded" readOnly /> Candidate Name</label>
-            <label className="flex items-center gap-2 text-muted-foreground"><input type="checkbox" className="rounded" readOnly /> Rejection Date / Reason</label>
+          <div className="text-sm space-y-2">
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Candidate ID / Person ID</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Job ID (to link to requisition)</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Current Stage / Status</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Application Date</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Stage Entry Date (when entered current stage)</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Source (where they came from)</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Hire Date (if hired)</div>
+            <div className="flex items-center gap-2 text-foreground"><Checkbox checked={true} onChange={() => {}} disabled /> Offer Date (if offered)</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><Checkbox checked={false} onChange={() => {}} disabled /> Candidate Name</div>
+            <div className="flex items-center gap-2 text-muted-foreground"><Checkbox checked={false} onChange={() => {}} disabled /> Rejection Date / Reason</div>
           </div>
         </div>
       </div>

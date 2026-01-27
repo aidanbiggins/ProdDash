@@ -332,7 +332,7 @@ export function CommandCenterV2({
     <div className="p-6 max-w-[1600px] mx-auto">
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight mb-1">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-foreground tracking-tight mb-1">
           Command Center
         </h1>
         <p className="text-sm text-muted-foreground">

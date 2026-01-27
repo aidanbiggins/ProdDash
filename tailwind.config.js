@@ -1,75 +1,71 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: ['class'],
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
     "./public/index.html",
   ],
   theme: {
     extend: {
-      // PlatoVue / V0 Design Tokens
+      // V0 shadcn/ui Design System - HSL CSS Variables
       colors: {
-        // Background System
-        'background': '#0f172a',
-        'bg-base': '#0f172a',
-        'bg-surface': 'rgba(30, 41, 59, 0.8)',
-        'bg-elevated': 'rgba(30, 41, 59, 0.9)',
-        'bg-glass': 'rgba(30, 41, 59, 0.7)',
-
-        // Primary Accent (Cyan/Teal)
-        'primary': '#06b6d4',
-        'accent': {
-          DEFAULT: '#06b6d4',
-          hover: '#22d3ee',
-          muted: '#0891b2',
-          light: 'rgba(6, 182, 212, 0.15)',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
         },
-
-        // Secondary (Purple)
-        'purple': {
-          DEFAULT: '#8b5cf6',
-          light: 'rgba(139, 92, 246, 0.15)',
-          text: '#a78bfa',
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
         },
-
-        // Semantic Colors
-        'good': {
-          DEFAULT: '#22c55e',
-          bg: 'rgba(34, 197, 94, 0.12)',
-          border: 'rgba(34, 197, 94, 0.4)',
-          text: '#86efac',
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
-        'warn': {
-          DEFAULT: '#f59e0b',
-          bg: 'rgba(245, 158, 11, 0.12)',
-          border: 'rgba(245, 158, 11, 0.4)',
-          text: '#fcd34d',
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
-        'bad': {
-          DEFAULT: '#ef4444',
-          bg: 'rgba(239, 68, 68, 0.12)',
-          border: 'rgba(239, 68, 68, 0.4)',
-          text: '#fca5a5',
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
-
-        // Glass System
-        'glass': {
-          border: 'rgba(255, 255, 255, 0.08)',
-          'border-strong': 'rgba(255, 255, 255, 0.12)',
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
-
-        // Text Colors
-        'foreground': '#f8fafc',
-        'muted-foreground': '#94a3b8',
-        'dim': '#64748b',
-
-        // Chart colors
-        'chart': {
-          1: '#06b6d4',
-          2: '#8b5cf6',
-          3: '#f59e0b',
-          4: '#3b82f6',
-          5: '#22c55e',
-          6: '#ec4899',
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
+        },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar-background))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+          primary: 'hsl(var(--sidebar-primary))',
+          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+          accent: 'hsl(var(--sidebar-accent))',
+          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+          border: 'hsl(var(--sidebar-border))',
+          ring: 'hsl(var(--sidebar-ring))',
         },
       },
 
@@ -78,23 +74,10 @@ module.exports = {
         mono: ['JetBrains Mono', 'SF Mono', 'Consolas', 'monospace'],
       },
 
-      fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1rem' }],
-        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
-        'base': ['1rem', { lineHeight: '1.5rem' }],
-        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
-        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-      },
-
       borderRadius: {
-        'sm': '0.25rem',
-        DEFAULT: '0.375rem',
-        'md': '0.5rem',
-        'lg': '0.75rem',
-        'xl': '1rem',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
 
       spacing: {
@@ -103,33 +86,31 @@ module.exports = {
         '128': '32rem',
       },
 
-      backdropBlur: {
-        'glass': '12px',
-        'glass-lg': '16px',
-      },
-
-      boxShadow: {
-        'glass': '0 4px 12px rgba(0, 0, 0, 0.4)',
-        'glass-elevated': '0 8px 24px rgba(0, 0, 0, 0.5)',
-      },
-
-      animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'slide-in': 'slideIn 0.3s ease-out',
-        'bounce-slow': 'bounce 1.5s infinite',
-      },
-
       keyframes: {
-        fadeIn: {
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
+        'fade-in': {
           '0%': { opacity: '0', transform: 'translateY(4px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        slideIn: {
+        'slide-in': {
           '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(0)' },
         },
       },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'fade-in': 'fade-in 0.3s ease-out',
+        'slide-in': 'slide-in 0.3s ease-out',
+      },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 }

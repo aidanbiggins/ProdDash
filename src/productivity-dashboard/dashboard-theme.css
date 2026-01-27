@@ -19,7 +19,8 @@
     /* ----------------------------------------
        BACKGROUND SYSTEM - Dark Cockpit Foundation
        ---------------------------------------- */
-    --color-bg-base: #0f172a;           /* Slate-900 - deepest background */
+    --color-bg-base: #0f172a;
+    /* Slate-900 - deepest background */
     --color-bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
     --color-bg-surface: rgba(30, 41, 59, 0.8);
     --color-bg-elevated: rgba(30, 41, 59, 0.9);
@@ -29,19 +30,26 @@
     /* ----------------------------------------
        GLASS PANEL SYSTEM
        ---------------------------------------- */
-    --glass-bg: rgba(30, 41, 59, 0.7);           /* Semi-transparent slate */
-    --glass-bg-elevated: rgba(30, 41, 59, 0.85); /* Elevated panels/modals */
-    --glass-bg-hover: rgba(30, 41, 59, 0.9);     /* Hover state */
+    --glass-bg: rgba(30, 41, 59, 0.7);
+    /* Semi-transparent slate */
+    --glass-bg-elevated: rgba(30, 41, 59, 0.85);
+    /* Elevated panels/modals */
+    --glass-bg-hover: rgba(30, 41, 59, 0.9);
+    /* Hover state */
 
     /* Glass Borders */
-    --glass-border: rgba(255, 255, 255, 0.08);   /* Default border */
-    --glass-border-strong: rgba(255, 255, 255, 0.12); /* Emphasized border */
-    --glass-border-accent: rgba(6, 182, 212, 0.4);    /* Teal accent border */
+    --glass-border: rgba(255, 255, 255, 0.08);
+    /* Default border */
+    --glass-border-strong: rgba(255, 255, 255, 0.12);
+    /* Emphasized border */
+    --glass-border-accent: rgba(6, 182, 212, 0.4);
+    /* Teal accent border */
 
     /* Glass Shadows (NO GLOW by default) */
     --glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     --glass-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.5);
-    --glass-shadow-backdrop: rgba(0, 0, 0, 0.7);  /* Modal backdrop overlay */
+    --glass-shadow-backdrop: rgba(0, 0, 0, 0.7);
+    /* Modal backdrop overlay */
 
     /* FOCUS/ACTIVE GLOW ONLY */
     --glass-glow-focus: 0 0 0 2px rgba(6, 182, 212, 0.3);
@@ -55,11 +63,16 @@
     /* ----------------------------------------
        PRIMARY ACCENT (Teal) - Per Plan
        ---------------------------------------- */
-    --accent: #06b6d4;                   /* Cyan-500 */
-    --accent-hover: #22d3ee;             /* Cyan-400 - lighter on hover */
-    --accent-muted: #0891b2;             /* Cyan-600 - muted variant */
-    --accent-bg: rgba(6, 182, 212, 0.12); /* Background tint */
-    --accent-border: rgba(6, 182, 212, 0.4); /* Border accent */
+    --accent: #06b6d4;
+    /* Cyan-500 */
+    --accent-hover: #22d3ee;
+    /* Cyan-400 - lighter on hover */
+    --accent-muted: #0891b2;
+    /* Cyan-600 - muted variant */
+    --accent-bg: rgba(6, 182, 212, 0.12);
+    /* Background tint */
+    --accent-border: rgba(6, 182, 212, 0.4);
+    /* Border accent */
 
     /* Legacy accent tokens (for backwards compat) */
     --color-accent: #06b6d4;
@@ -83,25 +96,32 @@
        SEMANTIC COLORS (Good/Warn/Bad)
        ---------------------------------------- */
     /* Success / Good */
-    --color-good: #22c55e;               /* Green-500 */
+    --color-good: #22c55e;
+    /* Green-500 */
     --color-good-bg: rgba(34, 197, 94, 0.12);
     --color-good-border: rgba(34, 197, 94, 0.4);
-    --color-good-text: #86efac;          /* Green-300 - light text on dark bg */
+    --color-good-text: #86efac;
+    /* Green-300 - light text on dark bg */
 
     /* Warning / Caution */
-    --color-warn: #f59e0b;               /* Amber-500 */
+    --color-warn: #f59e0b;
+    /* Amber-500 */
     --color-warn-bg: rgba(245, 158, 11, 0.12);
     --color-warn-border: rgba(245, 158, 11, 0.4);
-    --color-warn-text: #fcd34d;          /* Amber-300 - light text on dark bg */
+    --color-warn-text: #fcd34d;
+    /* Amber-300 - light text on dark bg */
 
     /* Danger / Bad */
-    --color-bad: #ef4444;                /* Red-500 */
+    --color-bad: #ef4444;
+    /* Red-500 */
     --color-bad-bg: rgba(239, 68, 68, 0.12);
     --color-bad-border: rgba(239, 68, 68, 0.4);
-    --color-bad-text: #fca5a5;           /* Red-300 - light text on dark bg */
+    --color-bad-text: #fca5a5;
+    /* Red-300 - light text on dark bg */
 
     /* Neutral / Muted */
-    --color-neutral: #64748b;            /* Slate-500 */
+    --color-neutral: #64748b;
+    /* Slate-500 */
     --color-neutral-bg: rgba(100, 116, 139, 0.12);
 
     /* Legacy functional colors (for backwards compat) */
@@ -115,13 +135,20 @@
     /* ----------------------------------------
        CHART PALETTE (6 colors max)
        ---------------------------------------- */
-    --chart-1: #06b6d4;  /* Teal - Primary */
-    --chart-2: #8b5cf6;  /* Violet - Secondary */
-    --chart-3: #f59e0b;  /* Amber - Tertiary */
-    --chart-4: #3b82f6;  /* Blue */
-    --chart-5: #22c55e;  /* Green */
-    --chart-6: #ec4899;  /* Pink */
-    --chart-muted: #475569; /* Slate-600 - for "Other" */
+    --chart-1: #06b6d4;
+    /* Teal - Primary */
+    --chart-2: #8b5cf6;
+    /* Violet - Secondary */
+    --chart-3: #f59e0b;
+    /* Amber - Tertiary */
+    --chart-4: #3b82f6;
+    /* Blue */
+    --chart-5: #22c55e;
+    /* Green */
+    --chart-6: #ec4899;
+    /* Pink */
+    --chart-muted: #475569;
+    /* Slate-600 - for "Other" */
 
     /* Legacy chart tokens (for backwards compat) */
     --chart-primary: #06b6d4;
@@ -140,29 +167,43 @@
     --font-body: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
 
-    /* Text Colors */
-    --text-primary: #f8fafc;             /* Slate-50 - primary content */
-    --text-label: #e2e8f0;              /* Slate-200 - bright labels, sub-headings */
-    --text-secondary: #94a3b8;           /* Slate-400 - labels, descriptions */
-    --text-tertiary: #64748b;            /* Slate-500 - tertiary/dimmed */
-    --text-muted: #64748b;               /* Slate-500 - truly muted */
-    --text-heading: #ffffff;             /* Pure white for headings */
+    /* Text Colors - Dynamic Mapping to Light/Dark Mode */
+    --text-primary: hsl(var(--foreground));
+    /* Adaptive primary content */
+    --text-label: hsl(var(--foreground));
+    /* Adaptive label */
+    --text-secondary: hsl(var(--muted-foreground));
+    /* Adaptive secondary */
+    --text-tertiary: hsl(var(--muted-foreground));
+    /* Adaptive tertiary */
+    --text-muted: hsl(var(--muted-foreground));
+    /* Adaptive muted */
+    --text-heading: hsl(var(--foreground));
+    /* Adaptive heading */
 
     /* Legacy text tokens (for backwards compat) */
-    --color-text-primary: #f8fafc;
-    --color-text-secondary: #94a3b8;
-    --color-text-muted: #64748b;
-    --color-text-heading: #ffffff;
+    --color-text-primary: hsl(var(--foreground));
+    --color-text-secondary: hsl(var(--muted-foreground));
+    --color-text-muted: hsl(var(--muted-foreground));
+    --color-text-heading: hsl(var(--foreground));
 
     /* Typography Scale */
-    --text-xs: 0.75rem;    /* 12px - footnotes, badges */
-    --text-sm: 0.875rem;   /* 14px - body, UI elements */
-    --text-base: 1rem;     /* 16px - primary body */
-    --text-lg: 1.125rem;   /* 18px - emphasized body */
-    --text-xl: 1.25rem;    /* 20px - section headers */
-    --text-2xl: 1.5rem;    /* 24px - page headers */
-    --text-3xl: 1.875rem;  /* 30px - hero numbers */
-    --text-4xl: 2.25rem;   /* 36px - KPI values */
+    --text-xs: 0.75rem;
+    /* 12px - footnotes, badges */
+    --text-sm: 0.875rem;
+    /* 14px - body, UI elements */
+    --text-base: 1rem;
+    /* 16px - primary body */
+    --text-lg: 1.125rem;
+    /* 18px - emphasized body */
+    --text-xl: 1.25rem;
+    /* 20px - section headers */
+    --text-2xl: 1.5rem;
+    /* 24px - page headers */
+    --text-3xl: 1.875rem;
+    /* 30px - hero numbers */
+    --text-4xl: 2.25rem;
+    /* 36px - KPI values */
 
     /* Font Weights */
     --font-normal: 400;
@@ -176,17 +217,22 @@
     --leading-relaxed: 1.625;
 
     /* Letter Spacing */
-    --tracking-tight: -0.02em;    /* Headings */
-    --tracking-normal: 0;          /* Body */
-    --tracking-wide: 0.05em;       /* Labels, uppercase */
+    --tracking-tight: -0.02em;
+    /* Headings */
+    --tracking-normal: 0;
+    /* Body */
+    --tracking-wide: 0.05em;
+    /* Labels, uppercase */
 
     /* Slate Scale - GLASS THEME COMPATIBLE */
     --color-slate-900: #ffffff;
     --color-slate-800: #F8FAFC;
     --color-slate-700: #E2E8F0;
     --color-slate-600: #CBD5E1;
-    --color-slate-500: #94A3B8;       /* Secondary text color */
-    --color-slate-400: #64748b;       /* Muted text */
+    --color-slate-500: #94A3B8;
+    /* Secondary text color */
+    --color-slate-400: #64748b;
+    /* Muted text */
     --color-slate-300: #475569;
     --color-slate-200: #334155;
     --color-slate-100: #1e293b;
@@ -216,11 +262,16 @@
     --spacing-5: 32px;
 
     /* Border Radius */
-    --radius-sm: 4px;      /* Badges, chips */
-    --radius-md: 6px;      /* Cards, inputs */
-    --radius-lg: 8px;      /* Panels, modals */
-    --radius-xl: 12px;     /* Large containers */
-    --radius-full: 9999px; /* Pills, avatars */
+    --radius-sm: 4px;
+    /* Badges, chips */
+    --radius-md: 6px;
+    /* Cards, inputs */
+    --radius-lg: 8px;
+    /* Panels, modals */
+    --radius-xl: 12px;
+    /* Large containers */
+    --radius-full: 9999px;
+    /* Pills, avatars */
 
     /* ----------------------------------------
        ELEVATION & SHADOWS
@@ -247,7 +298,9 @@
 }
 
 /* Base Body - DARK GLASS FOUNDATION */
-body {
+/* Base Body - DARK GLASS FOUNDATION */
+/* Scoped to .dark so it doesn't break light mode in V2 */
+.dark body {
     background-color: #0f172a !important;
     background-image: linear-gradient(160deg, #0f172a 0%, #1a2744 50%, #0f172a 100%) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
@@ -259,19 +312,45 @@ body {
 }
 
 /* Typography - Modern Sans-Serif Headers */
-h1, h2, h3, h4, h5, h6 {
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
     font-weight: 600 !important;
     letter-spacing: -0.025em;
-    color: #f8fafc !important;
+    /* color: var(--text-primary) !important; */
 }
 
-h1 { font-size: 1.75rem !important; font-weight: 600 !important; }
-h2 { font-size: 1.375rem !important; }
-h3 { font-size: 1.125rem !important; }
-h4 { font-size: 1rem !important; }
-h5 { font-size: 0.9375rem !important; }
-h6 { font-size: 0.875rem !important; text-transform: uppercase; letter-spacing: 0.05em; color: #e4e4e7 !important; }
+.dark h1 {
+    font-size: 1.75rem !important;
+    font-weight: 600 !important;
+}
+
+.dark h2 {
+    font-size: 1.375rem !important;
+}
+
+h3 {
+    font-size: 1.125rem !important;
+}
+
+h4 {
+    font-size: 1rem !important;
+}
+
+h5 {
+    font-size: 0.9375rem !important;
+}
+
+h6 {
+    font-size: 0.875rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #e4e4e7 !important;
+}
 
 /* ============================================
    FORCE MONOSPACE ON ALL DATA NUMBERS
@@ -402,7 +481,8 @@ td[class*="numeric"] {
     transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.dropdown-item:hover, .dropdown-item:focus {
+.dropdown-item:hover,
+.dropdown-item:focus {
     background: var(--glass-bg-hover);
     color: var(--text-primary);
 }
@@ -511,7 +591,10 @@ td[class*="numeric"] {
     border-color: #27272a !important;
 }
 
-.border-top, .border-bottom, .border-start, .border-end {
+.border-top,
+.border-bottom,
+.border-start,
+.border-end {
     border-color: #27272a !important;
 }
 
@@ -576,9 +659,21 @@ td[class*="numeric"] {
 }
 
 /* Padding variants per plan */
-.glass-panel.p-sm { padding: var(--space-2); }  /* 8px */
-.glass-panel.p-md { padding: var(--space-4); }  /* 16px - default */
-.glass-panel.p-lg { padding: var(--space-6); }  /* 24px */
+.glass-panel.p-sm {
+    padding: var(--space-2);
+}
+
+/* 8px */
+.glass-panel.p-md {
+    padding: var(--space-4);
+}
+
+/* 16px - default */
+.glass-panel.p-lg {
+    padding: var(--space-6);
+}
+
+/* 24px */
 
 /* Interactive panels */
 .glass-panel[onclick],
@@ -707,20 +802,25 @@ td[class*="numeric"] {
 }
 
 .nav-pills-bespoke .nav-link:hover {
-    color: #F8FAFC;
+    color: var(--text-primary);
     background: rgba(255, 255, 255, 0.1);
 }
 
 .nav-pills-bespoke .nav-link.active {
     background: rgba(255, 255, 255, 0.15);
-    color: #F8FAFC;
+    color: var(--text-primary);
     font-weight: 600;
 }
 
 /* Tab content fade-in on switch */
 @keyframes tab-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .tab-content-fade {
@@ -754,14 +854,30 @@ td[class*="numeric"] {
 }
 
 /* StatValue size variants per plan */
-.stat-value-sm { font-size: var(--text-lg); }
-.stat-value-md { font-size: var(--text-2xl); }
-.stat-value-lg { font-size: var(--text-3xl); }
+.stat-value-sm {
+    font-size: var(--text-lg);
+}
+
+.stat-value-md {
+    font-size: var(--text-2xl);
+}
+
+.stat-value-lg {
+    font-size: var(--text-3xl);
+}
 
 /* StatValue color variants per plan */
-.stat-value-good { color: var(--color-good); }
-.stat-value-warn { color: var(--color-warn); }
-.stat-value-bad { color: var(--color-bad); }
+.stat-value-good {
+    color: var(--color-good);
+}
+
+.stat-value-warn {
+    color: var(--color-warn);
+}
+
+.stat-value-bad {
+    color: var(--color-bad);
+}
 
 /* KPI Card - Per Plan Section 2.2 */
 .kpi-card {
@@ -1087,25 +1203,37 @@ td[class*="numeric"] {
     background: rgba(34, 197, 94, 0.1);
     color: #86efac;
 }
-.status-pill--good::before { background: #22c55e; }
+
+.status-pill--good::before {
+    background: #22c55e;
+}
 
 .status-pill--warn {
     background: rgba(245, 158, 11, 0.1);
     color: #fcd34d;
 }
-.status-pill--warn::before { background: #f59e0b; }
+
+.status-pill--warn::before {
+    background: #f59e0b;
+}
 
 .status-pill--bad {
     background: rgba(239, 68, 68, 0.1);
     color: #fca5a5;
 }
-.status-pill--bad::before { background: #ef4444; }
+
+.status-pill--bad::before {
+    background: #ef4444;
+}
 
 .status-pill--neutral {
     background: rgba(100, 116, 139, 0.1);
     color: #94a3b8;
 }
-.status-pill--neutral::before { background: #64748b; }
+
+.status-pill--neutral::before {
+    background: #64748b;
+}
 
 /* Priority Badges - Reference UI style */
 .priority-badge {
@@ -1147,22 +1275,50 @@ td[class*="numeric"] {
     flex-shrink: 0;
 }
 
-.status-dot--open { background: #3b82f6; }
-.status-dot--sourcing { background: #8b5cf6; }
-.status-dot--screening { background: #f59e0b; }
-.status-dot--interviewing { background: #06b6d4; }
-.status-dot--offer { background: #22c55e; }
-.status-dot--closed { background: #64748b; }
-.status-dot--on-hold { background: #ef4444; }
+.status-dot--open {
+    background: #3b82f6;
+}
+
+.status-dot--sourcing {
+    background: #8b5cf6;
+}
+
+.status-dot--screening {
+    background: #f59e0b;
+}
+
+.status-dot--interviewing {
+    background: #06b6d4;
+}
+
+.status-dot--offer {
+    background: #22c55e;
+}
+
+.status-dot--closed {
+    background: #64748b;
+}
+
+.status-dot--on-hold {
+    background: #ef4444;
+}
 
 /* Health Score color utility */
-.health-score--good { color: #22c55e; }
-.health-score--warn { color: #f59e0b; }
-.health-score--bad { color: #ef4444; }
+.health-score--good {
+    color: #22c55e;
+}
+
+.health-score--warn {
+    color: #f59e0b;
+}
+
+.health-score--bad {
+    color: #ef4444;
+}
 
 .table-primary {
     --bs-table-bg: rgba(245, 158, 11, 0.15);
-    --bs-table-color: #F8FAFC;
+    --bs-table-color: var(--text-primary);
     --bs-table-border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -1176,13 +1332,16 @@ td[class*="numeric"] {
 }
 
 /* Generic small text and helper text */
-small, .small {
+small,
+.small {
     color: #94A3B8;
 }
 
 /* fw-medium and fw-bold should be visible */
-.fw-medium, .fw-bold, .fw-semibold {
-    color: #F8FAFC;
+.fw-medium,
+.fw-bold,
+.fw-semibold {
+    color: var(--text-primary);
 }
 
 /* ========================================
@@ -1401,19 +1560,22 @@ small, .small {
    ============================================ */
 .badge-success-soft {
     background: rgba(34, 197, 94, 0.2);
-    color: #86efac; /* Bright green for contrast */
+    color: #86efac;
+    /* Bright green for contrast */
     font-weight: 600;
 }
 
 .badge-warning-soft {
     background: rgba(245, 158, 11, 0.2);
-    color: #fcd34d; /* Brighter yellow for contrast */
+    color: #fcd34d;
+    /* Brighter yellow for contrast */
     font-weight: 600;
 }
 
 .badge-danger-soft {
     background: rgba(239, 68, 68, 0.2);
-    color: #fca5a5; /* Lighter red for contrast */
+    color: #fca5a5;
+    /* Lighter red for contrast */
     font-weight: 600;
 }
 
@@ -1425,13 +1587,15 @@ small, .small {
 
 .badge-accent-soft {
     background: rgba(212, 163, 115, 0.2);
-    color: #fcd34d; /* Brighter amber for contrast */
+    color: #fcd34d;
+    /* Brighter amber for contrast */
     font-weight: 600;
 }
 
 .badge-primary-soft {
     background: rgba(45, 212, 191, 0.2);
-    color: #5eead4; /* Brighter teal for contrast */
+    color: #5eead4;
+    /* Brighter teal for contrast */
     font-weight: 600;
 }
 
@@ -1501,22 +1665,50 @@ small, .small {
     transition: width var(--transition-base);
 }
 
-.utilization-bar-fill.utilization-critical { background: var(--color-bad); }
-.utilization-bar-fill.utilization-warning { background: var(--color-warn); }
-.utilization-bar-fill.utilization-balanced { background: #60a5fa; }
-.utilization-bar-fill.utilization-good { background: var(--color-good); }
-.utilization-bar-fill.utilization-low { background: var(--text-secondary); }
+.utilization-bar-fill.utilization-critical {
+    background: var(--color-bad);
+}
+
+.utilization-bar-fill.utilization-warning {
+    background: var(--color-warn);
+}
+
+.utilization-bar-fill.utilization-balanced {
+    background: #60a5fa;
+}
+
+.utilization-bar-fill.utilization-good {
+    background: var(--color-good);
+}
+
+.utilization-bar-fill.utilization-low {
+    background: var(--text-secondary);
+}
 
 .utilization-value {
     font-size: 0.8rem;
     font-family: var(--font-mono);
 }
 
-.utilization-value.utilization-critical { color: var(--color-bad); }
-.utilization-value.utilization-warning { color: var(--color-warn); }
-.utilization-value.utilization-balanced { color: #60a5fa; }
-.utilization-value.utilization-good { color: var(--color-good); }
-.utilization-value.utilization-low { color: var(--text-secondary); }
+.utilization-value.utilization-critical {
+    color: var(--color-bad);
+}
+
+.utilization-value.utilization-warning {
+    color: var(--color-warn);
+}
+
+.utilization-value.utilization-balanced {
+    color: #60a5fa;
+}
+
+.utilization-value.utilization-good {
+    color: var(--color-good);
+}
+
+.utilization-value.utilization-low {
+    color: var(--text-secondary);
+}
 
 /* ============================================
    CAPACITY STATUS PANELS
@@ -1694,7 +1886,7 @@ small, .small {
     background-color: #141414 !important;
     border: 1px solid #27272a !important;
     border-radius: 2px !important;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.4) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
     max-height: 280px !important;
     overflow-y: auto !important;
     color: #e2e8f0 !important;
@@ -1865,7 +2057,8 @@ button {
 }
 
 /* Small text utility - ensure readability */
-.small, small {
+.small,
+small {
     color: #e4e4e7 !important;
 }
 
@@ -1892,7 +2085,7 @@ button {
     background: rgba(30, 41, 59, 0.5) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
     border-radius: 6px !important;
-    color: #F8FAFC !important;
+    color: var(--text-primary) !important;
 }
 
 .modal-body .form-control:focus,
@@ -2121,9 +2314,20 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 @keyframes logoBreathe {
-    0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
-    50% { transform: scale(1.15) rotate(180deg); opacity: 1; }
-    100% { transform: scale(1) rotate(360deg); opacity: 0.7; }
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.15) rotate(180deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1) rotate(360deg);
+        opacity: 0.7;
+    }
 }
 
 /* ========================================
@@ -2499,7 +2703,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     align-items: center;
     padding: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f8fafc;
+    color: var(--text-primary);
 }
 
 .mobile-menu-header .btn-close {
@@ -2731,7 +2935,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     }
 
     .card-header {
-        background: #f8fafc !important;
+        background: var(--text-primary) !important;
         border-bottom: 1px solid #e2e8f0 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -2822,7 +3026,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     }
 
     .table-bespoke thead th {
-        background: #f8fafc !important;
+        background: var(--text-primary) !important;
         border-bottom: 2px solid #e2e8f0 !important;
         color: var(--color-slate-600, #475569) !important;
         font-size: 7pt !important;
@@ -3000,21 +3204,58 @@ button:active,
 /* ========================================
    TEXT UTILITY CLASSES - Per Plan
    ======================================== */
-.text-good { color: var(--color-good) !important; }
-.text-warn { color: var(--color-warn) !important; }
-.text-bad { color: var(--color-bad) !important; }
-.text-accent { color: var(--accent) !important; }
-.text-neutral { color: var(--color-neutral) !important; }
+.text-good {
+    color: var(--color-good) !important;
+}
+
+.text-warn {
+    color: var(--color-warn) !important;
+}
+
+.text-bad {
+    color: var(--color-bad) !important;
+}
+
+.text-accent {
+    color: var(--accent) !important;
+}
+
+.text-neutral {
+    color: var(--color-neutral) !important;
+}
 
 /* Typography size utilities */
-.text-xs { font-size: var(--text-xs) !important; }
-.text-sm { font-size: var(--text-sm) !important; }
-.text-base { font-size: var(--text-base) !important; }
-.text-lg { font-size: var(--text-lg) !important; }
-.text-xl { font-size: var(--text-xl) !important; }
-.text-2xl { font-size: var(--text-2xl) !important; }
-.text-3xl { font-size: var(--text-3xl) !important; }
-.text-4xl { font-size: var(--text-4xl) !important; }
+.text-xs {
+    font-size: var(--text-xs) !important;
+}
+
+.text-sm {
+    font-size: var(--text-sm) !important;
+}
+
+.text-base {
+    font-size: var(--text-base) !important;
+}
+
+.text-lg {
+    font-size: var(--text-lg) !important;
+}
+
+.text-xl {
+    font-size: var(--text-xl) !important;
+}
+
+.text-2xl {
+    font-size: var(--text-2xl) !important;
+}
+
+.text-3xl {
+    font-size: var(--text-3xl) !important;
+}
+
+.text-4xl {
+    font-size: var(--text-4xl) !important;
+}
 
 /* ========================================
    CTA LINK PATTERNS - Per Plan Section 4.3
@@ -3076,7 +3317,7 @@ button:active,
 .text-black,
 .text-slate-800,
 .text-slate-900 {
-    color: #F8FAFC !important;
+    color: var(--text-primary) !important;
 }
 
 .bg-success {
@@ -3129,17 +3370,20 @@ button:active,
 /* Clean up Bootstrap badge colors - Dark mode with high-contrast text */
 .badge.bg-success {
     background-color: rgba(34, 197, 94, 0.2) !important;
-    color: #86efac !important; /* Bright green for contrast */
+    color: #86efac !important;
+    /* Bright green for contrast */
 }
 
 .badge.bg-danger {
     background-color: rgba(239, 68, 68, 0.2) !important;
-    color: #fca5a5 !important; /* Lighter red for contrast */
+    color: #fca5a5 !important;
+    /* Lighter red for contrast */
 }
 
 .badge.bg-warning {
     background-color: rgba(245, 158, 11, 0.2) !important;
-    color: #fcd34d !important; /* Brighter yellow for contrast */
+    color: #fcd34d !important;
+    /* Brighter yellow for contrast */
 }
 
 .badge.bg-secondary {
@@ -3149,7 +3393,8 @@ button:active,
 
 .badge.bg-primary {
     background-color: rgba(212, 163, 115, 0.2) !important;
-    color: #fcd34d !important; /* Brighter amber for contrast */
+    color: #fcd34d !important;
+    /* Brighter amber for contrast */
 }
 
 /* Fix number colors in tables - Dark mode */
@@ -3178,12 +3423,21 @@ td.text-success {
    GLOBAL CONTRAST SAFETY - HIGH CONTRAST GLASS
    ============================================ */
 /* RULE 1: All primary text must be white/off-white */
-body, p, span, div, li, label {
-    color: #F8FAFC;
+body,
+p,
+span,
+div,
+li,
+label {
+    color: var(--text-primary);
 }
 
 /* RULE 2: Headings must be pure white */
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
     color: #ffffff !important;
 }
 
@@ -3212,7 +3466,7 @@ aside {
 
 /* RULE 6: Ensure button text is readable */
 .btn {
-    color: #F8FAFC;
+    color: var(--text-primary);
 }
 
 /* Ensure bespoke buttons have full styling including backgrounds */
@@ -3224,7 +3478,7 @@ aside {
 
 .btn.btn-bespoke-secondary {
     background: rgba(255, 255, 255, 0.1) !important;
-    color: #F8FAFC !important;
+    color: var(--text-primary) !important;
     border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
@@ -3237,12 +3491,12 @@ aside {
 }
 
 .dropdown-item {
-    color: #F8FAFC;
+    color: var(--text-primary);
 }
 
 .dropdown-item:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: #F8FAFC;
+    color: var(--text-primary);
 }
 
 /* RULE 8: Modal glass effect */
@@ -3251,14 +3505,14 @@ aside {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #F8FAFC;
+    color: var(--text-primary);
 }
 
 /* RULE 9: List items glass */
 .list-group-item {
     background: rgba(30, 41, 59, 0.5);
     border-color: rgba(255, 255, 255, 0.1);
-    color: #F8FAFC;
+    color: var(--text-primary);
 }
 
 /* RULE 10: Filter panel glass */
@@ -3272,11 +3526,11 @@ aside {
 }
 
 .filter-toggle-btn:hover {
-    color: #F8FAFC;
+    color: var(--text-primary);
 }
 
 .filter-chip {
-    color: #F8FAFC;
+    color: var(--text-primary);
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -3286,7 +3540,7 @@ aside {
 }
 
 .date-preset-btn:hover {
-    color: #F8FAFC;
+    color: var(--text-primary);
 }
 
 .date-preset-btn.active {
@@ -3299,7 +3553,7 @@ aside {
     background: rgba(30, 41, 59, 0.95) !important;
     backdrop-filter: blur(12px) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    color: #F8FAFC !important;
+    color: var(--text-primary) !important;
 }
 
 /* RULE 12: Date inputs */
@@ -3307,7 +3561,7 @@ input[type="date"],
 input[type="datetime-local"],
 input[type="time"] {
     background: transparent !important;
-    color: #F8FAFC !important;
+    color: var(--text-primary) !important;
     border: none !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
@@ -3320,9 +3574,12 @@ input[type="time"] {
 }
 
 @keyframes ai-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
     }
+
     50% {
         box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.3);
     }
@@ -3359,8 +3616,15 @@ input[type="time"] {
 }
 
 @keyframes ai-fade {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 /* ========================================
@@ -3910,8 +4174,8 @@ input[type="time"] {
 }
 
 /* Glass panel INSIDE each face - this gets the backdrop-filter */
-.oracle-flip-front > .oracle-glass-inner,
-.oracle-flip-back > .oracle-glass-inner {
+.oracle-flip-front>.oracle-glass-inner,
+.oracle-flip-back>.oracle-glass-inner {
     height: 100%;
     background: var(--glass-bg, rgba(30, 41, 59, 0.7));
     backdrop-filter: blur(12px);
@@ -3924,7 +4188,7 @@ input[type="time"] {
 }
 
 /* Back side inner needs overflow-y for scrolling */
-.oracle-flip-back > .oracle-glass-inner {
+.oracle-flip-back>.oracle-glass-inner {
     overflow-y: auto;
     max-height: 100%;
 }

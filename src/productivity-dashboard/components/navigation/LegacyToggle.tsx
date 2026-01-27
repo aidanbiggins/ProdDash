@@ -1,5 +1,6 @@
 // LegacyToggle - Toggle to switch between new and legacy navigation
 import React from 'react';
+import { ToggleSwitch } from '../../../components/ui/toggles';
 import './navigation.css';
 
 const LEGACY_NAV_KEY = 'platovue_use_legacy_nav';
@@ -11,16 +12,13 @@ export interface LegacyToggleProps {
 
 export function LegacyToggle({ useLegacyNav, onToggle }: LegacyToggleProps) {
   return (
-    <div className="legacy-toggle-wrapper">
-      <label className="legacy-toggle">
-        <input
-          type="checkbox"
-          checked={useLegacyNav}
-          onChange={onToggle}
-        />
-        <span className="legacy-toggle-slider" />
-        <span className="legacy-toggle-label">Use Classic Navigation</span>
-      </label>
+    <div className="legacy-toggle-wrapper flex items-center gap-3">
+      <ToggleSwitch
+        checked={useLegacyNav}
+        onChange={onToggle}
+        size="sm"
+      />
+      <span className="text-sm text-white/70">Use Classic Navigation</span>
     </div>
   );
 }

@@ -56,35 +56,35 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
   );
 }
 
-// Map status to CSS class
+// Map status to Tailwind classes
 const STATUS_CLASS: Record<string, { panel: string; badge: string; label: string }> = {
-  understaffed: { panel: 'capacity-status-understaffed', badge: 'badge-danger-soft', label: 'Understaffed' },
-  overstaffed: { panel: 'capacity-status-overstaffed', badge: 'badge-warning-soft', label: 'Overstaffed' },
-  balanced: { panel: 'capacity-status-balanced', badge: 'badge-success-soft', label: 'Balanced' }
+  understaffed: { panel: 'bg-bad-bg border border-bad/30', badge: 'bg-bad-bg text-bad', label: 'Understaffed' },
+  overstaffed: { panel: 'bg-warn-bg border border-warn/30', badge: 'bg-warn-bg text-warn', label: 'Overstaffed' },
+  balanced: { panel: 'bg-good-bg border border-good/30', badge: 'bg-good-bg text-good', label: 'Balanced' }
 };
 
 export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
   const statusStyle = STATUS_CLASS[summary.status] || STATUS_CLASS.balanced;
 
   return (
-    <div className="card-bespoke">
-      <div className="card-header flex justify-between items-center">
-        <h6 className="mb-0">
+    <div className="rounded-lg border border-glass-border bg-bg-glass">
+      <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
+        <h6 className="text-sm font-semibold text-foreground">
           <i className="bi bi-people mr-2"></i>
           Team Capacity Overview
         </h6>
         <ConfidenceBadge confidence={summary.confidence} />
       </div>
 
-      <div className="card-body">
+      <div className="p-4">
         <CapacityGauge demand={summary.teamDemand} capacity={summary.teamCapacity} />
 
-        <div className={`text-center p-3 rounded mb-3 capacity-status-panel ${statusStyle.panel}`}>
-          <div className="stat-label text-muted-foreground">Capacity Gap</div>
-          <div className="stat-value capacity-gap-value">
+        <div className={`text-center p-3 rounded-lg mb-3 ${statusStyle.panel}`}>
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Capacity Gap</div>
+          <div className="font-mono text-3xl font-semibold text-foreground mt-1">
             {summary.capacityGap > 0 ? '+' : ''}{summary.capacityGap} WU
           </div>
-          <div className="text-sm mt-1">
+          <div className="text-sm mt-2">
             <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusStyle.badge}`}>
               {Math.abs(summary.capacityGapPercent)}% {statusStyle.label}
             </span>
@@ -94,14 +94,14 @@ export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
         {summary.topDrivers.length > 0 && (
           <div>
             <div className="text-sm text-muted-foreground mb-2">Top Drivers:</div>
-            <ul className="list-none text-sm mb-0">
+            <ul className="list-none text-sm space-y-1">
               {summary.topDrivers.map((driver, i) => (
-                <li key={i} className="flex justify-between mb-1">
-                  <span>
+                <li key={i} className="flex justify-between">
+                  <span className="text-foreground">
                     <i className="bi bi-dot"></i>
                     {driver.description}
                   </span>
-                  <span className="text-muted-foreground">+{driver.impactWU} WU</span>
+                  <span className="text-muted-foreground font-mono">+{driver.impactWU} WU</span>
                 </li>
               ))}
             </ul>

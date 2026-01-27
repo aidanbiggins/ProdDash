@@ -134,7 +134,7 @@
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.025em;
-  color: #f8fafc;
+  color: var(--text-primary);
   cursor: pointer;
   transition: color 0.15s ease;
 }
@@ -203,7 +203,7 @@
 
 .nav-bucket-btn.active {
   background: transparent;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .nav-bucket-btn.active::after {
@@ -279,7 +279,7 @@
 
 .nav-dropdown.active .nav-dropdown-trigger {
   background: transparent;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .nav-dropdown.active .nav-dropdown-trigger::after {
@@ -348,7 +348,7 @@
 .nav-dropdown-item:hover,
 .nav-dropdown-item.focused {
   background: rgba(255, 255, 255, 0.06);
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .nav-dropdown-item.active {

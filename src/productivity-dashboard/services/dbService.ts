@@ -119,6 +119,9 @@ export interface ImportProgress {
 
 export type ImportProgressCallback = (progress: ImportProgress) => void;
 
+// Timeout for database upsert operations (per chunk)
+const UPSERT_TIMEOUT_MS = 30000; // 30 seconds per chunk
+
 // Helper for chunked upserts with progress logging
 async function chunkedUpsert(
     table: string,
@@ -141,16 +144,38 @@ async function chunkedUpsert(
         const chunkNum = Math.floor(i / chunkSize) + 1;
         const chunk = data.slice(i, i + chunkSize);
 
-        if (chunkNum % 10 === 0 || chunkNum === totalChunks) {
-            console.log(`[DB] ${table}: chunk ${chunkNum}/${totalChunks}...`);
-        }
+        console.log(`[DB] ${table}: chunk ${chunkNum}/${totalChunks} (${chunk.length} rows)...`);
 
         const client = getSupabaseClient();
         if (!client) throw new Error("Supabase client not configured");
-        const { error } = await client.from(table).upsert(chunk);
-        if (error) {
-            console.error(`[DB] Error upserting to ${table} (chunk ${chunkNum}):`, error);
-            throw error;
+
+        try {
+            // Wrap the upsert in a promise with timeout
+            const upsertPromise = new Promise<{ error: { message: string; hint?: string; code?: string } | null }>((resolve, reject) => {
+                client.from(table).upsert(chunk).then(resolve, reject);
+            });
+
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error(
+                        `Database operation timed out after ${UPSERT_TIMEOUT_MS/1000}s: upsert to ${table} chunk ${chunkNum}/${totalChunks}. ` +
+                        'This usually indicates RLS policy issues. Run migration 015 in Supabase SQL Editor.'
+                    ));
+                }, UPSERT_TIMEOUT_MS);
+            });
+
+            const result = await Promise.race([upsertPromise, timeoutPromise]);
+
+            if (result.error) {
+                console.error(`[DB] Error upserting to ${table} (chunk ${chunkNum}):`, result.error);
+                throw new Error(`Failed to upsert to ${table}: ${result.error.message}${result.error.hint ? ` (Hint: ${result.error.hint})` : ''}`);
+            }
+        } catch (err) {
+            // Re-throw with more context
+            if (err instanceof Error && err.message.includes('timed out')) {
+                throw err;
+            }
+            throw new Error(`Database error on ${table}: ${err instanceof Error ? err.message : String(err)}`);
         }
 
         rowsUpserted += chunk.length;

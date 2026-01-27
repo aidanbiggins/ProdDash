@@ -214,8 +214,8 @@ export const CommandCenterView: React.FC<CommandCenterViewProps> = (props) => {
   const confidenceClass = factPack.meta.confidence === 'HIGH'
     ? 'cc-header__confidence-value--high'
     : factPack.meta.confidence === 'MED'
-    ? 'cc-header__confidence-value--med'
-    : 'cc-header__confidence-value--low';
+      ? 'cc-header__confidence-value--med'
+      : 'cc-header__confidence-value--low';
 
   return (
     <div className="cc-view command-center-view">

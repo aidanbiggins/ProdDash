@@ -189,6 +189,10 @@ export interface PriorPeriodMetrics {
   hires: number;
   weightedHires: number;
   offers: number;
+  acceptRate: number | null;
+  medianTTF: number | null;
+  stalledReqCount: number;
+  avgProductivity: number | null;
   label: string;  // e.g., "prior 90d"
 }
 

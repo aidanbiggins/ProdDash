@@ -14,6 +14,7 @@ import {
 import { generateUltimateDemo, getDemoStoryPatterns, computeDemoCoverage, DemoStoryPattern } from '../../services/ultimateDemoGenerator';
 import { evaluateCapabilities, FEATURE_REGISTRY } from '../../services/capabilityEngine';
 import { CapabilityStatus, FeatureCoverageEntry } from '../../types/capabilityTypes';
+import { Checkbox } from '../../../components/ui/toggles';
 
 interface UltimateDemoModalProps {
   isOpen: boolean;
@@ -95,13 +96,13 @@ export function UltimateDemoModal({
 
       {/* Modal */}
       <div
-        className="fixed inset-0 flex items-center justify-center z-[1055]"
+        className="fixed inset-0 flex items-center justify-center z-[1055] p-4"
         tabIndex={-1}
         role="dialog"
       >
-        <div className="w-full max-w-3xl mx-4">
+        <div className="w-full max-w-3xl max-h-[90vh] flex flex-col">
           <div
-            className="rounded-2xl overflow-hidden"
+            className="rounded-2xl overflow-hidden flex flex-col max-h-full"
             style={{
               background: 'linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-bg-base) 100%)',
               border: '1px solid var(--accent-border)',
@@ -109,7 +110,7 @@ export function UltimateDemoModal({
             }}
           >
             {/* Header */}
-            <div className="px-6 pt-6 pb-4 border-0">
+            <div className="px-6 pt-6 pb-4 border-0 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div
                   className="flex items-center justify-center w-12 h-12 rounded-xl"
@@ -140,7 +141,7 @@ export function UltimateDemoModal({
             </div>
 
             {/* Body */}
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 overflow-y-auto flex-1 min-h-0">
               {/* Presets */}
               <div className="mb-4">
                 <h6 className="mb-3 text-xs uppercase tracking-wider" style={{ color: 'var(--text-label)' }}>
@@ -226,7 +227,7 @@ export function UltimateDemoModal({
             </div>
 
             {/* Footer */}
-            <div className="px-6 pb-6 pt-0 flex justify-end gap-3">
+            <div className="px-6 pb-6 pt-4 flex justify-end gap-3 flex-shrink-0 border-t border-white/10">
               <button
                 type="button"
                 className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-glass-border"
@@ -331,16 +332,10 @@ function PackToggle({
       onClick={disabled ? undefined : onToggle}
     >
       <div className="mt-0.5" onClick={(e) => e.stopPropagation()}>
-        <input
-          type="checkbox"
-          className="w-4 h-4 rounded"
+        <Checkbox
           checked={enabled}
           onChange={onToggle}
           disabled={disabled}
-          style={{
-            backgroundColor: enabled ? 'var(--accent)' : 'var(--color-bg-surface)',
-            borderColor: enabled ? 'var(--accent)' : 'var(--glass-border-strong)',
-          }}
         />
       </div>
       <div className="flex-1 min-w-0">

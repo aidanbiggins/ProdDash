@@ -17,6 +17,7 @@ import {
   DataHygieneExclusions,
   DEFAULT_HYGIENE_SETTINGS
 } from '../../types/dataHygieneTypes';
+import { Checkbox } from '../../../components/ui/toggles';
 import {
   assessAllReqHealth,
   detectGhostCandidates,
@@ -34,12 +35,12 @@ interface DataHealthTabProps {
   onToggleExclusion: (reqId: string) => void;
 }
 
-// Status colors for dark mode
-const STATUS_COLORS: Record<ReqHealthStatus, { bg: string; text: string; border: string }> = {
-  [ReqHealthStatus.ACTIVE]: { bg: 'rgba(16, 185, 129, 0.15)', text: '#34d399', border: '#10b981' },
-  [ReqHealthStatus.STALLED]: { bg: 'rgba(245, 158, 11, 0.15)', text: '#fbbf24', border: '#f59e0b' },
-  [ReqHealthStatus.ZOMBIE]: { bg: 'rgba(239, 68, 68, 0.15)', text: '#f87171', border: '#ef4444' },
-  [ReqHealthStatus.AT_RISK]: { bg: 'rgba(168, 85, 247, 0.15)', text: '#c084fc', border: '#a855f7' }
+// Status Tailwind classes for dark mode
+const STATUS_CLASSES: Record<ReqHealthStatus, { bg: string; text: string; border: string }> = {
+  [ReqHealthStatus.ACTIVE]: { bg: 'bg-good-bg', text: 'text-good', border: 'border-good' },
+  [ReqHealthStatus.STALLED]: { bg: 'bg-warn-bg', text: 'text-warn', border: 'border-warn' },
+  [ReqHealthStatus.ZOMBIE]: { bg: 'bg-bad-bg', text: 'text-bad', border: 'border-bad' },
+  [ReqHealthStatus.AT_RISK]: { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500' }
 };
 
 const STATUS_LABELS: Record<ReqHealthStatus, string> = {
@@ -131,15 +132,12 @@ export function DataHealthTab({
       <div className="grid grid-cols-12 gap-3 mb-4">
         {/* Hygiene Score */}
         <div className="col-span-12 md:col-span-3">
-          <div className="card-bespoke h-full">
-            <div className="card-body text-center py-4">
-              <StatLabel className="mb-2">Data Hygiene Score</StatLabel>
-              <StatValue
-                color={summary.hygieneScore >= 80 ? 'success' :
-                  summary.hygieneScore >= 60 ? 'warning' : 'danger'}
-              >
+          <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+            <div className="text-center py-6 px-4">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Data Hygiene Score</div>
+              <div className={`font-mono text-4xl font-bold ${summary.hygieneScore >= 80 ? 'text-good' : summary.hygieneScore >= 60 ? 'text-warn' : 'text-bad'}`}>
                 {summary.hygieneScore}
-              </StatValue>
+              </div>
               <div className="text-sm text-muted-foreground mt-1">out of 100</div>
             </div>
           </div>
@@ -147,20 +145,20 @@ export function DataHealthTab({
 
         {/* TTF Comparison */}
         <div className="col-span-12 md:col-span-3">
-          <div className="card-bespoke h-full">
-            <div className="card-body text-center py-4">
-              <StatLabel className="mb-2">True TTF vs Raw</StatLabel>
+          <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+            <div className="text-center py-6 px-4">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">True TTF vs Raw</div>
               <div className="flex justify-center items-baseline gap-2">
-                <StatValue size="sm" className="text-cyan-500">
+                <span className="font-mono text-3xl font-bold text-cyan-400">
                   {summary.trueMedianTTF !== null ? `${summary.trueMedianTTF}d` : '—'}
-                </StatValue>
-                <span style={{ color: '#71717a' }}>/</span>
-                <span className="stat-value stat-value-sm" style={{ color: '#94A3B8' }}>
+                </span>
+                <span className="text-zinc-500">/</span>
+                <span className="font-mono text-xl text-slate-400">
                   {summary.rawMedianTTF !== null ? `${summary.rawMedianTTF}d` : '—'}
                 </span>
               </div>
               {summary.ttfDifferencePercent !== null && (
-                <div className="text-sm mt-1 text-success">
+                <div className="text-sm mt-1 text-good">
                   {summary.ttfDifferencePercent.toFixed(0)}% faster when clean
                 </div>
               )}
@@ -171,15 +169,12 @@ export function DataHealthTab({
         {/* Zombie Count */}
         <div className="col-span-12 md:col-span-3">
           <div
-            className="card-bespoke h-full cursor-pointer"
+            className={`rounded-lg border bg-bg-glass h-full cursor-pointer transition-colors hover:bg-white/5 ${activeFilter === ReqHealthStatus.ZOMBIE ? 'border-l-[3px] border-l-bad border-glass-border' : 'border-glass-border'}`}
             onClick={() => setActiveFilter(activeFilter === ReqHealthStatus.ZOMBIE ? 'ALL' : ReqHealthStatus.ZOMBIE)}
-            style={{
-              borderLeft: activeFilter === ReqHealthStatus.ZOMBIE ? '3px solid #ef4444' : undefined
-            }}
           >
-            <div className="card-body text-center py-4">
-              <StatLabel className="mb-2">Zombie Reqs</StatLabel>
-              <StatValue color="danger">{summary.zombieReqCount}</StatValue>
+            <div className="text-center py-6 px-4">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Zombie Reqs</div>
+              <div className="font-mono text-4xl font-bold text-bad">{summary.zombieReqCount}</div>
               <div className="text-sm text-muted-foreground mt-1">30+ days inactive</div>
             </div>
           </div>
@@ -188,17 +183,14 @@ export function DataHealthTab({
         {/* Ghost Candidates */}
         <div className="col-span-12 md:col-span-3">
           <div
-            className="card-bespoke h-full cursor-pointer"
+            className={`rounded-lg border bg-bg-glass h-full cursor-pointer transition-colors hover:bg-white/5 ${showGhostCandidates ? 'border-l-[3px] border-l-purple-500 border-glass-border' : 'border-glass-border'}`}
             onClick={() => setShowGhostCandidates(!showGhostCandidates)}
-            style={{
-              borderLeft: showGhostCandidates ? '3px solid #a855f7' : undefined
-            }}
           >
-            <div className="card-body text-center py-4">
-              <StatLabel className="mb-2">Ghost Candidates</StatLabel>
-              <span className="stat-value" style={{ color: '#c084fc' }}>
+            <div className="text-center py-6 px-4">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Ghost Candidates</div>
+              <div className="font-mono text-4xl font-bold text-purple-400">
                 {summary.stagnantCandidateCount + summary.abandonedCandidateCount}
-              </span>
+              </div>
               <div className="text-sm text-muted-foreground mt-1">10+ days stuck</div>
             </div>
           </div>
@@ -209,7 +201,7 @@ export function DataHealthTab({
       <div className="flex gap-2 mb-4 flex-wrap">
         <button
           type="button"
-          className={`px-3 py-1.5 text-xs ${activeFilter === 'ALL' ? 'btn-bespoke' : 'btn-bespoke-secondary'}`}
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === 'ALL' ? 'bg-accent text-accent-foreground' : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10 border border-white/10'}`}
           onClick={() => setActiveFilter('ALL')}
         >
           All ({displayAssessments.length})
@@ -220,18 +212,13 @@ export function DataHealthTab({
             return req?.status === RequisitionStatus.Open && a.status === status;
           }).length;
           if (count === 0) return null;
-          const colors = STATUS_COLORS[status as ReqHealthStatus];
+          const classes = STATUS_CLASSES[status as ReqHealthStatus];
           return (
             <button
               key={status}
               type="button"
-              className="px-3 py-1.5 text-xs"
+              className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${activeFilter === status ? `${classes.bg} ${classes.border} ${classes.text}` : 'bg-transparent border-zinc-700 text-slate-400 hover:border-zinc-600'}`}
               onClick={() => setActiveFilter(activeFilter === status ? 'ALL' : status as ReqHealthStatus)}
-              style={{
-                background: activeFilter === status ? colors.bg : 'transparent',
-                border: `1px solid ${activeFilter === status ? colors.border : '#27272a'}`,
-                color: activeFilter === status ? colors.text : '#94A3B8'
-              }}
             >
               {label} ({count})
             </button>
@@ -241,181 +228,60 @@ export function DataHealthTab({
 
       {/* Ghost Candidates Panel */}
       {showGhostCandidates && (
-        <div className="card-bespoke mb-4">
-          <div className="card-header flex justify-between items-center">
-            <h6 className="mb-0">
-              <span style={{ marginRight: '0.5rem' }}>👻</span>
+        <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+          <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
+            <h6 className="text-sm font-semibold text-foreground">
+              <span className="mr-2">👻</span>
               Ghost Candidates
             </h6>
             <button
               type="button"
-              className="btn-bespoke-secondary px-3 py-1.5 text-xs"
+              className="px-3 py-1.5 text-xs font-medium rounded-md bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10 border border-white/10 transition-colors"
               onClick={() => setShowGhostCandidates(false)}
             >
               Close
             </button>
           </div>
-          <div className="card-body p-0">
-            <div className="overflow-x-auto">
-              <table className="table table-bespoke mb-0">
-                <thead>
-                  <tr>
-                    <th>Candidate</th>
-                    <th>Requisition</th>
-                    <th>Stage</th>
-                    <th className="text-right">Days Stuck</th>
-                    <th>Recruiter</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ghostCandidates.slice(0, 50).map(ghost => (
-                    <tr key={ghost.candidateId}>
-                      <td className="font-medium">{ghost.candidateName || ghost.candidateId}</td>
-                      <td>
-                        <div className="truncate" style={{ maxWidth: 200 }} title={ghost.reqTitle}>
-                          {ghost.reqTitle}
-                        </div>
-                        <span className="text-sm text-muted-foreground">{ghost.reqId}</span>
-                      </td>
-                      <td>{ghost.currentStage}</td>
-                      <td className="text-right">
-                        <span
-                          style={{
-                            color: ghost.daysInCurrentStage >= 30 ? '#f87171' : '#fbbf24',
-                            fontFamily: "'JetBrains Mono', monospace"
-                          }}
-                        >
-                          {ghost.daysInCurrentStage}d
-                        </span>
-                      </td>
-                      <td className="text-muted-foreground">{ghost.recruiterName}</td>
-                      <td>
-                        <span
-                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                          style={{
-                            background: ghost.status === 'ABANDONED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                            color: ghost.status === 'ABANDONED' ? '#f87171' : '#fbbf24'
-                          }}
-                        >
-                          {ghost.status === 'ABANDONED' ? 'Abandoned' : 'Stagnant'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                  {ghostCandidates.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="text-center text-muted-foreground py-4">
-                        No ghost candidates found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Requisition Health Table */}
-      <div className="card-bespoke">
-        <div className="card-header flex justify-between items-center">
-          <h6 className="mb-0">
-            Requisition Health Status
-            <span className="badge-bespoke badge-neutral-soft ml-2">
-              {displayAssessments.length} reqs
-            </span>
-          </h6>
-          <div className="text-sm text-muted-foreground">
-            Toggle "Exclude" to remove from TTF calculations
-          </div>
-        </div>
-        <div className="card-body p-0">
           <div className="overflow-x-auto">
-            <table className="table table-bespoke mb-0">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th style={{ width: 80 }}>Status</th>
-                  <th>Requisition</th>
-                  <th>Recruiter</th>
-                  <th>HM</th>
-                  <th className="text-right">Days Open</th>
-                  <th className="text-right">Last Activity</th>
-                  <th className="text-right">Candidates</th>
-                  <th className="text-center">Exclude</th>
+                <tr className="border-b border-white/10">
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Candidate</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Requisition</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Stage</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Days Stuck</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Recruiter</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
                 </tr>
               </thead>
-              <tbody>
-                {displayAssessments.slice(0, 100).map(assessment => {
-                  const req = reqMap.get(assessment.reqId);
-                  if (!req) return null;
-                  const recruiter = userMap.get(req.recruiter_id);
-                  const hm = userMap.get(req.hiring_manager_id);
-                  const colors = STATUS_COLORS[assessment.status];
-                  const isExcluded = excludedReqIds.has(assessment.reqId);
-
-                  return (
-                    <tr
-                      key={assessment.reqId}
-                      style={{ opacity: isExcluded ? 0.5 : 1 }}
-                    >
-                      <td>
-                        <span
-                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                          style={{
-                            background: colors.bg,
-                            color: colors.text,
-                            border: `1px solid ${colors.border}`
-                          }}
-                        >
-                          {STATUS_LABELS[assessment.status]}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="font-medium truncate" style={{ maxWidth: 250 }} title={req.req_title}>
-                          {req.req_title}
-                        </div>
-                        <span className="text-sm text-muted-foreground">{req.req_id}</span>
-                      </td>
-                      <td className="text-muted-foreground">{recruiter?.name || req.recruiter_id}</td>
-                      <td className="text-muted-foreground">{hm?.name || req.hiring_manager_id}</td>
-                      <td className="text-right" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                        {assessment.daysOpen}d
-                      </td>
-                      <td className="text-right">
-                        {assessment.daysSinceLastActivity !== null ? (
-                          <span
-                            style={{
-                              color: assessment.daysSinceLastActivity >= 30 ? '#f87171' :
-                                assessment.daysSinceLastActivity >= 14 ? '#fbbf24' : '#94A3B8',
-                              fontFamily: "'JetBrains Mono', monospace"
-                            }}
-                          >
-                            {assessment.daysSinceLastActivity}d ago
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="text-right" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                        {assessment.activeCandidateCount}
-                      </td>
-                      <td className="text-center">
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 cursor-pointer"
-                          checked={isExcluded}
-                          onChange={() => onToggleExclusion(assessment.reqId)}
-                          title={isExcluded ? 'Include in metrics' : 'Exclude from metrics'}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-                {displayAssessments.length === 0 && (
+              <tbody className="divide-y divide-white/5">
+                {ghostCandidates.slice(0, 50).map(ghost => (
+                  <tr key={ghost.candidateId} className="hover:bg-white/5">
+                    <td className="px-4 py-3 font-medium text-foreground">{ghost.candidateName || ghost.candidateId}</td>
+                    <td className="px-4 py-3">
+                      <div className="truncate max-w-[200px]" title={ghost.reqTitle}>
+                        {ghost.reqTitle}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{ghost.reqId}</span>
+                    </td>
+                    <td className="px-4 py-3 text-foreground">{ghost.currentStage}</td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`font-mono ${ghost.daysInCurrentStage >= 30 ? 'text-bad' : 'text-warn'}`}>
+                        {ghost.daysInCurrentStage}d
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{ghost.recruiterName}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${ghost.status === 'ABANDONED' ? 'bg-bad-bg text-bad' : 'bg-warn-bg text-warn'}`}>
+                        {ghost.status === 'ABANDONED' ? 'Abandoned' : 'Stagnant'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {ghostCandidates.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="text-center text-muted-foreground py-5">
-                      No requisitions match the current filter
+                    <td colSpan={6} className="text-center text-muted-foreground py-8">
+                      No ghost candidates found
                     </td>
                   </tr>
                 )}
@@ -423,50 +289,140 @@ export function DataHealthTab({
             </table>
           </div>
         </div>
+      )}
+
+      {/* Requisition Health Table */}
+      <div className="rounded-lg border border-glass-border bg-bg-glass">
+        <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
+          <h6 className="text-sm font-semibold text-foreground">
+            Requisition Health Status
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-white/10 text-muted-foreground ml-2">
+              {displayAssessments.length} reqs
+            </span>
+          </h6>
+          <div className="text-sm text-muted-foreground">
+            Toggle "Exclude" to remove from TTF calculations
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground w-[80px]">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Requisition</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Recruiter</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">HM</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Days Open</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Last Activity</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Candidates</th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">Exclude</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {displayAssessments.slice(0, 100).map(assessment => {
+                const req = reqMap.get(assessment.reqId);
+                if (!req) return null;
+                const recruiter = userMap.get(req.recruiter_id);
+                const hm = userMap.get(req.hiring_manager_id);
+                const classes = STATUS_CLASSES[assessment.status];
+                const isExcluded = excludedReqIds.has(assessment.reqId);
+
+                return (
+                  <tr
+                    key={assessment.reqId}
+                    className={`hover:bg-white/5 ${isExcluded ? 'opacity-50' : ''}`}
+                  >
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${classes.bg} ${classes.text} border ${classes.border}`}>
+                        {STATUS_LABELS[assessment.status]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-foreground truncate max-w-[250px]" title={req.req_title}>
+                        {req.req_title}
+                      </div>
+                      <span className="text-xs text-muted-foreground">{req.req_id}</span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{recruiter?.name || req.recruiter_id}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{hm?.name || req.hiring_manager_id}</td>
+                    <td className="px-4 py-3 text-right font-mono text-foreground">
+                      {assessment.daysOpen}d
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {assessment.daysSinceLastActivity !== null ? (
+                        <span className={`font-mono ${assessment.daysSinceLastActivity >= 30 ? 'text-bad' : assessment.daysSinceLastActivity >= 14 ? 'text-warn' : 'text-muted-foreground'}`}>
+                          {assessment.daysSinceLastActivity}d ago
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-foreground">
+                      {assessment.activeCandidateCount}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <Checkbox
+                        checked={isExcluded}
+                        onChange={() => onToggleExclusion(assessment.reqId)}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+              {displayAssessments.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-center text-muted-foreground py-8">
+                    No requisitions match the current filter
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         {displayAssessments.length > 100 && (
-          <div className="card-footer text-muted-foreground text-center text-sm">
+          <div className="px-4 py-3 border-t border-white/10 text-muted-foreground text-center text-sm">
             Showing first 100 of {displayAssessments.length} requisitions
           </div>
         )}
       </div>
 
       {/* Interpretation Guide */}
-      <div className="card-bespoke mt-4">
-        <div className="card-header">
-          <h6 className="mb-0" style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94A3B8' }}>
+      <div className="rounded-lg border border-glass-border bg-bg-glass mt-4">
+        <div className="px-4 py-3 border-b border-white/10">
+          <h6 className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">
             Understanding Data Hygiene
           </h6>
         </div>
-        <div className="card-body">
+        <div className="p-4">
           <div className="grid grid-cols-12 gap-3">
             <div className="col-span-12 md:col-span-3">
-              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #ef4444' }}>
-                <h6 className="text-sm font-semibold mb-2" style={{ color: '#f87171' }}>Zombie Reqs</h6>
-                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
+              <div className="p-3 h-full bg-[#141414] rounded border-t-2 border-bad">
+                <h6 className="text-sm font-semibold mb-2 text-bad">Zombie Reqs</h6>
+                <p className="text-xs text-muted-foreground leading-relaxed m-0">
                   No candidate activity in 30+ days. These inflate your TTF and should be excluded or closed.
                 </p>
               </div>
             </div>
             <div className="col-span-12 md:col-span-3">
-              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #f59e0b' }}>
-                <h6 className="text-sm font-semibold mb-2" style={{ color: '#fbbf24' }}>Stalled Reqs</h6>
-                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
+              <div className="p-3 h-full bg-[#141414] rounded border-t-2 border-warn">
+                <h6 className="text-sm font-semibold mb-2 text-warn">Stalled Reqs</h6>
+                <p className="text-xs text-muted-foreground leading-relaxed m-0">
                   No activity in 14-30 days. May need recruiter attention or HM follow-up to get moving again.
                 </p>
               </div>
             </div>
             <div className="col-span-12 md:col-span-3">
-              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #a855f7' }}>
-                <h6 className="text-sm font-semibold mb-2" style={{ color: '#c084fc' }}>At Risk Reqs</h6>
-                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
+              <div className="p-3 h-full bg-[#141414] rounded border-t-2 border-purple-500">
+                <h6 className="text-sm font-semibold mb-2 text-purple-400">At Risk Reqs</h6>
+                <p className="text-xs text-muted-foreground leading-relaxed m-0">
                   Open 120+ days with fewer than 5 candidates. May have unrealistic requirements or poor sourcing.
                 </p>
               </div>
             </div>
             <div className="col-span-12 md:col-span-3">
-              <div className="p-3 h-full" style={{ background: '#141414', borderRadius: '2px', borderTop: '2px solid #2dd4bf' }}>
-                <h6 className="text-sm font-semibold mb-2" style={{ color: '#34d399' }}>True TTF</h6>
-                <p className="text-xs text-muted-foreground mb-0" style={{ lineHeight: 1.5 }}>
+              <div className="p-3 h-full bg-[#141414] rounded border-t-2 border-teal-400">
+                <h6 className="text-sm font-semibold mb-2 text-good">True TTF</h6>
+                <p className="text-xs text-muted-foreground leading-relaxed m-0">
                   Time-to-fill calculated excluding zombie reqs. Gives a more accurate picture of actual performance.
                 </p>
               </div>

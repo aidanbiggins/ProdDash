@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import { Checkbox } from '../../../components/ui/toggles';
 
 interface MultiSelectOption {
   value: string;
@@ -155,14 +156,12 @@ export function MultiSelect({
               className={`multiselect-option ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
               onClick={() => !isDisabled && toggleOption(option.value)}
             >
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={isSelected}
+                onChange={() => !isDisabled && toggleOption(option.value)}
                 disabled={isDisabled}
-                readOnly
-                className="multiselect-checkbox"
               />
-              {option.label || option.value}{isDisabled && ' (no data)'}
+              <span className="ml-2">{option.label || option.value}{isDisabled && ' (no data)'}</span>
             </div>
           );
         })}

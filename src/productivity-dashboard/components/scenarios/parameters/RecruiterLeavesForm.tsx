@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { RecruiterLeavesParams } from '../../../types/scenarioTypes';
+import { Radio } from '../../../../components/ui/toggles';
 
 interface RecruiterLeavesFormProps {
   recruiters: Array<{ recruiter_id: string; name: string; demand_wu: number; utilization: number }>;
@@ -123,14 +124,11 @@ export default function RecruiterLeavesForm({
                 className={`strategy-option ${reassignmentStrategy === strategy.value ? 'selected' : ''}`}
                 onClick={() => setReassignmentStrategy(strategy.value)}
               >
-                <div className="flex items-center">
-                  <input
-                    type="radio"
-                    name="strategy"
-                    value={strategy.value}
+                <div className="flex items-center gap-3">
+                  <Radio
                     checked={reassignmentStrategy === strategy.value}
                     onChange={() => setReassignmentStrategy(strategy.value)}
-                    className="mr-2"
+                    name="strategy"
                   />
                   <div>
                     <strong>{strategy.label}</strong>

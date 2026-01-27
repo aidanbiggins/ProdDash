@@ -3,6 +3,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { FitMatrixCell, ConfidenceLevel, getFitLabel, CAPACITY_CONSTANTS } from '../../types/capacityTypes';
+import { Checkbox } from '../../../components/ui/toggles';
 
 interface FitMatrixProps {
   cells: FitMatrixCell[];
@@ -34,7 +35,7 @@ function ConfidenceDots({ confidence }: { confidence: ConfidenceLevel }) {
   }[confidence];
 
   return (
-    <span className="ml-1" style={{ opacity: 0.7 }}>
+    <span className="ml-1 opacity-70">
       {'●'.repeat(dots)}{'○'.repeat(3 - dots)}
     </span>
   );
@@ -49,7 +50,7 @@ function FitCell({
 }) {
   if (!cell || cell.confidence === 'INSUFFICIENT') {
     return (
-      <td className="text-center" style={{ padding: '8px', color: '#64748b' }}>
+      <td className="text-center p-2 text-muted-foreground">
         —
       </td>
     );
@@ -57,23 +58,21 @@ function FitCell({
 
   const color = getFitColor(cell.fitScore);
   const label = getFitLabel(cell.fitScore);
+  const bgClass = cell.fitScore > CAPACITY_CONSTANTS.FIT_STRONG ? 'bg-green-500/10' :
+                  cell.fitScore > CAPACITY_CONSTANTS.FIT_GOOD ? 'bg-green-400/10' :
+                  cell.fitScore > CAPACITY_CONSTANTS.FIT_WEAK ? 'bg-slate-500/10' :
+                  cell.fitScore > CAPACITY_CONSTANTS.FIT_POOR ? 'bg-red-300/10' : 'bg-red-400/10';
 
   return (
     <td
-      className="text-center"
-      style={{
-        padding: '8px',
-        cursor: onClick ? 'pointer' : 'default',
-        background: `${color}15`,
-        borderLeft: '1px solid rgba(255,255,255,0.05)'
-      }}
+      className={`text-center p-2 border-l border-white/5 ${bgClass} ${onClick ? 'cursor-pointer hover:bg-white/10' : ''}`}
       onClick={onClick}
       title={`${cell.recruiterName} - ${cell.segmentString}\nFitScore: ${cell.fitScore.toFixed(2)}\nConfidence: ${cell.confidence}\nSample: ${cell.sampleSize}`}
     >
-      <div style={{ color, fontFamily: "'JetBrains Mono', monospace", fontSize: '0.8rem' }}>
+      <div className="font-mono text-xs" style={{ color }}>
         {cell.fitScore > 0 ? '+' : ''}{cell.fitScore.toFixed(2)}
       </div>
-      <div style={{ fontSize: '0.6rem', color: '#64748b' }}>
+      <div className="text-[10px] text-muted-foreground">
         <ConfidenceDots confidence={cell.confidence} />
       </div>
     </td>
@@ -114,15 +113,15 @@ export function FitMatrix({ cells, onCellClick }: FitMatrixProps) {
 
   if (cells.length === 0) {
     return (
-      <div className="card-bespoke">
-        <div className="card-header">
-          <h6 className="mb-0">
+      <div className="rounded-lg border border-glass-border bg-bg-glass">
+        <div className="px-4 py-3 border-b border-white/10">
+          <h6 className="text-sm font-semibold text-foreground">
             <i className="bi bi-grid mr-2"></i>
             Recruiter Fit by Segment
           </h6>
         </div>
-        <div className="card-body text-center py-4 text-muted-foreground">
-          <i className="bi bi-grid" style={{ fontSize: '2rem' }}></i>
+        <div className="text-center py-8 text-muted-foreground">
+          <i className="bi bi-grid text-3xl"></i>
           <div className="mt-2">Insufficient data for fit analysis</div>
           <div className="text-sm">Need at least {CAPACITY_CONSTANTS.MIN_N_FOR_FIT_CELL} observations per segment</div>
         </div>
@@ -131,86 +130,73 @@ export function FitMatrix({ cells, onCellClick }: FitMatrixProps) {
   }
 
   return (
-    <div className="card-bespoke">
-      <div className="card-header flex justify-between items-center">
-        <h6 className="mb-0">
+    <div className="rounded-lg border border-glass-border bg-bg-glass">
+      <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
+        <h6 className="text-sm font-semibold text-foreground">
           <i className="bi bi-grid mr-2"></i>
           Recruiter Fit by Segment
         </h6>
         <div className="flex items-center gap-2">
-          <input
-            className="w-4 h-4 rounded"
-            type="checkbox"
-            id="showAllFit"
+          <Checkbox
             checked={showAll}
-            onChange={(e) => setShowAll(e.target.checked)}
+            onChange={setShowAll}
+            id="showAllFit"
           />
-          <label className="text-sm text-muted-foreground" htmlFor="showAllFit">
+          <label className="text-sm text-muted-foreground cursor-pointer" htmlFor="showAllFit">
             Show low confidence
           </label>
         </div>
       </div>
-      <div className="card-body p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full mb-0 text-sm">
-            <thead>
-              <tr>
-                <th style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  Recruiter
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className="px-3 py-2 text-left text-xs font-medium uppercase text-muted-foreground border-b border-white/10">
+                Recruiter
+              </th>
+              {segments.map(seg => (
+                <th
+                  key={seg}
+                  className="text-center px-2 py-2 text-xs font-medium uppercase text-muted-foreground border-b border-white/10 border-l border-white/5 max-w-[100px] whitespace-nowrap overflow-hidden text-ellipsis"
+                  title={seg}
+                >
+                  {seg.split('/').slice(0, 2).join('/')}
                 </th>
-                {segments.map(seg => (
-                  <th
-                    key={seg}
-                    className="text-center"
-                    style={{
-                      padding: '8px',
-                      borderBottom: '1px solid rgba(255,255,255,0.1)',
-                      borderLeft: '1px solid rgba(255,255,255,0.05)',
-                      maxWidth: '100px',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
-                    title={seg}
-                  >
-                    {seg.split('/').slice(0, 2).join('/')}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {recruiters.map(recruiterId => (
-                <tr key={recruiterId}>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    {recruiterNames.get(recruiterId) || recruiterId}
-                  </td>
-                  {segments.map(seg => {
-                    const cell = cellMap.get(`${recruiterId}|${seg}`);
-                    return (
-                      <FitCell
-                        key={seg}
-                        cell={cell || null}
-                        onClick={cell && onCellClick ? () => onCellClick(recruiterId, seg) : undefined}
-                      />
-                    );
-                  })}
-                </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {recruiters.map(recruiterId => (
+              <tr key={recruiterId} className="hover:bg-white/5">
+                <td className="px-3 py-2 text-sm text-foreground">
+                  {recruiterNames.get(recruiterId) || recruiterId}
+                </td>
+                {segments.map(seg => {
+                  const cell = cellMap.get(`${recruiterId}|${seg}`);
+                  return (
+                    <FitCell
+                      key={seg}
+                      cell={cell || null}
+                      onClick={cell && onCellClick ? () => onCellClick(recruiterId, seg) : undefined}
+                    />
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <div className="card-footer text-sm text-muted-foreground">
-        <div className="flex justify-between items-center">
+      <div className="px-4 py-3 border-t border-white/10 text-sm text-muted-foreground">
+        <div className="flex justify-between items-center flex-wrap gap-2">
           <div>
             Legend: ●●● HIGH, ●●○ MED, ●○○ LOW, — insufficient
           </div>
-          <div className="flex gap-3">
-            <span><span style={{ color: FIT_COLORS.strong }}>■</span> Strong (+0.3+)</span>
-            <span><span style={{ color: FIT_COLORS.good }}>■</span> Good (+0.1)</span>
-            <span><span style={{ color: FIT_COLORS.neutral }}>■</span> Neutral</span>
-            <span><span style={{ color: FIT_COLORS.weak }}>■</span> Weak</span>
-            <span><span style={{ color: FIT_COLORS.poor }}>■</span> Poor</span>
+          <div className="flex gap-3 flex-wrap">
+            <span><span className="text-green-400">■</span> Strong (+0.3+)</span>
+            <span><span className="text-green-300">■</span> Good (+0.1)</span>
+            <span><span className="text-slate-400">■</span> Neutral</span>
+            <span><span className="text-red-300">■</span> Weak</span>
+            <span><span className="text-red-400">■</span> Poor</span>
           </div>
         </div>
       </div>

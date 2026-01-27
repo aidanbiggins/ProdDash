@@ -11,15 +11,15 @@ interface FitExplainDrawerProps {
 }
 
 function ConfidenceBadge({ confidence }: { confidence: ConfidenceLevel }) {
-  const styles = {
-    HIGH: { bg: 'rgba(34, 197, 94, 0.15)', color: '#34d399' },
-    MED: { bg: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24' },
-    LOW: { bg: 'rgba(148, 163, 184, 0.15)', color: '#94a3b8' },
-    INSUFFICIENT: { bg: 'rgba(239, 68, 68, 0.15)', color: '#f87171' }
+  const classes = {
+    HIGH: 'bg-good-bg text-good',
+    MED: 'bg-warn-bg text-warn',
+    LOW: 'bg-white/10 text-muted-foreground',
+    INSUFFICIENT: 'bg-bad-bg text-bad'
   }[confidence];
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style={{ background: styles.bg, color: styles.color }}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${classes}`}>
       {confidence}
     </span>
   );
@@ -47,38 +47,38 @@ function MetricRow({
   const isPositive = inverted ? residual < 0 : residual > 0;
 
   return (
-    <div className="border rounded p-2 mb-2" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+    <div className="border border-white/10 rounded-lg p-3 mb-2">
       <div className="flex justify-between mb-2">
-        <span className="font-medium">{label}</span>
-        <span className="text-sm text-muted-foreground">weight: {(weight * 100).toFixed(0)}%</span>
+        <span className="font-medium text-foreground">{label}</span>
+        <span className="text-xs text-muted-foreground">weight: {(weight * 100).toFixed(0)}%</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-sm">
         <div className="text-center">
-          <div className="text-muted-foreground">Observed</div>
-          <div className="font-bold">{typeof value === 'number' ? value.toFixed(2) : value}</div>
+          <div className="text-xs text-muted-foreground">Observed</div>
+          <div className="font-mono font-bold text-foreground">{typeof value === 'number' ? value.toFixed(2) : value}</div>
         </div>
         <div className="text-center">
-          <div className="text-muted-foreground">Expected</div>
-          <div>{typeof expected === 'number' ? expected.toFixed(2) : expected}</div>
+          <div className="text-xs text-muted-foreground">Expected</div>
+          <div className="font-mono text-foreground">{typeof expected === 'number' ? expected.toFixed(2) : expected}</div>
         </div>
         <div className="text-center">
-          <div className="text-muted-foreground">Delta</div>
-          <div style={{ color: isPositive ? '#34d399' : '#f87171' }}>
+          <div className="text-xs text-muted-foreground">Delta</div>
+          <div className={`font-mono ${isPositive ? 'text-good' : 'text-bad'}`}>
             {percentChange > 0 ? '+' : ''}{percentChange.toFixed(0)}%
           </div>
         </div>
       </div>
 
-      <div className="mt-2 pt-2 border-t border-glass-border" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-        <div className="grid grid-cols-2 text-sm">
+      <div className="mt-2 pt-2 border-t border-white/5">
+        <div className="grid grid-cols-2 text-xs">
           <div>
             <span className="text-muted-foreground">After shrinkage (n={sampleSize}):</span>
-            <span className="ml-1">{residual.toFixed(3)}</span>
+            <span className="ml-1 font-mono text-foreground">{residual.toFixed(3)}</span>
           </div>
           <div className="text-right">
             <span className="text-muted-foreground">Contribution:</span>
-            <span className="ml-1" style={{ color: contribution > 0 ? '#34d399' : contribution < 0 ? '#f87171' : '#94a3b8' }}>
+            <span className={`ml-1 font-mono ${contribution > 0 ? 'text-good' : contribution < 0 ? 'text-bad' : 'text-muted-foreground'}`}>
               {contribution > 0 ? '+' : ''}{contribution.toFixed(3)}
             </span>
           </div>
@@ -106,35 +106,33 @@ export function FitExplainDrawer({
   const expectedAccept = cell.metrics.offer_accept_rate.value - (cell.metrics.offer_accept_rate.residual * (cell.sampleSize + CAPACITY_CONSTANTS.SHRINKAGE_K) / cell.sampleSize);
   const expectedThroughput = cell.metrics.candidate_throughput.value - (cell.metrics.candidate_throughput.residual * (cell.sampleSize + CAPACITY_CONSTANTS.SHRINKAGE_K) / cell.sampleSize);
 
+  const fitColorClass = cell.fitScore > 0.1 ? 'text-good' :
+                        cell.fitScore > -0.1 ? 'text-muted-foreground' : 'text-bad';
+  const fitBgClass = cell.fitScore > 0.1 ? 'bg-good-bg' :
+                     cell.fitScore > -0.1 ? 'bg-white/5' : 'bg-bad-bg';
+
   return (
     <>
       {/* Backdrop */}
       <div
-        className="glass-backdrop fixed top-0 left-0 w-full h-full"
-        style={{ zIndex: 1040 }}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1040]"
         onClick={onClose}
       />
 
       {/* Drawer */}
       <div
-        className="glass-drawer fixed top-0 right-0 h-full"
-        style={{
-          width: '450px',
-          maxWidth: '90vw',
-          zIndex: 1050,
-          overflowY: 'auto'
-        }}
+        className="fixed top-0 right-0 h-full w-[450px] max-w-[90vw] z-[1050] overflow-y-auto bg-bg-surface border-l border-glass-border"
       >
-        <div className="glass-drawer-header p-3">
+        <div className="sticky top-0 bg-bg-surface/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
           <div className="flex justify-between items-start">
             <div>
-              <h5 className="mb-1">
+              <h5 className="text-base font-semibold text-foreground">
                 Why is {cell.recruiterName} {fitLabel.toLowerCase()} for this segment?
               </h5>
               <div className="text-sm text-muted-foreground">{cell.segmentString}</div>
             </div>
             <button
-              className="text-sm text-muted-foreground p-0 hover:text-white transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
               onClick={onClose}
             >
               <i className="bi bi-x-lg"></i>
@@ -142,21 +140,21 @@ export function FitExplainDrawer({
           </div>
         </div>
 
-        <div className="p-3">
+        <div className="p-4">
           {/* FitScore Summary */}
-          <div className="text-center p-3 rounded mb-4" style={{ background: `${fitColor}15` }}>
-            <div className="text-sm text-muted-foreground">FitScore</div>
-            <div className="text-4xl font-bold" style={{ color: fitColor }}>
+          <div className={`text-center p-4 rounded-lg mb-4 ${fitBgClass}`}>
+            <div className="text-xs text-muted-foreground uppercase tracking-wider">FitScore</div>
+            <div className={`text-4xl font-mono font-bold mt-1 ${fitColorClass}`}>
               {cell.fitScore > 0 ? '+' : ''}{cell.fitScore.toFixed(2)}
             </div>
-            <div className="flex justify-center items-center gap-2 mt-1">
+            <div className="flex justify-center items-center gap-2 mt-2">
               <ConfidenceBadge confidence={cell.confidence} />
               <span className="text-sm text-muted-foreground">n={cell.sampleSize}</span>
             </div>
           </div>
 
           {/* Metric Breakdown */}
-          <h6 className="mb-3">
+          <h6 className="text-sm font-semibold text-foreground mb-3">
             <i className="bi bi-bar-chart mr-2"></i>
             Metric Breakdown
           </h6>
@@ -199,20 +197,16 @@ export function FitExplainDrawer({
           />
 
           {/* Shrinkage Explanation */}
-          <h6 className="mt-4 mb-3">
+          <h6 className="text-sm font-semibold text-foreground mt-6 mb-3">
             <i className="bi bi-info-circle mr-2"></i>
             About Shrinkage
           </h6>
-          <div className="p-3 rounded-lg text-sm" style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: '#94a3b8'
-          }}>
+          <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-sm text-muted-foreground">
             <p className="mb-2">
               Shrinkage adjusts raw performance residuals based on sample size.
               With n={cell.sampleSize} observations and k={CAPACITY_CONSTANTS.SHRINKAGE_K}:
             </p>
-            <div className="text-center mb-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            <div className="text-center mb-2 font-mono text-foreground">
               shrinkage = n/(n+k) = {cell.sampleSize}/({cell.sampleSize}+{CAPACITY_CONSTANTS.SHRINKAGE_K}) = {(cell.sampleSize / (cell.sampleSize + CAPACITY_CONSTANTS.SHRINKAGE_K)).toFixed(2)}
             </div>
             <p className="mb-0">
@@ -223,11 +217,7 @@ export function FitExplainDrawer({
 
           {/* Confidence Caveat */}
           {cell.confidence !== 'HIGH' && (
-            <div className="p-3 rounded-lg text-sm" style={{
-              background: 'rgba(245, 158, 11, 0.15)',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
-              color: '#fbbf24'
-            }}>
+            <div className="p-3 rounded-lg bg-warn-bg border border-warn/30 text-warn text-sm mt-4">
               <i className="bi bi-exclamation-triangle mr-1"></i>
               Sample size of {cell.sampleSize} is below HIGH confidence threshold.
               Interpret with appropriate caution.

@@ -1,0 +1,28 @@
+/* HelpDrawer.css
+ * Styles for HelpButton component
+ */
+
+/* HelpButton */
+.help-button {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.help-button:hover {
+  color: var(--color-accent-secondary);
+  background: rgba(45, 212, 191, 0.1);
+}
+
+.help-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.3);
+}

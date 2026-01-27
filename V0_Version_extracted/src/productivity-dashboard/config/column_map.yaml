@@ -1,0 +1,271 @@
+# Canonical Column Mapping Configuration
+# Maps source columns to canonical fields with synonyms
+# Format: canonical_field -> list of source column names (case-insensitive)
+
+version: "1.0"
+
+# === REQUISITION FIELDS ===
+requisition:
+  req_id:
+    synonyms:
+      - "Requisition ID"
+      - "Job : Requisition ID"
+      - "Job ID"
+      - "Req ID"
+      - "Job Req ID"
+      - "job_id"
+      - "requisition_id"
+    required: true
+
+  req_title:
+    synonyms:
+      - "Job Title"
+      - "Job : Job Title and Job Code"
+      - "Position Title"
+      - "Title"
+      - "job_title"
+      - "position_title"
+    required: true
+
+  hiring_manager:
+    synonyms:
+      - "Hiring Manager"
+      - "Hiring Manager : Full Name: First Last"
+      - "HM Name"
+      - "hiring_manager"
+      - "hiring_manager_name"
+    required: false
+
+  recruiter:
+    synonyms:
+      - "Recruiter"
+      - "Recruiter : Full Name: First Last"
+      - "Assigned Recruiter"
+      - "recruiter"
+      - "recruiter_name"
+    required: false
+
+  department:
+    synonyms:
+      - "Department"
+      - "Job : Department"
+      - "Business Unit"
+      - "Job : Business Unit"
+      - "Team"
+      - "department"
+      - "business_unit"
+    required: false
+
+  location:
+    synonyms:
+      - "Location"
+      - "Job : Office Location"
+      - "Office Location"
+      - "Work Location"
+      - "location"
+      - "office_location"
+    required: false
+
+  opened_at:
+    synonyms:
+      - "Opened Date"
+      - "Date Opened"
+      - "Created Date"
+      - "Open Date"
+      - "opened_at"
+      - "date_opened"
+    required: false
+    date_format: auto
+
+  closed_at:
+    synonyms:
+      - "Closed Date"
+      - "Date Closed"
+      - "Filled Date"
+      - "closed_at"
+      - "date_closed"
+    required: false
+    date_format: auto
+
+  status:
+    synonyms:
+      - "Status"
+      - "Req Status"
+      - "Requisition Status"
+      - "Job Status"
+      - "status"
+      - "req_status"
+    required: false
+
+# === CANDIDATE FIELDS ===
+candidate:
+  candidate_id:
+    synonyms:
+      - "Person ID"
+      - "Person : System ID"
+      - "Candidate ID"
+      - "Applicant ID"
+      - "candidate_id"
+      - "person_id"
+    required: true
+
+  name:
+    synonyms:
+      - "Name"
+      - "Person : Full Name: First Last"
+      - "Full Name"
+      - "Candidate Name"
+      - "Applicant Name"
+      - "name"
+      - "full_name"
+    required: false
+
+  email:
+    synonyms:
+      - "Email"
+      - "Person : Email"
+      - "Candidate Email"
+      - "email"
+      - "email_address"
+    required: false
+
+  source:
+    synonyms:
+      - "Source"
+      - "Recruiting Source"
+      - "Source Name"
+      - "Candidate Source"
+      - "Source Type"
+      - "Source/Recruiting Source"
+      - "Person : Source"
+      - "Job Source"
+      - "Applicant Source"
+      - "source"
+      - "recruiting_source"
+    required: false
+
+  applied_at:
+    synonyms:
+      - "Applied Date"
+      - "Application Date"
+      - "Date Applied"
+      - "Submission Date"
+      - "applied_at"
+      - "application_date"
+    required: false
+    date_format: auto
+
+# === APPLICATION/STATUS FIELDS ===
+application:
+  current_status:
+    synonyms:
+      - "Status"
+      - "Current Status"
+      - "Workflow Status"
+      - "Application Status"
+      - "Candidate Status"
+      - "current_status"
+      - "workflow_status"
+    required: false
+
+  current_stage:
+    synonyms:
+      - "Stage"
+      - "Current Stage"
+      - "Interview Stage"
+      - "Pipeline Stage"
+      - "current_stage"
+      - "stage"
+    required: false
+
+  disposition:
+    synonyms:
+      - "Disposition"
+      - "Outcome"
+      - "Final Status"
+      - "disposition"
+      - "outcome"
+    required: false
+
+# === EVENT/ACTIVITY FIELDS ===
+event:
+  event_date:
+    synonyms:
+      - "Date"
+      - "Event Date"
+      - "Activity Date"
+      - "Timestamp"
+      - "event_date"
+      - "activity_date"
+    required: false
+    date_format: auto
+
+  event_type:
+    synonyms:
+      - "Action"
+      - "Event Type"
+      - "Activity Type"
+      - "Type"
+      - "event_type"
+      - "action"
+    required: false
+
+  from_status:
+    synonyms:
+      - "From Status"
+      - "Previous Status"
+      - "Old Status"
+      - "from_status"
+      - "previous_status"
+    required: false
+
+  to_status:
+    synonyms:
+      - "To Status"
+      - "New Status"
+      - "Current Status"
+      - "to_status"
+      - "new_status"
+    required: false
+
+# === INTERVIEW TIMESTAMP COLUMNS ===
+# These are iCIMS-specific columns that contain stage timestamps
+interview_timestamps:
+  patterns:
+    - prefix: "Last Resume Submissions:"
+      stage: APPLIED
+    - prefix: "Last Incomplete:"
+      stage: LEAD
+    - prefix: "Last Interview: Phone Screen Staffing"
+      stage: SCREEN
+    - prefix: "Last Interview: Phone Screen Scheduled"
+      stage: SCREEN
+    - prefix: "Last Interview: Phone Screen - Not Qualified"
+      stage: REJECTED
+    - prefix: "Last Interview: Phone Screen Hiring Manager"
+      stage: HM_SCREEN
+    - prefix: "Last Interview: 1st Round Interview"
+      stage: HM_SCREEN
+    - prefix: "Last Hiring Manager Review:"
+      stage: HM_SCREEN
+    - prefix: "Last Interview: 2nd Round Interview"
+      stage: ONSITE
+    - prefix: "Last Interview: Final Interview"
+      stage: FINAL
+    - prefix: "Last Interview: Decision Pending"
+      stage: FINAL
+    - prefix: "Last Interview: Interviewed; Not Selected"
+      stage: REJECTED
+    - prefix: "Last Interview: Candidate Withdrew"
+      stage: WITHDREW
+    - prefix: "Last Offer:"
+      stage: OFFER
+    - prefix: "Last Hired:"
+      stage: HIRED
+
+# === COLUMN NORMALIZATION RULES ===
+normalization:
+  trim_whitespace: true
+  lowercase: true
+  replace_spaces_with: "_"
+  remove_special_chars: false

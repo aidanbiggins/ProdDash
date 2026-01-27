@@ -1,9 +1,16 @@
-// Filter Bar Component
+// Filter Bar Component - V2 Design with Full Functionality
 
 import React, { useState, useMemo } from 'react';
-import { MetricFilters, User, Requisition, UserRole } from '../../types';
-import { DateRangePicker } from './DateRangePicker';
-import { MultiSelect } from './MultiSelect';
+import { format, subDays, startOfYear, differenceInDays } from 'date-fns';
+import { Calendar, ChevronDown, Filter, X } from 'lucide-react';
+import { MetricFilters, User, Requisition, UserRole, DateRange } from '../../types';
+import { Button } from 'components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from 'components/ui/popover';
+import { Checkbox } from 'components/ui/checkbox';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
 interface FilterBarProps {
@@ -13,6 +20,14 @@ interface FilterBarProps {
   onChange: (filters: Partial<MetricFilters>) => void;
 }
 
+const datePresets = [
+  { label: '30d', days: 30 },
+  { label: '60d', days: 60 },
+  { label: '90d', days: 90 },
+  { label: '6mo', days: 180 },
+  { label: 'YTD', days: -1 },
+];
+
 export function FilterBar({
   filters,
   requisitions,
@@ -20,11 +35,16 @@ export function FilterBar({
   onChange
 }: FilterBarProps) {
   const isMobile = useIsMobile();
-  // Start collapsed on mobile for better UX
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!isMobile);
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(() => {
+    // Determine initial preset based on current date range
+    const daysDiff = differenceInDays(filters.dateRange.endDate, filters.dateRange.startDate);
+    const preset = datePresets.find(p => p.days > 0 && Math.abs(p.days - daysDiff) <= 2);
+    return preset?.label || null;
+  });
 
   // All possible values (for showing all options)
-  const allFunctions = useMemo(() => Array.from(new Set(requisitions.map(r => r.function))).sort(), [requisitions]);
+  const allFunctions = useMemo(() => Array.from(new Set(requisitions.map(r => String(r.function)))).sort(), [requisitions]);
   const allJobFamilies = useMemo(() => Array.from(new Set(requisitions.map(r => r.job_family))).filter(Boolean).sort(), [requisitions]);
   const allLevels = useMemo(() => Array.from(new Set(requisitions.map(r => r.level))).filter(Boolean).sort(), [requisitions]);
   const allRegions = useMemo(() => Array.from(new Set(requisitions.map(r => r.location_region))).sort(), [requisitions]);
@@ -34,7 +54,6 @@ export function FilterBar({
     const fromUsers = users.filter(u => u.role === 'Recruiter');
     if (fromUsers.length > 0) return fromUsers;
 
-    // Fallback: extract unique recruiters from requisitions if users table is empty
     const recruiterMap = new Map<string, User>();
     requisitions.forEach(r => {
       if (r.recruiter_id && !recruiterMap.has(r.recruiter_id)) {
@@ -56,7 +75,6 @@ export function FilterBar({
     const fromUsers = users.filter(u => u.role === 'HiringManager');
     if (fromUsers.length > 0) return fromUsers;
 
-    // Fallback: extract unique HMs from requisitions if users table is empty
     const hmMap = new Map<string, User>();
     requisitions.forEach(r => {
       if (r.hiring_manager_id && !hmMap.has(r.hiring_manager_id)) {
@@ -74,16 +92,14 @@ export function FilterBar({
   }, [users, requisitions]);
 
   // Compute available options based on current filter selections
-  // Each dropdown shows what's available given ALL OTHER current selections
   const availableOptions = useMemo(() => {
-    // Helper to filter requisitions by all criteria EXCEPT the one we're computing for
     const getFilteredReqs = (excludeField: string) => {
       return requisitions.filter(r => {
         if (excludeField !== 'recruiterIds' && filters.recruiterIds?.length) {
           if (!filters.recruiterIds.includes(r.recruiter_id || '')) return false;
         }
         if (excludeField !== 'functions' && filters.functions?.length) {
-          if (!filters.functions.includes(r.function)) return false;
+          if (!filters.functions.includes(String(r.function))) return false;
         }
         if (excludeField !== 'jobFamilies' && filters.jobFamilies?.length) {
           if (!filters.jobFamilies.includes(r.job_family || '')) return false;
@@ -101,27 +117,21 @@ export function FilterBar({
       });
     };
 
-    // Get available recruiters (by their requisitions)
     const recruiterReqs = getFilteredReqs('recruiterIds');
     const availableRecruiterIds = new Set(recruiterReqs.map(r => r.recruiter_id).filter(Boolean));
 
-    // Get available functions
     const functionReqs = getFilteredReqs('functions');
-    const availableFunctions = new Set(functionReqs.map(r => r.function));
+    const availableFunctions = new Set(functionReqs.map(r => String(r.function)));
 
-    // Get available job families
     const jobFamilyReqs = getFilteredReqs('jobFamilies');
     const availableJobFamilies = new Set(jobFamilyReqs.map(r => r.job_family).filter(Boolean));
 
-    // Get available levels
     const levelReqs = getFilteredReqs('levels');
     const availableLevels = new Set(levelReqs.map(r => r.level).filter(Boolean));
 
-    // Get available regions
     const regionReqs = getFilteredReqs('regions');
     const availableRegions = new Set(regionReqs.map(r => r.location_region));
 
-    // Get available hiring managers
     const hmReqs = getFilteredReqs('hiringManagerIds');
     const availableHMIds = new Set(hmReqs.map(r => r.hiring_manager_id).filter(Boolean));
 
@@ -135,7 +145,7 @@ export function FilterBar({
     };
   }, [requisitions, filters]);
 
-  // Count active filters
+  // Count active filters (excluding date range)
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filters.recruiterIds?.length) count += filters.recruiterIds.length;
@@ -147,11 +157,53 @@ export function FilterBar({
     return count;
   }, [filters]);
 
-  const handleMultiSelectChange = (
-    field: keyof MetricFilters,
-    values: string[]
-  ) => {
-    onChange({ [field]: values.length > 0 ? values : undefined });
+  // Date preset handler
+  const handleDatePreset = (preset: { label: string; days: number }) => {
+    setSelectedPreset(preset.label);
+    const end = new Date();
+    let start: Date;
+
+    if (preset.days === -1) {
+      // YTD
+      start = startOfYear(end);
+    } else {
+      start = subDays(end, preset.days);
+    }
+
+    onChange({
+      dateRange: { startDate: start, endDate: end }
+    });
+  };
+
+  // Custom date change handler
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newStart = new Date(e.target.value);
+    if (!isNaN(newStart.getTime())) {
+      setSelectedPreset(null);
+      onChange({
+        dateRange: { ...filters.dateRange, startDate: newStart }
+      });
+    }
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEnd = new Date(e.target.value);
+    if (!isNaN(newEnd.getTime())) {
+      setSelectedPreset(null);
+      onChange({
+        dateRange: { ...filters.dateRange, endDate: newEnd }
+      });
+    }
+  };
+
+  // Multi-select handlers
+  const handleToggle = (field: keyof MetricFilters, value: string) => {
+    const currentValues = (filters[field] as string[] | undefined) || [];
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter(v => v !== value)
+      : [...currentValues, value];
+
+    onChange({ [field]: newValues.length > 0 ? newValues : undefined });
   };
 
   const clearFilterValue = (field: keyof MetricFilters, valueToRemove: string) => {
@@ -162,270 +214,285 @@ export function FilterBar({
     }
   };
 
-  const clearFilter = (field: keyof MetricFilters) => {
-    onChange({ [field]: undefined });
+  const clearAllFilters = () => {
+    onChange({
+      recruiterIds: undefined,
+      functions: undefined,
+      jobFamilies: undefined,
+      levels: undefined,
+      regions: undefined,
+      hiringManagerIds: undefined,
+    });
   };
 
-  // Mobile: Super compact - just date range + expand button
-  if (isMobile) {
-    return (
-      <div className="filter-panel-mobile">
-        <div className="flex items-center gap-2">
-          <DateRangePicker
-            dateRange={filters.dateRange}
-            onChange={(dateRange) => onChange({ dateRange })}
-          />
-          <button
-            className={`text-sm px-2 py-1.5 whitespace-nowrap rounded transition-transform ${isExpanded ? 'btn-bespoke-primary' : 'bg-white/10 border border-white/20 text-[var(--text-primary)]'}`}
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {activeFilterCount > 0 ? `Filters (${activeFilterCount})` : 'Filters'}
-            <svg className={`ml-1 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
-            </svg>
-          </button>
-        </div>
+  const formatDateRange = (range: DateRange) => {
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
+    return `${range.startDate.toLocaleDateString('en-US', options)} - ${range.endDate.toLocaleDateString('en-US', options)}`;
+  };
 
-        {isExpanded && (
-          <div className="mt-3">
-            <div className="grid grid-cols-2 gap-2 mb-2">
-              <div className="relative">
-                <MultiSelect
-                  options={recruiters.map(r => ({
-                    value: r.user_id,
-                    label: r.name,
-                    disabled: !availableOptions.recruiterIds.has(r.user_id)
-                  }))}
-                  selected={filters.recruiterIds || []}
-                  onChange={(values) => handleMultiSelectChange('recruiterIds', values)}
-                  placeholder="Recruiter"
-                  allLabel="All Recruiters"
-                />
-              </div>
-              <div className="relative">
-                <MultiSelect
-                  options={allFunctions.map(f => ({
-                    value: f,
-                    label: f,
-                    disabled: !availableOptions.functions.has(f)
-                  }))}
-                  selected={filters.functions || []}
-                  onChange={(values) => handleMultiSelectChange('functions', values)}
-                  placeholder="Function"
-                  allLabel="All Functions"
-                />
-              </div>
-              <div className="relative">
-                <MultiSelect
-                  options={allLevels.map(l => ({
-                    value: l,
-                    label: l,
-                    disabled: !availableOptions.levels.has(l)
-                  }))}
-                  selected={filters.levels || []}
-                  onChange={(values) => handleMultiSelectChange('levels', values)}
-                  placeholder="Level"
-                  allLabel="All Levels"
-                />
-              </div>
-              <div className="relative">
-                <MultiSelect
-                  options={hiringManagers.map(hm => ({
-                    value: hm.user_id,
-                    label: hm.name,
-                    disabled: !availableOptions.hiringManagerIds.has(hm.user_id)
-                  }))}
-                  selected={filters.hiringManagerIds || []}
-                  onChange={(values) => handleMultiSelectChange('hiringManagerIds', values)}
-                  placeholder="HM"
-                  allLabel="All HMs"
-                />
-              </div>
+  // Filter dropdown component - compact for grid layout
+  const FilterDropdown = ({
+    label,
+    field,
+    options,
+    selectedValues,
+    availableSet,
+    displayFn = (v: string) => v
+  }: {
+    label: string;
+    field: keyof MetricFilters;
+    options: Array<{ value: string; label: string }>;
+    selectedValues: string[];
+    availableSet: Set<string>;
+    displayFn?: (value: string) => string;
+  }) => (
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className={`gap-2 text-xs bg-transparent border-white/[0.08] hover:bg-white/[0.04] w-full justify-between ${
+              selectedValues.length > 0 ? 'border-accent/50 text-accent' : ''
+            }`}
+          >
+            <span className="truncate">
+              {selectedValues.length === 0
+                ? `All ${label}`
+                : selectedValues.length === 1
+                  ? displayFn(selectedValues[0])
+                  : `${selectedValues.length} selected`}
+            </span>
+            <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[240px] p-2" align="start">
+          <div className="space-y-1 max-h-[280px] overflow-y-auto">
+            {options.map((option) => {
+              const isDisabled = !availableSet.has(option.value);
+              return (
+                <label
+                  key={option.value}
+                  className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer ${
+                    isDisabled
+                      ? 'opacity-40 cursor-not-allowed'
+                      : 'hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <Checkbox
+                    checked={selectedValues.includes(option.value)}
+                    onCheckedChange={() => !isDisabled && handleToggle(field, option.value)}
+                    disabled={isDisabled}
+                  />
+                  <span className="text-sm truncate">{option.label}</span>
+                </label>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+
+  return (
+    <div className="glass-panel">
+      {/* Header */}
+      <div className="flex items-center justify-between p-3 border-b border-white/[0.06]">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Filter className="w-4 h-4" />
+          <span>Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="px-1.5 py-0.5 rounded bg-accent/20 text-accent text-xs font-semibold">
+              {activeFilterCount}
+            </span>
+          )}
+          <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? '' : '-rotate-90'}`} />
+        </button>
+
+        {activeFilterCount > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearAllFilters}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Clear all
+          </Button>
+        )}
+      </div>
+
+      {/* Filter Content */}
+      {isExpanded && (
+        <div className="p-3 md:p-4 space-y-3">
+          {/* Date Range Row */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <span className="text-[10px] md:text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Date Range
+            </span>
+
+            {/* Preset Buttons */}
+            <div className="flex gap-1 p-1 rounded-md bg-white/[0.03]">
+              {datePresets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={() => handleDatePreset(preset)}
+                  className={`px-2 md:px-3 py-1.5 rounded text-[11px] md:text-xs font-medium transition-colors whitespace-nowrap ${
+                    selectedPreset === preset.label
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.06]'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Date Inputs */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                className="px-2 py-1.5 text-xs bg-transparent border border-white/[0.08] rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                value={format(filters.dateRange.startDate, 'yyyy-MM-dd')}
+                onChange={handleStartDateChange}
+              />
+              <span className="text-muted-foreground text-xs">to</span>
+              <input
+                type="date"
+                className="px-2 py-1.5 text-xs bg-transparent border border-white/[0.08] rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                value={format(filters.dateRange.endDate, 'yyyy-MM-dd')}
+                onChange={handleEndDateChange}
+              />
             </div>
           </div>
-        )}
-      </div>
-    );
-  }
 
-  // Desktop layout
-  return (
-    <div className={`filter-panel ${!isExpanded ? 'collapsed' : ''}`}>
-      {/* Header Row - Always Visible */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <button
-            className="filter-toggle-btn"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <svg className="chevron" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z" />
-            </svg>
-            <span>Filters</span>
-            {activeFilterCount > 0 && (
-              <span className="badge-bespoke badge-neutral-soft ml-1">
-                {activeFilterCount} active
-              </span>
+          {/* Dimensional Filters - Horizontal Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            {recruiters.length > 0 && (
+              <FilterDropdown
+                label="Recruiters"
+                field="recruiterIds"
+                options={recruiters.map(r => ({ value: r.user_id, label: r.name }))}
+                selectedValues={filters.recruiterIds || []}
+                availableSet={availableOptions.recruiterIds as Set<string>}
+                displayFn={(id) => recruiters.find(r => r.user_id === id)?.name || id}
+              />
             )}
-          </button>
 
-          <DateRangePicker
-            dateRange={filters.dateRange}
-            onChange={(dateRange) => onChange({ dateRange })}
-          />
-        </div>
+            {allFunctions.length > 0 && (
+              <FilterDropdown
+                label="Function"
+                field="functions"
+                options={allFunctions.map(f => ({ value: f, label: f }))}
+                selectedValues={filters.functions || []}
+                availableSet={availableOptions.functions as Set<string>}
+              />
+            )}
 
-      </div>
+            {allJobFamilies.length > 0 && (
+              <FilterDropdown
+                label="Job Family"
+                field="jobFamilies"
+                options={allJobFamilies.map(jf => ({ value: jf, label: jf }))}
+                selectedValues={filters.jobFamilies || []}
+                availableSet={availableOptions.jobFamilies as Set<string>}
+              />
+            )}
 
-      {/* Expandable Filter Content */}
-      <div className="filter-panel-content mt-4">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
-          {/* Recruiter */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Recruiter</label>
-            <MultiSelect
-              options={recruiters.map(r => ({
-                value: r.user_id,
-                label: r.name,
-                disabled: !availableOptions.recruiterIds.has(r.user_id)
-              }))}
-              selected={filters.recruiterIds || []}
-              onChange={(values) => handleMultiSelectChange('recruiterIds', values)}
-              placeholder="Recruiter"
-              allLabel="All Recruiters"
-            />
+            {allLevels.length > 0 && (
+              <FilterDropdown
+                label="Level"
+                field="levels"
+                options={allLevels.map(l => ({ value: l, label: l }))}
+                selectedValues={filters.levels || []}
+                availableSet={availableOptions.levels as Set<string>}
+              />
+            )}
+
+            {allRegions.length > 0 && (
+              <FilterDropdown
+                label="Region"
+                field="regions"
+                options={allRegions.map(r => ({ value: r, label: r }))}
+                selectedValues={filters.regions || []}
+                availableSet={availableOptions.regions as Set<string>}
+              />
+            )}
+
+            {hiringManagers.length > 0 && (
+              <FilterDropdown
+                label="HM"
+                field="hiringManagerIds"
+                options={hiringManagers.map(hm => ({ value: hm.user_id, label: hm.name }))}
+                selectedValues={filters.hiringManagerIds || []}
+                availableSet={availableOptions.hiringManagerIds as Set<string>}
+                displayFn={(id) => hiringManagers.find(hm => hm.user_id === id)?.name || id}
+              />
+            )}
           </div>
 
-          {/* Function */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Function</label>
-            <MultiSelect
-              options={allFunctions.map(f => ({
-                value: f,
-                label: f,
-                disabled: !availableOptions.functions.has(f)
-              }))}
-              selected={filters.functions || []}
-              onChange={(values) => handleMultiSelectChange('functions', values)}
-              placeholder="Function"
-              allLabel="All Functions"
-            />
-          </div>
-
-          {/* Job Family */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Job Family</label>
-            <MultiSelect
-              options={allJobFamilies.map(jf => ({
-                value: jf,
-                label: jf,
-                disabled: !availableOptions.jobFamilies.has(jf)
-              }))}
-              selected={filters.jobFamilies || []}
-              onChange={(values) => handleMultiSelectChange('jobFamilies', values)}
-              placeholder="Job Family"
-              allLabel="All Job Families"
-            />
-          </div>
-
-          {/* Level */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Level</label>
-            <MultiSelect
-              options={allLevels.map(l => ({
-                value: l,
-                label: l,
-                disabled: !availableOptions.levels.has(l)
-              }))}
-              selected={filters.levels || []}
-              onChange={(values) => handleMultiSelectChange('levels', values)}
-              placeholder="Level"
-              allLabel="All Levels"
-            />
-          </div>
-
-          {/* Region */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Region</label>
-            <MultiSelect
-              options={allRegions.map(r => ({
-                value: r,
-                label: r,
-                disabled: !availableOptions.regions.has(r)
-              }))}
-              selected={filters.regions || []}
-              onChange={(values) => handleMultiSelectChange('regions', values)}
-              placeholder="Region"
-              allLabel="All Regions"
-            />
-          </div>
-
-          {/* Hiring Manager */}
-          <div className="relative">
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Hiring Manager</label>
-            <MultiSelect
-              options={hiringManagers.map(hm => ({
-                value: hm.user_id,
-                label: hm.name,
-                disabled: !availableOptions.hiringManagerIds.has(hm.user_id)
-              }))}
-              selected={filters.hiringManagerIds || []}
-              onChange={(values) => handleMultiSelectChange('hiringManagerIds', values)}
-              placeholder="Hiring Manager"
-              allLabel="All HMs"
-            />
-          </div>
-        </div>
-
-        {/* Active Filter Chips */}
-        {activeFilterCount > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--color-slate-100)]">
-            {filters.recruiterIds?.map(id => {
-              const recruiter = recruiters.find(r => r.user_id === id);
-              return (
-                <span key={id} className="filter-chip active">
-                  {recruiter?.name || id}
-                  <span className="remove-btn" onClick={() => clearFilterValue('recruiterIds', id)}>×</span>
+          {/* Active Filter Chips */}
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/[0.06]">
+              {(filters.recruiterIds || []).map((id) => (
+                <span key={`rec-${id}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent border border-accent/30">
+                  {recruiters.find(r => r.user_id === id)?.name || id}
+                  <button type="button" onClick={() => clearFilterValue('recruiterIds', id)} className="hover:bg-accent/20 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
                 </span>
-              );
-            })}
-            {filters.functions?.map(f => (
-              <span key={f} className="filter-chip active">
-                {f}
-                <span className="remove-btn" onClick={() => clearFilterValue('functions', f)}>×</span>
-              </span>
-            ))}
-            {filters.jobFamilies?.map(jf => (
-              <span key={jf} className="filter-chip active">
-                {jf}
-                <span className="remove-btn" onClick={() => clearFilterValue('jobFamilies', jf)}>×</span>
-              </span>
-            ))}
-            {filters.levels?.map(l => (
-              <span key={l} className="filter-chip active">
-                {l}
-                <span className="remove-btn" onClick={() => clearFilterValue('levels', l)}>×</span>
-              </span>
-            ))}
-            {filters.regions?.map(r => (
-              <span key={r} className="filter-chip active">
-                {r}
-                <span className="remove-btn" onClick={() => clearFilterValue('regions', r)}>×</span>
-              </span>
-            ))}
-            {filters.hiringManagerIds?.map(id => {
-              const hm = hiringManagers.find(h => h.user_id === id);
-              return (
-                <span key={id} className="filter-chip active">
-                  {hm?.name || id}
-                  <span className="remove-btn" onClick={() => clearFilterValue('hiringManagerIds', id)}>×</span>
+              ))}
+              {(filters.functions || []).map((f) => (
+                <span key={`fn-${f}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent border border-accent/30">
+                  {f}
+                  <button type="button" onClick={() => clearFilterValue('functions', f)} className="hover:bg-accent/20 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
                 </span>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              ))}
+              {(filters.jobFamilies || []).map((jf) => (
+                <span key={`jf-${jf}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent border border-accent/30">
+                  {jf}
+                  <button type="button" onClick={() => clearFilterValue('jobFamilies', jf)} className="hover:bg-accent/20 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              {(filters.levels || []).map((l) => (
+                <span key={`lvl-${l}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent border border-accent/30">
+                  {l}
+                  <button type="button" onClick={() => clearFilterValue('levels', l)} className="hover:bg-accent/20 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              {(filters.regions || []).map((r) => (
+                <span key={`reg-${r}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent border border-accent/30">
+                  {r}
+                  <button type="button" onClick={() => clearFilterValue('regions', r)} className="hover:bg-accent/20 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              {(filters.hiringManagerIds || []).map((id) => (
+                <span key={`hm-${id}`} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent/15 text-accent border border-accent/30">
+                  {hiringManagers.find(hm => hm.user_id === id)?.name || id}
+                  <button type="button" onClick={() => clearFilterValue('hiringManagerIds', id)} className="hover:bg-accent/20 rounded-full p-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
-

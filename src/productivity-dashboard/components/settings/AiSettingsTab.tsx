@@ -29,58 +29,58 @@ export function AiSettingsTab() {
 
       <SectionHeader title="AI Provider Settings">
         <GlassPanel>
-          <div className="ai-settings-content">
-            <div className="ai-settings-intro">
-              <h3>Bring Your Own Key (BYOK)</h3>
-              <p>
+          <div className="p-4">
+            {/* Intro Section */}
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Bring Your Own Key (BYOK)
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
                 PlatoVue supports AI-powered features like summaries and draft messages.
                 Configure your preferred AI provider below. Your API keys are encrypted
                 and can optionally be synced across devices using a secure vault.
               </p>
             </div>
 
-            <div className="ai-settings-features">
-              <div className="ai-feature">
-                <i className="bi bi-chat-text" />
+            {/* Features Grid */}
+            <div className="grid gap-4 mb-6">
+              <div className="flex items-start gap-3 p-3 bg-white/[0.03] rounded-lg">
+                <i className="bi bi-chat-text text-xl text-accent pt-0.5" />
                 <div>
-                  <strong>AI Summaries</strong>
-                  <p>Get AI-generated insights for metrics and performance data</p>
+                  <strong className="block text-foreground mb-1">AI Summaries</strong>
+                  <p className="text-sm text-muted-foreground m-0">Get AI-generated insights for metrics and performance data</p>
                 </div>
               </div>
-              <div className="ai-feature">
-                <i className="bi bi-envelope" />
+              <div className="flex items-start gap-3 p-3 bg-white/[0.03] rounded-lg">
+                <i className="bi bi-envelope text-xl text-accent pt-0.5" />
                 <div>
-                  <strong>Draft Messages</strong>
-                  <p>Generate draft emails and messages for outreach</p>
+                  <strong className="block text-foreground mb-1">Draft Messages</strong>
+                  <p className="text-sm text-muted-foreground m-0">Generate draft emails and messages for outreach</p>
                 </div>
               </div>
-              <div className="ai-feature">
-                <i className="bi bi-shield-lock" />
+              <div className="flex items-start gap-3 p-3 bg-white/[0.03] rounded-lg">
+                <i className="bi bi-shield-lock text-xl text-accent pt-0.5" />
                 <div>
-                  <strong>PII Redaction</strong>
-                  <p>Personal data is automatically redacted before sending to AI</p>
+                  <strong className="block text-foreground mb-1">PII Redaction</strong>
+                  <p className="text-sm text-muted-foreground m-0">Personal data is automatically redacted before sending to AI</p>
                 </div>
               </div>
             </div>
 
             {/* Status indicator */}
             {isAiEnabled && aiConfig && (
-              <div className="ai-status-enabled">
+              <div className="flex items-center gap-2 p-3 bg-good-bg border border-good/30 rounded-lg mb-4 text-good">
                 <i className="bi bi-check-circle-fill" />
-                <span>
-                  AI enabled via <strong>{aiConfig.provider}</strong>
+                <span className="text-sm">
+                  AI enabled via <strong className="capitalize">{aiConfig.provider}</strong>
                   {aiConfig.model && ` (${aiConfig.model})`}
                 </span>
               </div>
             )}
 
             <button
-              className="px-4 py-2 rounded font-medium"
+              className="px-4 py-2 rounded-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors"
               onClick={() => setShowSettings(true)}
-              style={{
-                background: 'var(--primary)',
-                color: '#1a1a1a',
-              }}
             >
               <i className="bi bi-gear mr-2" />
               {isAiEnabled ? 'Update AI Settings' : 'Configure AI Provider'}
@@ -100,85 +100,6 @@ export function AiSettingsTab() {
         userId={user?.id}
         canSetOrgKey={canManageMembers}
       />
-
-      <style>{`
-        .ai-settings-content {
-          padding: var(--space-4, 1rem);
-        }
-
-        .ai-settings-intro {
-          margin-bottom: var(--space-6, 1.5rem);
-        }
-
-        .ai-settings-intro h3 {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.25rem;
-          margin-bottom: var(--space-2, 0.5rem);
-          color: var(--text-primary, #f8f9fa);
-        }
-
-        .ai-settings-intro p {
-          color: var(--text-muted, #6c757d);
-          line-height: 1.6;
-        }
-
-        .ai-settings-features {
-          display: grid;
-          gap: var(--space-4, 1rem);
-          margin-bottom: var(--space-6, 1.5rem);
-        }
-
-        .ai-feature {
-          display: flex;
-          align-items: flex-start;
-          gap: var(--space-3, 0.75rem);
-          padding: var(--space-3, 0.75rem);
-          background: rgba(255, 255, 255, 0.03);
-          border-radius: var(--radius-md, 8px);
-        }
-
-        .ai-feature i {
-          font-size: 1.25rem;
-          color: var(--primary, #d4a373);
-          padding-top: 2px;
-        }
-
-        .ai-feature strong {
-          display: block;
-          color: var(--text-primary, #f8f9fa);
-          margin-bottom: var(--space-1, 0.25rem);
-        }
-
-        .ai-feature p {
-          color: var(--text-muted, #6c757d);
-          font-size: 0.875rem;
-          margin: 0;
-        }
-
-        .ai-status-enabled {
-          display: flex;
-          align-items: center;
-          gap: var(--space-2, 0.5rem);
-          padding: var(--space-3, 0.75rem);
-          background: rgba(34, 197, 94, 0.1);
-          border: 1px solid rgba(34, 197, 94, 0.3);
-          border-radius: var(--radius-md, 8px);
-          margin-bottom: var(--space-4, 1rem);
-          color: #22c55e;
-        }
-
-        .ai-status-enabled i {
-          font-size: 1rem;
-        }
-
-        .ai-status-enabled span {
-          font-size: 0.875rem;
-        }
-
-        .ai-status-enabled strong {
-          text-transform: capitalize;
-        }
-      `}</style>
     </PageShell>
   );
 }

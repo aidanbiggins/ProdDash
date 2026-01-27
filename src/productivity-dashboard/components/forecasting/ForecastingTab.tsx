@@ -333,14 +333,14 @@ export function ForecastingTab({
     setSelectedPreMortem(null);
   }, [onAddToActionQueue]);
 
-  // Get risk badge style
-  const getRiskBadgeStyle = (band: RiskBand) => {
-    const color = getRiskBandColor(band);
-    return {
-      background: `${color}20`,
-      color: color,
-      border: `1px solid ${color}40`,
-    };
+  // Get risk badge classes (Tailwind)
+  const getRiskBadgeClass = (band: RiskBand) => {
+    switch (band) {
+      case 'HIGH': return 'bg-bad-bg text-bad border border-bad';
+      case 'MED': return 'bg-warn-bg text-warn border border-warn';
+      case 'LOW': return 'bg-good-bg text-good border border-good';
+      default: return 'bg-white/10 text-muted-foreground border border-white/10';
+    }
   };
 
   // Milestone chart data - shows candidate volume decreasing over time (funnel)
@@ -410,9 +410,9 @@ export function ForecastingTab({
 
   const getHealthBadgeClass = (status: HealthStatus) => {
     switch (status) {
-      case 'on-track': return 'badge-success-soft';
-      case 'at-risk': return 'badge-warning-soft';
-      case 'off-track': return 'badge-danger-soft';
+      case 'on-track': return 'bg-good-bg text-good border border-good';
+      case 'at-risk': return 'bg-warn-bg text-warn border border-warn';
+      case 'off-track': return 'bg-bad-bg text-bad border border-bad';
     }
   };
 
@@ -458,15 +458,15 @@ export function ForecastingTab({
           {/* Wizard Progress */}
           <div className="flex justify-center mb-4">
             <div className="flex items-center gap-3">
-              <div className={`rounded-full flex items-center justify-center ${wizardStep === 'profile' ? 'text-white' : ''}`} style={{ width: 36, height: 36, background: wizardStep === 'profile' ? '#f59e0b' : '#27272a', color: wizardStep === 'profile' ? 'white' : '#94A3B8' }}>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-medium ${wizardStep === 'profile' ? 'bg-warn text-white' : 'bg-zinc-800 text-muted-foreground'}`}>
                 1
               </div>
-              <div style={{ width: 40, height: 1, background: '#3f3f46' }}></div>
-              <div className={`rounded-full flex items-center justify-center`} style={{ width: 36, height: 36, background: wizardStep === 'hm' ? '#f59e0b' : wizardStep === 'results' ? '#10b981' : '#27272a', color: wizardStep === 'hm' || wizardStep === 'results' ? 'white' : '#94A3B8' }}>
+              <div className="w-10 h-px bg-zinc-700"></div>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-medium ${wizardStep === 'hm' ? 'bg-warn text-white' : wizardStep === 'results' ? 'bg-good text-white' : 'bg-zinc-800 text-muted-foreground'}`}>
                 2
               </div>
-              <div style={{ width: 40, height: 1, background: '#3f3f46' }}></div>
-              <div className={`rounded-full flex items-center justify-center`} style={{ width: 36, height: 36, background: wizardStep === 'results' ? '#10b981' : '#27272a', color: wizardStep === 'results' ? 'white' : '#94A3B8' }}>
+              <div className="w-10 h-px bg-zinc-700"></div>
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-medium ${wizardStep === 'results' ? 'bg-good text-white' : 'bg-zinc-800 text-muted-foreground'}`}>
                 3
               </div>
             </div>
@@ -474,14 +474,14 @@ export function ForecastingTab({
 
           {/* Step 1: Role Profile */}
           {wizardStep === 'profile' && (
-            <div className="card-bespoke">
-              <div className="card-header">
+            <div className="rounded-lg border border-glass-border bg-bg-glass">
+              <div className="px-4 py-3 border-b border-white/10">
                 <SectionHeader
                   title="Step 1: Define Role Profile"
                   subtitle="Select the characteristics of the role you're planning to hire"
                 />
               </div>
-              <div className="card-body">
+              <div className="p-4">
                 <div className="grid grid-cols-12 gap-3">
                   <div className="col-span-12 md:col-span-6">
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Function *</label>
@@ -551,14 +551,14 @@ export function ForecastingTab({
 
           {/* Step 2: Hiring Manager */}
           {wizardStep === 'hm' && (
-            <div className="card-bespoke">
-              <div className="card-header">
+            <div className="rounded-lg border border-glass-border bg-bg-glass">
+              <div className="px-4 py-3 border-b border-white/10">
                 <SectionHeader
                   title="Step 2: Select Hiring Manager (Optional)"
                   subtitle="HM selection affects time predictions based on their historical latency"
                 />
               </div>
-              <div className="card-body">
+              <div className="p-4">
                 <div className="grid grid-cols-12 gap-4">
                   <div className="col-span-12 md:col-span-6">
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Hiring Manager</label>
@@ -575,30 +575,30 @@ export function ForecastingTab({
                   </div>
                   <div className="col-span-12 md:col-span-6">
                     {selectedHMMetrics && (
-                      <div style={{ background: '#141414', border: '1px solid #27272a', borderRadius: '2px' }}>
-                        <div className="card-body">
-                          <h6 className="mb-3" style={{ color: '#f5f5f5' }}>HM Insights</h6>
+                      <div className="rounded bg-zinc-900 border border-zinc-800">
+                        <div className="p-4">
+                          <h6 className="mb-3 text-foreground">HM Insights</h6>
                           <div className="flex justify-between mb-2">
                             <span className="text-muted-foreground">Avg Feedback Latency:</span>
-                            <strong className={selectedHMMetrics.feedbackLatencyMedian && selectedHMMetrics.feedbackLatencyMedian > 48 ? 'text-yellow-500' : ''}>
+                            <strong className={selectedHMMetrics.feedbackLatencyMedian && selectedHMMetrics.feedbackLatencyMedian > 48 ? 'text-warn' : 'text-foreground'}>
                               {selectedHMMetrics.feedbackLatencyMedian ? `${Math.round(selectedHMMetrics.feedbackLatencyMedian)}hrs` : '-'}
                             </strong>
                           </div>
                           <div className="flex justify-between mb-2">
                             <span className="text-muted-foreground">Decision Latency:</span>
-                            <strong className={selectedHMMetrics.decisionLatencyMedian && selectedHMMetrics.decisionLatencyMedian > 72 ? 'text-yellow-500' : ''}>
+                            <strong className={selectedHMMetrics.decisionLatencyMedian && selectedHMMetrics.decisionLatencyMedian > 72 ? 'text-warn' : 'text-foreground'}>
                               {selectedHMMetrics.decisionLatencyMedian ? `${Math.round(selectedHMMetrics.decisionLatencyMedian / 24)}d` : '-'}
                             </strong>
                           </div>
                           <div className="flex justify-between mb-2">
                             <span className="text-muted-foreground">Offer Accept Rate:</span>
-                            <strong>
+                            <strong className="text-foreground">
                               {selectedHMMetrics.offerAcceptanceRate !== null ? `${Math.round(selectedHMMetrics.offerAcceptanceRate * 100)}%` : '-'}
                             </strong>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">HM Weight:</span>
-                            <span className={`badge-bespoke ${selectedHMMetrics.hmWeight > 1.1 ? 'badge-warning-soft' : selectedHMMetrics.hmWeight < 0.9 ? 'badge-success-soft' : 'badge-neutral-soft'}`}>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${selectedHMMetrics.hmWeight > 1.1 ? 'bg-warn-bg text-warn' : selectedHMMetrics.hmWeight < 0.9 ? 'bg-good-bg text-good' : 'bg-white/10 text-muted-foreground'}`}>
                               {selectedHMMetrics.hmWeight.toFixed(2)}x
                             </span>
                           </div>
@@ -606,7 +606,7 @@ export function ForecastingTab({
                       </div>
                     )}
                     {!selectedHMMetrics && roleProfile.hiringManagerId && (
-                      <div style={{ background: 'rgba(45, 212, 191, 0.1)', border: '1px solid #2dd4bf', borderRadius: '2px', padding: '0.75rem', color: '#2dd4bf' }}>
+                      <div className="rounded p-3 bg-accent/10 border border-accent text-accent">
                         No historical data available for this HM
                       </div>
                     )}
@@ -644,14 +644,14 @@ export function ForecastingTab({
                       simulationParams={simParams || undefined}
                     />
                   ) : (
-                    <div className="card-bespoke text-center h-full flex items-center justify-center">
+                    <div className="rounded-lg border border-glass-border bg-bg-glass text-center h-full flex items-center justify-center">
                       <LogoSpinner size={40} layout="stacked" />
                     </div>
                   )}
                 </div>
                 <div className="col-span-12 md:col-span-3">
-                  <div className="card-bespoke text-center h-full">
-                    <div className="card-body">
+                  <div className="rounded-lg border border-glass-border bg-bg-glass text-center h-full">
+                    <div className="p-4">
                       <StatLabel className="mb-2">Candidates Needed</StatLabel>
                       <StatValue>{forecast.pipelineRequirements.totalCandidatesNeeded}</StatValue>
                       <div className="text-muted-foreground text-sm">top of funnel</div>
@@ -669,11 +669,11 @@ export function ForecastingTab({
               </div>
 
               {/* Milestone Timeline - Funnel over time */}
-              <div className="card-bespoke mb-4">
-                <div className="card-header">
-                  <h6 className="mb-0"><i className="bi bi-funnel mr-2"></i> Pipeline Funnel Over Time</h6>
+              <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+                <div className="px-4 py-3 border-b border-white/10">
+                  <h6 className="mb-0 text-foreground"><i className="bi bi-funnel mr-2"></i> Pipeline Funnel Over Time</h6>
                 </div>
-                <div className="card-body">
+                <div className="p-4">
                   <ResponsiveContainer width="100%" height={220}>
                     <AreaChart data={milestoneChartData} margin={{ top: 10, right: 30, left: 10, bottom: 30 }}>
                       <defs>
@@ -702,10 +702,10 @@ export function ForecastingTab({
                           if (!active || !payload?.[0]) return null;
                           const d = payload[0].payload;
                           return (
-                            <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
-                              <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.milestone}</div>
-                              <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Day {d.day} (range: {d.dayMin}-{d.dayMax})</div>
-                              <div style={{ fontSize: '0.85rem', color: '#f59e0b', fontWeight: 500 }}>{d.volume} candidates remaining</div>
+                            <div className="bg-zinc-950 border border-zinc-700 rounded p-3">
+                              <div className="font-semibold text-foreground">{d.milestone}</div>
+                              <div className="text-sm text-muted-foreground">Day {d.day} (range: {d.dayMin}-{d.dayMax})</div>
+                              <div className="text-sm text-warn font-medium">{d.volume} candidates remaining</div>
                             </div>
                           );
                         }}
@@ -734,11 +734,11 @@ export function ForecastingTab({
               <div className="grid grid-cols-12 gap-4 mb-4">
                 {/* Pipeline Requirements */}
                 <div className="col-span-12 md:col-span-6">
-                  <div className="card-bespoke h-full">
-                    <div className="card-header">
-                      <h6 className="mb-0"><i className="bi bi-funnel mr-2"></i> Pipeline Requirements</h6>
+                  <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+                    <div className="px-4 py-3 border-b border-white/10">
+                      <h6 className="mb-0 text-foreground"><i className="bi bi-funnel mr-2"></i> Pipeline Requirements</h6>
                     </div>
-                    <div className="card-body">
+                    <div className="p-4">
                       <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={pipelineChartData} layout="vertical">
                           <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
@@ -749,10 +749,10 @@ export function ForecastingTab({
                               if (!active || !payload?.[0]) return null;
                               const d = payload[0].payload;
                               return (
-                                <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
-                                  <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.stage}</div>
-                                  <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Need {d.needed} candidates</div>
-                                  <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>{d.rate}% conversion rate</div>
+                                <div className="bg-zinc-950 border border-zinc-700 rounded p-3">
+                                  <div className="font-semibold text-foreground">{d.stage}</div>
+                                  <div className="text-sm text-muted-foreground">Need {d.needed} candidates</div>
+                                  <div className="text-sm text-muted-foreground">{d.rate}% conversion rate</div>
                                 </div>
                               );
                             }}
@@ -766,11 +766,11 @@ export function ForecastingTab({
 
                 {/* Source Mix */}
                 <div className="col-span-12 md:col-span-6">
-                  <div className="card-bespoke h-full">
-                    <div className="card-header">
-                      <h6 className="mb-0"><i className="bi bi-pie-chart mr-2"></i> Recommended Source Mix</h6>
+                  <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+                    <div className="px-4 py-3 border-b border-white/10">
+                      <h6 className="mb-0 text-foreground"><i className="bi bi-pie-chart mr-2"></i> Recommended Source Mix</h6>
                     </div>
-                    <div className="card-body">
+                    <div className="p-4">
                       {forecast.sourceMix.recommendations.slice(0, 4).map(src => (
                         <div key={src.source} className="flex items-center mb-3">
                           <div className="grow">
@@ -803,16 +803,16 @@ export function ForecastingTab({
 
               {/* Risk Factors */}
               {forecast.riskFactors.length > 0 && (
-                <div className="card-bespoke mb-4">
-                  <div className="card-header">
-                    <h6 className="mb-0"><i className="bi bi-exclamation-triangle mr-2"></i> Risk Factors</h6>
+                <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+                  <div className="px-4 py-3 border-b border-white/10">
+                    <h6 className="mb-0 text-foreground"><i className="bi bi-exclamation-triangle mr-2"></i> Risk Factors</h6>
                   </div>
-                  <div className="card-body p-0">
-                    <div className="divide-y divide-gray-800">
+                  <div className="p-0">
+                    <div className="divide-y divide-white/5">
                       {forecast.riskFactors.map((risk, i) => (
                         <div key={i} className="p-3">
                           <div className="flex items-start">
-                            <span className={`badge-bespoke mr-3 ${risk.severity === 'high' ? 'badge-danger-soft' : risk.severity === 'medium' ? 'badge-warning-soft' : 'badge-neutral-soft'}`}>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mr-3 ${risk.severity === 'high' ? 'bg-bad-bg text-bad' : risk.severity === 'medium' ? 'bg-warn-bg text-warn' : 'bg-white/10 text-muted-foreground'}`}>
                               {risk.severity.toUpperCase()}
                             </span>
                             <div className="grow">
@@ -853,11 +853,10 @@ export function ForecastingTab({
             <div className="grid grid-cols-12 gap-3 mb-4">
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'all' ? 'border-primary shadow' : ''}`}
+                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'all' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('all')}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <div className="card-body">
+                  <div className="p-4">
                     <StatLabel className="mb-2">Total Open</StatLabel>
                     <StatValue>{healthSummary.total}</StatValue>
                   </div>
@@ -865,36 +864,33 @@ export function ForecastingTab({
               </div>
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'on-track' ? 'border-primary shadow' : ''}`}
+                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'on-track' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('on-track')}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <div className="card-body">
-                    <StatLabel className="mb-2 text-green-500">On Track</StatLabel>
+                  <div className="p-4">
+                    <StatLabel className="mb-2 text-good">On Track</StatLabel>
                     <StatValue color="success">{healthSummary.onTrack}</StatValue>
                   </div>
                 </div>
               </div>
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'at-risk' ? 'border-primary shadow' : ''}`}
+                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'at-risk' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('at-risk')}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <div className="card-body">
-                    <StatLabel className="mb-2 text-yellow-500">At Risk</StatLabel>
+                  <div className="p-4">
+                    <StatLabel className="mb-2 text-warn">At Risk</StatLabel>
                     <StatValue color="warning">{healthSummary.atRisk}</StatValue>
                   </div>
                 </div>
               </div>
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`card-bespoke text-center cursor-pointer ${healthFilter === 'off-track' ? 'border-primary shadow' : ''}`}
+                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'off-track' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('off-track')}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <div className="card-body">
-                    <StatLabel className="mb-2 text-red-500">Off Track</StatLabel>
+                  <div className="p-4">
+                    <StatLabel className="mb-2 text-bad">Off Track</StatLabel>
                     <StatValue color="danger">{healthSummary.offTrack}</StatValue>
                   </div>
                 </div>
@@ -904,63 +900,42 @@ export function ForecastingTab({
             {/* Pre-Mortem Risk Summary */}
             <div className="flex gap-2 mb-4 flex-wrap items-center">
               <span className="text-muted-foreground text-sm mr-2">Pre-Mortem Risk:</span>
-              <span
-                className="inline-flex items-center gap-1 rounded-full"
-                style={{
-                  ...getRiskBadgeStyle('HIGH'),
-                  padding: '0.4rem 0.75rem',
-                  fontSize: '0.8rem',
-                }}
-              >
+              <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm ${getRiskBadgeClass('HIGH')}`}>
                 <i className="bi bi-exclamation-triangle-fill"></i>
                 {riskSummary.high} High
               </span>
-              <span
-                className="inline-flex items-center gap-1 rounded-full"
-                style={{
-                  ...getRiskBadgeStyle('MED'),
-                  padding: '0.4rem 0.75rem',
-                  fontSize: '0.8rem',
-                }}
-              >
+              <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm ${getRiskBadgeClass('MED')}`}>
                 <i className="bi bi-exclamation-circle"></i>
                 {riskSummary.med} Medium
               </span>
-              <span
-                className="inline-flex items-center gap-1 rounded-full"
-                style={{
-                  ...getRiskBadgeStyle('LOW'),
-                  padding: '0.4rem 0.75rem',
-                  fontSize: '0.8rem',
-                }}
-              >
+              <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm ${getRiskBadgeClass('LOW')}`}>
                 <i className="bi bi-check-circle"></i>
                 {riskSummary.low} Low
               </span>
             </div>
 
             {/* Health Table */}
-            <div className="card-bespoke mb-4">
-              <div className="card-header flex justify-between items-center">
-                <h6 className="mb-0">Open Requisitions</h6>
+            <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+              <div className="px-4 py-3 border-b border-white/10 flex justify-between items-center">
+                <h6 className="mb-0 text-foreground">Open Requisitions</h6>
                 <span className="text-sm text-muted-foreground">Click any row for forecast details and risk analysis</span>
               </div>
-              <div className="card-body p-0">
+              <div className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full mb-0 table-bespoke hover:bg-white/5">
+                  <table className="w-full text-sm">
                     <thead>
-                      <tr>
-                        <th>Role</th>
-                        <th className="text-right">Days Open</th>
-                        <th className="text-right">Pipeline</th>
-                        <th className="text-center">Status</th>
-                        <th className="text-center">Risk</th>
-                        <th>Failure Mode</th>
-                        <th className="text-right">Predicted Fill</th>
-                        <th>Primary Issue</th>
+                      <tr className="border-b border-white/10">
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Role</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Days Open</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Pipeline</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">Status</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">Risk</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Failure Mode</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">Predicted Fill</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">Primary Issue</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-white/5">
                       {filteredHealthMetrics
                         .sort((a, b) => {
                           // Sort by pre-mortem risk score (highest first) then health score
@@ -977,41 +952,35 @@ export function ForecastingTab({
                           return (
                             <tr
                               key={req.reqId}
-                              className={selectedHealthReq === req.reqId ? 'bg-soft-primary' : ''}
-                              style={{ cursor: 'pointer' }}
+                              className={`cursor-pointer hover:bg-white/5 ${selectedHealthReq === req.reqId ? 'bg-accent/10' : ''}`}
                               onClick={() => setSelectedHealthReq(selectedHealthReq === req.reqId ? null : req.reqId)}
                             >
-                              <td>
-                                <div className="font-medium">{req.reqTitle}</div>
+                              <td className="px-4 py-3">
+                                <div className="font-medium text-foreground">{req.reqTitle}</div>
                                 <div className="text-sm text-muted-foreground">{req.function} {req.level}</div>
                               </td>
-                              <td className="text-right">
-                                <span className={req.daysOpen > req.benchmarkTTF ? 'text-red-500 font-bold' : ''}>
+                              <td className="px-4 py-3 text-right">
+                                <span className={req.daysOpen > req.benchmarkTTF ? 'text-bad font-bold' : 'text-foreground'}>
                                   {req.daysOpen}d
                                 </span>
                                 <div className="text-sm text-muted-foreground">/ {req.benchmarkTTF}d benchmark</div>
                               </td>
-                              <td className="text-right">
-                                <span className={req.pipelineGap < 0 ? 'text-red-500 font-bold' : ''}>
+                              <td className="px-4 py-3 text-right">
+                                <span className={req.pipelineGap < 0 ? 'text-bad font-bold' : 'text-foreground'}>
                                   {req.currentPipelineDepth}
                                 </span>
                                 <span className="text-muted-foreground">/{req.benchmarkPipelineDepth}</span>
                               </td>
-                              <td className="text-center">
-                                <span className={`badge-bespoke ${getHealthBadgeClass(req.healthStatus)}`}>
+                              <td className="px-4 py-3 text-center">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getHealthBadgeClass(req.healthStatus)}`}>
                                   {req.healthScore}
                                 </span>
                               </td>
                               {/* Risk Score + Band */}
-                              <td className="text-center">
+                              <td className="px-4 py-3 text-center">
                                 {preMortem ? (
                                   <span
-                                    className="inline-flex items-center rounded-full font-mono"
-                                    style={{
-                                      ...getRiskBadgeStyle(preMortem.risk_band),
-                                      padding: '0.35rem 0.6rem',
-                                      fontSize: '0.75rem',
-                                    }}
+                                    className={`inline-flex items-center rounded-full font-mono px-2 py-1 text-xs ${getRiskBadgeClass(preMortem.risk_band)}`}
                                     title={`Risk Score: ${preMortem.risk_score}/100`}
                                   >
                                     {preMortem.risk_band} {preMortem.risk_score}
@@ -1021,26 +990,23 @@ export function ForecastingTab({
                                 )}
                               </td>
                               {/* Failure Mode */}
-                              <td>
+                              <td className="px-4 py-3">
                                 {preMortem ? (
-                                  <span
-                                    className="text-sm"
-                                    style={{ color: getRiskBandColor(preMortem.risk_band) }}
-                                  >
+                                  <span className={`text-sm ${preMortem.risk_band === 'HIGH' ? 'text-bad' : preMortem.risk_band === 'MED' ? 'text-warn' : 'text-good'}`}>
                                     {getFailureModeLabel(preMortem.failure_mode)}
                                   </span>
                                 ) : (
                                   <span className="text-muted-foreground text-sm">-</span>
                                 )}
                               </td>
-                              <td className="text-right">
+                              <td className="px-4 py-3 text-right">
                                 {req.predictedFillDate ? (
-                                  <span>{format(req.predictedFillDate, 'MMM d')}</span>
+                                  <span className="text-foreground">{format(req.predictedFillDate, 'MMM d')}</span>
                                 ) : (
-                                  <span className="text-red-500">Unknown</span>
+                                  <span className="text-bad">Unknown</span>
                                 )}
                               </td>
-                              <td>
+                              <td className="px-4 py-3">
                                 <span className="text-sm text-muted-foreground">{req.primaryIssue || '-'}</span>
                               </td>
                             </tr>
@@ -1051,20 +1017,20 @@ export function ForecastingTab({
                 </div>
                 {/* Pagination */}
                 {filteredHealthMetrics.length > HEALTH_PAGE_SIZE && (
-                  <div className="card-footer flex justify-between items-center">
+                  <div className="px-4 py-3 border-t border-white/10 flex justify-between items-center">
                     <span className="text-muted-foreground text-sm">
                       Showing {healthPage * HEALTH_PAGE_SIZE + 1}-{Math.min((healthPage + 1) * HEALTH_PAGE_SIZE, filteredHealthMetrics.length)} of {filteredHealthMetrics.length}
                     </span>
                     <div className="inline-flex rounded-md shadow-sm">
                       <button
-                        className="inline-flex items-center px-3 py-1.5 text-sm border border-glass-border rounded-l-md hover:bg-bg-glass disabled:opacity-50"
+                        className="inline-flex items-center px-3 py-1.5 text-sm border border-glass-border rounded-l-md text-muted-foreground hover:bg-white/5 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         disabled={healthPage === 0}
                         onClick={() => setHealthPage(p => p - 1)}
                       >
                         Previous
                       </button>
                       <button
-                        className="inline-flex items-center px-3 py-1.5 text-sm border border-glass-border border-l-0 rounded-r-md hover:bg-bg-glass disabled:opacity-50"
+                        className="inline-flex items-center px-3 py-1.5 text-sm border border-glass-border border-l-0 rounded-r-md text-muted-foreground hover:bg-white/5 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         disabled={(healthPage + 1) * HEALTH_PAGE_SIZE >= filteredHealthMetrics.length}
                         onClick={() => setHealthPage(p => p + 1)}
                       >

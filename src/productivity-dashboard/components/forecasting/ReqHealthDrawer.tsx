@@ -7,58 +7,60 @@ import { PreMortemResult, getRiskBandColor, getFailureModeLabel } from '../../ty
 import { OracleConfidenceWidget } from './OracleConfidenceWidget';
 import { Candidate } from '../../types';
 
-// Health status badge styling
-function getHealthBadgeStyle(status: string) {
+// Health status badge styling (Tailwind classes)
+function getHealthBadgeClass(status: string) {
   switch (status) {
     case 'on-track':
-      return { background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' };
+      return 'bg-good-bg text-good';
     case 'at-risk':
-      return { background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' };
+      return 'bg-warn-bg text-warn';
     case 'off-track':
-      return { background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' };
+      return 'bg-bad-bg text-bad';
     default:
-      return { background: 'rgba(100, 116, 139, 0.15)', color: '#64748b' };
+      return 'bg-white/10 text-muted-foreground';
   }
 }
 
-function getVelocityBadgeStyle(trend: string) {
+function getVelocityBadgeClass(trend: string) {
   switch (trend) {
     case 'improving':
-      return { background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' };
+      return 'bg-good-bg text-good';
     case 'stable':
-      return { background: 'rgba(100, 116, 139, 0.15)', color: '#64748b' };
+      return 'bg-white/10 text-muted-foreground';
     case 'declining':
-      return { background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' };
+      return 'bg-warn-bg text-warn';
     case 'stalled':
-      return { background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' };
+      return 'bg-bad-bg text-bad';
     default:
-      return { background: 'rgba(100, 116, 139, 0.15)', color: '#64748b' };
+      return 'bg-white/10 text-muted-foreground';
   }
 }
 
-function getPriorityBadgeStyle(priority: string) {
+// Returns both badge class and border class for priority styling
+function getPriorityStyles(priority: string): { badgeClass: string; borderClass: string } {
   switch (priority) {
     case 'urgent':
     case 'high':
-      return { background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' };
+    case 'critical':
+      return { badgeClass: 'bg-bad-bg text-bad', borderClass: 'border-l-bad' };
     case 'important':
     case 'medium':
-      return { background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' };
+      return { badgeClass: 'bg-warn-bg text-warn', borderClass: 'border-l-warn' };
     default:
-      return { background: 'rgba(100, 116, 139, 0.15)', color: '#64748b' };
+      return { badgeClass: 'bg-white/10 text-muted-foreground', borderClass: 'border-l-white/20' };
   }
 }
 
-function getRiskBandBadgeStyle(band: string) {
+function getRiskBandBadgeClass(band: string) {
   switch (band) {
     case 'HIGH':
-      return { background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' };
+      return 'bg-bad-bg text-bad';
     case 'MED':
-      return { background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b' };
+      return 'bg-warn-bg text-warn';
     case 'LOW':
-      return { background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' };
+      return 'bg-good-bg text-good';
     default:
-      return { background: 'rgba(100, 116, 139, 0.15)', color: '#64748b' };
+      return 'bg-white/10 text-muted-foreground';
   }
 }
 
@@ -87,94 +89,34 @@ export function ReqHealthDrawer({
 }: ReqHealthDrawerProps) {
   if (!isOpen || !healthData) return null;
 
-  const healthBadgeStyle = getHealthBadgeStyle(healthData.healthStatus);
-  const velocityBadgeStyle = getVelocityBadgeStyle(healthData.velocityTrend);
-
   return (
     <>
       {/* Backdrop */}
       <div
-        className="glass-backdrop"
+        className="fixed inset-0 z-[1040] bg-black/50 backdrop-blur-sm"
         onClick={onClose}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 1040,
-        }}
       />
 
       {/* Drawer */}
-      <div
-        className="glass-drawer"
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: '560px',
-          maxWidth: '95vw',
-          zIndex: 1050,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="fixed top-0 right-0 bottom-0 w-[560px] max-w-[95vw] z-[1050] flex flex-col overflow-hidden bg-bg-glass border-l border-glass-border">
         {/* Header */}
-        <div
-          className="glass-drawer-header"
-          style={{
-            padding: 'var(--space-4)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          }}
-        >
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-tertiary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: '4px',
-              }}
-            >
+        <div className="p-4 flex justify-between items-start border-b border-white/10">
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
               Requisition Details
             </div>
-            <div
-              style={{
-                fontWeight: 'var(--font-bold)',
-                fontSize: 'var(--text-lg)',
-                marginBottom: '8px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
+            <div className="font-bold text-lg mb-2 overflow-hidden text-ellipsis whitespace-nowrap text-foreground">
               {healthData.reqTitle}
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span
-                className="inline-flex items-center rounded-full uppercase"
-                style={{ fontSize: '0.65rem', ...healthBadgeStyle }}
-              >
+            <div className="flex gap-2 items-center flex-wrap">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full uppercase text-[0.65rem] font-medium ${getHealthBadgeClass(healthData.healthStatus)}`}>
                 Score: {healthData.healthScore}
               </span>
-              <span
-                className="inline-flex items-center rounded-full uppercase"
-                style={{ fontSize: '0.65rem', ...velocityBadgeStyle }}
-              >
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full uppercase text-[0.65rem] font-medium ${getVelocityBadgeClass(healthData.velocityTrend)}`}>
                 {healthData.velocityTrend}
               </span>
               {preMortem && (
-                <span
-                  className="inline-flex items-center rounded-full uppercase"
-                  style={{ fontSize: '0.65rem', ...getRiskBandBadgeStyle(preMortem.risk_band) }}
-                >
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full uppercase text-[0.65rem] font-medium ${getRiskBandBadgeClass(preMortem.risk_band)}`}>
                   {preMortem.risk_band} Risk
                 </span>
               )}
@@ -182,25 +124,17 @@ export function ReqHealthDrawer({
           </div>
           <button
             onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-secondary)',
-              cursor: 'pointer',
-              fontSize: '1.25rem',
-              padding: '4px',
-              marginLeft: '8px',
-            }}
+            className="bg-transparent border-none text-muted-foreground cursor-pointer text-xl p-1 ml-2 hover:text-foreground transition-colors"
           >
             <i className="bi bi-x-lg" />
           </button>
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: 'var(--space-4)' }}>
+        <div className="flex-1 overflow-auto p-4">
           {/* Oracle Widget - Primary Feature */}
           {forecast ? (
-            <div style={{ marginBottom: 'var(--space-4)' }}>
+            <div className="mb-4">
               <OracleConfidenceWidget
                 forecast={forecast}
                 startDate={new Date()}
@@ -210,68 +144,47 @@ export function ReqHealthDrawer({
               />
             </div>
           ) : (
-            <div
-              className="glass-panel p-4 text-center mb-4"
-              style={{ color: 'var(--text-tertiary)' }}
-            >
+            <div className="rounded-lg border border-glass-border bg-bg-glass p-4 text-center mb-4 text-muted-foreground">
               <LogoSpinner size={32} message="Running Oracle Simulation..." layout="stacked" />
             </div>
           )}
 
           {/* Pre-Mortem Risk Analysis */}
           {preMortem && (
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <div
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--text-tertiary)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  marginBottom: 'var(--space-2)',
-                }}
-              >
+            <div className="mb-4">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
                 Risk Analysis
               </div>
 
               {/* Risk Score Card */}
-              <div
-                style={{
-                  padding: 'var(--space-3)',
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  borderRadius: 'var(--radius-md)',
-                  marginBottom: 'var(--space-3)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-                  <div style={{ textAlign: 'center' }}>
+              <div className="p-3 bg-white/[0.02] rounded-lg mb-3">
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
                     <div
-                      style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '2.5rem',
-                        fontWeight: 'var(--font-bold)',
-                        color: getRiskBandColor(preMortem.risk_band),
-                        lineHeight: 1,
-                      }}
+                      className="font-mono text-4xl font-bold leading-none"
+                      style={{ color: getRiskBandColor(preMortem.risk_band) }}
                     >
                       {preMortem.risk_score}
                     </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+                    <div className="text-xs text-muted-foreground">
                       /100
                     </div>
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div className="flex-1">
                     <div
+                      className="p-3 rounded-sm border-l-[3px]"
                       style={{
-                        padding: '8px 12px',
                         background: `${getRiskBandColor(preMortem.risk_band)}15`,
-                        borderLeft: `3px solid ${getRiskBandColor(preMortem.risk_band)}`,
-                        borderRadius: 'var(--radius-sm)',
+                        borderLeftColor: getRiskBandColor(preMortem.risk_band),
                       }}
                     >
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: '2px' }}>
+                      <div className="text-xs text-muted-foreground mb-0.5">
                         Primary Failure Mode
                       </div>
-                      <div style={{ fontWeight: 'var(--font-medium)', color: getRiskBandColor(preMortem.risk_band) }}>
+                      <div
+                        className="font-medium"
+                        style={{ color: getRiskBandColor(preMortem.risk_band) }}
+                      >
                         {getFailureModeLabel(preMortem.failure_mode)}
                       </div>
                     </div>
@@ -281,40 +194,32 @@ export function ReqHealthDrawer({
 
               {/* Risk Drivers */}
               {preMortem.top_drivers && preMortem.top_drivers.length > 0 && (
-                <div style={{ marginBottom: 'var(--space-3)' }}>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginBottom: '8px' }}>
+                <div className="mb-3">
+                  <div className="text-xs text-muted-foreground mb-2">
                     Risk Drivers
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className="flex flex-col gap-2">
                     {preMortem.top_drivers.slice(0, 3).map((driver, i) => {
-                      const severityStyle = getPriorityBadgeStyle(driver.severity);
+                      const { badgeClass, borderClass } = getPriorityStyles(driver.severity);
                       return (
                         <div
                           key={i}
-                          style={{
-                            padding: 'var(--space-3)',
-                            background: 'rgba(255, 255, 255, 0.02)',
-                            borderRadius: 'var(--radius-sm)',
-                            borderLeft: `3px solid ${severityStyle.color}`,
-                          }}
+                          className={`p-3 bg-white/[0.02] rounded-sm border-l-[3px] ${borderClass}`}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 'var(--font-medium)', marginBottom: '4px' }}>
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="font-medium text-foreground mb-1">
                                 {driver.description}
                               </div>
-                              <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
+                              <div className="text-sm text-muted-foreground">
                                 {driver.evidence.description}
                               </div>
                             </div>
-                            <div style={{ textAlign: 'right', marginLeft: '12px' }}>
-                              <span
-                                className="inline-flex items-center uppercase"
-                                style={{ fontSize: '0.6rem', ...severityStyle }}
-                              >
+                            <div className="text-right ml-3">
+                              <span className={`inline-flex items-center uppercase text-[0.6rem] px-1.5 py-0.5 rounded ${badgeClass}`}>
                                 {driver.severity}
                               </span>
-                              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginTop: '4px' }}>
+                              <div className="text-xs text-muted-foreground mt-1">
                                 {Math.round(driver.weight)}% weight
                               </div>
                             </div>
@@ -329,55 +234,41 @@ export function ReqHealthDrawer({
           )}
 
           {/* Key Metrics */}
-          <div style={{ marginBottom: 'var(--space-4)' }}>
-            <div
-              style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-tertiary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 'var(--space-2)',
-              }}
-            >
+          <div className="mb-4">
+            <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
               Metrics
             </div>
-            <div
-              style={{
-                padding: 'var(--space-3)',
-                background: 'rgba(255, 255, 255, 0.02)',
-                borderRadius: 'var(--radius-md)',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Recruiter</span>
-                  <span>{healthData.recruiterName || 'Unknown'}</span>
+            <div className="p-3 bg-white/[0.02] rounded-lg">
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Recruiter</span>
+                  <span className="text-foreground">{healthData.recruiterName || 'Unknown'}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Hiring Manager</span>
-                  <span>{healthData.hiringManagerName || 'Unknown'}</span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Hiring Manager</span>
+                  <span className="text-foreground">{healthData.hiringManagerName || 'Unknown'}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Days Open</span>
-                  <span>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Days Open</span>
+                  <span className="text-foreground">
                     {healthData.daysOpen}d
-                    <span style={{ color: 'var(--text-tertiary)', marginLeft: '4px' }}>
+                    <span className="text-muted-foreground ml-1">
                       (benchmark: {healthData.benchmarkTTF}d)
                     </span>
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Pipeline Depth</span>
-                  <span style={{ color: healthData.pipelineGap < 0 ? '#ef4444' : 'inherit' }}>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Pipeline Depth</span>
+                  <span className={healthData.pipelineGap < 0 ? 'text-bad' : 'text-foreground'}>
                     {healthData.currentPipelineDepth}
-                    <span style={{ marginLeft: '4px' }}>
+                    <span className="ml-1">
                       ({healthData.pipelineGap >= 0 ? '+' : ''}{healthData.pipelineGap} vs benchmark)
                     </span>
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Last Activity</span>
-                  <span style={{ color: healthData.daysSinceActivity > 7 ? '#f59e0b' : 'inherit' }}>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Last Activity</span>
+                  <span className={healthData.daysSinceActivity > 7 ? 'text-warn' : 'text-foreground'}>
                     {healthData.daysSinceActivity}d ago
                   </span>
                 </div>
@@ -387,39 +278,20 @@ export function ReqHealthDrawer({
 
           {/* Pipeline by Stage */}
           {healthData.candidatesByStage && Object.keys(healthData.candidatesByStage).length > 0 && (
-            <div style={{ marginBottom: 'var(--space-4)' }}>
-              <div
-                style={{
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--text-tertiary)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  marginBottom: 'var(--space-2)',
-                }}
-              >
+            <div className="mb-4">
+              <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
                 Pipeline by Stage
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '8px',
-                  flexWrap: 'wrap',
-                }}
-              >
+              <div className="flex gap-2 flex-wrap">
                 {Object.entries(healthData.candidatesByStage).map(([stage, count]) => (
                   <div
                     key={stage}
-                    style={{
-                      padding: '8px 12px',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      borderRadius: 'var(--radius-sm)',
-                      textAlign: 'center',
-                    }}
+                    className="px-3 py-2 bg-white/[0.03] rounded-sm text-center"
                   >
-                    <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 'var(--font-bold)', fontSize: 'var(--text-lg)' }}>
+                    <div className="font-mono font-bold text-lg text-foreground">
                       {count}
                     </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
+                    <div className="text-xs text-muted-foreground">
                       {stage}
                     </div>
                   </div>
@@ -430,47 +302,31 @@ export function ReqHealthDrawer({
 
           {/* Recommended Actions - Merged from both sources */}
           <div>
-            <div
-              style={{
-                fontSize: 'var(--text-xs)',
-                color: 'var(--text-tertiary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 'var(--space-2)',
-              }}
-            >
+            <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
               Recommended Actions
             </div>
 
             {/* Health-based actions */}
             {healthData.actionRecommendations && healthData.actionRecommendations.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="flex flex-col gap-2">
                 {healthData.actionRecommendations.map((action, i) => {
-                  const priorityStyle = getPriorityBadgeStyle(action.priority);
+                  const { badgeClass, borderClass } = getPriorityStyles(action.priority);
                   return (
                     <div
                       key={`health-${i}`}
-                      style={{
-                        padding: 'var(--space-3)',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        borderRadius: 'var(--radius-sm)',
-                        borderLeft: `3px solid ${priorityStyle.color}`,
-                      }}
+                      className={`p-3 bg-white/[0.02] rounded-sm border-l-[3px] ${borderClass}`}
                     >
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                        <span
-                          className="inline-flex items-center uppercase"
-                          style={{ fontSize: '0.6rem', ...priorityStyle }}
-                        >
+                      <div className="flex items-start gap-2">
+                        <span className={`inline-flex items-center uppercase text-[0.6rem] px-1.5 py-0.5 rounded ${badgeClass}`}>
                           {action.priority}
                         </span>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 'var(--font-medium)' }}>
+                        <div className="flex-1">
+                          <div className="font-medium text-foreground">
                             {action.action}
                           </div>
-                          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                          <div className="text-sm text-muted-foreground mt-1">
                             {action.expectedImpact}
-                            <span style={{ color: 'var(--color-accent-primary, #d4a373)', marginLeft: '8px' }}>
+                            <span className="text-accent ml-2">
                               ({action.owner})
                             </span>
                           </div>
@@ -483,31 +339,23 @@ export function ReqHealthDrawer({
                 {/* Pre-Mortem interventions */}
                 {preMortem?.recommended_interventions && preMortem.recommended_interventions.length > 0 && (
                   preMortem.recommended_interventions.slice(0, 2).map((intervention, i) => {
-                    const priorityStyle = getPriorityBadgeStyle(intervention.priority);
+                    const { badgeClass, borderClass } = getPriorityStyles(intervention.priority);
                     return (
                       <div
                         key={`pm-${i}`}
-                        style={{
-                          padding: 'var(--space-3)',
-                          background: 'rgba(255, 255, 255, 0.02)',
-                          borderRadius: 'var(--radius-sm)',
-                          borderLeft: `3px solid ${priorityStyle.color}`,
-                        }}
+                        className={`p-3 bg-white/[0.02] rounded-sm border-l-[3px] ${borderClass}`}
                       >
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                          <span
-                            className="inline-flex items-center uppercase"
-                            style={{ fontSize: '0.6rem', ...priorityStyle }}
-                          >
+                        <div className="flex items-start gap-2">
+                          <span className={`inline-flex items-center uppercase text-[0.6rem] px-1.5 py-0.5 rounded ${badgeClass}`}>
                             {intervention.priority}
                           </span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 'var(--font-medium)' }}>
+                          <div className="flex-1">
+                            <div className="font-medium text-foreground">
                               {intervention.title}
                             </div>
-                            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            <div className="text-sm text-muted-foreground mt-1">
                               {intervention.description}
-                              <span style={{ color: 'var(--color-accent-primary, #d4a373)', marginLeft: '8px' }}>
+                              <span className="text-accent ml-2">
                                 ({intervention.owner_type})
                               </span>
                             </div>
@@ -519,33 +367,25 @@ export function ReqHealthDrawer({
                 )}
               </div>
             ) : preMortem?.recommended_interventions && preMortem.recommended_interventions.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="flex flex-col gap-2">
                 {preMortem.recommended_interventions.map((intervention, i) => {
-                  const priorityStyle = getPriorityBadgeStyle(intervention.priority);
+                  const { badgeClass, borderClass } = getPriorityStyles(intervention.priority);
                   return (
                     <div
                       key={i}
-                      style={{
-                        padding: 'var(--space-3)',
-                        background: 'rgba(255, 255, 255, 0.02)',
-                        borderRadius: 'var(--radius-sm)',
-                        borderLeft: `3px solid ${priorityStyle.color}`,
-                      }}
+                      className={`p-3 bg-white/[0.02] rounded-sm border-l-[3px] ${borderClass}`}
                     >
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                        <span
-                          className="inline-flex items-center uppercase"
-                          style={{ fontSize: '0.6rem', ...priorityStyle }}
-                        >
+                      <div className="flex items-start gap-2">
+                        <span className={`inline-flex items-center uppercase text-[0.6rem] px-1.5 py-0.5 rounded ${badgeClass}`}>
                           {intervention.priority}
                         </span>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 'var(--font-medium)' }}>
+                        <div className="flex-1">
+                          <div className="font-medium text-foreground">
                             {intervention.title}
                           </div>
-                          <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                          <div className="text-sm text-muted-foreground mt-1">
                             {intervention.description}
-                            <span style={{ color: 'var(--color-accent-primary, #d4a373)', marginLeft: '8px' }}>
+                            <span className="text-accent ml-2">
                               ({intervention.owner_type})
                             </span>
                           </div>
@@ -556,15 +396,7 @@ export function ReqHealthDrawer({
                 })}
               </div>
             ) : (
-              <div
-                style={{
-                  padding: 'var(--space-4)',
-                  background: 'rgba(16, 185, 129, 0.05)',
-                  borderRadius: 'var(--radius-md)',
-                  textAlign: 'center',
-                  color: '#10b981',
-                }}
-              >
+              <div className="p-4 bg-good/5 rounded-lg text-center text-good">
                 No specific actions recommended - role is on track!
               </div>
             )}

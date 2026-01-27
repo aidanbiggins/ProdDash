@@ -800,10 +800,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       else if (periodDays <= 185) periodLabel = 'prior 6mo';
       else periodLabel = 'prior year';
 
+      // Calculate avg productivity for prior period
+      const priorAvgProductivity = priorOverview.recruiterSummaries.length > 0
+        ? priorOverview.recruiterSummaries.reduce((sum, r) => sum + r.productivityIndex, 0) / priorOverview.recruiterSummaries.length
+        : null;
+
       overview.priorPeriod = {
         hires: priorOverview.totalHires,
         weightedHires: priorOverview.totalWeightedHires,
         offers: priorOverview.totalOffers,
+        acceptRate: priorOverview.totalOfferAcceptanceRate,
+        medianTTF: priorOverview.medianTTF,
+        stalledReqCount: priorOverview.stalledReqCount,
+        avgProductivity: priorAvgProductivity,
         label: periodLabel
       };
 
@@ -815,6 +824,10 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             hires: r.outcomes.hires,
             weightedHires: r.weighted.weightedHires,
             offers: r.outcomes.offersExtended,
+            acceptRate: r.outcomes.offerAcceptanceRate,
+            medianTTF: r.outcomes.timeToFillMedian,
+            stalledReqCount: r.aging.stalledReqs.count,
+            avgProductivity: r.productivityIndex,
             label: periodLabel
           };
         }

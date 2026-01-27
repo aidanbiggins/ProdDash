@@ -4,6 +4,7 @@ import { PageHeader } from '../common/PageHeader';
 import { GlassPanel } from '../layout/GlassPanel';
 import { SectionHeader } from '../common/SectionHeader';
 import { SlaPolicy, SlaOwnerType, DEFAULT_SLA_POLICIES } from '../../types/slaTypes';
+import { Checkbox } from '../../../components/ui/toggles';
 
 // Storage key for SLA policies
 const SLA_POLICIES_KEY = 'platovue_sla_policies';
@@ -113,14 +114,7 @@ export function SlaSettingsTab() {
 
       {/* Success Message */}
       {success && (
-        <div
-          className="p-3 rounded flex items-center mb-4"
-          style={{
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-            border: '1px solid rgba(34, 197, 94, 0.3)',
-            color: '#22c55e',
-          }}
-        >
+        <div className="p-3 rounded-lg flex items-center mb-4 bg-good-bg border border-good/30 text-good">
           <i className="bi bi-check-circle mr-2"></i>
           {success}
         </div>
@@ -133,99 +127,71 @@ export function SlaSettingsTab() {
           subtitle="Define time limits for each hiring stage"
         />
 
-        <div style={{ overflowX: 'auto' }}>
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: 'var(--text-sm)',
-            }}
-          >
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                <th style={thStyle}>Stage</th>
-                <th style={thStyle}>Display Name</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>SLA (hours)</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Display</th>
-                <th style={thStyle}>Owner</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Enabled</th>
-                <th style={{ ...thStyle, textAlign: 'center' }}>Actions</th>
+              <tr className="border-b border-glass-border">
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stage</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Display Name</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">SLA (hours)</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Display</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Owner</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enabled</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {policies.map((policy, index) => (
                 <tr
                   key={policy.stage_key}
-                  style={{
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                    opacity: policy.enabled ? 1 : 0.5,
-                  }}
+                  className={`${policy.enabled ? '' : 'opacity-50'}`}
                 >
-                  <td style={tdStyle}>
-                    <code
-                      style={{
-                        backgroundColor: 'rgba(45, 212, 191, 0.1)',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        color: '#2dd4bf',
-                      }}
-                    >
+                  <td className="px-3 py-3 align-middle">
+                    <code className="px-1.5 py-0.5 rounded text-xs bg-teal-500/10 text-teal-400">
                       {policy.stage_key}
                     </code>
                   </td>
-                  <td style={tdStyle}>
+                  <td className="px-3 py-3 align-middle">
                     <input
                       type="text"
-                      className="px-2 py-1 rounded border text-xs"
+                      className="px-2 py-1 rounded-md text-xs max-w-[180px] bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
                       value={policy.display_name}
                       onChange={(e) => handleUpdatePolicy(index, 'display_name', e.target.value)}
-                      style={{ maxWidth: '180px' }}
                     />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td className="px-3 py-3 align-middle text-center">
                     <input
                       type="number"
-                      className="px-2 py-1 rounded border text-xs text-center"
+                      className="px-2 py-1 rounded-md text-xs text-center w-[80px] bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
                       value={policy.sla_hours}
                       onChange={(e) => handleUpdatePolicy(index, 'sla_hours', parseInt(e.target.value) || 0)}
                       min={1}
                       max={720}
-                      style={{ width: '80px' }}
                     />
                   </td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      textAlign: 'center',
-                      fontFamily: 'var(--font-mono)',
-                      color: 'var(--text-secondary)',
-                    }}
-                  >
+                  <td className="px-3 py-3 align-middle text-center font-mono text-muted-foreground">
                     {formatHoursDisplay(policy.sla_hours)}
                   </td>
-                  <td style={tdStyle}>
+                  <td className="px-3 py-3 align-middle">
                     <select
-                      className="px-2 py-1 rounded border text-xs"
+                      className="px-2 py-1 rounded-md text-xs w-[120px] bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
                       value={policy.owner_type}
                       onChange={(e) => handleUpdatePolicy(index, 'owner_type', e.target.value)}
-                      style={{ width: '120px' }}
                     >
                       <option value="RECRUITER">Recruiter</option>
                       <option value="HM">Hiring Manager</option>
                       <option value="OPS">TA Ops</option>
                     </select>
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
-                    <input
-                      type="checkbox"
-                      className="cursor-pointer"
+                  <td className="px-3 py-3 align-middle text-center">
+                    <Checkbox
                       checked={policy.enabled}
-                      onChange={(e) => handleUpdatePolicy(index, 'enabled', e.target.checked)}
+                      onChange={(checked) => handleUpdatePolicy(index, 'enabled', checked)}
                     />
                   </td>
-                  <td style={{ ...tdStyle, textAlign: 'center' }}>
+                  <td className="px-3 py-3 align-middle text-center">
                     <button
-                      className="px-2 py-1 text-xs rounded border border-red-500 text-red-500 hover:bg-red-500/10"
+                      className="px-2 py-1 text-xs rounded-md border border-bad text-bad hover:bg-bad/10 transition-colors"
                       onClick={() => handleRemovePolicy(index)}
                       title="Remove this SLA policy"
                     >
@@ -236,7 +202,7 @@ export function SlaSettingsTab() {
               ))}
               {policies.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ ...tdStyle, textAlign: 'center', color: 'var(--text-secondary)' }}>
+                  <td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">
                     No SLA policies configured. Add one below or reset to defaults.
                   </td>
                 </tr>
@@ -246,21 +212,9 @@ export function SlaSettingsTab() {
         </div>
 
         {/* Action Buttons */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 'var(--space-2)',
-            marginTop: 'var(--space-4)',
-            paddingTop: 'var(--space-4)',
-            borderTop: '1px solid var(--glass-border)',
-          }}
-        >
+        <div className="flex gap-2 mt-4 pt-4 border-t border-glass-border">
           <button
-            className="px-4 py-2 rounded font-medium"
-            style={{
-              background: 'var(--primary)',
-              color: '#1a1a1a',
-            }}
+            className="px-4 py-2 rounded-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSave}
             disabled={!isDirty}
           >
@@ -268,20 +222,14 @@ export function SlaSettingsTab() {
             Save Changes
           </button>
           <button
-            className="px-4 py-2 rounded border border-white/10 text-muted-foreground hover:bg-white/5"
+            className="px-4 py-2 rounded-md border border-white/10 text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
             onClick={handleReset}
           >
             <i className="bi bi-arrow-counterclockwise mr-1"></i>
             Reset to Defaults
           </button>
           {isDirty && (
-            <span
-              className="ml-auto flex items-center"
-              style={{
-                color: '#f59e0b',
-                fontSize: 'var(--text-sm)',
-              }}
-            >
+            <span className="ml-auto flex items-center text-warn text-sm">
               <i className="bi bi-exclamation-circle mr-1"></i>
               Unsaved changes
             </span>
@@ -290,119 +238,96 @@ export function SlaSettingsTab() {
       </GlassPanel>
 
       {/* Add New Policy */}
-      <div style={{ marginTop: 'var(--space-4)' }}>
-      <GlassPanel>
-        <SectionHeader
-          title="Add New Stage"
-          subtitle="Create a custom SLA policy for a stage not listed above"
-        />
+      <div className="mt-4">
+        <GlassPanel>
+          <SectionHeader
+            title="Add New Stage"
+            subtitle="Create a custom SLA policy for a stage not listed above"
+          />
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr 120px 140px auto',
-            gap: 'var(--space-3)',
-            alignItems: 'end',
-          }}
-        >
-          <div>
-            <label className="block text-xs font-medium mb-1 text-muted-foreground">Stage Key</label>
-            <input
-              type="text"
-              className="w-full px-2 py-1 rounded border text-xs"
-              placeholder="e.g., PHONE_SCREEN"
-              value={newStageKey}
-              onChange={(e) => setNewStageKey(e.target.value.toUpperCase().replace(/\s+/g, '_'))}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1 text-muted-foreground">Display Name</label>
-            <input
-              type="text"
-              className="w-full px-2 py-1 rounded border text-xs"
-              placeholder="e.g., Phone Screen"
-              value={newDisplayName}
-              onChange={(e) => setNewDisplayName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1 text-muted-foreground">SLA (hours)</label>
-            <input
-              type="number"
-              className="w-full px-2 py-1 rounded border text-xs"
-              value={newSlaHours}
-              onChange={(e) => setNewSlaHours(parseInt(e.target.value) || 72)}
-              min={1}
-              max={720}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1 text-muted-foreground">Owner</label>
-            <select
-              className="w-full px-2 py-1 rounded border text-xs"
-              value={newOwnerType}
-              onChange={(e) => setNewOwnerType(e.target.value as SlaOwnerType)}
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_120px_140px_auto] gap-3 items-end">
+            <div>
+              <label className="block text-xs font-medium mb-1 text-muted-foreground">Stage Key</label>
+              <input
+                type="text"
+                className="w-full px-2 py-1.5 rounded-md text-sm bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                placeholder="e.g., PHONE_SCREEN"
+                value={newStageKey}
+                onChange={(e) => setNewStageKey(e.target.value.toUpperCase().replace(/\s+/g, '_'))}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-muted-foreground">Display Name</label>
+              <input
+                type="text"
+                className="w-full px-2 py-1.5 rounded-md text-sm bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                placeholder="e.g., Phone Screen"
+                value={newDisplayName}
+                onChange={(e) => setNewDisplayName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-muted-foreground">SLA (hours)</label>
+              <input
+                type="number"
+                className="w-full px-2 py-1.5 rounded-md text-sm bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                value={newSlaHours}
+                onChange={(e) => setNewSlaHours(parseInt(e.target.value) || 72)}
+                min={1}
+                max={720}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1 text-muted-foreground">Owner</label>
+              <select
+                className="w-full px-2 py-1.5 rounded-md text-sm bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                value={newOwnerType}
+                onChange={(e) => setNewOwnerType(e.target.value as SlaOwnerType)}
+              >
+                <option value="RECRUITER">Recruiter</option>
+                <option value="HM">Hiring Manager</option>
+                <option value="OPS">TA Ops</option>
+              </select>
+            </div>
+            <button
+              className="px-3 py-1.5 text-sm rounded-md border border-accent text-accent hover:bg-accent/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[34px]"
+              onClick={handleAddPolicy}
+              disabled={!newStageKey.trim() || !newDisplayName.trim()}
             >
-              <option value="RECRUITER">Recruiter</option>
-              <option value="HM">Hiring Manager</option>
-              <option value="OPS">TA Ops</option>
-            </select>
+              <i className="bi bi-plus-lg mr-1"></i>
+              Add
+            </button>
           </div>
-          <button
-            className="px-3 py-1 text-xs rounded border border-primary text-primary hover:bg-primary/10"
-            onClick={handleAddPolicy}
-            disabled={!newStageKey.trim() || !newDisplayName.trim()}
-            style={{ height: '31px' }}
-          >
-            <i className="bi bi-plus-lg mr-1"></i>
-            Add
-          </button>
-        </div>
-      </GlassPanel>
+        </GlassPanel>
       </div>
 
       {/* Help Section */}
-      <div style={{ marginTop: 'var(--space-4)' }}>
-      <GlassPanel>
-        <SectionHeader title="How SLAs Work" />
-        <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
-          <p>
-            <strong>Stage Key:</strong> The internal identifier matching your ATS stage names
-            (e.g., SCREEN, HM_SCREEN, ONSITE).
-          </p>
-          <p>
-            <strong>SLA Hours:</strong> Maximum time a candidate should spend in this stage
-            before it's considered a breach.
-          </p>
-          <p>
-            <strong>Owner:</strong> Who is responsible for moving candidates through this stage.
-            Breaches are attributed to this role.
-          </p>
-          <ul style={{ marginTop: 'var(--space-2)' }}>
-            <li><strong>Recruiter:</strong> Screens, sourcing, offer management</li>
-            <li><strong>Hiring Manager:</strong> HM screens, interviews, final decisions</li>
-            <li><strong>TA Ops:</strong> Administrative tasks, background checks</li>
-          </ul>
-        </div>
-      </GlassPanel>
+      <div className="mt-4">
+        <GlassPanel>
+          <SectionHeader title="How SLAs Work" />
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>
+              <strong className="text-foreground">Stage Key:</strong> The internal identifier matching your ATS stage names
+              (e.g., SCREEN, HM_SCREEN, ONSITE).
+            </p>
+            <p>
+              <strong className="text-foreground">SLA Hours:</strong> Maximum time a candidate should spend in this stage
+              before it's considered a breach.
+            </p>
+            <p>
+              <strong className="text-foreground">Owner:</strong> Who is responsible for moving candidates through this stage.
+              Breaches are attributed to this role.
+            </p>
+            <ul className="mt-3 space-y-1 list-none">
+              <li><strong className="text-foreground">Recruiter:</strong> Screens, sourcing, offer management</li>
+              <li><strong className="text-foreground">Hiring Manager:</strong> HM screens, interviews, final decisions</li>
+              <li><strong className="text-foreground">TA Ops:</strong> Administrative tasks, background checks</li>
+            </ul>
+          </div>
+        </GlassPanel>
       </div>
     </div>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  padding: 'var(--space-2) var(--space-3)',
-  fontSize: 'var(--text-xs)',
-  color: 'var(--text-tertiary)',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
-  fontWeight: 600,
-  textAlign: 'left',
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: 'var(--space-3)',
-  verticalAlign: 'middle',
-};
 
 export default SlaSettingsTab;
