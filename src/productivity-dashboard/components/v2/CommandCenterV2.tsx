@@ -333,7 +333,8 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
 
   // Count risks by severity
   const highRiskCount = bottlenecks.filter(b => b.severity === 'bad').length;
-  const actionCount = 12; // TODO: Calculate from actual actions
+  // Action count derived from bottlenecks (displayed in Actions section)
+  const actionCount = bottlenecks.length;
 
   return (
     <div className="min-h-screen bg-background">

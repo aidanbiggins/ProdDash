@@ -153,9 +153,9 @@ const BOOTSTRAP_PATTERNS = [
   { pattern: /(?<!--radix-)\bdropdown\b(?!-menu-trigger-width)/, name: 'dropdown' },
   { pattern: /(?<!--radix-)\bdropdown-(?!menu-trigger)/, name: 'dropdown-*' },
 
-  // Tooltip/Popover (Bootstrap-specific)
-  { pattern: /\btooltip\b/, name: 'tooltip' },
-  { pattern: /\bpopover\b/, name: 'popover' },
+  // Tooltip/Popover (Bootstrap-specific) - excludes Tailwind bg-popover, text-popover-foreground
+  { pattern: /(?<!bg-|text-)\btooltip\b/, name: 'tooltip' },
+  { pattern: /(?<!bg-|text-)\bpopover\b(?!-foreground)/, name: 'popover' },
 
   // Progress (Bootstrap-specific) - excludes custom scroll-progress-bar
   { pattern: /(?<!scroll-)\bprogress\b(?!-)/, name: 'progress' },

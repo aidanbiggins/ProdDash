@@ -72,6 +72,14 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Glass/Surface System - Light Mode */
+    --glass-bg: 0 0% 100%;
+    --glass-bg-elevated: 0 0% 98%;
+    --surface-hover: 210 40% 96%;
+    --surface-active: 210 40% 94%;
+    /* Overlay for modal backdrops, tooltips, etc. - black with 5% opacity in light mode */
+    --surface-overlay: 0 0% 0% / 0.05;
   }
 
   .dark {
@@ -126,6 +134,14 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Glass/Surface System - Dark Mode */
+    --glass-bg: 222 47% 11%;
+    --glass-bg-elevated: 222 47% 13%;
+    --surface-hover: 217 33% 17%;
+    --surface-active: 217 33% 20%;
+    /* Overlay for modal backdrops, tooltips, etc. - white with 5% opacity in dark mode */
+    --surface-overlay: 0 0% 100% / 0.05;
   }
 
   * {

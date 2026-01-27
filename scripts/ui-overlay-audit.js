@@ -144,21 +144,34 @@ function scanTsxFile(filePath) {
     // Only check classes that need explicit theming (not globally themed ones)
     BOOTSTRAP_OVERLAY_CLASSES_NEEDING_THEME.forEach(cls => {
       // Check for className usage with this Bootstrap class
-      const classRegex = new RegExp(`className=["'][^"']*\\b${cls}\\b[^"']*["']`, 'g');
+      // IMPORTANT: Only match standalone classes, NOT Tailwind utility classes like bg-popover
+      // Match: className="popover ..." or className="... popover" or className="... popover ..."
+      // Do NOT match: className="bg-popover" or className="text-popover-foreground"
+      const classRegex = new RegExp(`className=["'][^"']*(?:^|\\s)${cls}(?:\\s|$|["'])[^"']*["']?`, 'g');
       if (classRegex.test(line)) {
-        // Check if same line or nearby context has a themed class
-        const contextStart = Math.max(0, index - 3);
-        const contextEnd = Math.min(lines.length, index + 3);
-        const context = lines.slice(contextStart, contextEnd).join('\n');
+        // Double-check: ensure we're not matching Tailwind tokens with hyphens
+        // Extract all classes from the className and check if any is EXACTLY the Bootstrap class
+        const classNameMatch = line.match(/className=["']([^"']*)["']/);
+        if (classNameMatch) {
+          const classes = classNameMatch[1].split(/\s+/);
+          const hasExactBootstrapClass = classes.some(c => c === cls);
 
-        if (!hasThemedClass(context)) {
-          violations.push({
-            type: 'UNTHEMED_BOOTSTRAP_CLASS',
-            file: relativePath,
-            line: lineNum,
-            content: line.trim().substring(0, 120),
-            message: `Bootstrap class "${cls}" used without themed wrapper. Add glass-* or davos-* class.`
-          });
+          if (hasExactBootstrapClass) {
+            // Check if same line or nearby context has a themed class
+            const contextStart = Math.max(0, index - 3);
+            const contextEnd = Math.min(lines.length, index + 3);
+            const context = lines.slice(contextStart, contextEnd).join('\n');
+
+            if (!hasThemedClass(context)) {
+              violations.push({
+                type: 'UNTHEMED_BOOTSTRAP_CLASS',
+                file: relativePath,
+                line: lineNum,
+                content: line.trim().substring(0, 120),
+                message: `Bootstrap class "${cls}" used without themed wrapper. Add glass-* or davos-* class.`
+              });
+            }
+          }
         }
       }
     });
@@ -355,7 +368,68 @@ function printReport() {
   return 0;
 }
 
+/**
+ * Test helper: Check if a given className string would trigger a violation
+ * for a specific Bootstrap class. Used for unit testing the regex logic.
+ */
+function wouldTriggerViolation(classNameValue, bootstrapClass) {
+  const classes = classNameValue.split(/\s+/);
+  return classes.some(c => c === bootstrapClass);
+}
+
+/**
+ * Run self-tests to verify false positive fix for Tailwind tokens
+ */
+function runSelfTests() {
+  console.log('Running self-tests for overlay audit...\n');
+  let passed = 0;
+  let failed = 0;
+
+  const testCases = [
+    // Tailwind tokens should NOT trigger (false positive fixes)
+    { className: 'bg-popover', bootstrapClass: 'popover', shouldTrigger: false, description: 'bg-popover (Tailwind token)' },
+    { className: 'text-popover-foreground', bootstrapClass: 'popover', shouldTrigger: false, description: 'text-popover-foreground (Tailwind token)' },
+    { className: 'border-popover', bootstrapClass: 'popover', shouldTrigger: false, description: 'border-popover (Tailwind token)' },
+    { className: 'bg-tooltip', bootstrapClass: 'tooltip', shouldTrigger: false, description: 'bg-tooltip (Tailwind token)' },
+    { className: 'text-tooltip-foreground', bootstrapClass: 'tooltip', shouldTrigger: false, description: 'text-tooltip-foreground (Tailwind token)' },
+
+    // Standalone Bootstrap classes SHOULD trigger
+    { className: 'popover', bootstrapClass: 'popover', shouldTrigger: true, description: 'popover (standalone Bootstrap class)' },
+    { className: 'tooltip', bootstrapClass: 'tooltip', shouldTrigger: true, description: 'tooltip (standalone Bootstrap class)' },
+    { className: 'popover-body', bootstrapClass: 'popover-body', shouldTrigger: true, description: 'popover-body (Bootstrap class)' },
+    { className: 'tooltip-inner', bootstrapClass: 'tooltip-inner', shouldTrigger: true, description: 'tooltip-inner (Bootstrap class)' },
+
+    // Mixed classes - should trigger if contains exact match
+    { className: 'popover mt-2 p-4', bootstrapClass: 'popover', shouldTrigger: true, description: 'popover with other classes' },
+    { className: 'bg-popover border rounded', bootstrapClass: 'popover', shouldTrigger: false, description: 'bg-popover with other classes' },
+    { className: 'mx-2 popover shadow-lg', bootstrapClass: 'popover', shouldTrigger: true, description: 'popover in middle of classlist' },
+  ];
+
+  testCases.forEach(({ className, bootstrapClass, shouldTrigger, description }) => {
+    const result = wouldTriggerViolation(className, bootstrapClass);
+    const testPassed = result === shouldTrigger;
+
+    if (testPassed) {
+      console.log(`  ✅ PASS: ${description}`);
+      passed++;
+    } else {
+      console.log(`  ❌ FAIL: ${description}`);
+      console.log(`         Expected: ${shouldTrigger ? 'TRIGGER' : 'NO TRIGGER'}, Got: ${result ? 'TRIGGER' : 'NO TRIGGER'}`);
+      failed++;
+    }
+  });
+
+  console.log(`\n  Results: ${passed} passed, ${failed} failed\n`);
+  return failed === 0;
+}
+
 // Main
+// Check for --test flag to run self-tests
+if (process.argv.includes('--test')) {
+  const success = runSelfTests();
+  process.exit(success ? 0 : 1);
+}
+
 console.log('Scanning src/productivity-dashboard for overlay theming issues...\n');
 scanDirectory(SRC_DIR);
 const exitCode = printReport();

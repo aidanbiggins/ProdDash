@@ -67,6 +67,19 @@ module.exports = {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        // Glass/Surface system for light/dark mode
+        glass: {
+          DEFAULT: 'hsl(var(--glass-bg))',
+          elevated: 'hsl(var(--glass-bg-elevated))',
+        },
+        surface: {
+          hover: 'hsl(var(--surface-hover))',
+          active: 'hsl(var(--surface-active))',
+        },
+        // Semantic status colors for use in components
+        good: 'hsl(var(--success))',
+        warn: 'hsl(var(--warning))',
+        bad: 'hsl(var(--destructive))',
       },
 
       fontFamily: {

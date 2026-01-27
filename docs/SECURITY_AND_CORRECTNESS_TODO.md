@@ -27,6 +27,19 @@
 
 ---
 
+## THEME_CONSISTENCY_V1 (T1–T3)
+
+- [x] **T1: Add glass/surface CSS variables** - Added `--glass-bg`, `--glass-bg-elevated`, `--surface-hover`, `--surface-active` CSS variables in `src/index.css` for both light and dark modes.
+- [x] **T2: Update Tailwind config** - Added `glass`, `surface`, `good`, `warn`, `bad` color aliases in `tailwind.config.js` mapped to CSS variables.
+- [x] **T3: Fix hardcoded dark-mode colors in V2 components** - Replaced hardcoded hex/rgba colors with theme-aware Tailwind classes in:
+  - `DiagnoseTabV2.tsx` - Fixed "blue box" header (`bg-[rgba(15,23,42,0.97)]` → `bg-background/95`)
+  - `TopNavV2.tsx` - Replaced all hardcoded colors with `text-foreground`, `text-muted-foreground`, `bg-accent`, `border-border`
+  - `AskPlatoVueTabV2.tsx` - Full theme migration, replaced 50+ hardcoded color values
+  - `SettingsTabV2.tsx` - Fixed header and sub-nav colors
+  - `PlanTabV2.tsx` - Fixed header and sub-nav colors
+
+---
+
 ## Authentication & Authorization
 
 - [ ] Auth bypass mode disabled in production builds
@@ -133,3 +146,4 @@ _Status:_
 | Date | Auditor | Sections Reviewed | Findings |
 |------|---------|-------------------|----------|
 | 2026-01-26 | Initial creation | All | Checklist created |
+| 2026-01-26 | Claude | THEME_CONSISTENCY_V1 | Fixed hardcoded dark-mode colors in V2 components for light/dark mode compatibility |
