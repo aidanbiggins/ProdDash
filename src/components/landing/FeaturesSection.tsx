@@ -1,8 +1,20 @@
 import React, { useState } from 'react';
+import {
+  Bot,
+  ChevronDown,
+  Database,
+  Gauge,
+  MessageSquare,
+  Sliders,
+  Timer,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
 import { useInView } from './hooks/useScrollAnimations';
+import { cn } from '../../lib/utils';
 
 interface Feature {
-  icon: string;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
   tagline: string;
   description: string;
@@ -13,7 +25,7 @@ interface Feature {
 
 const features: Feature[] = [
   {
-    icon: 'bi-speedometer2',
+    icon: Gauge,
     title: 'Control Tower',
     tagline: 'Your command center',
     description: 'Executive dashboard showing the 5 most critical KPIs with red/yellow/green status, top risks, and a unified action queue.',
@@ -22,7 +34,7 @@ const features: Feature[] = [
     iconColor: 'gold'
   },
   {
-    icon: 'bi-stopwatch',
+    icon: Timer,
     title: 'Bottlenecks & SLAs',
     tagline: 'Track every delay',
     description: 'SLA breach tracking by stage and owner. See which stages consistently miss targets and who is responsible for the delays.',
@@ -31,7 +43,7 @@ const features: Feature[] = [
     iconColor: 'cyan'
   },
   {
-    icon: 'bi-people',
+    icon: Users,
     title: 'HM Friction Analysis',
     tagline: 'Find the bottleneck',
     description: 'Identify which hiring managers are slowing down your pipeline with feedback latency tracking and accountability scorecards.',
@@ -40,7 +52,7 @@ const features: Feature[] = [
     iconColor: 'cyan'
   },
   {
-    icon: 'bi-sliders',
+    icon: Sliders,
     title: 'What-If Simulator',
     tagline: 'Plan before you act',
     description: 'Model scenarios like hiring freezes, recruiter departures, or team expansions. See projected impact before making decisions.',
@@ -49,7 +61,7 @@ const features: Feature[] = [
     iconColor: 'violet'
   },
   {
-    icon: 'bi-database-check',
+    icon: Database,
     title: 'Data Health',
     tagline: 'Clean metrics, real performance',
     description: 'Automatically detect zombie reqs, ghost candidates, and data quality issues that corrupt your metrics.',
@@ -58,25 +70,25 @@ const features: Feature[] = [
     iconColor: 'green'
   },
   {
-    icon: 'bi-robot',
+    icon: Bot,
     title: 'AI Copilot',
     tagline: 'Your keys, your data',
     description: 'Bring your own AI key for summaries, explanations, and draft communications. Zero-knowledge encryption keeps your keys safe.',
     whyItMatters: 'Get instant explanations of complex data, draft update emails for stakeholders, and summarize trends without leaving the tool.',
-    example: '"Explain why Q3 TTF increased" → Full breakdown by stage, HM, and req type in seconds',
+    example: '"Explain why Q3 TTF increased" -> Full breakdown by stage, HM, and req type in seconds',
     iconColor: 'violet'
   },
   {
-    icon: 'bi-chat-dots',
+    icon: MessageSquare,
     title: 'Ask PlatoVue',
     tagline: 'Just ask',
     description: 'Natural language interface to query your recruiting data. Ask questions in plain English, get instant answers with citations.',
     whyItMatters: '"Why did that take so long?" shouldn\'t require a data analyst and 2 weeks. Ask the question, get the answer.',
-    example: '"What\'s on fire?" → Top risks, stalled reqs, and overdue HM actions in one response',
+    example: '"What\'s on fire?" -> Top risks, stalled reqs, and overdue HM actions in one response',
     iconColor: 'cyan'
   },
   {
-    icon: 'bi-graph-up-arrow',
+    icon: TrendingUp,
     title: 'Forecasting',
     tagline: 'Predict, don\'t react',
     description: 'Pipeline-based hiring predictions with confidence scoring. Know your gap to goal before it\'s too late to fix.',
@@ -95,70 +107,130 @@ export function FeaturesSection({ sectionRef }: FeaturesSectionProps) {
   const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
   const [gridRef, gridInView] = useInView<HTMLDivElement>({ threshold: 0.05 });
 
+  const iconTone: Record<Feature['iconColor'], { icon: string; bg: string; ring: string }> = {
+    gold: { icon: 'text-amber-400', bg: 'bg-amber-400/10', ring: 'ring-1 ring-amber-400/15 border-amber-400/20' },
+    cyan: { icon: 'text-cyan-300', bg: 'bg-cyan-400/10', ring: 'ring-1 ring-cyan-400/15 border-cyan-400/20' },
+    violet: { icon: 'text-violet-300', bg: 'bg-violet-400/10', ring: 'ring-1 ring-violet-400/15 border-violet-400/20' },
+    green: { icon: 'text-emerald-300', bg: 'bg-emerald-400/10', ring: 'ring-1 ring-emerald-400/15 border-emerald-400/20' },
+  };
+
   return (
-    <section className="landing-features" ref={sectionRef}>
+    <section ref={sectionRef} className="relative py-24 md:py-32">
       <div
         ref={headerRef}
-        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+        className={cn(
+          'mx-auto max-w-2xl px-6 text-center',
+          'animate-fade-up',
+          headerInView && 'in-view'
+        )}
       >
-        <span className="landing-section-eyebrow">Features</span>
-        <h2>Everything You Need to Run Recruiting</h2>
-        <p>
+        <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase text-amber-400/90">
+          Features
+        </span>
+        <h2 className="mt-4 font-display text-3xl md:text-4xl font-bold tracking-tight text-white">
+          Everything You Need to Run Recruiting
+        </h2>
+        <p className="mt-4 text-base md:text-lg leading-relaxed text-slate-300">
           From high-level KPIs to individual candidate tracking, PlatoVue gives you
           complete visibility into your recruiting operation.
         </p>
       </div>
 
-      <div ref={gridRef} className="landing-features-grid">
-        {features.map((feature, index) => (
-          <div
-            key={feature.title}
-            className={`landing-feature-card glass-card glass-card-interactive glass-card-glow animate-scale-up ${expandedFeature === feature.title ? 'expanded' : ''} ${gridInView ? 'in-view' : ''}`}
-            style={{ transitionDelay: `${index * 80}ms` }}
-            onClick={() => setExpandedFeature(
-              expandedFeature === feature.title ? null : feature.title
-            )}
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setExpandedFeature(
-                  expandedFeature === feature.title ? null : feature.title
-                );
-              }
-            }}
-          >
-            <div className="feature-card-header">
-              <div className={`landing-feature-icon ${feature.iconColor} icon-bounce`}>
-                <i className={feature.icon} />
-              </div>
-              <div className="feature-title-group">
-                <h3>{feature.title}</h3>
-                <span className="feature-tagline">{feature.tagline}</span>
-              </div>
-              <i className={`bi bi-chevron-${expandedFeature === feature.title ? 'up' : 'down'} feature-expand-icon`} />
-            </div>
+      <div ref={gridRef} className="mx-auto mt-12 max-w-[1200px] px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {features.map((feature, index) => {
+            const expanded = expandedFeature === feature.title;
+            const Icon = feature.icon;
+            const tone = iconTone[feature.iconColor];
 
-            <p className="feature-description">{feature.description}</p>
+            return (
+              <button
+                key={feature.title}
+                type="button"
+                className={cn(
+                  'group w-full text-left',
+                  'relative rounded-2xl border bg-slate-800/50 backdrop-blur-xl p-6',
+                  'transition-all duration-300 ease-out',
+                  'hover:-translate-y-1 hover:bg-slate-800/70 hover:shadow-[0_20px_45px_rgba(0,0,0,0.35)]',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40',
+                  'animate-scale-up',
+                  gridInView && 'in-view',
+                  expanded ? tone.ring : 'border-slate-700/60 hover:border-slate-700/80'
+                )}
+                style={{ transitionDelay: `${index * 70}ms` }}
+                onClick={() => setExpandedFeature(expanded ? null : feature.title)}
+                aria-expanded={expanded}
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={cn(
+                      'flex h-11 w-11 items-center justify-center rounded-xl',
+                      'border border-white/10 bg-white/[0.04]',
+                      'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+                      tone.bg
+                    )}
+                  >
+                    <Icon className={cn('h-5 w-5', tone.icon)} />
+                  </div>
 
-            <div className="feature-expanded-content">
-              <div className="feature-why">
-                <span className="feature-why-label">Why it matters:</span>
-                <p>{feature.whyItMatters}</p>
-              </div>
-              <div className="feature-example">
-                <span className="feature-example-label">Example insight:</span>
-                <p className="feature-example-text">{feature.example}</p>
-              </div>
-            </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-display text-lg font-semibold tracking-tight text-white">
+                          {feature.title}
+                        </h3>
+                        <p className="mt-1 text-sm font-medium tracking-wide text-slate-300">
+                          {feature.tagline}
+                        </p>
+                      </div>
 
-            <div className="feature-card-footer">
-              <span className="feature-learn-more">
-                {expandedFeature === feature.title ? 'Show less' : 'Learn more'}
-              </span>
-            </div>
-          </div>
-        ))}
+                      <ChevronDown
+                        className={cn(
+                          'mt-0.5 h-5 w-5 flex-shrink-0 text-slate-400 transition-transform duration-200',
+                          expanded && 'rotate-180'
+                        )}
+                      />
+                    </div>
+
+                    <p className="mt-4 text-sm leading-relaxed text-slate-300">
+                      {feature.description}
+                    </p>
+
+                    <div
+                      className={cn(
+                        'mt-4 overflow-hidden transition-[max-height,opacity] duration-300 ease-out',
+                        expanded ? 'max-h-[240px] opacity-100' : 'max-h-0 opacity-0'
+                      )}
+                    >
+                      <div className="pt-1 space-y-4">
+                        <div>
+                          <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                            Why it matters
+                          </div>
+                          <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                            {feature.whyItMatters}
+                          </p>
+                        </div>
+                        <div className="rounded-xl border border-slate-700/60 bg-slate-800/30 p-4">
+                          <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                            Example insight
+                          </div>
+                          <p className="mt-2 text-sm leading-relaxed text-white/90">
+                            {feature.example}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 text-sm font-semibold text-amber-400/90">
+                      {expanded ? 'Show less' : 'Learn more'}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

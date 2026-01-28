@@ -1,4 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  ArrowRightCircle,
+  CheckCircle2,
+  Clock3,
+  Info,
+  XCircle,
+} from 'lucide-react';
+import { cn } from '../../lib/utils';
 import { useInView } from './hooks/useScrollAnimations';
 
 type TransformStage = 'raw' | 'parsed' | 'normalized' | 'cleaned' | 'insights';
@@ -7,40 +18,39 @@ interface StageInfo {
   id: TransformStage;
   title: string;
   description: string;
-  visual: 'csv' | 'columns' | 'stages' | 'clean' | 'dashboard';
 }
 
 const stages: StageInfo[] = [
   {
     id: 'raw',
     title: 'Raw ATS Export',
-    description: 'Messy data with inconsistent columns, duplicate records, and custom field names from your ATS.',
-    visual: 'csv'
+    description:
+      'Messy data with inconsistent columns, duplicate records, and custom field names from your ATS.',
   },
   {
     id: 'parsed',
     title: 'Smart Parsing',
-    description: 'Auto-detect column types, report format, and data structure. No manual mapping required.',
-    visual: 'columns'
+    description:
+      'Auto-detect column types, report format, and data structure. No manual mapping required.',
   },
   {
     id: 'normalized',
     title: 'Stage Normalization',
-    description: '"Phone Screen", "Recruiter Call", "Initial Interview" all map to SCREEN. Your funnel analysis finally works.',
-    visual: 'stages'
+    description:
+      '"Phone Screen", "Recruiter Call", "Initial Interview" all map to SCREEN. Your funnel analysis finally works.',
   },
   {
     id: 'cleaned',
     title: 'Data Hygiene',
-    description: 'Zombie reqs flagged. Ghost candidates identified. Duplicates merged. Bad dates corrected.',
-    visual: 'clean'
+    description:
+      'Zombie reqs flagged. Ghost candidates identified. Duplicates merged. Bad dates corrected.',
   },
   {
     id: 'insights',
     title: 'Actionable Insights',
-    description: 'True metrics, prioritized risks, and specific actions to take - not just charts and numbers.',
-    visual: 'dashboard'
-  }
+    description:
+      'True metrics, prioritized risks, and specific actions to take - not just charts and numbers.',
+  },
 ];
 
 export function DataTransformSection() {
@@ -49,129 +59,197 @@ export function DataTransformSection() {
   const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
   const [containerRef, containerInView] = useInView<HTMLDivElement>({ threshold: 0.1 });
 
-  // Auto-advance through stages for demo effect (only when in view)
+  // Auto-advance through stages for a subtle demo effect (only when in view).
   useEffect(() => {
     if (!containerInView) return;
 
-    const timer = setInterval(() => {
+    let timeout: number | undefined;
+
+    const interval = window.setInterval(() => {
       setIsAnimating(true);
-      setTimeout(() => {
-        setActiveStage(current => {
-          const currentIndex = stages.findIndex(s => s.id === current);
+      timeout = window.setTimeout(() => {
+        setActiveStage((current) => {
+          const currentIndex = stages.findIndex((s) => s.id === current);
           const nextIndex = (currentIndex + 1) % stages.length;
           return stages[nextIndex].id;
         });
         setIsAnimating(false);
-      }, 300);
-    }, 4000);
+      }, 250);
+    }, 4200);
 
-    return () => clearInterval(timer);
+    return () => {
+      window.clearInterval(interval);
+      if (timeout !== undefined) {
+        window.clearTimeout(timeout);
+      }
+    };
   }, [containerInView]);
 
-  const activeInfo = stages.find(s => s.id === activeStage)!;
+  const activeInfo = useMemo(() => stages.find((s) => s.id === activeStage)!, [activeStage]);
 
   return (
-    <section className="landing-transform">
+    <section className="relative py-24 md:py-32">
       <div
         ref={headerRef}
-        className={`landing-section-header animate-fade-up ${headerInView ? 'in-view' : ''}`}
+        className={cn('mx-auto max-w-2xl px-6 text-center', 'animate-fade-up', headerInView && 'in-view')}
       >
-        <span className="landing-section-eyebrow">The Transformation</span>
-        <h2>From Chaos to Clarity in Seconds</h2>
-        <p>
-          Watch how PlatoVue transforms a messy ATS export into decision-grade intelligence.
+        <span className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase text-amber-400/90">
+          The Transformation
+        </span>
+        <h2 className="mt-4 font-display text-3xl md:text-4xl font-bold tracking-tight text-white">
+          From Chaos to Clarity in Seconds
+        </h2>
+        <p className="mt-4 text-base md:text-lg leading-relaxed text-slate-300">
+          Watch how PlatoVue turns a messy ATS export into decision-grade intelligence.
         </p>
       </div>
 
       <div
         ref={containerRef}
-        className={`landing-transform-container animate-scale-up ${containerInView ? 'in-view' : ''}`}
+        className={cn(
+          'mx-auto mt-12 max-w-[1200px] px-6',
+          'animate-scale-up',
+          containerInView && 'in-view'
+        )}
       >
-        {/* Stage Navigation */}
-        <div className="landing-transform-nav">
-          {stages.map((stage, index) => (
-            <button
-              key={stage.id}
-              className={`transform-nav-item btn-press ${activeStage === stage.id ? 'active' : ''}`}
-              onClick={() => setActiveStage(stage.id)}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Stage navigation */}
+          <div className="lg:col-span-4">
+            <div className="flex lg:flex-col gap-3 overflow-x-auto pb-1 lg:pb-0">
+              {stages.map((stage, index) => {
+                const active = activeStage === stage.id;
+
+                return (
+                  <button
+                    key={stage.id}
+                    type="button"
+                    className={cn(
+                      'flex items-center gap-3 rounded-xl border px-4 py-3 text-left',
+                      'bg-slate-800/60 backdrop-blur-xl',
+                      'transition-all duration-200',
+                      'hover:bg-slate-700/70 hover:border-slate-600',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60',
+                      'min-w-[240px] lg:min-w-0',
+                      active ? 'border-amber-400/50 ring-1 ring-amber-400/30 bg-amber-500/10' : 'border-slate-600/80'
+                    )}
+                    onClick={() => setActiveStage(stage.id)}
+                  >
+                    <span
+                      className={cn(
+                        'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold',
+                        active
+                          ? 'border-amber-400/60 bg-amber-500/20 text-amber-300'
+                          : 'border-slate-500/40 bg-slate-700/50 text-slate-300'
+                      )}
+                    >
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-white">
+                        {stage.title}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-slate-400 uppercase tracking-wider">
+                        {stage.id.toUpperCase()}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Visual + description */}
+          <div className="lg:col-span-8 space-y-4">
+            <div
+              className={cn(
+                'rounded-2xl border border-slate-600/70 bg-slate-800/70 backdrop-blur-xl p-6',
+                'shadow-[0_20px_45px_rgba(0,0,0,0.35)]',
+                'transition-opacity duration-200',
+                isAnimating && 'opacity-70'
+              )}
             >
-              <span className="transform-nav-number">{index + 1}</span>
-              <span className="transform-nav-title">{stage.title}</span>
-            </button>
-          ))}
-        </div>
+              {activeStage === 'raw' && <RawCSVVisual />}
+              {activeStage === 'parsed' && <ParsedVisual />}
+              {activeStage === 'normalized' && <NormalizedVisual />}
+              {activeStage === 'cleaned' && <CleanedVisual />}
+              {activeStage === 'insights' && <InsightsVisual />}
+            </div>
 
-        {/* Visual Display */}
-        <div className={`landing-transform-visual glass-card ${isAnimating ? 'animating' : ''}`}>
-          {activeStage === 'raw' && <RawCSVVisual />}
-          {activeStage === 'parsed' && <ParsedVisual />}
-          {activeStage === 'normalized' && <NormalizedVisual />}
-          {activeStage === 'cleaned' && <CleanedVisual />}
-          {activeStage === 'insights' && <InsightsVisual />}
-        </div>
-
-        {/* Description */}
-        <div className="landing-transform-description">
-          <h3>{activeInfo.title}</h3>
-          <p>{activeInfo.description}</p>
+            <div className="rounded-2xl border border-slate-600/70 bg-slate-800/60 backdrop-blur-xl p-6">
+              <h3 className="font-display text-xl font-semibold tracking-tight text-white">
+                {activeInfo.title}
+              </h3>
+              <p className="mt-2 text-sm md:text-base leading-relaxed text-slate-300">
+                {activeInfo.description}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-// Visual Components for each stage
 function RawCSVVisual() {
   return (
-    <div className="transform-visual-csv">
-      <div className="csv-table">
-        <div className="csv-header">
-          <span>Requisition ID</span>
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-xl border border-slate-600/70">
+        <div className="grid grid-cols-5 gap-3 bg-slate-700/50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-300">
+          <span>Requisition</span>
           <span>Job Title</span>
-          <span>Candidate Name</span>
-          <span>Current Status</span>
-          <span>Date Updated</span>
+          <span>Candidate</span>
+          <span>Status</span>
+          <span>Updated</span>
         </div>
-        <div className="csv-row error">
-          <span>REQ-001</span>
-          <span>Sr. Engineer</span>
-          <span>John D.</span>
-          <span className="highlight-bad">Phone Scrn</span>
-          <span>1/5/24</span>
-        </div>
-        <div className="csv-row">
-          <span>REQ-001</span>
-          <span>Sr. Engineer</span>
-          <span>Jane S.</span>
-          <span className="highlight-bad">Recruiter Phone</span>
-          <span>12/15/23</span>
-        </div>
-        <div className="csv-row warning">
-          <span>REQ-002</span>
-          <span>Product Mgr</span>
-          <span className="highlight-bad">—</span>
-          <span className="highlight-bad">Open</span>
-          <span className="highlight-bad">???</span>
-        </div>
-        <div className="csv-row">
-          <span>REQ-003</span>
-          <span>Data Scientist</span>
-          <span>Mike J.</span>
-          <span className="highlight-bad">HM Interview</span>
-          <span>11/01/23</span>
+
+        <div className="divide-y divide-slate-600/50 text-xs bg-slate-800/40">
+          <div className="grid grid-cols-5 gap-3 px-3 py-2">
+            <span className="font-mono text-slate-300">REQ-001</span>
+            <span className="text-white">Sr. Engineer</span>
+            <span className="text-white">John D.</span>
+            <span>
+              <span className="inline-flex items-center rounded-md border border-rose-400/40 bg-rose-500/20 px-2 py-0.5 text-rose-300">
+                Phone Scrn
+              </span>
+            </span>
+            <span className="text-slate-400">1/5/24</span>
+          </div>
+          <div className="grid grid-cols-5 gap-3 px-3 py-2">
+            <span className="font-mono text-slate-300">REQ-001</span>
+            <span className="text-white">Sr. Engineer</span>
+            <span className="text-white">Jane S.</span>
+            <span>
+              <span className="inline-flex items-center rounded-md border border-rose-400/40 bg-rose-500/20 px-2 py-0.5 text-rose-300">
+                Recruiter Phone
+              </span>
+            </span>
+            <span className="text-slate-400">12/15/23</span>
+          </div>
+          <div className="grid grid-cols-5 gap-3 px-3 py-2">
+            <span className="font-mono text-slate-300">REQ-002</span>
+            <span className="text-white">Product Manager</span>
+            <span className="text-slate-500">-</span>
+            <span>
+              <span className="inline-flex items-center rounded-md border border-rose-400/40 bg-rose-500/20 px-2 py-0.5 text-rose-300">
+                HM Interview
+              </span>
+            </span>
+            <span className="text-slate-400">11/01/23</span>
+          </div>
         </div>
       </div>
-      <div className="csv-problems-summary">
-        <span className="csv-problem">
-          <i className="bi bi-exclamation-triangle-fill" />
+
+      <div className="flex flex-wrap gap-2">
+        <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/15 px-3 py-1.5 text-xs text-amber-200">
+          <AlertTriangle className="h-4 w-4 text-amber-400" />
           Inconsistent stage names
         </span>
-        <span className="csv-problem">
-          <i className="bi bi-x-circle-fill" />
+        <span className="inline-flex items-center gap-2 rounded-full border border-rose-400/40 bg-rose-500/15 px-3 py-1.5 text-xs text-rose-200">
+          <XCircle className="h-4 w-4 text-rose-400" />
           Missing data
         </span>
-        <span className="csv-problem">
-          <i className="bi bi-clock-fill" />
+        <span className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-500/15 px-3 py-1.5 text-xs text-cyan-200">
+          <Clock3 className="h-4 w-4 text-cyan-400" />
           Stale records
         </span>
       </div>
@@ -181,116 +259,172 @@ function RawCSVVisual() {
 
 function ParsedVisual() {
   return (
-    <div className="transform-visual-parsed">
-      <div className="parsed-detection">
-        <div className="detection-item success">
-          <i className="bi bi-check-circle-fill" />
-          <span>Report type: iCIMS Submittal</span>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-2 text-xs text-white">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+          <span>Report type detected: iCIMS Submittal</span>
         </div>
-        <div className="detection-item success">
-          <i className="bi bi-check-circle-fill" />
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-2 text-xs text-white">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
           <span>Columns detected: 12/12</span>
         </div>
-        <div className="detection-item success">
-          <i className="bi bi-check-circle-fill" />
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-500/15 px-3 py-2 text-xs text-white">
+          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
           <span>Date format: MM/DD/YY</span>
         </div>
-        <div className="detection-item warning">
-          <i className="bi bi-exclamation-circle-fill" />
+        <div className="flex items-center gap-2 rounded-lg border border-amber-400/40 bg-amber-500/15 px-3 py-2 text-xs text-white">
+          <AlertCircle className="h-4 w-4 text-amber-400" />
           <span>3 unmapped stages found</span>
         </div>
       </div>
-      <div className="parsed-mapping">
-        <div className="mapping-row">
-          <span className="mapping-source">"Requisition ID"</span>
-          <i className="bi bi-arrow-right" />
-          <span className="mapping-target">req_id</span>
+
+      <div className="rounded-xl border border-slate-600/70 bg-slate-700/40 p-4">
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+          Example mapping
         </div>
-        <div className="mapping-row">
-          <span className="mapping-source">"Candidate Name"</span>
-          <i className="bi bi-arrow-right" />
-          <span className="mapping-target">candidate_name</span>
-        </div>
-        <div className="mapping-row">
-          <span className="mapping-source">"Current Status"</span>
-          <i className="bi bi-arrow-right" />
-          <span className="mapping-target">stage</span>
+        <div className="mt-3 space-y-3 text-xs">
+          <MappingRow source="Requisition ID" target="req_id" />
+          <MappingRow source="Candidate Name" target="candidate_name" />
+          <MappingRow source="Current Status" target="stage" />
         </div>
       </div>
+    </div>
+  );
+}
+
+function MappingRow({ source, target }: { source: string; target: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="font-mono text-slate-300">"{source}"</span>
+      <ArrowRight className="h-4 w-4 flex-shrink-0 text-cyan-400" />
+      <span className="font-mono text-cyan-300 font-medium">{target}</span>
     </div>
   );
 }
 
 function NormalizedVisual() {
   return (
-    <div className="transform-visual-normalized">
-      <div className="normalization-header">Stage Normalization</div>
-      <div className="normalization-list">
-        <div className="normalization-row">
-          <div className="norm-before">
-            <span>"Phone Screen"</span>
-            <span>"Recruiter Phone"</span>
-            <span>"Initial Call"</span>
-          </div>
-          <i className="bi bi-arrow-right-circle-fill" />
-          <div className="norm-after">
-            <span className="canonical-stage screen">SCREEN</span>
-          </div>
-        </div>
-        <div className="normalization-row">
-          <div className="norm-before">
-            <span>"HM Interview"</span>
-            <span>"Hiring Mgr Review"</span>
-          </div>
-          <i className="bi bi-arrow-right-circle-fill" />
-          <div className="norm-after">
-            <span className="canonical-stage hm">HM_SCREEN</span>
-          </div>
-        </div>
-        <div className="normalization-row">
-          <div className="norm-before">
-            <span>"Virtual Onsite"</span>
-            <span>"Onsite Loop"</span>
-          </div>
-          <i className="bi bi-arrow-right-circle-fill" />
-          <div className="norm-after">
-            <span className="canonical-stage onsite">ONSITE</span>
-          </div>
-        </div>
+    <div className="space-y-4">
+      <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+        Stage normalization
       </div>
-      <div className="normalization-benefit">
-        Now funnel analysis works across time periods, even if you renamed stages
+
+      <div className="space-y-3">
+        <NormalizationRow
+          before={['Phone Screen', 'Recruiter Phone', 'Initial Call']}
+          after="SCREEN"
+          tone="cyan"
+        />
+        <NormalizationRow
+          before={['HM Interview', 'Hiring Mgr Review']}
+          after="HM_SCREEN"
+          tone="amber"
+        />
+        <NormalizationRow
+          before={['Virtual Onsite', 'Onsite Loop']}
+          after="ONSITE"
+          tone="violet"
+        />
       </div>
+
+      <div className="rounded-xl border border-slate-600/70 bg-slate-700/40 p-4 text-sm text-slate-300">
+        Funnel analysis works across time periods, even if stage names drift.
+      </div>
+    </div>
+  );
+}
+
+function NormalizationRow({
+  before,
+  after,
+  tone,
+}: {
+  before: string[];
+  after: string;
+  tone: 'cyan' | 'amber' | 'violet';
+}) {
+  const toneStyles =
+    tone === 'cyan'
+      ? 'border-cyan-400/50 bg-cyan-500/25 text-cyan-300'
+      : tone === 'amber'
+        ? 'border-amber-400/50 bg-amber-500/25 text-amber-300'
+        : 'border-violet-400/50 bg-violet-500/25 text-violet-300';
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex flex-wrap gap-1.5">
+        {before.map((s) => (
+          <span
+            key={s}
+            className="inline-flex items-center rounded-full border border-slate-500/50 bg-slate-700/50 px-2.5 py-1 text-xs font-mono text-slate-300"
+          >
+            "{s}"
+          </span>
+        ))}
+      </div>
+
+      <ArrowRightCircle className="h-5 w-5 flex-shrink-0 text-slate-400" />
+
+      <span
+        className={cn(
+          'inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold',
+          toneStyles
+        )}
+      >
+        {after}
+      </span>
     </div>
   );
 }
 
 function CleanedVisual() {
   return (
-    <div className="transform-visual-cleaned">
-      <div className="cleaned-header">Data Quality Report</div>
-      <div className="cleaned-stats">
-        <div className="cleaned-stat">
-          <span className="cleaned-stat-value">47</span>
-          <span className="cleaned-stat-label">Zombie reqs identified</span>
-          <span className="cleaned-stat-action">Excluded from TTF</span>
-        </div>
-        <div className="cleaned-stat">
-          <span className="cleaned-stat-value">312</span>
-          <span className="cleaned-stat-label">Ghost candidates flagged</span>
-          <span className="cleaned-stat-action">Pipeline adjusted</span>
-        </div>
-        <div className="cleaned-stat">
-          <span className="cleaned-stat-value">23</span>
-          <span className="cleaned-stat-label">Duplicates merged</span>
-          <span className="cleaned-stat-action">Records consolidated</span>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <CleanStat value="47" label="Zombie reqs identified" note="Excluded from TTF" tone="amber" />
+        <CleanStat value="312" label="Ghost candidates flagged" note="Pipeline adjusted" tone="cyan" />
+        <CleanStat value="23" label="Duplicates merged" note="Records consolidated" tone="violet" />
+      </div>
+
+      <div className="md:col-span-4 flex items-center justify-center">
+        <div className="rounded-2xl border border-emerald-400/50 bg-emerald-500/15 px-6 py-7 text-center w-full">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/50 bg-emerald-500/25">
+            <div className="stat-value text-3xl text-emerald-300">87</div>
+          </div>
+          <div className="mt-3 text-sm font-semibold uppercase tracking-wide text-slate-300">
+            Data quality score
+          </div>
         </div>
       </div>
-      <div className="cleaned-score">
-        <div className="score-ring">
-          <span className="score-value">87</span>
-        </div>
-        <span className="score-label">Data Quality Score</span>
+    </div>
+  );
+}
+
+function CleanStat({
+  value,
+  label,
+  note,
+  tone,
+}: {
+  value: string;
+  label: string;
+  note: string;
+  tone: 'amber' | 'cyan' | 'violet';
+}) {
+  const toneStyles =
+    tone === 'amber'
+      ? { box: 'border-amber-400/50 bg-amber-500/15', value: 'text-amber-300' }
+      : tone === 'cyan'
+        ? { box: 'border-cyan-400/50 bg-cyan-500/15', value: 'text-cyan-300' }
+        : { box: 'border-violet-400/50 bg-violet-500/15', value: 'text-violet-300' };
+
+  return (
+    <div className={cn('rounded-xl border p-4', toneStyles.box)}>
+      <div className={cn('stat-value text-2xl', toneStyles.value)}>{value}</div>
+      <div className="mt-1 text-xs text-slate-300">{label}</div>
+      <div className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        {note}
       </div>
     </div>
   );
@@ -298,38 +432,82 @@ function CleanedVisual() {
 
 function InsightsVisual() {
   return (
-    <div className="transform-visual-insights">
-      <div className="insights-kpis">
-        <div className="insight-kpi green">
-          <span className="kpi-label">True TTF</span>
-          <span className="kpi-value">41d</span>
-          <span className="kpi-note">vs 65d raw</span>
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <KpiCard label="True TTF" value="41d" note="vs 65d raw" tone="green" />
+        <KpiCard label="Accept Rate" value="87%" note="on target" tone="amber" />
+        <KpiCard label="HM Latency" value="4.2d" note="above target" tone="rose" />
+      </div>
+
+      <div className="rounded-xl border border-slate-600/70 bg-slate-700/40 p-4">
+        <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+          Action queue preview
         </div>
-        <div className="insight-kpi gold">
-          <span className="kpi-label">Accept Rate</span>
-          <span className="kpi-value">87%</span>
-          <span className="kpi-note">on target</span>
-        </div>
-        <div className="insight-kpi red">
-          <span className="kpi-label">HM Latency</span>
-          <span className="kpi-value">4.2d</span>
-          <span className="kpi-note">above target</span>
+        <div className="mt-3 space-y-2 text-sm">
+          <ActionRow tone="rose" icon="alert-circle" text="Offer pending 9 days - Jane Smith" />
+          <ActionRow
+            tone="amber"
+            icon="alert-triangle"
+            text="Mike Johnson: 3 candidates waiting for feedback"
+          />
+          <ActionRow tone="cyan" icon="info" text="REQ-1234: Consider closing (zombie)" />
         </div>
       </div>
-      <div className="insights-actions">
-        <div className="insight-action critical">
-          <i className="bi bi-exclamation-circle-fill" />
-          <span>Offer pending 9 days - Jane Smith</span>
-        </div>
-        <div className="insight-action high">
-          <i className="bi bi-exclamation-triangle-fill" />
-          <span>Mike Johnson: 3 candidates waiting for feedback</span>
-        </div>
-        <div className="insight-action medium">
-          <i className="bi bi-info-circle-fill" />
-          <span>REQ-1234: Consider closing (zombie)</span>
-        </div>
+    </div>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  note,
+  tone,
+}: {
+  label: string;
+  value: string;
+  note: string;
+  tone: 'green' | 'amber' | 'rose';
+}) {
+  const toneStyles =
+    tone === 'green'
+      ? { box: 'border-emerald-400/50 bg-emerald-500/15', value: 'text-emerald-300' }
+      : tone === 'amber'
+        ? { box: 'border-amber-400/50 bg-amber-500/15', value: 'text-amber-300' }
+        : { box: 'border-rose-400/50 bg-rose-500/15', value: 'text-rose-300' };
+
+  return (
+    <div className={cn('rounded-xl border p-4', toneStyles.box)}>
+      <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+        {label}
       </div>
+      <div className={cn('stat-value mt-2 text-2xl', toneStyles.value)}>{value}</div>
+      <div className="mt-1 text-xs text-slate-300">{note}</div>
+    </div>
+  );
+}
+
+function ActionRow({
+  tone,
+  icon,
+  text,
+}: {
+  tone: 'rose' | 'amber' | 'cyan';
+  icon: 'alert-circle' | 'alert-triangle' | 'info';
+  text: string;
+}) {
+  const Icon =
+    icon === 'alert-circle' ? AlertCircle : icon === 'alert-triangle' ? AlertTriangle : Info;
+  const toneStyles =
+    tone === 'rose'
+      ? 'border-rose-400/50 bg-rose-500/20 text-rose-200'
+      : tone === 'amber'
+        ? 'border-amber-400/50 bg-amber-500/20 text-amber-200'
+        : 'border-cyan-400/50 bg-cyan-500/20 text-cyan-200';
+
+  return (
+    <div className={cn('flex items-center gap-2 rounded-lg border px-3 py-2', toneStyles)}>
+      <Icon className="h-4 w-4 flex-shrink-0" />
+      <span className="text-sm">{text}</span>
     </div>
   );
 }
