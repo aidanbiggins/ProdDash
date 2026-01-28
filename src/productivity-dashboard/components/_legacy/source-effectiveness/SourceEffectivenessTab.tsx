@@ -15,8 +15,8 @@ import {
     Pie
 } from 'recharts';
 import { SourceEffectivenessMetrics } from '../../../types';
-import { StatLabel, StatValue, HelpButton, HelpDrawer } from '../../common';
-import { PageHeader } from '../layout';
+import { StatLabel, StatValue } from '../../common';
+import { SubViewHeader } from '../../v2/SubViewHeader';
 import { SOURCE_EFFECTIVENESS_PAGE_HELP } from './sourceEffectivenessHelpContent';
 
 interface SourceEffectivenessTabProps {
@@ -211,7 +211,6 @@ function RateBadge({ rate, thresholds }: RateBadgeProps): JSX.Element {
 }
 
 export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
-    const [showPageHelp, setShowPageHelp] = useState(false);
 
     // Determine minimum threshold based on total data volume
     // Lower threshold when filtered data is small to show meaningful results
@@ -280,16 +279,10 @@ export function SourceEffectivenessTab({ data }: SourceEffectivenessTabProps) {
     return (
         <div>
             {/* Page Header */}
-            <PageHeader
+            <SubViewHeader
                 title="Source Effectiveness"
-                description="Analyze recruiting channel performance and ROI"
-                actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
-            />
-            <HelpDrawer
-                isOpen={showPageHelp}
-                onClose={() => setShowPageHelp(false)}
-                title="Source Effectiveness"
-                content={SOURCE_EFFECTIVENESS_PAGE_HELP}
+                subtitle="Analyze recruiting channel performance and ROI"
+                helpContent={SOURCE_EFFECTIVENESS_PAGE_HELP}
             />
 
             {/* Summary Cards */}

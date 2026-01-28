@@ -2,8 +2,7 @@
    MODERN DARK MODE - Clean, Legible, Premium
    Inspired by Linear, Vercel, Stripe Dashboard
    ============================================ */
-/* Google Fonts - Inter (UI) + JetBrains Mono (Technical) */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Fonts are loaded in public/index.html (Inter + JetBrains Mono + Space Grotesk). */
 
 /* ============================================
    GLOBAL RESET - MINIMAL BORDER RADIUS
@@ -299,8 +298,8 @@
 
 /* Base Body - DARK GLASS FOUNDATION */
 /* Base Body - DARK GLASS FOUNDATION */
-/* Scoped to .dark so it doesn't break light mode in V2 */
-.dark body {
+/* Scoped to legacy dashboard only to avoid overriding landing pages. */
+.dashboard-theme {
     background-color: #0f172a !important;
     background-image: linear-gradient(160deg, #0f172a 0%, #1a2744 50%, #0f172a 100%) !important;
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
@@ -312,24 +311,24 @@
 }
 
 /* Typography - Modern Sans-Serif Headers */
-.dark h1,
-.dark h2,
-.dark h3,
-.dark h4,
-.dark h5,
-.dark h6 {
+.dashboard-theme h1,
+.dashboard-theme h2,
+.dashboard-theme h3,
+.dashboard-theme h4,
+.dashboard-theme h5,
+.dashboard-theme h6 {
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
     font-weight: 600 !important;
     letter-spacing: -0.025em;
     /* color: var(--text-primary) !important; */
 }
 
-.dark h1 {
+.dashboard-theme h1 {
     font-size: 1.75rem !important;
     font-weight: 600 !important;
 }
 
-.dark h2 {
+.dashboard-theme h2 {
     font-size: 1.375rem !important;
 }
 
@@ -4380,4 +4379,69 @@ input[type="time"] {
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.03em;
+}
+
+/* ============================================
+   LANDING PAGE EXCLUSION
+   These rules MUST come LAST to override all above rules.
+   Landing page is always dark with animated background,
+   so it needs explicit light text colors.
+   ============================================ */
+
+/* Reset all landing page text to white base */
+.landing-page,
+.landing-page body,
+.landing-page p,
+.landing-page span,
+.landing-page div,
+.landing-page li,
+.landing-page label,
+.landing-page blockquote {
+    color: #f8fafc !important;
+}
+
+/* Landing page headings - bright white */
+.landing-page h1,
+.landing-page h2,
+.landing-page h3,
+.landing-page h4,
+.landing-page h5,
+.landing-page h6 {
+    color: #ffffff !important;
+}
+
+/* Landing page muted/secondary text - visible on dark bg */
+.landing-page .text-slate-300 { color: #cbd5e1 !important; }
+.landing-page .text-slate-400 { color: #94a3b8 !important; }
+.landing-page .text-slate-500 { color: #64748b !important; }
+
+/* Landing page accent colors - VIBRANT */
+.landing-page .text-amber-200 { color: #fde68a !important; }
+.landing-page .text-amber-300 { color: #fcd34d !important; }
+.landing-page .text-amber-400 { color: #fbbf24 !important; }
+.landing-page .text-amber-500 { color: #f59e0b !important; }
+.landing-page .text-cyan-200 { color: #a5f3fc !important; }
+.landing-page .text-cyan-300 { color: #67e8f9 !important; }
+.landing-page .text-cyan-400 { color: #22d3ee !important; }
+.landing-page .text-violet-300 { color: #c4b5fd !important; }
+.landing-page .text-violet-400 { color: #a78bfa !important; }
+.landing-page .text-emerald-300 { color: #6ee7b7 !important; }
+.landing-page .text-emerald-400 { color: #34d399 !important; }
+.landing-page .text-rose-300 { color: #fda4af !important; }
+.landing-page .text-rose-400 { color: #fb7185 !important; }
+
+/* Dark text for light backgrounds (CTA buttons) */
+.landing-page .text-slate-900 { color: #0f172a !important; }
+
+/* Explicit white */
+.landing-page .text-white { color: #ffffff !important; }
+
+/* Gradient text support */
+.landing-page .text-transparent { color: transparent !important; }
+
+/* Form labels in landing page */
+.landing-page .form-label,
+.landing-page .form-check-label,
+.landing-page .stat-label {
+    color: #94a3b8 !important;
 }

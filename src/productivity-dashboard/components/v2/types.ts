@@ -70,5 +70,5 @@ export interface RequisitionV2 {
   interviews: number;
   offers: number;
   daysOpen: number;
-  healthScore: number;
+  healthScore: number | null;
 }

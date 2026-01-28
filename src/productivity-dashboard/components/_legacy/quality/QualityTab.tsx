@@ -6,8 +6,8 @@ import {
   PieChart, Pie
 } from 'recharts';
 import { QualityMetrics } from '../../../types';
-import { StatLabel, StatValue, HelpButton, HelpDrawer } from '../../common';
-import { PageHeader } from '../layout';
+import { StatLabel, StatValue } from '../../common';
+import { SubViewHeader } from '../../v2/SubViewHeader';
 import { QUALITY_PAGE_HELP } from './qualityHelpContent';
 
 interface QualityTabProps {
@@ -15,7 +15,6 @@ interface QualityTabProps {
 }
 
 export function QualityTab({ quality }: QualityTabProps) {
-  const [showPageHelp, setShowPageHelp] = useState(false);
 
   // Prepare offer acceptance by recruiter data (top/bottom 5)
   const recruiterAcceptance = quality.offerAcceptanceByRecruiter
@@ -62,16 +61,10 @@ export function QualityTab({ quality }: QualityTabProps) {
   return (
     <div>
       {/* Page Header */}
-      <PageHeader
+      <SubViewHeader
         title="Quality Guardrails"
-        description="Monitor candidate quality metrics and offer outcomes"
-        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
-      />
-      <HelpDrawer
-        isOpen={showPageHelp}
-        onClose={() => setShowPageHelp(false)}
-        title="Quality Guardrails"
-        content={QUALITY_PAGE_HELP}
+        subtitle="Monitor candidate quality metrics and offer outcomes"
+        helpContent={QUALITY_PAGE_HELP}
       />
 
       {/* Candidate Experience Stats */}

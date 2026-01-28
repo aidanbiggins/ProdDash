@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
   AlertTriangle,
@@ -56,8 +56,11 @@ const stages: StageInfo[] = [
 export function DataTransformSection() {
   const [activeStage, setActiveStage] = useState<TransformStage>('raw');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [minHeights, setMinHeights] = useState({ visual: 0, description: 0 });
   const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
   const [containerRef, containerInView] = useInView<HTMLDivElement>({ threshold: 0.1 });
+  const rightColRef = useRef<HTMLDivElement | null>(null);
+  const measureRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-advance through stages for a subtle demo effect (only when in view).
   useEffect(() => {
@@ -84,6 +87,42 @@ export function DataTransformSection() {
       }
     };
   }, [containerInView]);
+
+  useLayoutEffect(() => {
+    if (!rightColRef.current || !measureRef.current) return;
+
+    const updateHeights = () => {
+      const visualBlocks = Array.from(
+        measureRef.current?.querySelectorAll<HTMLElement>('[data-measure="visual"]') ?? []
+      );
+      const descBlocks = Array.from(
+        measureRef.current?.querySelectorAll<HTMLElement>('[data-measure="desc"]') ?? []
+      );
+
+      const visualMax = visualBlocks.length
+        ? Math.max(...visualBlocks.map((el) => el.getBoundingClientRect().height))
+        : 0;
+      const descMax = descBlocks.length
+        ? Math.max(...descBlocks.map((el) => el.getBoundingClientRect().height))
+        : 0;
+
+      setMinHeights({
+        visual: Math.ceil(visualMax),
+        description: Math.ceil(descMax),
+      });
+    };
+
+    updateHeights();
+    const resizeObserver = new ResizeObserver(updateHeights);
+    resizeObserver.observe(rightColRef.current);
+
+    const timeoutId = window.setTimeout(updateHeights, 150);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   const activeInfo = useMemo(() => stages.find((s) => s.id === activeStage)!, [activeStage]);
 
@@ -159,7 +198,7 @@ export function DataTransformSection() {
           </div>
 
           {/* Visual + description */}
-          <div className="lg:col-span-8 space-y-4">
+          <div ref={rightColRef} className="lg:col-span-8 space-y-4 relative">
             <div
               className={cn(
                 'rounded-2xl border border-slate-600/70 bg-slate-800/70 backdrop-blur-xl p-6',
@@ -167,6 +206,7 @@ export function DataTransformSection() {
                 'transition-opacity duration-200',
                 isAnimating && 'opacity-70'
               )}
+              style={minHeights.visual ? { minHeight: `${minHeights.visual}px` } : undefined}
             >
               {activeStage === 'raw' && <RawCSVVisual />}
               {activeStage === 'parsed' && <ParsedVisual />}
@@ -175,13 +215,48 @@ export function DataTransformSection() {
               {activeStage === 'insights' && <InsightsVisual />}
             </div>
 
-            <div className="rounded-2xl border border-slate-600/70 bg-slate-800/60 backdrop-blur-xl p-6">
+            <div
+              className="rounded-2xl border border-slate-600/70 bg-slate-800/60 backdrop-blur-xl p-6"
+              style={minHeights.description ? { minHeight: `${minHeights.description}px` } : undefined}
+            >
               <h3 className="font-display text-xl font-semibold tracking-tight text-white">
                 {activeInfo.title}
               </h3>
               <p className="mt-2 text-sm md:text-base leading-relaxed text-slate-300">
                 {activeInfo.description}
               </p>
+            </div>
+
+            <div
+              ref={measureRef}
+              aria-hidden
+              className="absolute left-0 top-0 w-full opacity-0 pointer-events-none"
+            >
+              {stages.map((stage) => (
+                <div key={`${stage.id}-measure`} className="space-y-4">
+                  <div
+                    data-measure="visual"
+                    className="rounded-2xl border border-slate-600/70 bg-slate-800/70 backdrop-blur-xl p-6"
+                  >
+                    {stage.id === 'raw' && <RawCSVVisual />}
+                    {stage.id === 'parsed' && <ParsedVisual />}
+                    {stage.id === 'normalized' && <NormalizedVisual />}
+                    {stage.id === 'cleaned' && <CleanedVisual />}
+                    {stage.id === 'insights' && <InsightsVisual />}
+                  </div>
+                  <div
+                    data-measure="desc"
+                    className="rounded-2xl border border-slate-600/70 bg-slate-800/60 backdrop-blur-xl p-6"
+                  >
+                    <h3 className="font-display text-xl font-semibold tracking-tight text-white">
+                      {stage.title}
+                    </h3>
+                    <p className="mt-2 text-sm md:text-base leading-relaxed text-slate-300">
+                      {stage.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

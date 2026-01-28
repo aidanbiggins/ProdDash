@@ -15,7 +15,9 @@ export type DrillDownType =
     | 'screens'
     | 'submittals'
     | 'openReqs'
-    | 'stalledReqs';
+    | 'stalledReqs'
+    | 'pipelineStage'
+    | 'pipelineCoverage';
 
 interface DrillDownRecord {
     id: string;
@@ -37,6 +39,8 @@ interface DrillDownRecord {
     daysToFill?: number;
     openDate?: Date;
     hireDate?: Date;
+    candidateCount?: number;
+    coverageStatus?: string;
 }
 
 interface DataDrillDownModalProps {
@@ -183,7 +187,7 @@ export function DataDrillDownModal({
             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="w-full max-w-6xl mx-4 max-h-[90vh] flex flex-col">
+            <div className="w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
                 <div className="bg-[var(--color-bg-surface)] rounded-lg overflow-hidden flex flex-col max-h-full">
                     <div className="px-4 py-3 border-b border-glass-border flex justify-between items-start">
                         <div>
@@ -228,7 +232,7 @@ export function DataDrillDownModal({
 
                         {/* Data Table */}
                         <div className="overflow-x-auto">
-                            <table className="w-full mb-0">
+                            <table className="w-full mb-0 table-fixed">
                                 <thead>
                                     <tr style={{ background: 'var(--color-slate-50)' }}>
                                         {columns.map(col => (
@@ -249,11 +253,14 @@ export function DataDrillDownModal({
                                                 {columns.map(col => (
                                                     <td
                                                         key={col.key}
+                                                        className="truncate"
                                                         style={{
                                                             padding: '0.5rem',
                                                             borderBottom: '1px solid var(--color-slate-100)',
-                                                            fontSize: '0.85rem'
+                                                            fontSize: '0.8rem',
+                                                            maxWidth: '150px'
                                                         }}
+                                                        title={String((record as any)[col.key] ?? '')}
                                                     >
                                                         {formatCell((record as any)[col.key], col.key)}
                                                     </td>
@@ -386,6 +393,26 @@ function getColumns(type: DrillDownType): { key: string; label: string }[] {
                 { key: 'ageInDays', label: 'Age (days)' },
                 { key: 'status', label: 'Status' }
             ];
+        case 'pipelineStage':
+            return [
+                { key: 'candidateId', label: 'Candidate' },
+                { key: 'reqId', label: 'Req ID' },
+                { key: 'reqTitle', label: 'Job Title' },
+                { key: 'stage', label: 'Current Stage' },
+                { key: 'source', label: 'Source' },
+                { key: 'recruiter', label: 'Recruiter' },
+                { key: 'date', label: 'Stage Entered' }
+            ];
+        case 'pipelineCoverage':
+            return [
+                { key: 'reqId', label: 'Req ID' },
+                { key: 'reqTitle', label: 'Job Title' },
+                { key: 'candidateCount', label: 'Candidates' },
+                { key: 'coverageStatus', label: 'Coverage' },
+                { key: 'recruiter', label: 'Recruiter' },
+                { key: 'hiringManager', label: 'HM' },
+                { key: 'ageInDays', label: 'Age (days)' }
+            ];
         default:
             return [
                 { key: 'reqId', label: 'Req ID' },
@@ -429,6 +456,20 @@ function formatCell(value: any, key: string): React.ReactNode {
 
     if (key === 'openDate' || key === 'hireDate') {
         return value instanceof Date ? format(value, 'MMM d, yyyy') : <span className="text-muted-foreground">—</span>;
+    }
+
+    if (key === 'coverageStatus') {
+        const statusColor = value === 'Empty' ? 'bg-red-500' :
+            value === 'Critical' ? 'bg-orange-500' :
+                value === 'Low' ? 'bg-yellow-500' : 'bg-green-500';
+        return <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusColor} text-white`}>{value}</span>;
+    }
+
+    if (key === 'candidateCount') {
+        const color = value === 0 ? 'text-red-500 font-bold' :
+            value < 4 ? 'text-orange-500 font-semibold' :
+                value < 8 ? 'text-yellow-500' : 'text-green-500';
+        return <span className={color}>{value}</span>;
     }
 
     return String(value);
@@ -554,4 +595,85 @@ export function buildTTFRecords(
             // Otherwise sort by TTF value
             return (a.daysToFill ?? 0) - (b.daysToFill ?? 0);
         });
+}
+
+export function buildPipelineStageRecords(
+    candidates: Candidate[],
+    requisitions: Requisition[],
+    users: User[]
+): DrillDownRecord[] {
+    const reqMap = new Map(requisitions.map(r => [r.req_id, r]));
+    const userMap = new Map(users.map(u => [u.user_id, u.name]));
+
+    return candidates.map(c => {
+        const req = reqMap.get(c.req_id);
+        return {
+            id: c.candidate_id,
+            candidateId: c.candidate_id,
+            reqId: c.req_id,
+            reqTitle: req?.req_title || 'Unknown',
+            stage: c.current_stage || 'Unknown',
+            source: c.source,
+            recruiter: userMap.get(req?.recruiter_id || '') || req?.recruiter_id,
+            date: c.current_stage_entered_at ?? c.applied_at ?? undefined
+        };
+    });
+}
+
+/**
+ * Build pipeline coverage records - shows open reqs with their candidate counts
+ * Sorted by candidate count ascending (reqs needing attention first)
+ */
+export function buildPipelineCoverageRecords(
+    requisitions: Requisition[],
+    candidates: Candidate[],
+    users: User[],
+    targetCandidatesPerReq: number = 8
+): DrillDownRecord[] {
+    const userMap = new Map(users.map(u => [u.user_id, u.name]));
+    const now = new Date();
+
+    // Count active candidates per req
+    const candidateCountByReq = new Map<string, number>();
+    for (const c of candidates) {
+        // Only count active candidates (not hired, rejected, or withdrawn)
+        if (!c.hired_at &&
+            c.disposition !== 'Rejected' &&
+            c.disposition !== 'Withdrawn') {
+            candidateCountByReq.set(c.req_id, (candidateCountByReq.get(c.req_id) || 0) + 1);
+        }
+    }
+
+    // Filter to open reqs only
+    const openReqs = requisitions.filter(r => !r.closed_at && r.opened_at);
+
+    return openReqs
+        .map(r => {
+            const count = candidateCountByReq.get(r.req_id) || 0;
+            let coverageStatus: string;
+            if (count === 0) {
+                coverageStatus = 'Empty';
+            } else if (count < targetCandidatesPerReq / 2) {
+                coverageStatus = 'Critical';
+            } else if (count < targetCandidatesPerReq) {
+                coverageStatus = 'Low';
+            } else {
+                coverageStatus = 'Healthy';
+            }
+
+            return {
+                id: r.req_id,
+                reqId: r.req_id,
+                reqTitle: r.req_title,
+                candidateCount: count,
+                coverageStatus,
+                recruiter: userMap.get(r.recruiter_id) || r.recruiter_id,
+                hiringManager: userMap.get(r.hiring_manager_id) || r.hiring_manager_id,
+                ageInDays: Math.floor((now.getTime() - r.opened_at!.getTime()) / (1000 * 60 * 60 * 24)),
+                level: r.level,
+                status: r.status
+            };
+        })
+        // Sort by candidate count ascending (lowest first = needs attention)
+        .sort((a, b) => (a.candidateCount ?? 0) - (b.candidateCount ?? 0));
 }

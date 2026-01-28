@@ -42,6 +42,26 @@ const steps: Step[] = [
   },
 ];
 
+const logoItems = [
+  {
+    name: 'iCIMS',
+    src: '/logos/icims.png',
+  },
+  {
+    name: 'Greenhouse',
+    src: '/logos/greenhouse.png',
+  },
+  {
+    name: 'Lever',
+    src: '/logos/lever.png',
+  },
+  {
+    name: 'Workday',
+    src: '/logos/workday.png',
+    className: 'h-7 md:h-8',
+  },
+];
+
 export function HowItWorksSection() {
   const [headerRef, headerInView] = useInView<HTMLDivElement>({ threshold: 0.2 });
   const [stepsRef, stepsInView] = useInView<HTMLDivElement>({ threshold: 0.1 });
@@ -132,26 +152,48 @@ export function HowItWorksSection() {
         )}
       >
         <p className="text-sm text-slate-300">Works with exports from:</p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2.5">
-          {['iCIMS', 'Greenhouse', 'Lever', 'Workday', '+ Any Export'].map((logo, i) => (
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          {logoItems.map((logo, i) => (
             <span
-              key={logo}
+              key={logo.name}
               className={cn(
-                'inline-flex items-center rounded-full border border-slate-700/60 bg-slate-800/20 px-4 py-2',
-                'text-sm font-semibold text-white/90',
+                'inline-flex items-center justify-center rounded-full border border-white/30 bg-slate-700/55 px-4 py-2.5',
+                'backdrop-blur-md shadow-[0_12px_30px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.25),inset_0_-1px_0_rgba(255,255,255,0.08)]',
                 'transition-all duration-200',
-                'hover:-translate-y-0.5 hover:bg-slate-800/30 hover:border-slate-700/80',
+                'hover:-translate-y-0.5 hover:bg-slate-600/65',
                 'animate-scale-up',
                 logosInView && 'in-view'
               )}
               style={{ transitionDelay: `${i * 70}ms` }}
             >
-              {logo}
+              <img
+                src={logo.src}
+                alt={`${logo.name} logo`}
+                className={cn(
+                  'h-6 w-auto max-w-[150px] object-contain brightness-0 invert opacity-90',
+                  logo.className
+                )}
+                loading="lazy"
+                decoding="async"
+              />
             </span>
           ))}
+          <span
+            className={cn(
+              'inline-flex items-center rounded-full border border-white/30 bg-slate-700/55 px-4 py-2.5',
+              'text-sm font-semibold text-white',
+              'backdrop-blur-md shadow-[0_12px_30px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.25),inset_0_-1px_0_rgba(255,255,255,0.08)]',
+              'transition-all duration-200',
+              'hover:-translate-y-0.5 hover:bg-slate-600/65',
+              'animate-scale-up',
+              logosInView && 'in-view'
+            )}
+            style={{ transitionDelay: `${logoItems.length * 70}ms` }}
+          >
+            + Any Export
+          </span>
         </div>
       </div>
     </section>
   );
 }
-

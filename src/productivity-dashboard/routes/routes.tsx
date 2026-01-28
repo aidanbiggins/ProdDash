@@ -3,7 +3,7 @@
 import React from 'react';
 
 // Tab type definition (matches ProductivityDashboard)
-export type TabType = 'command-center' | 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'bottlenecks' | 'capacity' | 'capacity-rebalancer' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'sla-settings' | 'ai-settings' | 'org-settings';
+export type TabType = 'command-center' | 'control-tower' | 'ask' | 'overview' | 'recruiter' | 'hm-friction' | 'hiring-managers' | 'bottlenecks' | 'capacity' | 'capacity-rebalancer' | 'quality' | 'source-mix' | 'velocity' | 'forecasting' | 'scenarios' | 'data-health' | 'sla-settings' | 'pipeline-benchmarks' | 'ai-settings' | 'org-settings';
 
 // Route to tab mapping
 export interface RouteConfig {
@@ -43,6 +43,7 @@ export const ROUTE_CONFIG: RouteConfig[] = [
   // Settings bucket
   { path: '/settings/data-health', tab: 'data-health', bucket: 'settings' },
   { path: '/settings/sla', tab: 'sla-settings', bucket: 'settings' },
+  { path: '/settings/pipeline-targets', tab: 'pipeline-benchmarks', bucket: 'settings' },
   { path: '/settings/ai', tab: 'ai-settings', bucket: 'settings' },
   { path: '/settings/org', tab: 'org-settings', bucket: 'settings' },
 ];

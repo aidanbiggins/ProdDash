@@ -560,7 +560,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
             <h5 className="font-semibold text-warn mb-2">No Organization Selected</h5>
             <p className="mb-3">You need to create or join an organization before importing data.</p>
             <button
-              className="px-4 py-2 text-sm font-medium rounded-md bg-warn text-bg-base hover:bg-warn/90"
+              className="px-4 py-2 text-sm font-medium rounded-md bg-warn text-accent-foreground hover:bg-warn/90"
               onClick={() => setShowCreateOrgModal(true)}
             >
               Create Organization
@@ -579,11 +579,11 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
           </div>
         )}
 
-        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass">
-          <div className="flex justify-between items-center p-4 border-b border-glass-border">
+        <div className="bg-card border border-border rounded-lg shadow-lg">
+          <div className="flex justify-between items-center p-4 border-b border-border">
             <h5 className="font-semibold text-foreground">Import Data {currentOrg && <span className="text-muted-foreground text-sm font-normal">to {currentOrg.name}</span>}</h5>
             <button
-              className="px-3 py-1.5 text-sm font-medium rounded border border-accent text-accent hover:bg-accent hover:text-bg-base transition-colors"
+              className="px-3 py-1.5 text-sm font-medium rounded border border-accent text-accent hover:bg-accent hover:text-accent-foreground transition-colors"
               onClick={() => setShowGuide(true)}
             >
               Import Guide
@@ -599,13 +599,13 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
             <form onSubmit={handleSubmit}>
               {/* Unified Drop Zone */}
-              <div className="border-2 border-dashed border-glass-border rounded-lg p-8 text-center mb-4 bg-bg-elevated/50">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center mb-4 bg-muted/50">
                 <p className="text-lg font-medium text-foreground mb-2">Drag & Drop Files Here</p>
                 <p className="text-sm text-muted-foreground">Supports CSV, XLS, XLSX - "Universal Report" or individual files</p>
 
                 <input
                   type="file"
-                  className="mt-3 w-full px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-accent file:text-bg-base file:font-medium"
+                  className="mt-3 w-full px-3 py-2 text-sm bg-card/30 border border-border rounded-md text-foreground file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-accent file:text-accent-foreground file:font-medium"
                   accept={FILE_ACCEPT}
                   multiple
                   onChange={(e) => {
@@ -638,19 +638,19 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
               </div>
 
               {/* Manual File Selection Check (Hidden mostly, but good for debug) */}
-              <div className="mb-3 p-3 border border-glass-border rounded-lg bg-bg-elevated/50">
+              <div className="mb-3 p-3 border border-border rounded-lg bg-muted/50">
                 <h6 className="mb-3 font-semibold text-foreground">Selected Files:</h6>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <div className={`p-2 border rounded ${files.requisitions ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                  <div className={`p-2 border rounded ${files.requisitions ? 'bg-good/10 border-good' : 'bg-muted/50 border-border'}`}>
                     <strong className="text-foreground">Requisitions / Universal:</strong> <span className="text-foreground">{files.requisitions?.name || 'Missing'}</span>
                   </div>
-                  <div className={`p-2 border rounded ${files.candidates ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                  <div className={`p-2 border rounded ${files.candidates ? 'bg-good/10 border-good' : 'bg-muted/50 border-border'}`}>
                     <strong className="text-foreground">Candidates:</strong> <span className="text-foreground">{files.candidates?.name || 'Optional'}</span>
                   </div>
-                  <div className={`p-2 border rounded ${files.events ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                  <div className={`p-2 border rounded ${files.events ? 'bg-good/10 border-good' : 'bg-muted/50 border-border'}`}>
                     <strong className="text-foreground">Events:</strong> <span className="text-foreground">{files.events?.name || 'Optional'}</span>
                   </div>
-                  <div className={`p-2 border rounded ${files.users ? 'bg-good/10 border-good' : 'bg-bg-elevated/50 border-glass-border'}`}>
+                  <div className={`p-2 border rounded ${files.users ? 'bg-good/10 border-good' : 'bg-muted/50 border-border'}`}>
                     <strong className="text-foreground">Users:</strong> <span className="text-foreground">{files.users?.name || 'Optional'}</span>
                   </div>
                 </div>
@@ -671,7 +671,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
               {/* Submit */}
               <button
                 type="submit"
-                className="w-full px-4 py-2.5 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50 transition-colors"
+                className="w-full px-4 py-2.5 text-sm font-medium rounded-md bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50 transition-colors"
                 disabled={!files.requisitions || uploading || isLoading || !canImportData || hasNoOrg}
               >
                 {uploading || isLoading ? (
@@ -695,7 +695,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
                   onClick={() => setShowUltimateDemoModal(true)}
                   disabled={uploading || isLoading}
                   data-testid="load-ultimate-demo-btn"
@@ -705,7 +705,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 text-sm font-medium rounded-md border border-accent text-accent hover:bg-accent hover:text-bg-base transition-colors disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium rounded-md border border-accent text-accent hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50"
                   onClick={handleLoadDemo}
                   disabled={uploading || isLoading}
                 >

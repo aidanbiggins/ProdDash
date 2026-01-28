@@ -20,6 +20,7 @@ import { Requisition, User, UserRole } from '../types/entities';
 // ===== CONSTANTS =====
 
 const STORAGE_KEY_PREFIX = 'platovue_action_states_';
+const MANUAL_ACTIONS_KEY_PREFIX = 'platovue_manual_actions_';
 
 // Map RecommendedAction priority to ActionPriority
 function mapRecommendedPriority(priority: 'high' | 'medium' | 'low'): ActionPriority {
@@ -421,6 +422,99 @@ export function clearActionStates(datasetId: string): void {
   }
 }
 
+// ===== MANUAL ACTIONS PERSISTENCE =====
+
+/**
+ * Get localStorage key for manual actions
+ */
+function getManualActionsKey(datasetId: string): string {
+  return `${MANUAL_ACTIONS_KEY_PREFIX}${datasetId}`;
+}
+
+/**
+ * Load manually created actions from localStorage
+ */
+export function loadManualActions(datasetId: string): ActionItem[] {
+  try {
+    const key = getManualActionsKey(datasetId);
+    const data = localStorage.getItem(key);
+    if (!data) return [];
+    const parsed = JSON.parse(data) as ActionItem[];
+    // Restore Date objects
+    return parsed.map(a => ({
+      ...a,
+      due_date: new Date(a.due_date),
+      created_at: a.created_at ? new Date(a.created_at) : new Date(),
+    }));
+  } catch (e) {
+    console.warn('Failed to load manual actions:', e);
+    return [];
+  }
+}
+
+/**
+ * Save a new manually created action to localStorage
+ */
+export function saveManualAction(datasetId: string, action: ActionItem): void {
+  try {
+    const existing = loadManualActions(datasetId);
+    // Check for duplicate by action_id
+    const isDuplicate = existing.some(a => a.action_id === action.action_id);
+    if (!isDuplicate) {
+      const updated = [...existing, action];
+      const key = getManualActionsKey(datasetId);
+      localStorage.setItem(key, JSON.stringify(updated));
+    }
+  } catch (e) {
+    console.warn('Failed to save manual action:', e);
+  }
+}
+
+/**
+ * Save multiple manually created actions to localStorage
+ */
+export function saveManualActions(datasetId: string, actions: ActionItem[]): void {
+  try {
+    const existing = loadManualActions(datasetId);
+    const existingIds = new Set(existing.map(a => a.action_id));
+    // Only add actions that don't already exist
+    const newActions = actions.filter(a => !existingIds.has(a.action_id));
+    if (newActions.length > 0) {
+      const updated = [...existing, ...newActions];
+      const key = getManualActionsKey(datasetId);
+      localStorage.setItem(key, JSON.stringify(updated));
+    }
+  } catch (e) {
+    console.warn('Failed to save manual actions:', e);
+  }
+}
+
+/**
+ * Remove a manual action from localStorage
+ */
+export function removeManualAction(datasetId: string, actionId: string): void {
+  try {
+    const existing = loadManualActions(datasetId);
+    const updated = existing.filter(a => a.action_id !== actionId);
+    const key = getManualActionsKey(datasetId);
+    localStorage.setItem(key, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Failed to remove manual action:', e);
+  }
+}
+
+/**
+ * Clear all manual actions for a dataset
+ */
+export function clearManualActions(datasetId: string): void {
+  try {
+    const key = getManualActionsKey(datasetId);
+    localStorage.removeItem(key);
+  } catch (e) {
+    console.warn('Failed to clear manual actions:', e);
+  }
+}
+
 // ===== MAIN GENERATION FUNCTION =====
 
 export interface ActionGenerationContext {
@@ -429,20 +523,24 @@ export interface ActionGenerationContext {
   requisitions: Requisition[];
   users: User[];
   datasetId: string;
+  includeManualActions?: boolean;  // Whether to include manually created actions
 }
 
 /**
  * Generate unified action queue from all sources
  */
 export function generateUnifiedActionQueue(context: ActionGenerationContext): ActionItem[] {
-  const { hmActions, explanations, requisitions, users, datasetId } = context;
+  const { hmActions, explanations, requisitions, users, datasetId, includeManualActions = true } = context;
 
   // Generate from both sources
   const hmGeneratedActions = generateActionsFromHMQueue(hmActions, requisitions);
   const explainGeneratedActions = generateActionsFromExplain(explanations, requisitions, users);
 
+  // Load manually created actions
+  const manualActions = includeManualActions ? loadManualActions(datasetId) : [];
+
   // Combine and deduplicate
-  const allActions = [...hmGeneratedActions, ...explainGeneratedActions];
+  const allActions = [...hmGeneratedActions, ...explainGeneratedActions, ...manualActions];
   const dedupedActions = deduplicateActions(allActions);
 
   // Apply persisted states

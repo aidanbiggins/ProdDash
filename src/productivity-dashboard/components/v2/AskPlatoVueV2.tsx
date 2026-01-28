@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { useDashboard } from '../../hooks/useDashboardContext';
 import { AskPlatoVueTabV2 } from './AskPlatoVueTabV2';
 import { buildHMFactTables } from '../../services/hmFactTables';
 import { calculatePendingActions } from '../../services/hmMetricsEngine';
+import { saveManualActions, loadManualActions } from '../../services/actionQueueService';
 import { DEFAULT_HM_RULES } from '../../config/hmRules';
 import { ActionItem } from '../../types/actionTypes';
-import { Sparkles, Bot, TrendingUp, Users, AlertTriangle, Lightbulb, MessageSquareText } from 'lucide-react';
+import { TrendingUp, Users, AlertTriangle, Lightbulb, MessageSquareText } from 'lucide-react';
 
 interface AskPlatoVueV2Props {
-  onNavigateToTab?: (tab: string) => void;
+  onNavigateToTab?: (tab: string, params?: Record<string, string>) => void;
 }
 
 // V0 Design: Suggested questions for empty state
@@ -89,6 +90,23 @@ export function AskPlatoVueV2({ onNavigateToTab }: AskPlatoVueV2Props) {
   const { state, aiConfig, isAiEnabled } = useDashboard();
   const [manualActions, setManualActions] = useState<ActionItem[]>([]);
 
+  // Generate a stable dataset ID from import timestamp
+  const datasetId = useMemo(() => {
+    if (state.dataStore.lastImportAt) {
+      return `dataset_${state.dataStore.lastImportAt.getTime()}`;
+    }
+    return 'dataset_default';
+  }, [state.dataStore.lastImportAt]);
+
+  // Load persisted manual actions on mount / when datasetId changes
+  useEffect(() => {
+    const persisted = loadManualActions(datasetId);
+    if (persisted.length > 0) {
+      setManualActions(persisted);
+      console.log('[AskPlatoVueV2] Loaded', persisted.length, 'persisted manual actions');
+    }
+  }, [datasetId]);
+
   // Calculate HM actions from fact tables
   const hmActions = useMemo(() => {
     if (!state.dataStore.requisitions.length) return [];
@@ -104,23 +122,58 @@ export function AskPlatoVueV2({ onNavigateToTab }: AskPlatoVueV2Props) {
     return calculatePendingActions(factTables, state.dataStore.users, DEFAULT_HM_RULES);
   }, [state.dataStore]);
 
-  // Handle adding manual actions
-  const handleAddManualActions = (newActions: ActionItem[]) => {
+  // Handle adding manual actions - save to state AND localStorage
+  const handleAddManualActions = useCallback((newActions: ActionItem[]) => {
     setManualActions((prev) => {
       const existingIds = new Set(prev.map(a => a.action_id));
       const uniqueNew = newActions.filter(a => !existingIds.has(a.action_id));
+
+      if (uniqueNew.length > 0) {
+        // Persist to localStorage
+        saveManualActions(datasetId, uniqueNew);
+        console.log('[AskPlatoVueV2] Saved', uniqueNew.length, 'new actions to localStorage');
+      }
+
       return [...prev, ...uniqueNew];
     });
-  };
+  }, [datasetId]);
 
   // Default navigation handler if none provided
-  const handleNavigateToTab = (tab: string, params?: Record<string, string>) => {
+  const handleNavigateToTab = useCallback((tab: string, params?: Record<string, string>) => {
     if (onNavigateToTab) {
-      onNavigateToTab(tab);
+      onNavigateToTab(tab, params);
     }
     // Log navigation for debugging
     console.log('[AskPlatoVueV2] Navigate to tab:', tab, params ? `with params: ${JSON.stringify(params)}` : '');
-  };
+  }, [onNavigateToTab]);
+
+  // Combine HM actions with manual actions for deduplication
+  // IMPORTANT: This must be above the early return to comply with React hooks rules
+  const existingActions = useMemo(() => {
+    // Convert HM pending actions to ActionItem format for deduplication
+    const hmActionItems: ActionItem[] = hmActions.map(action => ({
+      action_id: `hm_${action.hmUserId}_${action.reqId}_${action.actionType}`,
+      owner_type: 'HIRING_MANAGER',
+      owner_id: action.hmUserId,
+      owner_name: action.hmName,
+      req_id: action.reqId,
+      req_title: action.reqTitle,
+      action_type: action.actionType as any,
+      title: action.suggestedAction,
+      priority: action.daysOverdue > 3 ? 'P0' : action.daysOverdue > 0 ? 'P1' : 'P2',
+      due_in_days: -action.daysOverdue,
+      due_date: new Date(),
+      evidence: {
+        kpi_key: 'hm_latency',
+        explain_provider_key: 'hm_friction',
+        short_reason: `${action.daysOverdue}d overdue`,
+      },
+      recommended_steps: [],
+      created_at: new Date(),
+      status: 'OPEN',
+    }));
+    return [...hmActionItems, ...manualActions];
+  }, [hmActions, manualActions]);
 
   // Show empty state if no data loaded
   if (!state.loadingState.hasOverviewMetrics || !state.overview) {
@@ -128,7 +181,13 @@ export function AskPlatoVueV2({ onNavigateToTab }: AskPlatoVueV2Props) {
   }
 
   // Use the new Tailwind-based Ask PlatoVue component
-  return <AskPlatoVueTabV2 onNavigateToTab={handleNavigateToTab} />;
+  return (
+    <AskPlatoVueTabV2
+      onNavigateToTab={handleNavigateToTab}
+      onAddActions={handleAddManualActions}
+      existingActions={existingActions}
+    />
+  );
 }
 
 export default AskPlatoVueV2;

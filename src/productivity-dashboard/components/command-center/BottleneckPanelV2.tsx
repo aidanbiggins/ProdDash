@@ -108,7 +108,7 @@ export function BottleneckPanelV2({ bottlenecks, onViewAll }: BottleneckPanelV2P
   const criticalCount = bottlenecks.filter(b => b.severity === 'bad').length;
 
   return (
-    <div className="glass-panel h-full">
+    <div className="glass-panel">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
         <AlertTriangleIcon />

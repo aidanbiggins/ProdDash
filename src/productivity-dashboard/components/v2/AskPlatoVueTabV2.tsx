@@ -4,8 +4,11 @@
 // Matches V0 design language: glass panels, chat-style input, clean responses
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Send, MessageSquareText, Clock, RefreshCw, Copy, Check, Sparkles, Cpu, ChevronRight, Database, Users, Calendar, HeartPulse, AlertCircle, Loader2, ExternalLink, Zap } from 'lucide-react';
+import { Send, MessageSquareText, Clock, RefreshCw, Copy, Check, Sparkles, Cpu, ChevronRight, Database, Users, Calendar, HeartPulse, AlertCircle, Loader2, ExternalLink, Zap, CheckCircle } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboardContext';
+import { ActionItem } from '../../types/actionTypes';
+import { createActionPlanFromResponse, responseHasActionableContent } from '../../services/askActionPlanService';
+import type { IntentResponse as AskIntentResponse, FactCitation } from '../../types/askTypes';
 
 // Types
 interface SuggestedQuestion {
@@ -40,8 +43,15 @@ interface ConversationItem {
   usedFallback?: boolean;
 }
 
+interface ActionPlanFeedback {
+  actionsCreated: number;
+  duplicatesSkipped: number;
+}
+
 interface AskPlatoVueTabV2Props {
   onNavigateToTab?: (tab: string, params?: Record<string, string>) => void;
+  onAddActions?: (actions: ActionItem[]) => void;
+  existingActions?: ActionItem[];
 }
 
 // Map key_path to tab navigation
@@ -132,7 +142,7 @@ The overall health score is **72%** which indicates moderate risk.`,
   ],
 };
 
-export function AskPlatoVueTabV2({ onNavigateToTab }: AskPlatoVueTabV2Props = {}) {
+export function AskPlatoVueTabV2({ onNavigateToTab, onAddActions, existingActions = [] }: AskPlatoVueTabV2Props = {}) {
   const { state } = useDashboard();
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -143,6 +153,8 @@ export function AskPlatoVueTabV2({ onNavigateToTab }: AskPlatoVueTabV2Props = {}
   const [thinkingPhrase, setThinkingPhrase] = useState(THINKING_PHRASES[0]);
   const [highlightedCitation, setHighlightedCitation] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<ConversationItem[]>([]);
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
+  const [planFeedback, setPlanFeedback] = useState<ActionPlanFeedback | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // AI mode - would come from settings in real implementation
@@ -251,6 +263,77 @@ export function AskPlatoVueTabV2({ onNavigateToTab }: AskPlatoVueTabV2Props = {}
       console.log('[AskPlatoVue] Navigate to tab:', link.tab);
     }
   }, [onNavigateToTab]);
+
+  // Check if response has actionable content
+  const hasActionableContent = useMemo(() => {
+    if (!response) return false;
+    // Convert local IntentResponse to service-compatible format
+    const serviceResponse: AskIntentResponse = {
+      answer_markdown: response.answer_markdown,
+      citations: response.citations.map(c => ({
+        ref: c.ref,
+        label: c.label,
+        key_path: c.key_path,
+        value: '',
+      })),
+      deep_links: response.deep_links.map(d => ({
+        tab: d.tab,
+        label: d.label,
+        params: d.params,
+      })),
+      suggested_questions: response.suggested_questions || [],
+    };
+    return responseHasActionableContent(serviceResponse);
+  }, [response]);
+
+  // Handle creating action plan from response
+  const handleCreateActionPlan = useCallback(async () => {
+    if (!response || !onAddActions) return;
+
+    setIsCreatingPlan(true);
+
+    try {
+      // Convert local IntentResponse to service-compatible format
+      const serviceResponse: AskIntentResponse = {
+        answer_markdown: response.answer_markdown,
+        citations: response.citations.map(c => ({
+          ref: c.ref,
+          label: c.label,
+          key_path: c.key_path,
+          value: '',
+        })),
+        deep_links: response.deep_links.map(d => ({
+          tab: d.tab,
+          label: d.label,
+          params: d.params,
+        })),
+        suggested_questions: response.suggested_questions || [],
+      };
+
+      const result = createActionPlanFromResponse(
+        serviceResponse,
+        existingActions,
+        currentQuery,
+        5 // Max 5 actions
+      );
+
+      if (result.actions.length > 0) {
+        onAddActions(result.actions);
+      }
+
+      setPlanFeedback({
+        actionsCreated: result.actions.length,
+        duplicatesSkipped: result.duplicatesSkipped,
+      });
+
+      // Clear feedback after 5 seconds
+      setTimeout(() => setPlanFeedback(null), 5000);
+    } catch (error) {
+      console.error('[AskPlatoVue] Error creating action plan:', error);
+    } finally {
+      setIsCreatingPlan(false);
+    }
+  }, [response, existingActions, currentQuery, onAddActions]);
 
   // Format relative time
   const formatRelativeTime = (date: Date): string => {
@@ -445,7 +528,7 @@ export function AskPlatoVueTabV2({ onNavigateToTab }: AskPlatoVueTabV2Props = {}
 
               {/* Citations */}
               {response.citations.length > 0 && (
-                <div className="mb-4">
+                <div className="mb-4" data-sources-section>
                   <h4 className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                     Sources
                   </h4>
@@ -528,14 +611,51 @@ export function AskPlatoVueTabV2({ onNavigateToTab }: AskPlatoVueTabV2Props = {}
                   {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   {copied ? 'Copied!' : 'Copy'}
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 text-xs border border-border text-muted-foreground rounded-md hover:bg-accent hover:text-foreground transition-colors">
+                {/* View Evidence - scrolls to sources section */}
+                <button
+                  onClick={() => {
+                    const sourcesEl = document.querySelector('[data-sources-section]');
+                    sourcesEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs border border-border text-muted-foreground rounded-md hover:bg-accent hover:text-foreground transition-colors"
+                >
                   <ExternalLink className="w-3.5 h-3.5" />
                   View Evidence
                 </button>
-                <button className="flex items-center gap-1.5 px-3 py-2 text-xs bg-primary/10 border border-primary text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-colors font-medium">
-                  <Zap className="w-3.5 h-3.5" />
-                  Create Action Plan
-                </button>
+                {/* Create Action Plan - only show if actions can be created */}
+                {onAddActions && hasActionableContent && (
+                  <button
+                    onClick={handleCreateActionPlan}
+                    disabled={isCreatingPlan || planFeedback !== null}
+                    className={`flex items-center gap-1.5 px-3 py-2 text-xs border rounded-md transition-colors font-medium ${
+                      planFeedback
+                        ? 'bg-green-500/10 border-green-500 text-green-500'
+                        : 'bg-primary/10 border-primary text-primary hover:bg-primary hover:text-primary-foreground'
+                    } disabled:opacity-60 disabled:cursor-not-allowed`}
+                  >
+                    {isCreatingPlan ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Creating...
+                      </>
+                    ) : planFeedback ? (
+                      <>
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        {planFeedback.actionsCreated} Actions Added
+                        {planFeedback.duplicatesSkipped > 0 && (
+                          <span className="text-muted-foreground ml-1">
+                            ({planFeedback.duplicatesSkipped} skipped)
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-3.5 h-3.5" />
+                        Create Action Plan
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -1,10 +1,10 @@
 // HelpDrawer.tsx
 // A reusable drawer that slides in from the right with contextual help content
-// Matches the style of ExplainDrawer and ActionDetailDrawer
-// Uses React Portal to render at document root for proper z-index stacking
+// Uses glass-drawer CSS classes for translucent glass effect
 
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { Eye, Cog, Search, AlertTriangle, Lightbulb } from 'lucide-react';
 
 export interface HelpContent {
   /** "What You're Looking At" - paragraph explaining what the section shows */
@@ -46,7 +46,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
     <>
       {/* Backdrop */}
       <div
-        className="fixed top-0 left-0 w-full h-full glass-backdrop"
+        className="fixed inset-0 glass-backdrop"
         style={{
           zIndex: 1040,
           opacity: isOpen ? 1 : 0,
@@ -56,7 +56,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         onClick={onClose}
       />
 
-      {/* Drawer */}
+      {/* Drawer - uses glass-drawer class for translucent effect */}
       <div
         className="fixed top-0 right-0 h-full flex flex-col glass-drawer"
         style={{
@@ -72,92 +72,115 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         aria-labelledby="help-drawer-title"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-3 glass-drawer-header">
-          <div>
-            <div
-              className="text-sm uppercase"
-              style={{ color: 'var(--text-secondary)', letterSpacing: '0.05em' }}
-            >
-              Help
+        <div className="glass-drawer-header px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
+                Help
+              </div>
+              <h3 id="help-drawer-title" className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {title}
+              </h3>
             </div>
-            <h5 id="help-drawer-title" className="mb-0" style={{ color: 'var(--text-primary)' }}>
-              {title}
-            </h5>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              style={{ color: 'var(--text-secondary)' }}
+              aria-label="Close help"
+            >
+              <i className="bi bi-x-lg text-lg" />
+            </button>
           </div>
-          <button
-            className="p-1 text-sm rounded hover:bg-white/10"
-            onClick={onClose}
-            style={{ color: 'var(--text-secondary)' }}
-            aria-label="Close help drawer"
-          >
-            <i className="bi bi-x-lg"></i>
-          </button>
         </div>
 
         {/* Content */}
-        <div className="grow overflow-auto p-3">
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
           {/* What You're Looking At */}
-          <div className="mb-4">
-            <SectionHeader icon="bi-eye">What You're Looking At</SectionHeader>
-            <div className="text-sm" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
+          <section>
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+              <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                What You're Looking At
+              </h4>
+            </div>
+            <div className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
               {content.whatYouSee}
             </div>
-          </div>
+          </section>
 
           {/* How It Works */}
-          <div className="mb-4">
-            <SectionHeader icon="bi-gear">How It Works</SectionHeader>
-            <div className="text-sm" style={{ color: 'var(--text-primary)', lineHeight: 1.6 }}>
+          <section>
+            <div className="flex items-center gap-2 mb-2">
+              <Cog className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+              <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                How It Works
+              </h4>
+            </div>
+            <div className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
               {content.howItWorks}
             </div>
-          </div>
+          </section>
 
           {/* What to Look For */}
-          <div className="mb-4">
-            <SectionHeader icon="bi-search">What to Look For</SectionHeader>
-            <ul className="mb-0 pl-3 text-sm" style={{ color: 'var(--text-primary)' }}>
-              {content.whatToLookFor.map((item, index) => (
-                <li key={index} className="mb-1">{item}</li>
-              ))}
-            </ul>
-          </div>
+          {content.whatToLookFor.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <Search className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
+                <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                  What To Look For
+                </h4>
+              </div>
+              <ul className="space-y-1.5 ml-1">
+                {content.whatToLookFor.map((item, index) => (
+                  <li
+                    key={index}
+                    className="text-sm leading-relaxed flex items-start gap-2"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--text-secondary)' }} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {/* Watch Out For */}
-          <div className="mb-4">
-            <SectionHeader icon="bi-exclamation-triangle">Watch Out For</SectionHeader>
-            <ul className="mb-0 pl-3 text-sm" style={{ color: 'var(--text-primary)' }}>
-              {content.watchOutFor.map((item, index) => (
-                <li key={index} className="mb-1">{item}</li>
-              ))}
-            </ul>
-          </div>
+          {content.watchOutFor.length > 0 && (
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                  Watch Out For
+                </h4>
+              </div>
+              <ul className="space-y-1.5 ml-1">
+                {content.watchOutFor.map((item, index) => (
+                  <li
+                    key={index}
+                    className="text-sm leading-relaxed flex items-start gap-2"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
 
-        {/* Footer */}
-        <div className="p-3 text-sm glass-drawer-footer" style={{ color: 'var(--text-secondary)' }}>
-          <i className="bi bi-lightbulb mr-1"></i>
-          Tip: Click outside or press Escape to close
+        {/* Footer Tip */}
+        <div className="glass-drawer-footer px-4 py-3">
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            <Lightbulb className="w-3.5 h-3.5" />
+            <span>Tip: Click outside or press Escape to close</span>
+          </div>
         </div>
       </div>
     </>,
     document.body
-  );
-}
-
-// Helper component matching ExplainDrawer's SectionHeader
-function SectionHeader({ children, icon }: { children: React.ReactNode; icon: string }) {
-  return (
-    <div
-      className="uppercase text-sm mb-2 flex items-center gap-2"
-      style={{
-        color: 'var(--text-secondary)',
-        letterSpacing: '0.05em',
-        fontWeight: 600,
-      }}
-    >
-      <i className={`bi ${icon}`} style={{ fontSize: '0.875rem' }}></i>
-      {children}
-    </div>
   );
 }
 

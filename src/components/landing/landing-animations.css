@@ -898,3 +898,6 @@
     height: 0.5px;
   }
 }
+
+/* Landing page color overrides are now in dashboard-theme.css
+   at the end of the file to ensure proper cascade order */

@@ -209,7 +209,8 @@ export function NetworkBackground({ scrollProgress }: NetworkBackgroundProps) {
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        zIndex: 50,
+        // Keep behind landing content; pages should render their content on a higher z-index.
+        zIndex: 0,
         filter: 'blur(2.5px)',
       }}
     />

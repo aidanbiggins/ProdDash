@@ -330,6 +330,7 @@ function tabToUrlPath(tab: TabType): string {
     'scenarios': '/plan/scenarios',
     'data-health': '/settings/data-health',
     'sla-settings': '/settings/sla',
+    'pipeline-benchmarks': '/settings/pipeline-targets',
     'ai-settings': '/settings/ai',
     'org-settings': '/settings/org',
   };

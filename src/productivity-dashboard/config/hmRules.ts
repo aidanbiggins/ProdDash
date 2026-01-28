@@ -94,7 +94,7 @@ export const STALL_REASON_EXPLANATIONS: Record<string, {
  */
 export const PENDING_ACTION_SUGGESTIONS: Record<string, string> = {
     FEEDBACK_DUE: 'Submit interview feedback for this candidate.',
-    REVIEW_DUE: 'Review this candidate and move forward or decline.',
+    REVIEW_DUE: 'Review this candidate and decide whether to move forward or reject.',
     DECISION_DUE: 'Make a final hiring decision for this candidate.'
 };
 

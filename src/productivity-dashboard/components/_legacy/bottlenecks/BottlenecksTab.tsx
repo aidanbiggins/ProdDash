@@ -3,9 +3,8 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { useDashboard } from '../../../hooks/useDashboardContext';
-import { PageHeader } from '../../common/PageHeader';
+import { SubViewHeader } from '../../v2/SubViewHeader';
 import { GlassPanel } from '../layout/GlassPanel';
-import { HelpButton, HelpDrawer } from '../../common';
 import { CoverageBanner } from './CoverageBanner';
 import { BottleneckStagesPanel } from './BottleneckStagesPanel';
 import { BreachTable } from './BreachTable';
@@ -35,7 +34,6 @@ interface BottlenecksTabProps {
 export function BottlenecksTab({ onNavigate, onCreateActions }: BottlenecksTabProps) {
   const { state, regenerateDemoSnapshots } = useDashboard();
   const [selectedReqId, setSelectedReqId] = useState<string | null>(null);
-  const [showPageHelp, setShowPageHelp] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<{ count: number; show: boolean } | null>(null);
 
   // Check if in demo mode
@@ -173,16 +171,10 @@ export function BottlenecksTab({ onNavigate, onCreateActions }: BottlenecksTabPr
   if (hasNoData) {
     return (
       <div className="bottlenecks-tab">
-        <PageHeader
+        <SubViewHeader
           title="Bottlenecks & SLAs"
           subtitle="Track stage dwell time and SLA compliance"
-          actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
-        />
-        <HelpDrawer
-          isOpen={showPageHelp}
-          onClose={() => setShowPageHelp(false)}
-          title="Bottlenecks & SLAs"
-          content={BOTTLENECKS_PAGE_HELP}
+          helpContent={BOTTLENECKS_PAGE_HELP}
         />
         <GlassPanel>
           <div
@@ -203,32 +195,24 @@ export function BottlenecksTab({ onNavigate, onCreateActions }: BottlenecksTabPr
 
   return (
     <div className="bottlenecks-tab">
-      <PageHeader
+      <SubViewHeader
         title="Bottlenecks & SLAs"
         subtitle="Track stage dwell time and SLA compliance"
+        helpContent={BOTTLENECKS_PAGE_HELP}
         actions={
-          <div className="flex gap-2 items-center">
-            {bottleneckSummary && onCreateActions && (
-              <button
-                onClick={handleCreateActions}
-                className="px-3 py-1 text-sm rounded-md text-white"
-                style={{
-                  background: 'var(--color-accent-primary)',
-                }}
-              >
-                <i className="bi bi-plus-circle mr-1" />
-                Create Actions
-              </button>
-            )}
-            <HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />
-          </div>
+          bottleneckSummary && onCreateActions && (
+            <button
+              onClick={handleCreateActions}
+              className="px-3 py-1 text-sm rounded-md text-white"
+              style={{
+                background: 'var(--color-accent-primary)',
+              }}
+            >
+              <i className="bi bi-plus-circle mr-1" />
+              Create Actions
+            </button>
+          )
         }
-      />
-      <HelpDrawer
-        isOpen={showPageHelp}
-        onClose={() => setShowPageHelp(false)}
-        title="Bottlenecks & SLAs"
-        content={BOTTLENECKS_PAGE_HELP}
       />
 
       {/* Action Creation Feedback */}

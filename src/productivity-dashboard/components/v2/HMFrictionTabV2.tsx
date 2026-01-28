@@ -12,6 +12,7 @@ import {
   TrendingUp, TrendingDown, Users, Clock, Zap, AlertTriangle,
   ChevronDown, ChevronUp, ChevronRight, Download, HelpCircle, X, Info
 } from 'lucide-react';
+import { SubViewHeader } from './SubViewHeader';
 import { useDashboard } from '../../hooks/useDashboardContext';
 import { HiringManagerFriction } from '../../types';
 import { exportHMFrictionCSV } from '../../services';
@@ -384,6 +385,27 @@ export function HMFrictionTabV2() {
 
   return (
     <div className="space-y-4">
+      <SubViewHeader
+        title="HM Friction Analysis"
+        subtitle="Analyze hiring manager latency and its impact on time-to-fill"
+        helpContent={{
+          description: "This page quantifies how much of your hiring cycle is spent waiting for hiring manager actions. 'Time Tax' represents the percentage of total cycle time attributable to HM delays.",
+          howItWorks: "We measure the time between when candidates are ready for HM review and when feedback is provided. This is aggregated per hiring manager to show patterns. The cycle breakdown chart visualizes where time is spent across all stages.",
+          whatToLookFor: [
+            "Hiring managers with Time Tax above 30%",
+            "Feedback latency consistently over 3 days",
+            "Patterns where the same HMs cause repeated delays",
+            "Correlation between slow HMs and candidate withdrawals"
+          ],
+          watchOutFor: [
+            "HMs with few candidates may show volatile percentages",
+            "Out-of-office time can spike latency temporarily",
+            "Some roles require more deliberation (senior hires)",
+            "Delegated feedback (other interviewers) may not be captured"
+          ]
+        }}
+      />
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPICardV2

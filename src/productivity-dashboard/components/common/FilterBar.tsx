@@ -251,25 +251,21 @@ export function FilterBar({
         {label}
       </span>
       <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className={`gap-2 text-xs bg-transparent border-white/[0.08] hover:bg-white/[0.04] w-full justify-between ${
-              selectedValues.length > 0 ? 'border-accent/50 text-accent' : ''
-            }`}
-          >
-            <span className="truncate">
-              {selectedValues.length === 0
-                ? `All ${label}`
-                : selectedValues.length === 1
-                  ? displayFn(selectedValues[0])
-                  : `${selectedValues.length} selected`}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-          </Button>
+        <PopoverTrigger
+          className={`inline-flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-xs font-medium transition-all h-8 px-3 bg-transparent border hover:bg-white/[0.04] w-full ${
+            selectedValues.length > 0 ? 'border-accent/50 text-accent' : 'border-white/[0.08] text-foreground'
+          }`}
+        >
+          <span className="truncate">
+            {selectedValues.length === 0
+              ? `All ${label}`
+              : selectedValues.length === 1
+                ? displayFn(selectedValues[0])
+                : `${selectedValues.length} selected`}
+          </span>
+          <ChevronDown className="w-3.5 h-3.5 shrink-0" />
         </PopoverTrigger>
-        <PopoverContent className="w-[240px] p-2" align="start">
+        <PopoverContent className="w-[240px] p-2 z-[100] bg-slate-800 border border-slate-600 shadow-lg" align="start">
           <div className="space-y-1 max-h-[280px] overflow-y-auto">
             {options.map((option) => {
               const isDisabled = !availableSet.has(option.value);
@@ -279,7 +275,7 @@ export function FilterBar({
                   className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer ${
                     isDisabled
                       ? 'opacity-40 cursor-not-allowed'
-                      : 'hover:bg-white/[0.06]'
+                      : 'hover:bg-slate-700'
                   }`}
                 >
                   <Checkbox
@@ -287,7 +283,7 @@ export function FilterBar({
                     onCheckedChange={() => !isDisabled && handleToggle(field, option.value)}
                     disabled={isDisabled}
                   />
-                  <span className="text-sm truncate">{option.label}</span>
+                  <span className="text-sm truncate text-white">{option.label}</span>
                 </label>
               );
             })}
@@ -379,7 +375,7 @@ export function FilterBar({
               <FilterDropdown
                 label="Recruiters"
                 field="recruiterIds"
-                options={recruiters.map(r => ({ value: r.user_id, label: r.name }))}
+                options={recruiters.map(r => ({ value: r.user_id, label: r.name || r.user_id || 'Unknown' }))}
                 selectedValues={filters.recruiterIds || []}
                 availableSet={availableOptions.recruiterIds as Set<string>}
                 displayFn={(id) => recruiters.find(r => r.user_id === id)?.name || id}
@@ -430,7 +426,7 @@ export function FilterBar({
               <FilterDropdown
                 label="HM"
                 field="hiringManagerIds"
-                options={hiringManagers.map(hm => ({ value: hm.user_id, label: hm.name }))}
+                options={hiringManagers.map(hm => ({ value: hm.user_id, label: hm.name || hm.user_id || 'Unknown' }))}
                 selectedValues={filters.hiringManagerIds || []}
                 availableSet={availableOptions.hiringManagerIds as Set<string>}
                 displayFn={(id) => hiringManagers.find(hm => hm.user_id === id)?.name || id}

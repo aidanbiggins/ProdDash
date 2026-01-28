@@ -453,7 +453,7 @@ export function ProductivityDashboard() {
   );
 
   return (
-    <>
+    <div className="dashboard-theme">
       {/* New Navigation - shown when feature flag enabled and not using legacy */}
       {showNewNav && (
         <TopNav
@@ -1298,6 +1298,6 @@ export function ProductivityDashboard() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

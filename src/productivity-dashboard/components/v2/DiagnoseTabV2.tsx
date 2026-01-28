@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle,
@@ -20,12 +20,11 @@ import {
 import { Button } from 'components/ui/button';
 import { useDashboard } from '../../hooks/useDashboardContext';
 
-// Import legacy v1 tab components (embedded until native V2 versions exist)
-// @see ../\_legacy/README.md for migration status
-import { BottlenecksTab } from '../_legacy/bottlenecks';
-import { QualityTab } from '../_legacy/quality';
-import { SourceEffectivenessTab } from '../_legacy/source-effectiveness/SourceEffectivenessTab';
-import { VelocityInsightsTab } from '../_legacy/velocity-insights/VelocityInsightsTab';
+// Import V2 tab components (fully migrated from legacy)
+import { BottlenecksTabV2 } from './bottlenecks';
+import { QualityTabV2 } from './QualityTabV2';
+import { SourceEffectivenessTabV2 } from './SourceEffectivenessTabV2';
+import { VelocityInsightsTabV2 } from './velocity-insights';
 
 // Import v2 tab components
 import { OverviewTabV2 } from './OverviewTabV2';
@@ -288,27 +287,28 @@ function generateDiagnostics(
   if (overview) {
     // Accept rate check
     const acceptRate = overview.totalOfferAcceptanceRate;
-    if (acceptRate !== null && acceptRate < 80) {
+    // totalOfferAcceptanceRate is a ratio (0-1); present as % in UI.
+    if (acceptRate !== null && acceptRate < 0.8) {
       diagnostics.push({
         id: 'accept-rate',
-        category: acceptRate < 60 ? 'critical' : 'warning',
+        category: acceptRate < 0.6 ? 'critical' : 'warning',
         title: 'Low Offer Accept Rate',
         description: 'Offer acceptance rate is below target threshold',
         metric: 'Accept Rate',
-        value: `${acceptRate.toFixed(0)}%`,
+        value: `${Math.round(acceptRate * 100)}%`,
         benchmark: 'Target: > 80%',
         recommendation: 'Review compensation competitiveness and candidate experience',
         affectedItems: [],
         linkTo: 'quality',
       });
-    } else if (acceptRate !== null && acceptRate >= 85) {
+    } else if (acceptRate !== null && acceptRate >= 0.85) {
       diagnostics.push({
         id: 'accept-rate-good',
         category: 'success',
         title: 'Strong Offer Accept Rate',
         description: 'Offer acceptance rate exceeds target threshold',
         metric: 'Accept Rate',
-        value: `${acceptRate.toFixed(0)}%`,
+        value: `${Math.round(acceptRate * 100)}%`,
         benchmark: 'Benchmark: 80%',
         recommendation: 'Continue current approach to offers and candidate experience',
         affectedItems: [],
@@ -396,6 +396,11 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
   const [activeSubView, setActiveSubView] = useState<DiagnoseSubView>(defaultSubView);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isScanning, setIsScanning] = useState(false);
+
+  // Keep internal state in sync with URL-driven parent (deep-link/back-forward support).
+  useEffect(() => {
+    setActiveSubView(defaultSubView);
+  }, [defaultSubView]);
 
   const handleSubViewChange = (subView: DiagnoseSubView) => {
     setActiveSubView(subView);
@@ -684,7 +689,7 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
           return <EmptyState viewLabel="Bottlenecks" />;
         }
         return (
-          <BottlenecksTab
+          <BottlenecksTabV2
             onNavigate={(path: string) => {
               console.log('[DiagnoseTabV2] Navigate to:', path);
             }}
@@ -698,20 +703,20 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
         if (!state.loadingState.hasQualityMetrics || !state.qualityMetrics) {
           return <EmptyState viewLabel="Quality" />;
         }
-        return <QualityTab quality={state.qualityMetrics} />;
+        return <QualityTabV2 quality={state.qualityMetrics} />;
 
       case 'source-mix':
         if (!sourceEffectiveness) {
           return <EmptyState viewLabel="Source Mix" />;
         }
-        return <SourceEffectivenessTab data={sourceEffectiveness} />;
+        return <SourceEffectivenessTabV2 data={sourceEffectiveness} />;
 
       case 'velocity':
         if (!velocityMetrics) {
           return <EmptyState viewLabel="Velocity" />;
         }
         return (
-          <VelocityInsightsTab
+          <VelocityInsightsTabV2
             metrics={velocityMetrics}
             requisitions={state.dataStore.requisitions}
             candidates={state.dataStore.candidates}
@@ -732,34 +737,12 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
 
   return (
     <div className="min-h-screen">
-      {/* Page Header with Sub-navigation */}
+      {/* Sub-navigation */}
       <div className="sticky top-[52px] z-40 bg-background/95 backdrop-blur-xl border-b border-border">
         <div className="px-4 md:px-6 py-3 max-w-[1600px] mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-            <div>
-              <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight">
-                Diagnose
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                System health diagnostics and pipeline analysis
-              </p>
-            </div>
-            {activeSubView === 'overview' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleScan}
-                disabled={isScanning}
-                className="bg-transparent border-border text-foreground hover:bg-accent"
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isScanning ? 'animate-spin' : ''}`} />
-                {isScanning ? 'Scanning...' : 'Run Diagnostics'}
-              </Button>
-            )}
-          </div>
-
-          {/* Sub-navigation pills */}
-          <div className="flex gap-1 overflow-x-auto pb-1 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+          <div className="flex items-center justify-between gap-3">
+            {/* Sub-navigation pills */}
+            <div className="flex gap-1 overflow-x-auto pb-1 -mr-4 pr-4 md:mr-0 md:pr-0 scrollbar-hide">
             {subViews.map((view) => (
               <button
                 key={view.id}
@@ -775,6 +758,20 @@ export function DiagnoseTabV2({ defaultSubView = 'overview', onSubViewChange }: 
                 <span>{view.label}</span>
               </button>
             ))}
+            </div>
+
+            {activeSubView === 'overview' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleScan}
+                disabled={isScanning}
+                className="flex-shrink-0 bg-transparent border-border text-foreground hover:bg-accent"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isScanning ? 'animate-spin' : ''}`} />
+                {isScanning ? 'Scanning...' : 'Run Diagnostics'}
+              </Button>
+            )}
           </div>
         </div>
       </div>

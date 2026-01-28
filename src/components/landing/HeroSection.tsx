@@ -110,7 +110,7 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
       />
 
       {/* Main hero content */}
-      <div className="relative z-10 max-w-4xl mx-auto px-6 pt-32 pb-16">
+      <div className="relative z-10 max-w-6xl mx-auto px-6 pt-32 pb-24">
 
         {/* Floating badge with glass effect */}
         <div
@@ -135,20 +135,26 @@ export function HeroSection({ onGetStarted, onLearnMore }: HeroSectionProps) {
         {/* Main headline with gradient */}
         <h1
           className={`
-            text-5xl sm:text-6xl md:text-7xl lg:text-8xl
-            font-display font-bold tracking-tight leading-[0.95]
-            mb-8
+            font-display !font-black tracking-tighter leading-[1.05]
+            overflow-visible
+            mb-10
             transition-all duration-700 ease-out
             ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
           `}
-          style={{ transitionDelay: '100ms' }}
+          style={{
+            transitionDelay: '100ms',
+            fontSize: 'clamp(3.5rem, 10vw, 10rem)',
+          }}
         >
-          <span className="block text-white">
+          <span className="block text-white drop-shadow-[0_4px_32px_rgba(0,0,0,0.4)]">
             Stop Guessing.
           </span>
           <span
-            className="block mt-2 bg-clip-text text-transparent bg-[length:200%_200%] animate-gradient-shift"
-            style={{ backgroundImage: 'linear-gradient(135deg, #f59e0b 0%, #fb923c 50%, #f59e0b 100%)' }}
+            className="block bg-clip-text text-transparent bg-[length:200%_200%] animate-gradient-shift pb-[0.08em]"
+            style={{
+              backgroundImage: 'linear-gradient(135deg, #f59e0b 0%, #fb923c 50%, #f59e0b 100%)',
+              filter: 'drop-shadow(0 4px 32px rgba(245,158,11,0.4))'
+            }}
           >
             Start Knowing.
           </span>

@@ -39,7 +39,8 @@ const statusConfig = {
   'on-hold': { dot: 'bg-red-500', label: 'On Hold' },
 };
 
-function getHealthColor(score: number): string {
+function getHealthColor(score: number | null): string {
+  if (score === null) return 'text-muted-foreground';
   if (score >= 80) return 'text-green-500';
   if (score >= 60) return 'text-amber-500';
   return 'text-red-500';
@@ -59,6 +60,12 @@ export function RequisitionsTableV2({ requisitions, recruiters = [] }: Requisiti
   };
 
   const sortedRequisitions = [...requisitions].sort((a, b) => {
+    if (sortField === 'healthScore') {
+      const aNum = a.healthScore ?? -1;
+      const bNum = b.healthScore ?? -1;
+      return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+    }
+
     const aValue = a[sortField];
     const bValue = b[sortField];
 
@@ -179,7 +186,7 @@ export function RequisitionsTableV2({ requisitions, recruiters = [] }: Requisiti
                   </TableCell>
                   <TableCell className="text-right hidden sm:table-cell">
                     <span className={`font-mono text-sm font-medium ${getHealthColor(req.healthScore)}`}>
-                      {req.healthScore}%
+                      {req.healthScore === null ? '--' : `${req.healthScore}%`}
                     </span>
                   </TableCell>
                   <TableCell>

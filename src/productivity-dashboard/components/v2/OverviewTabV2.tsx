@@ -10,6 +10,7 @@ import {
   TrendingUp, TrendingDown, Minus, Settings2, Download, ChevronRight,
   HelpCircle, CheckCircle, AlertTriangle, Clock, Activity
 } from 'lucide-react';
+import { SubViewHeader } from './SubViewHeader';
 import { useDashboard } from '../../hooks/useDashboardContext';
 import { RecruiterSummary, WeeklyTrend } from '../../types';
 import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
@@ -436,24 +437,88 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
     }));
   }, [weeklyTrends]);
 
-  // Custom tooltip for funnel chart
+  // Custom tooltip for funnel chart with PTR calculations
   const FunnelTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || payload.length === 0) return null;
     const data = payload[0]?.payload || {};
+
+    // Get active metrics in funnel order (important for PTR calculation)
     const activeMetrics = funnelMetrics.filter(m => selectedFunnelMetrics.has(m.key));
 
+    // Calculate PTRs between consecutive selected stages (always show all transitions)
+    const ptrs: { from: string; to: string; rate: number | null; toColor: string }[] = [];
+
+    for (let i = 1; i < activeMetrics.length; i++) {
+      const fromMetric = activeMetrics[i - 1];
+      const toMetric = activeMetrics[i];
+      const fromValue = data[fromMetric.dataKey] || 0;
+      const toValue = data[toMetric.dataKey] || 0;
+
+      ptrs.push({
+        from: fromMetric.label,
+        to: toMetric.label,
+        rate: fromValue > 0 ? (toValue / fromValue) * 100 : null,
+        toColor: toMetric.color
+      });
+    }
+
+    // Calculate overall PTR if 3+ stages selected
+    let overallPTR: { from: string; to: string; rate: number | null } | null = null;
+    if (activeMetrics.length >= 3) {
+      const firstValue = data[activeMetrics[0].dataKey] || 0;
+      const lastValue = data[activeMetrics[activeMetrics.length - 1].dataKey] || 0;
+      overallPTR = {
+        from: activeMetrics[0].label,
+        to: activeMetrics[activeMetrics.length - 1].label,
+        rate: firstValue > 0 ? (lastValue / firstValue) * 100 : null
+      };
+    }
+
     return (
-      <div className="bg-popover border border-border rounded-md p-3 shadow-xl">
-        <div className="font-semibold text-foreground mb-2">{label}</div>
-        {activeMetrics.map(metric => {
-          const value = data[metric.dataKey] || 0;
-          return (
-            <div key={metric.key} className="flex justify-between items-center gap-4 text-sm">
-              <span style={{ color: metric.color }}>{metric.label}</span>
-              <span className="font-mono text-muted-foreground">{value}</span>
+      <div className="bg-popover border border-border rounded-md p-3 shadow-xl min-w-[220px]">
+        <div className="font-semibold text-foreground mb-3">{label}</div>
+
+        {/* Raw counts section */}
+        <div className="space-y-1 mb-3">
+          {activeMetrics.map(metric => {
+            const value = data[metric.dataKey] || 0;
+            return (
+              <div key={metric.key} className="flex justify-between items-center gap-6 text-sm">
+                <span style={{ color: metric.color }}>{metric.label}</span>
+                <span className="font-mono text-foreground">{value}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* PTR section - always show if 2+ stages selected */}
+        {ptrs.length > 0 && (
+          <div className="border-t border-border pt-2 space-y-1">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              Pass-Through Rates
             </div>
-          );
-        })}
+            {ptrs.map((ptr, i) => (
+              <div key={i} className="flex justify-between items-center gap-4 text-xs">
+                <span className="text-muted-foreground">
+                  {ptr.from} → {ptr.to}
+                </span>
+                <span className="font-mono" style={{ color: ptr.rate !== null ? ptr.toColor : undefined }}>
+                  {ptr.rate !== null ? `${ptr.rate.toFixed(0)}%` : '—'}
+                </span>
+              </div>
+            ))}
+            {overallPTR && (
+              <div className="flex justify-between items-center gap-4 text-xs pt-1 border-t border-border/50 mt-1">
+                <span className="text-muted-foreground font-medium">
+                  Overall ({overallPTR.from} → {overallPTR.to})
+                </span>
+                <span className="font-mono text-foreground font-medium">
+                  {overallPTR.rate !== null ? `${overallPTR.rate.toFixed(1)}%` : '—'}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -486,23 +551,26 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
 
   return (
     <div className="space-y-4">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-foreground tracking-tight">Overview</h2>
-            <button
-              type="button"
-              className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            High-level KPIs, trends, and recruiter performance summary
-          </p>
-        </div>
-      </div>
+      <SubViewHeader
+        title="Overview"
+        subtitle="High-level KPIs, trends, and recruiter performance summary"
+        helpContent={{
+          description: "This is your executive summary view showing the most important recruiting metrics at a glance. All numbers reflect the currently selected filters and date range.",
+          howItWorks: "We calculate metrics from your imported data in real-time. Hires, offers, and other counts are based on actual candidate outcomes. Weighted hires adjust for requisition complexity. Prior period comparisons help you spot trends.",
+          whatToLookFor: [
+            "KPIs trending in the wrong direction (red arrows)",
+            "Stalled requisitions that need attention",
+            "Accept rate below 80% (indicates offer competitiveness issues)",
+            "Pipeline health score below 70 (indicates bottlenecks)"
+          ],
+          watchOutFor: [
+            "Short date ranges can make percentages misleading",
+            "New recruiters may skew team averages",
+            "Seasonal hiring patterns can affect comparisons",
+            "Zombie reqs are excluded from TTF calculations"
+          ]
+        }}
+      />
 
       {/* KPI Cards Row */}
       <div className="flex gap-3 overflow-x-auto pb-1">

@@ -167,11 +167,25 @@ function AppRoutes() {
       <Route path="/" element={<HomeRoute />} />
 
       {/* IA Routes - all handled by the V2 dashboard */}
-      <Route path="/control-tower" element={<HomeRoute />} />
+      <Route path="/command-center" element={<HomeRoute />} />
+      <Route path="/ops" element={<HomeRoute />} />
+      <Route path="/control-tower" element={<Navigate to="/ops" replace />} />
       <Route path="/ask" element={<HomeRoute />} />
       <Route path="/diagnose/*" element={<HomeRoute />} />
       <Route path="/plan/*" element={<HomeRoute />} />
       <Route path="/settings/*" element={<HomeRoute />} />
+
+      {/* Legacy deep links - resolved by V2 routing helpers */}
+      <Route path="/overview" element={<HomeRoute />} />
+      <Route path="/recruiter" element={<HomeRoute />} />
+      <Route path="/hm-friction" element={<HomeRoute />} />
+      <Route path="/hiring-managers" element={<HomeRoute />} />
+      <Route path="/quality" element={<HomeRoute />} />
+      <Route path="/source-mix" element={<HomeRoute />} />
+      <Route path="/velocity" element={<HomeRoute />} />
+      <Route path="/capacity" element={<HomeRoute />} />
+      <Route path="/forecasting" element={<HomeRoute />} />
+      <Route path="/data-health" element={<HomeRoute />} />
 
       {/* Legacy V1 Dashboard - accessible via /v1
           @deprecated Use V0/V2 dashboard at '/' for new development.

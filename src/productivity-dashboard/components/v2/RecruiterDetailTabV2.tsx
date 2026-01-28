@@ -6,9 +6,10 @@ import {
 } from 'recharts';
 import { startOfWeek, endOfWeek, eachWeekOfInterval, isSameWeek, subWeeks, format, differenceInDays } from 'date-fns';
 import {
-  TrendingUp, TrendingDown, Minus, Download, HelpCircle, User, Briefcase, Settings,
+  TrendingUp, TrendingDown, Minus, Download, User, Briefcase, Settings,
   ArrowUpDown, ArrowUp, ArrowDown, Activity
 } from 'lucide-react';
+import { SubViewHeader } from './SubViewHeader';
 import { useDashboard } from '../../hooks/useDashboardContext';
 import { RecruiterSummary, Requisition, Candidate, Event as DashboardEvent, User as UserType, ReqDetail, EventType, CanonicalStage, RequisitionStatus } from '../../types';
 import { DataDrillDownModal, DrillDownType, buildHiresRecords, buildOffersRecords, buildReqsRecords, buildTTFRecords } from '../common/DataDrillDownModal';
@@ -529,22 +530,26 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
 
   return (
     <div className="space-y-4">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-foreground tracking-tight">
-              {detail.recruiterName === 'All Recruiters' ? 'Recruiter Performance' : detail.recruiterName}
-            </h2>
-            <button type="button" className="p-1 rounded hover:bg-accent text-muted-foreground">
-              <HelpCircle className="w-4 h-4" />
-            </button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Analyze individual recruiter metrics and pipeline health
-          </p>
-        </div>
-      </div>
+      <SubViewHeader
+        title={detail.recruiterName === 'All Recruiters' ? 'Recruiter Performance' : detail.recruiterName}
+        subtitle="Analyze individual recruiter metrics and pipeline health"
+        helpContent={{
+          description: "This view shows detailed performance metrics for an individual recruiter or the entire team. Use it to understand workload distribution, productivity trends, and identify coaching opportunities.",
+          howItWorks: "Metrics are calculated from candidate outcomes tied to requisitions owned by each recruiter. Weighted hires adjust for req complexity. The activity chart shows week-over-week patterns to help spot trends.",
+          whatToLookFor: [
+            "Productivity ratio below 2.0 (may indicate overload or process issues)",
+            "Declining trends over multiple weeks",
+            "High open req count with low activity",
+            "Significant variance from team averages"
+          ],
+          watchOutFor: [
+            "New recruiters need ramp time before comparing to veterans",
+            "Different req types have different complexity levels",
+            "Recruiters handling backfills vs. new headcount aren't comparable",
+            "Transfer reqs can skew individual metrics"
+          ]
+        }}
+      />
 
       {/* KPI Cards Row */}
       <div className="flex gap-3 overflow-x-auto pb-1">

@@ -198,26 +198,28 @@ export function FeaturesSection({ sectionRef }: FeaturesSectionProps) {
 
                     <div
                       className={cn(
-                        'mt-4 overflow-hidden transition-[max-height,opacity] duration-300 ease-out',
-                        expanded ? 'max-h-[240px] opacity-100' : 'max-h-0 opacity-0'
+                        'mt-4 grid transition-[grid-template-rows,opacity] duration-300 ease-out',
+                        expanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                       )}
                     >
-                      <div className="pt-1 space-y-4">
-                        <div>
-                          <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
-                            Why it matters
+                      <div className="overflow-hidden">
+                        <div className="pt-1 space-y-4">
+                          <div>
+                            <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                              Why it matters
+                            </div>
+                            <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                              {feature.whyItMatters}
+                            </p>
                           </div>
-                          <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                            {feature.whyItMatters}
-                          </p>
-                        </div>
-                        <div className="rounded-xl border border-slate-700/60 bg-slate-800/30 p-4">
-                          <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
-                            Example insight
+                          <div className="rounded-xl border border-slate-700/60 bg-slate-800/30 p-4">
+                            <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                              Example insight
+                            </div>
+                            <p className="mt-2 text-sm leading-relaxed text-white/90">
+                              {feature.example}
+                            </p>
                           </div>
-                          <p className="mt-2 text-sm leading-relaxed text-white/90">
-                            {feature.example}
-                          </p>
                         </div>
                       </div>
                     </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { Database, Clock, Bot, Building2, Upload } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Database, Clock, Bot, Building2, Upload, Target } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboardContext';
 
 // Import legacy v1 tab components (embedded until native V2 versions exist)
@@ -11,9 +11,10 @@ import { SlaSettingsTab } from '../_legacy/settings/SlaSettingsTab';
 import { AiSettingsTab } from '../_legacy/settings/AiSettingsTab';
 import { OrgSettingsTab } from '../_legacy/settings/OrgSettingsTab';
 import { CSVUpload } from '../CSVUpload';
+import { PipelineBenchmarksTab } from './PipelineBenchmarksTab';
 
 // Sub-view types for Settings tab
-export type SettingsSubView = 'data-health' | 'sla-settings' | 'ai-settings' | 'org-settings' | 'data-import';
+export type SettingsSubView = 'data-health' | 'sla-settings' | 'pipeline-benchmarks' | 'ai-settings' | 'org-settings' | 'data-import';
 
 interface SettingsTabV2Props {
   defaultSubView?: SettingsSubView;
@@ -24,6 +25,7 @@ const subViews: { id: SettingsSubView; label: string; icon: React.ReactNode }[] 
   { id: 'data-import', label: 'Data Import', icon: <Upload className="w-4 h-4" /> },
   { id: 'data-health', label: 'Data Health', icon: <Database className="w-4 h-4" /> },
   { id: 'sla-settings', label: 'SLA Settings', icon: <Clock className="w-4 h-4" /> },
+  { id: 'pipeline-benchmarks', label: 'Pipeline Targets', icon: <Target className="w-4 h-4" /> },
   { id: 'ai-settings', label: 'AI Settings', icon: <Bot className="w-4 h-4" /> },
   { id: 'org-settings', label: 'Organization', icon: <Building2 className="w-4 h-4" /> },
 ];
@@ -31,6 +33,11 @@ const subViews: { id: SettingsSubView; label: string; icon: React.ReactNode }[] 
 export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange }: SettingsTabV2Props) {
   const [activeSubView, setActiveSubView] = useState<SettingsSubView>(defaultSubView);
   const { state, importCSVs } = useDashboard();
+
+  // Keep internal state in sync with URL-driven parent (deep-link/back-forward support).
+  useEffect(() => {
+    setActiveSubView(defaultSubView);
+  }, [defaultSubView]);
 
   // State for DataHealthTab exclusions
   const [excludedReqIds, setExcludedReqIds] = useState<Set<string>>(new Set());
@@ -89,6 +96,8 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
         );
       case 'sla-settings':
         return <SlaSettingsTab />;
+      case 'pipeline-benchmarks':
+        return <PipelineBenchmarksTab />;
       case 'ai-settings':
         return <AiSettingsTab />;
       case 'org-settings':

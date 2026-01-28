@@ -27,7 +27,9 @@ function simpleNormalizeStage(stage: string | null | undefined): CanonicalStage 
     if (lower === 'offer' || lower.includes('offer extended') || lower.includes('offer pending')) return CanonicalStage.OFFER;
     if (lower === 'hired' || lower.includes('offer accepted') || lower.includes('accepted')) return CanonicalStage.HIRED;
     if (lower.includes('reject') || lower.includes('declined by company') || lower.includes('not selected')) return CanonicalStage.REJECTED;
-    if (lower.includes('withdrew') || lower.includes('withdrawn') || lower.includes('candidate declined')) return CanonicalStage.WITHDREW;
+    // Note: "candidate declined" here means withdrew (declined to continue), not declined an offer
+    // Offer declines are tracked via EventType.OFFER_DECLINED, not stage names
+    if (lower.includes('withdrew') || lower.includes('withdrawn') || lower.includes('candidate declined') || lower.includes('declined to proceed')) return CanonicalStage.WITHDREW;
 
     return null;
 }

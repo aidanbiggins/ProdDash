@@ -1,8 +1,9 @@
 // HelpButton.tsx
 // A small info icon button that triggers the help drawer
+// Consistent styling with V2 SubViewHeader
 
 import React from 'react';
-import './HelpDrawer.css';
+import { HelpCircle } from 'lucide-react';
 
 export interface HelpButtonProps {
   onClick: () => void;
@@ -12,12 +13,12 @@ export interface HelpButtonProps {
 export function HelpButton({ onClick, ariaLabel = 'Open help' }: HelpButtonProps) {
   return (
     <button
-      className="help-button"
+      className="p-1.5 rounded-md border border-border bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
       onClick={onClick}
       aria-label={ariaLabel}
       type="button"
     >
-      <i className="bi bi-info-circle" />
+      <HelpCircle className="w-4 h-4" />
     </button>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Users, TrendingUp, Layers, Scale } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboardContext';
 
@@ -40,6 +40,11 @@ export function PlanTabV2({
 }: PlanTabV2Props) {
   const [activeSubView, setActiveSubView] = useState<PlanSubView>(defaultSubView);
   const { state } = useDashboard();
+
+  // Keep internal state in sync with URL-driven parent (deep-link/back-forward support).
+  useEffect(() => {
+    setActiveSubView(defaultSubView);
+  }, [defaultSubView]);
 
   const handleSubViewChange = (subView: PlanSubView) => {
     setActiveSubView(subView);

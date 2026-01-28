@@ -9,6 +9,7 @@ import {
   CheckCircle, Clock, MessageSquare, ClipboardCheck, Search, X,
   ChevronDown, ChevronUp, Calendar, Target, Activity
 } from 'lucide-react';
+import { SubViewHeader } from './SubViewHeader';
 import { useDashboard } from '../../hooks/useDashboardContext';
 import {
   HMFactTables,
@@ -1091,6 +1092,27 @@ export function HiringManagersTabV2() {
 
   return (
     <div className="space-y-4">
+      <SubViewHeader
+        title="Hiring Managers"
+        subtitle="Track hiring manager responsiveness, pending actions, and requisition health"
+        helpContent={{
+          description: "This is your accountability dashboard for hiring managers. Use it to identify who needs follow-up, which reqs are at risk, and what actions are overdue.",
+          howItWorks: "We track pending actions per HM based on candidates waiting for feedback, resume reviews, and decisions. The scorecard shows req-level health metrics. Speed benchmarks compare each HM to team medians.",
+          whatToLookFor: [
+            "HMs with high pending action counts",
+            "Requisitions with multiple overdue actions",
+            "Feedback speed significantly slower than team median",
+            "Patterns of delay on specific req types"
+          ],
+          watchOutFor: [
+            "Some HMs delegate to coordinators (actions may not reflect reality)",
+            "High-volume HMs naturally have more pending items",
+            "Recent data imports may show inflated pending counts",
+            "Closed reqs still showing in pending actions need data refresh"
+          ]
+        }}
+      />
+
       {/* Sub-Navigation */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div className="flex gap-1 p-1 rounded-lg bg-muted/20 border border-border">

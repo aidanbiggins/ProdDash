@@ -4,6 +4,7 @@ import type { BottleneckItem, RiskLevel } from './types';
 
 interface BottleneckPanelV2Props {
   bottlenecks: BottleneckItem[];
+  onViewAll?: () => void;
 }
 
 const severityColors: Record<RiskLevel, { bg: string; border: string; text: string; dot: string }> = {
@@ -40,14 +41,14 @@ const typeIcons: Record<string, React.ReactNode> = {
   requisition: <FileText className="w-4 h-4" />,
 };
 
-export function BottleneckPanelV2({ bottlenecks }: BottleneckPanelV2Props) {
+export function BottleneckPanelV2({ bottlenecks, onViewAll }: BottleneckPanelV2Props) {
   const sortedBottlenecks = [...bottlenecks].sort((a, b) => {
     const severityOrder: Record<RiskLevel, number> = { bad: 0, warn: 1, neutral: 2, good: 3 };
     return severityOrder[a.severity] - severityOrder[b.severity];
   });
 
   return (
-    <div className="glass-panel h-full">
+    <div className="glass-panel">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         <AlertTriangle className="w-4 h-4 text-amber-500" />
@@ -108,6 +109,7 @@ export function BottleneckPanelV2({ bottlenecks }: BottleneckPanelV2Props) {
       <div className="px-4 py-3 border-t border-border">
         <button
           type="button"
+          onClick={onViewAll}
           className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
         >
           View all bottlenecks

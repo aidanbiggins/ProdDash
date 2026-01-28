@@ -8,7 +8,7 @@ interface PainPoint {
   title: string;
   description: string;
   stat: string;
-  statLabel: string;
+  statLabel: string[];
   accent: 'amber' | 'cyan' | 'violet' | 'rose';
 }
 
@@ -18,7 +18,7 @@ const painPoints: PainPoint[] = [
     title: 'Spreadsheet Hell',
     description: 'TA leaders spend hours every week wrestling with ATS exports, building pivot tables, and updating reports that are stale by the time they\'re finished.',
     stat: '4-8',
-    statLabel: 'hours/week on manual reporting',
+    statLabel: ['hours/week', 'on manual reporting'],
     accent: 'amber',
   },
   {
@@ -26,7 +26,7 @@ const painPoints: PainPoint[] = [
     title: 'Problems Surface Too Late',
     description: 'By the time monthly reports reveal a stalled req or slow hiring manager, candidates have already dropped off and goals have been missed.',
     stat: '4+',
-    statLabel: 'weeks before issues are visible',
+    statLabel: ['weeks before', 'issues are visible'],
     accent: 'cyan',
   },
   {
@@ -34,7 +34,7 @@ const painPoints: PainPoint[] = [
     title: 'The HM Black Box',
     description: 'The #1 controllable factor in candidate drop-off is hiring manager responsiveness, but most TA teams have zero visibility into which HMs are the bottleneck.',
     stat: '80%',
-    statLabel: 'of drop-off during HM stages',
+    statLabel: ['of drop-off', 'during HM stages'],
     accent: 'violet',
   },
   {
@@ -42,7 +42,7 @@ const painPoints: PainPoint[] = [
     title: 'Garbage Metrics',
     description: 'Zombie reqs, ghost candidates, and data quality issues corrupt every metric you have. Your "real" TTF is hidden under layers of bad data.',
     stat: '15-40%',
-    statLabel: 'TTF inflation from data issues',
+    statLabel: ['TTF inflation', 'from data issues'],
     accent: 'rose',
   }
 ];
@@ -138,12 +138,14 @@ export function ProblemSection() {
                   {point.description}
                 </p>
 
-                <div className="mt-5 flex items-baseline justify-between gap-3">
-                  <div className="stat-value text-2xl text-white">
+                <div className="mt-5 grid grid-cols-[auto,1fr] items-end gap-4">
+                  <div className="stat-value text-2xl text-white tabular-nums min-w-[80px]">
                     {point.stat}
                   </div>
-                  <div className="text-xs text-slate-300 text-right leading-snug">
-                    {point.statLabel}
+                  <div className="text-xs text-slate-300 text-left leading-snug flex flex-col">
+                    {point.statLabel.map((line) => (
+                      <span key={line}>{line}</span>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -162,7 +164,7 @@ export function ProblemSection() {
       >
         <div className="rounded-2xl border border-slate-700/60 bg-slate-800/40 backdrop-blur-xl p-7 md:p-8 shadow-[0_20px_45px_rgba(0,0,0,0.25)]">
           <blockquote className="font-display text-lg md:text-xl font-semibold tracking-tight text-white">
-            "We have 120 open reqs but keep missing hiring goals. What's going wrong?"
+            We have 120 open reqs but keep missing hiring goals. What's going wrong?
           </blockquote>
           <p className="mt-4 text-sm md:text-base leading-relaxed text-slate-300">
             <span className="font-semibold text-white">The answer:</span>{' '}

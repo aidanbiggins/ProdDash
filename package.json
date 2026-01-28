@@ -65,7 +65,8 @@
     "ui:legacy-audit": "node scripts/legacy-audit.js",
     "landing:smoke": "node scripts/landing-smoke.js",
     "landing:screenshots": "node scripts/landing-screenshots.js",
-    "landing:check": "npm run build && npm run landing:smoke && npm run landing:screenshots",
+    "landing:contrast-audit": "node scripts/landing-contrast-audit.js",
+    "landing:check": "npm run build && npm run landing:smoke && npm run landing:screenshots && npm run landing:contrast-audit",
     "demo:check": "react-scripts test --watchAll=false --testPathPattern=demoCheck.test",
     "reconnect:smoke": "node scripts/reconnect-smoke.js"
   },

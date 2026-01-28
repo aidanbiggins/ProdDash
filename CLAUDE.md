@@ -6,6 +6,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 PlatoVue is a React + TypeScript Recruiter Productivity Dashboard for recruitment analytics, hiring manager performance tracking, and capacity planning. Data is imported via CSV and persisted to Supabase.
 
+## Recruiting Terminology (CRITICAL)
+
+**Always use correct recruiting terminology:**
+
+| Actor | Action | Correct Term | Example |
+|-------|--------|--------------|---------|
+| Candidate | Says no to an offer | **Decline** | "The candidate declined our offer" |
+| Candidate | Exits process before offer | **Withdraw** | "The candidate withdrew from consideration" |
+| Company/Recruiter/HM | Says no to candidate | **Reject** | "We rejected the candidate after onsite" |
+
+**NEVER say:**
+- "Decline a candidate" ❌ - Use "reject" instead
+- "Company declined" ❌ - Use "company rejected" instead
+- "Candidate rejected the offer" ❌ - Use "candidate declined the offer" instead
+
+**Disposition mapping:**
+- `CandidateDisposition.Rejected` = Company rejected the candidate (at any stage)
+- `CandidateDisposition.Withdrew` = Candidate withdrew (before offer)
+- `EventType.OFFER_DECLINED` = Candidate declined an offer
+- `CanonicalStage.REJECTED` = Terminal state after company rejection
+- `CanonicalStage.WITHDREW` = Terminal state after candidate withdrawal
+
 ## Commands
 
 ```bash

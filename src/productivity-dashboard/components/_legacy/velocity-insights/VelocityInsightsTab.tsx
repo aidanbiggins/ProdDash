@@ -26,8 +26,7 @@ import { useIsMobile } from '../../../hooks/useIsMobile';
 import { PipelineHealthCard, BenchmarkConfigModal } from '../../pipeline-health';
 import { VelocityCopilotPanel } from './VelocityCopilotPanel';
 // Note: WhatIfSimulatorPanel removed per DECK_UI_UX_REFACTOR_V1.md - canonical home is Scenario Library
-import { PageHeader } from '../layout';
-import { HelpButton, HelpDrawer } from '../../common';
+import { SubViewHeader } from '../../v2/SubViewHeader';
 import { VELOCITY_PAGE_HELP } from './velocityHelpContent';
 import { calculatePipelineHealth, generateHistoricalBenchmarks } from '../../../services';
 import {
@@ -794,7 +793,6 @@ export function VelocityInsightsTab({
   onAddToActionQueue,
   aiConfig
 }: VelocityInsightsTabProps) {
-  const [showPageHelp, setShowPageHelp] = useState(false);
   const isMobile = useIsMobile();
   const chartHeight = isMobile ? 250 : 320;
 
@@ -1019,16 +1017,10 @@ export function VelocityInsightsTab({
   return (
     <div>
       {/* Page Header */}
-      <PageHeader
+      <SubViewHeader
         title="Pipeline Velocity"
-        description="Analyze pipeline timing, decay patterns, and success factors"
-        actions={<HelpButton onClick={() => setShowPageHelp(true)} ariaLabel="Open page help" />}
-      />
-      <HelpDrawer
-        isOpen={showPageHelp}
-        onClose={() => setShowPageHelp(false)}
-        title="Pipeline Velocity"
-        content={VELOCITY_PAGE_HELP}
+        subtitle="Analyze pipeline timing, decay patterns, and success factors"
+        helpContent={VELOCITY_PAGE_HELP}
       />
 
       {/* AI Copilot Panel - shown at top */}
