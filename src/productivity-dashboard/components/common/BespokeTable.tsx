@@ -155,9 +155,9 @@ export function BespokeTable<T>({
     if (minWidth) tableStyle.minWidth = minWidth;
 
     return (
-        <div className="table-responsive">
+        <div className="overflow-x-auto -mx-1 px-1">
             <table
-                className={`table table-bespoke table-hover mb-0 ${className}`}
+                className={`table table-bespoke table-hover mb-0 w-full ${className}`}
                 style={tableStyle}
             >
                 <thead>

@@ -68,7 +68,9 @@
     "landing:contrast-audit": "node scripts/landing-contrast-audit.js",
     "landing:check": "npm run build && npm run landing:smoke && npm run landing:screenshots && npm run landing:contrast-audit",
     "demo:check": "react-scripts test --watchAll=false --testPathPattern=demoCheck.test",
-    "reconnect:smoke": "node scripts/reconnect-smoke.js"
+    "reconnect:smoke": "node scripts/reconnect-smoke.js",
+    "mobile:check": "node scripts/mobile-css-audit.js",
+    "qa:mobile": "npm run mobile:check"
   },
   "browserslist": {
     "production": [

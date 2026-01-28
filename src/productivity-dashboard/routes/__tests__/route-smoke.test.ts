@@ -30,6 +30,7 @@ const ALL_TABS: TabType[] = [
   'scenarios',
   'data-health',
   'sla-settings',
+  'pipeline-benchmarks',
   'ai-settings',
   'org-settings'
 ];
@@ -54,6 +55,7 @@ const ALL_ROUTES = [
   '/plan/scenarios',
   '/settings/data-health',
   '/settings/sla',
+  '/settings/pipeline-targets',
   '/settings/ai',
   '/settings/org'
 ];
@@ -153,7 +155,7 @@ describe('Route Smoke Tests', () => {
 
     it('should have all Settings routes in settings bucket', () => {
       const settingsRoutes = ROUTE_CONFIG.filter(r => r.bucket === 'settings');
-      expect(settingsRoutes.length).toBe(4);
+      expect(settingsRoutes.length).toBe(5);
       settingsRoutes.forEach(r => {
         expect(r.path).toMatch(/^\/settings\//);
       });

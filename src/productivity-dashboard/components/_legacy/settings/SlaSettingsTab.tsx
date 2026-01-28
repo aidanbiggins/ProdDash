@@ -127,17 +127,17 @@ export function SlaSettingsTab() {
           subtitle="Define time limits for each hiring stage"
         />
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <table className="w-full text-sm" style={{ minWidth: '700px' }}>
             <thead>
               <tr className="border-b border-glass-border">
-                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stage</th>
-                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Display Name</th>
-                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">SLA (hours)</th>
-                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Display</th>
-                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Owner</th>
-                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Enabled</th>
-                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Stage</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Display Name</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">SLA (hours)</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Display</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Owner</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Enabled</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -212,9 +212,9 @@ export function SlaSettingsTab() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mt-4 pt-4 border-t border-glass-border">
+        <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-glass-border">
           <button
-            className="px-4 py-2 rounded-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2.5 rounded-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
             onClick={handleSave}
             disabled={!isDirty}
           >
@@ -222,14 +222,14 @@ export function SlaSettingsTab() {
             Save Changes
           </button>
           <button
-            className="px-4 py-2 rounded-md border border-white/10 text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+            className="px-4 py-2.5 rounded-md border border-white/10 text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors min-h-[44px]"
             onClick={handleReset}
           >
             <i className="bi bi-arrow-counterclockwise mr-1"></i>
             Reset to Defaults
           </button>
           {isDirty && (
-            <span className="ml-auto flex items-center text-warn text-sm">
+            <span className="sm:ml-auto flex items-center justify-center text-warn text-sm">
               <i className="bi bi-exclamation-circle mr-1"></i>
               Unsaved changes
             </span>
@@ -245,7 +245,7 @@ export function SlaSettingsTab() {
             subtitle="Create a custom SLA policy for a stage not listed above"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_120px_140px_auto] gap-3 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-[1fr_1fr_120px_140px_auto] gap-3 items-end">
             <div>
               <label className="block text-xs font-medium mb-1 text-muted-foreground">Stage Key</label>
               <input

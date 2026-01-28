@@ -1361,7 +1361,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
               </div>
               <button
                 type="button"
-                className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted/50 transition-colors"
+                className="text-muted-foreground hover:text-foreground p-2 rounded hover:bg-muted/50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                 onClick={() => setShowAllActions(false)}
               >
                 <span className="text-2xl leading-none">&times;</span>

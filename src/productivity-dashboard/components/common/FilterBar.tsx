@@ -252,7 +252,7 @@ export function FilterBar({
       </span>
       <Popover>
         <PopoverTrigger
-          className={`inline-flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-xs font-medium transition-all h-8 px-3 bg-transparent border hover:bg-white/[0.04] w-full ${
+          className={`inline-flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-xs font-medium transition-all min-h-[44px] px-3 bg-transparent border hover:bg-white/[0.04] w-full ${
             selectedValues.length > 0 ? 'border-accent/50 text-accent' : 'border-white/[0.08] text-foreground'
           }`}
         >
@@ -327,20 +327,20 @@ export function FilterBar({
       {/* Filter Content */}
       {isExpanded && (
         <div className="p-3 md:p-4 space-y-3">
-          {/* Date Range Row */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <span className="text-[10px] md:text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {/* Date Range Row - Stack on mobile */}
+          <div className="space-y-2 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+            <span className="block text-[10px] md:text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Date Range
             </span>
 
-            {/* Preset Buttons */}
-            <div className="flex gap-1 p-1 rounded-md bg-white/[0.03]">
+            {/* Preset Buttons - Scrollable on mobile */}
+            <div className="flex gap-1 p-1 rounded-md bg-white/[0.03] overflow-x-auto">
               {datePresets.map((preset) => (
                 <button
                   key={preset.label}
                   type="button"
                   onClick={() => handleDatePreset(preset)}
-                  className={`px-2 md:px-3 py-1.5 rounded text-[11px] md:text-xs font-medium transition-colors whitespace-nowrap ${
+                  className={`px-2 md:px-3 py-1.5 rounded text-[11px] md:text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] ${
                     selectedPreset === preset.label
                       ? 'bg-accent text-accent-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.06]'
@@ -351,26 +351,26 @@ export function FilterBar({
               ))}
             </div>
 
-            {/* Custom Date Inputs */}
-            <div className="flex items-center gap-2">
+            {/* Custom Date Inputs - Stack on mobile */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input
                 type="date"
-                className="px-2 py-1.5 text-xs bg-transparent border border-white/[0.08] rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                className="px-3 py-2 text-xs bg-transparent border border-white/[0.08] rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-accent min-h-[44px]"
                 value={format(filters.dateRange.startDate, 'yyyy-MM-dd')}
                 onChange={handleStartDateChange}
               />
-              <span className="text-muted-foreground text-xs">to</span>
+              <span className="text-muted-foreground text-xs text-center sm:text-left">to</span>
               <input
                 type="date"
-                className="px-2 py-1.5 text-xs bg-transparent border border-white/[0.08] rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                className="px-3 py-2 text-xs bg-transparent border border-white/[0.08] rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-accent min-h-[44px]"
                 value={format(filters.dateRange.endDate, 'yyyy-MM-dd')}
                 onChange={handleEndDateChange}
               />
             </div>
           </div>
 
-          {/* Dimensional Filters - Horizontal Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+          {/* Dimensional Filters - Single column on mobile, expanding on larger screens */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             {recruiters.length > 0 && (
               <FilterDropdown
                 label="Recruiters"

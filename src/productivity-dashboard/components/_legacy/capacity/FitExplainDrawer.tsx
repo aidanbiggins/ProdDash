@@ -119,9 +119,9 @@ export function FitExplainDrawer({
         onClick={onClose}
       />
 
-      {/* Drawer */}
+      {/* Drawer - Full width on mobile, 450px on desktop */}
       <div
-        className="fixed top-0 right-0 h-full w-[450px] max-w-[90vw] z-[1050] overflow-y-auto bg-bg-surface border-l border-glass-border"
+        className="fixed top-0 right-0 h-full w-full md:w-[450px] md:max-w-[90vw] z-[1050] overflow-y-auto bg-bg-surface border-l border-glass-border"
       >
         <div className="sticky top-0 bg-bg-surface/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
           <div className="flex justify-between items-start">
@@ -132,7 +132,7 @@ export function FitExplainDrawer({
               <div className="text-sm text-muted-foreground">{cell.segmentString}</div>
             </div>
             <button
-              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              className="text-muted-foreground hover:text-foreground transition-colors p-2 rounded-md hover:bg-white/[0.06] min-w-[44px] min-h-[44px] flex items-center justify-center"
               onClick={onClose}
             >
               <i className="bi bi-x-lg"></i>

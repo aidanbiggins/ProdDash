@@ -245,13 +245,7 @@ function DraftMessageModal({
       onClick={onClose}
     >
       <div
-        className="glass-panel p-4"
-        style={{
-          width: '500px',
-          maxWidth: '90vw',
-          maxHeight: '80vh',
-          overflow: 'auto'
-        }}
+        className="glass-panel p-4 w-full md:w-[500px] max-w-[90vw] max-h-[80vh] overflow-auto"
         onClick={e => e.stopPropagation()}
       >
         <SectionHeader

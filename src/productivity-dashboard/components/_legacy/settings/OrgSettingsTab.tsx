@@ -184,16 +184,16 @@ export function OrgSettingsTab() {
         <GlassPanel>
           <div className="p-4">
             <h6 className="text-sm font-semibold text-foreground mb-3">Organization Name</h6>
-            <div className="flex max-w-[400px] mb-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 w-full sm:max-w-[400px] mb-3">
               <input
                 type="text"
-                className="flex-1 px-3 py-2 text-sm rounded-l-md bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                className="flex-1 px-3 py-2 text-sm rounded-md sm:rounded-l-md sm:rounded-r-none bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent min-h-[44px]"
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
                 disabled={!canManage || isLoading}
               />
               <button
-                className="px-4 py-2 rounded-r-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-md sm:rounded-r-md sm:rounded-l-none font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
                 onClick={handleSaveName}
                 disabled={!canManage || isLoading || orgName === currentOrg?.name}
               >
@@ -287,7 +287,7 @@ export function OrgSettingsTab() {
                 <div className="md:col-span-6">
                   <input
                     type="email"
-                    className="w-full px-3 py-2 text-sm rounded-md bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                    className="w-full px-3 py-2 text-sm rounded-md bg-white/5 border border-white/10 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-accent min-h-[44px]"
                     placeholder="Email address"
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
@@ -297,7 +297,7 @@ export function OrgSettingsTab() {
                 </div>
                 <div className="md:col-span-3">
                   <select
-                    className="w-full px-3 py-2 text-sm rounded-md bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+                    className="w-full px-3 py-2 text-sm rounded-md bg-white/5 border border-white/10 text-foreground focus:outline-none focus:ring-1 focus:ring-accent min-h-[44px]"
                     value={inviteRole}
                     onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member')}
                     disabled={isLoading}
@@ -309,7 +309,7 @@ export function OrgSettingsTab() {
                 <div className="md:col-span-3">
                   <button
                     type="submit"
-                    className="w-full px-4 py-2 rounded-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-2 rounded-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
                     disabled={isLoading || !inviteEmail}
                   >
                     Send Invite

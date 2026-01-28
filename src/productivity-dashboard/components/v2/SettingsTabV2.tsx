@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Database, Clock, Bot, Building2, Upload, Target } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Database, Clock, Bot, Building2, Upload, Target, ChevronDown } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboardContext';
+import { useIsMobile } from '../../hooks/useIsMobile';
 
 // Import legacy v1 tab components (embedded until native V2 versions exist)
 // @see ../\_legacy/README.md for migration status
@@ -32,7 +33,9 @@ const subViews: { id: SettingsSubView; label: string; icon: React.ReactNode }[] 
 
 export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange }: SettingsTabV2Props) {
   const [activeSubView, setActiveSubView] = useState<SettingsSubView>(defaultSubView);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { state, importCSVs } = useDashboard();
+  const isMobile = useIsMobile();
 
   // Keep internal state in sync with URL-driven parent (deep-link/back-forward support).
   useEffect(() => {
@@ -44,8 +47,11 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
 
   const handleSubViewChange = (subView: SettingsSubView) => {
     setActiveSubView(subView);
+    setMobileMenuOpen(false);
     onSubViewChange?.(subView);
   };
+
+  const activeViewConfig = subViews.find(v => v.id === activeSubView) || subViews[0];
 
   const handleToggleExclusion = useCallback((reqId: string) => {
     setExcludedReqIds(prev => {
@@ -119,24 +125,69 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
         </p>
       </div>
 
-      {/* Sub-navigation */}
-      <div className="flex gap-1 overflow-x-auto pb-2 mb-6 -mx-4 px-4 md:mx-0 md:px-0">
-        {subViews.map((view) => (
+      {/* Sub-navigation - Mobile dropdown / Desktop tabs */}
+      {isMobile ? (
+        <div className="relative mb-6">
           <button
-            key={view.id}
             type="button"
-            onClick={() => handleSubViewChange(view.id)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              activeSubView === view.id
-                ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-            }`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg bg-muted/50 border border-border text-foreground"
           >
-            {view.icon}
-            <span>{view.label}</span>
+            <div className="flex items-center gap-3">
+              {activeViewConfig.icon}
+              <span className="font-medium">{activeViewConfig.label}</span>
+            </div>
+            <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`} />
           </button>
-        ))}
-      </div>
+
+          {/* Mobile dropdown menu */}
+          {mobileMenuOpen && (
+            <>
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              {/* Menu */}
+              <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-popover border border-border rounded-lg shadow-xl overflow-hidden">
+                {subViews.map((view) => (
+                  <button
+                    key={view.id}
+                    type="button"
+                    onClick={() => handleSubViewChange(view.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                      activeSubView === view.id
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {view.icon}
+                    <span className="font-medium">{view.label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="flex gap-1 overflow-x-auto pb-2 mb-6">
+          {subViews.map((view) => (
+            <button
+              key={view.id}
+              type="button"
+              onClick={() => handleSubViewChange(view.id)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
+                activeSubView === view.id
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+              }`}
+            >
+              {view.icon}
+              <span>{view.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Content */}
       {renderContent()}

@@ -63,12 +63,10 @@ export function HMDetailDrawer({
         }}
       />
 
-      {/* Drawer */}
+      {/* Drawer - Full width on mobile, fixed width on md+ */}
       <div
-        className="glass-drawer fixed top-0 right-0 bottom-0 flex flex-col overflow-hidden"
+        className="glass-drawer fixed top-0 right-0 bottom-0 flex flex-col overflow-hidden w-full md:w-[480px] md:max-w-[90vw]"
         style={{
-          width: '480px',
-          maxWidth: '90vw',
           zIndex: 1050,
         }}
       >
@@ -97,13 +95,16 @@ export function HMDetailDrawer({
           </div>
           <button
             onClick={onClose}
+            className="flex items-center justify-center rounded-md hover:bg-white/[0.06] transition-colors"
             style={{
               background: 'transparent',
               border: 'none',
               color: 'var(--text-secondary)',
               cursor: 'pointer',
               fontSize: '1.25rem',
-              padding: '4px',
+              padding: '10px',
+              minWidth: '44px',
+              minHeight: '44px',
             }}
           >
             <i className="bi bi-x-lg" />

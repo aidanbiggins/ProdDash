@@ -325,8 +325,8 @@ export function PipelineBenchmarksTab() {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <table className="w-full text-sm" style={{ minWidth: '700px' }}>
             <thead>
               <tr className="border-b border-border bg-muted/30">
                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -472,12 +472,12 @@ export function PipelineBenchmarksTab() {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <button
           type="button"
           onClick={handleSave}
           disabled={!isDirty || isSaving}
-          className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className="w-4 h-4" />
           {isSaving ? 'Saving...' : 'Save Changes'}
@@ -485,13 +485,13 @@ export function PipelineBenchmarksTab() {
         <button
           type="button"
           onClick={handleReset}
-          className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-md text-sm font-medium border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           <RotateCcw className="w-4 h-4" />
           Reset to Defaults
         </button>
         {isDirty && (
-          <span className="text-xs text-amber-400 flex items-center gap-1 ml-auto">
+          <span className="text-xs text-amber-400 flex items-center justify-center gap-1 sm:ml-auto">
             <AlertTriangle className="w-3 h-3" />
             Unsaved changes
           </span>
