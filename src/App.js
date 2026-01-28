@@ -10,6 +10,7 @@ import OnboardingPage from './components/OnboardingPage';
 import { LandingPage } from './components/landing/LandingPage';
 import { AboutPage } from './components/landing/AboutPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { SERVICE_ROLE_KEY_PRESENT_BUT_DISABLED } from './lib/supabase';
 
 // Developer warning banner - only shows on localhost when service role key is present but disabled
@@ -220,12 +221,14 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-        <DevServiceRoleWarning />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <AppRoutes />
+          <DevServiceRoleWarning />
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

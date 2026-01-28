@@ -458,12 +458,12 @@ export function AskPlatoVueTabV2({ onNavigateToTab, onAddActions, existingAction
             <button
               onClick={() => handleSubmit()}
               disabled={isLoading || !query.trim()}
-              className="shrink-0 w-9 h-9 rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
+              className="shrink-0 w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:scale-105"
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               )}
             </button>
           </div>
@@ -599,10 +599,10 @@ export function AskPlatoVueTabV2({ onNavigateToTab, onAddActions, existingAction
               )}
 
               {/* Action Bar */}
-              <div className="flex gap-2 pt-4 border-t border-border mt-auto">
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-border mt-auto">
                 <button
                   onClick={handleCopy}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-xs border rounded-md transition-colors ${
+                  className={`flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] text-xs border rounded-md transition-colors ${
                     copied
                       ? 'bg-green-500/10 border-green-500 text-green-500'
                       : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground'
@@ -617,7 +617,7 @@ export function AskPlatoVueTabV2({ onNavigateToTab, onAddActions, existingAction
                     const sourcesEl = document.querySelector('[data-sources-section]');
                     sourcesEl?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                   }}
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs border border-border text-muted-foreground rounded-md hover:bg-accent hover:text-foreground transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] text-xs border border-border text-muted-foreground rounded-md hover:bg-accent hover:text-foreground transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   View Evidence
@@ -627,7 +627,7 @@ export function AskPlatoVueTabV2({ onNavigateToTab, onAddActions, existingAction
                   <button
                     onClick={handleCreateActionPlan}
                     disabled={isCreatingPlan || planFeedback !== null}
-                    className={`flex items-center gap-1.5 px-3 py-2 text-xs border rounded-md transition-colors font-medium ${
+                    className={`flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] text-xs border rounded-md transition-colors font-medium ${
                       planFeedback
                         ? 'bg-green-500/10 border-green-500 text-green-500'
                         : 'bg-primary/10 border-primary text-primary hover:bg-primary hover:text-primary-foreground'

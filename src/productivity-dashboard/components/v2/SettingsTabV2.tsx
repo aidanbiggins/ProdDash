@@ -5,12 +5,11 @@ import { Database, Clock, Bot, Building2, Upload, Target, ChevronDown } from 'lu
 import { useDashboard } from '../../hooks/useDashboardContext';
 import { useIsMobile } from '../../hooks/useIsMobile';
 
-// Import legacy v1 tab components (embedded until native V2 versions exist)
-// @see ../\_legacy/README.md for migration status
-import { DataHealthTab } from '../_legacy/data-health/DataHealthTab';
-import { SlaSettingsTab } from '../_legacy/settings/SlaSettingsTab';
-import { AiSettingsTab } from '../_legacy/settings/AiSettingsTab';
-import { OrgSettingsTab } from '../_legacy/settings/OrgSettingsTab';
+// V2 Settings sub-components
+import { DataHealthTabV2 } from './DataHealthTabV2';
+import { SlaSettingsTabV2 } from './SlaSettingsTabV2';
+import { AiSettingsTabV2 } from './AiSettingsTabV2';
+import { OrgSettingsTabV2 } from './OrgSettingsTabV2';
 import { CSVUpload } from '../CSVUpload';
 import { PipelineBenchmarksTab } from './PipelineBenchmarksTab';
 
@@ -91,7 +90,7 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
           return renderNoDataState();
         }
         return (
-          <DataHealthTab
+          <DataHealthTabV2
             requisitions={state.dataStore.requisitions}
             candidates={state.dataStore.candidates}
             events={state.dataStore.events}
@@ -101,13 +100,13 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
           />
         );
       case 'sla-settings':
-        return <SlaSettingsTab />;
+        return <SlaSettingsTabV2 />;
       case 'pipeline-benchmarks':
         return <PipelineBenchmarksTab />;
       case 'ai-settings':
-        return <AiSettingsTab />;
+        return <AiSettingsTabV2 />;
       case 'org-settings':
-        return <OrgSettingsTab />;
+        return <OrgSettingsTabV2 />;
       default:
         return renderNoDataState();
     }

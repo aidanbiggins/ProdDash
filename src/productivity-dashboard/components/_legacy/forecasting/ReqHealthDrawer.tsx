@@ -1,5 +1,6 @@
 // ReqHealthDrawer - Unified slide-in drawer showing requisition health, Oracle prediction, and Pre-Mortem analysis
 import React from 'react';
+import { X } from 'lucide-react';
 import { LogoSpinner } from '../../common/LogoSpinner';
 import { RoleHealthMetrics } from '../../../types/forecastingTypes';
 import { ForecastResult, SimulationParameters } from '../../../services/probabilisticEngine';
@@ -97,8 +98,8 @@ export function ReqHealthDrawer({
         onClick={onClose}
       />
 
-      {/* Drawer */}
-      <div className="fixed top-0 right-0 bottom-0 w-[560px] max-w-[95vw] z-[1050] flex flex-col overflow-hidden bg-bg-glass border-l border-glass-border">
+      {/* Drawer - full-width on mobile, 560px on desktop */}
+      <div className="fixed top-0 right-0 bottom-0 w-full md:w-[560px] z-[1050] flex flex-col overflow-hidden bg-bg-glass border-l border-glass-border">
         {/* Header */}
         <div className="p-4 flex justify-between items-start border-b border-white/10">
           <div className="flex-1 min-w-0">
@@ -124,9 +125,10 @@ export function ReqHealthDrawer({
           </div>
           <button
             onClick={onClose}
-            className="bg-transparent border-none text-muted-foreground cursor-pointer text-xl p-1 ml-2 hover:text-foreground transition-colors"
+            className="flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] bg-transparent border-none text-muted-foreground cursor-pointer hover:text-foreground hover:bg-white/5 rounded-lg transition-colors ml-2"
+            aria-label="Close drawer"
           >
-            <i className="bi bi-x-lg" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 

@@ -23,7 +23,7 @@ import {
   StageDwellMetric,
   SlaPolicy,
 } from '../../../types/slaTypes';
-import { getSlaPolicies } from '../../_legacy/settings/SlaSettingsTab';
+import { getSlaPolicies } from '../SlaSettingsTabV2';
 import { DataSnapshot, SnapshotEvent } from '../../../types/snapshotTypes';
 import { Requisition, User } from '../../../types/entities';
 

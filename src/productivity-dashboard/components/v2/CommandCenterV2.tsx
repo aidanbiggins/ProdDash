@@ -39,7 +39,6 @@ import {
   Zap,
   Clock,
   CheckCircle2,
-  Database,
   LayoutDashboard,
 } from 'lucide-react';
 
@@ -988,31 +987,6 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
       </header>
 
       <main className="mx-auto max-w-[1600px] px-4 md:px-6 py-6">
-        {/* Dataset Status Bar */}
-        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-glass-border bg-bg-glass px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Database className="h-4 w-4 text-accent" />
-            <span className="text-sm font-medium text-foreground">
-              {filteredCandidates.length.toLocaleString()} candidates
-            </span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-sm text-muted-foreground">
-              {filteredRequisitions.length.toLocaleString()} reqs
-            </span>
-            {hasActiveFilters && (
-              <>
-                <span className="text-muted-foreground">•</span>
-                <span className="text-xs text-primary">
-                  Filtered from {dataStore.candidates.length.toLocaleString()} / {dataStore.requisitions.length.toLocaleString()}
-                </span>
-              </>
-            )}
-          </div>
-          <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Last updated: {dataStore.lastImportAt ? new Date(dataStore.lastImportAt).toLocaleDateString() : 'Never'}</span>
-          </div>
-        </div>
-
         {/* Health KPIs Section (V0 pattern) */}
         <section className="mb-8">
           <div className="mb-4 flex items-center justify-between">

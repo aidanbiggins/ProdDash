@@ -159,7 +159,7 @@ export default function SpinUpTeamForm({
               <button
                 key={r.recruiter_id}
                 type="button"
-                className={`px-3 py-1.5 text-sm rounded-md mr-2 mb-2 transition-colors ${
+                className={`px-4 py-2.5 min-h-[44px] text-sm rounded-md mr-2 mb-2 transition-colors ${
                   assignedRecruiterIds.includes(r.recruiter_id)
                     ? 'bg-accent-primary text-white'
                     : 'border border-glass-border bg-transparent text-muted-foreground hover:bg-surface-elevated'
@@ -180,7 +180,7 @@ export default function SpinUpTeamForm({
       <div className="mt-4">
         <button
           type="submit"
-          className="px-4 py-2 rounded-md bg-accent-primary text-white font-medium hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full md:w-auto px-6 py-3 min-h-[44px] rounded-md bg-accent-primary text-white font-medium hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isRunning}
         >
           {isRunning ? (

@@ -166,7 +166,7 @@ export default function RecruiterLeavesForm({
       <div className="mt-4">
         <button
           type="submit"
-          className="px-4 py-2 rounded-md bg-accent-primary text-white font-medium hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full md:w-auto px-6 py-3 min-h-[44px] rounded-md bg-accent-primary text-white font-medium hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isRunning || !recruiterId || daysUntilDeparture <= 0}
         >
           {isRunning ? (

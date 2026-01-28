@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Eye, Cog, Search, AlertTriangle, Lightbulb } from 'lucide-react';
+import { Eye, Cog, Search, AlertTriangle, Lightbulb, X } from 'lucide-react';
 
 export interface HelpContent {
   /** "What You're Looking At" - paragraph explaining what the section shows */
@@ -75,21 +75,20 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
         <div className="glass-drawer-header px-4 py-3">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-xs font-medium uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
+              <div className="text-xs font-medium uppercase tracking-wider mb-1 text-muted-foreground">
                 Help
               </div>
-              <h3 id="help-drawer-title" className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <div id="help-drawer-title" className="text-lg font-semibold text-foreground">
                 {title}
-              </h3>
+              </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              style={{ color: 'var(--text-secondary)' }}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Close help"
             >
-              <i className="bi bi-x-lg text-lg" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -99,12 +98,12 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {/* What You're Looking At */}
           <section>
             <div className="flex items-center gap-2 mb-2">
-              <Eye className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-              <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              <Eye className="w-4 h-4 text-muted-foreground" />
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 What You're Looking At
-              </h4>
+              </div>
             </div>
-            <div className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-sm leading-relaxed text-foreground">
               {content.whatYouSee}
             </div>
           </section>
@@ -112,12 +111,12 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {/* How It Works */}
           <section>
             <div className="flex items-center gap-2 mb-2">
-              <Cog className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-              <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+              <Cog className="w-4 h-4 text-muted-foreground" />
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 How It Works
-              </h4>
+              </div>
             </div>
-            <div className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+            <div className="text-sm leading-relaxed text-foreground">
               {content.howItWorks}
             </div>
           </section>
@@ -126,19 +125,18 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {content.whatToLookFor.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
-                <Search className="w-4 h-4" style={{ color: 'var(--text-secondary)' }} />
-                <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                <Search className="w-4 h-4 text-muted-foreground" />
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   What To Look For
-                </h4>
+                </div>
               </div>
               <ul className="space-y-1.5 ml-1">
                 {content.whatToLookFor.map((item, index) => (
                   <li
                     key={index}
-                    className="text-sm leading-relaxed flex items-start gap-2"
-                    style={{ color: 'var(--text-primary)' }}
+                    className="text-sm leading-relaxed flex items-start gap-2 text-foreground"
                   >
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: 'var(--text-secondary)' }} />
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-muted-foreground flex-shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -150,19 +148,18 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
           {content.watchOutFor.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <h4 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                <AlertTriangle className="w-4 h-4 text-warn" />
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Watch Out For
-                </h4>
+                </div>
               </div>
               <ul className="space-y-1.5 ml-1">
                 {content.watchOutFor.map((item, index) => (
                   <li
                     key={index}
-                    className="text-sm leading-relaxed flex items-start gap-2"
-                    style={{ color: 'var(--text-primary)' }}
+                    className="text-sm leading-relaxed flex items-start gap-2 text-foreground"
                   >
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-warn flex-shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -173,7 +170,7 @@ export function HelpDrawer({ isOpen, onClose, title, content }: HelpDrawerProps)
 
         {/* Footer Tip */}
         <div className="glass-drawer-footer px-4 py-3">
-          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground/70">
             <Lightbulb className="w-3.5 h-3.5" />
             <span>Tip: Click outside or press Escape to close</span>
           </div>

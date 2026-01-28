@@ -19,7 +19,58 @@ import {
   SidebarTrigger,
 } from '../../../components/ui/sidebar';
 import { Separator } from '../../../components/ui/separator';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Sparkles, Zap } from 'lucide-react';
+
+// AI Status Indicator - shows when AI is enabled with a glowing effect
+function AiStatusIndicator({
+  isEnabled,
+  provider,
+  onClick
+}: {
+  isEnabled: boolean;
+  provider?: string;
+  onClick: () => void;
+}) {
+  if (!isEnabled) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        title="Configure AI to unlock advanced features"
+      >
+        <Sparkles className="w-3.5 h-3.5" />
+        <span className="hidden sm:inline">AI Off</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-gradient-to-r from-primary/20 to-accent/20 text-primary border border-primary/30 hover:border-primary/50 transition-all"
+      title={`AI powered by ${provider || 'configured provider'}`}
+    >
+      {/* Glow effect */}
+      <span className="absolute inset-0 rounded-md bg-primary/10 blur-sm group-hover:bg-primary/20 transition-colors" />
+
+      {/* Pulse ring */}
+      <span className="absolute inset-0 rounded-md animate-pulse bg-primary/5" />
+
+      {/* Content */}
+      <span className="relative flex items-center gap-1.5">
+        <Zap className="w-3.5 h-3.5 text-primary" />
+        <span className="hidden sm:inline">AI On</span>
+        {provider && (
+          <span className="hidden md:inline text-primary/70 font-normal">
+            · {provider}
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
 import type { DiagnoseSubView } from './DiagnoseTabV2';
 import type { PlanSubView } from './PlanTabV2';
 import type { SettingsSubView } from './SettingsTabV2';
@@ -174,6 +225,7 @@ function isSettingsSubView(value: string): value is SettingsSubView {
   return (
     value === 'data-health' ||
     value === 'sla-settings' ||
+    value === 'pipeline-benchmarks' ||
     value === 'ai-settings' ||
     value === 'org-settings' ||
     value === 'data-import'
@@ -190,7 +242,7 @@ export function AppLayoutV2({ defaultTab = 'command-center' }: AppLayoutV2Props)
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { state, selectRecruiter, updateFilters, importCSVs } = useDashboard();
+  const { state, selectRecruiter, updateFilters, importCSVs, isAiEnabled, aiConfig } = useDashboard();
   const { user, signOut } = useAuth();
 
   // Initialize theme from localStorage or system preference
@@ -413,18 +465,28 @@ export function AppLayoutV2({ defaultTab = 'command-center' }: AppLayoutV2Props)
           <div className="flex items-center gap-2">
             <span className="text-lg font-semibold text-foreground">PlatoVue</span>
           </div>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* AI Status Indicator - disabled before data load */}
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium text-muted-foreground/50 cursor-not-allowed"
+              title="Load data to configure AI"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">AI Off</span>
+            </span>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </header>
         <main className="flex-1">
           <CSVUpload
@@ -443,9 +505,18 @@ export function AppLayoutV2({ defaultTab = 'command-center' }: AppLayoutV2Props)
         onTabChange={handleTopLevelTabChange}
         userEmail={user?.email}
         onSignOut={signOut}
+        dataStats={{
+          candidateCount: state.dataStore.candidates.length,
+          reqCount: state.dataStore.requisitions.length,
+          lastUpdated: state.dataStore.lastImportAt,
+        }}
+        onNavigateToDataImport={() => {
+          setActiveTab('settings');
+          setSettingsSubView('data-import');
+        }}
       />
       <SidebarInset>
-        {/* Header with breadcrumb and theme toggle */}
+        {/* Header with breadcrumb, AI status, and theme toggle */}
         <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
@@ -453,18 +524,31 @@ export function AppLayoutV2({ defaultTab = 'command-center' }: AppLayoutV2Props)
             <h1 className="text-sm font-medium capitalize">
               {activeTab.replace('-', ' ')}
             </h1>
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              {/* AI Status Indicator */}
+              <AiStatusIndicator
+                isEnabled={isAiEnabled}
+                provider={aiConfig?.provider}
+                onClick={() => {
+                  setActiveTab('settings');
+                  setSettingsSubView('ai-settings');
+                  navigate('/settings/ai-settings');
+                }}
+              />
+              {/* Theme Toggle */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
         </header>
 
