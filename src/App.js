@@ -85,11 +85,34 @@ function DevServiceRoleWarning() {
   );
 }
 
+// Sanitize returnUrl to prevent open redirect attacks
+// Only allows relative paths starting with /
+function sanitizeReturnUrl(url) {
+  if (!url) return '/';
+  // Block absolute URLs, protocol-relative URLs, and special protocols
+  if (
+    url.startsWith('//') ||
+    url.startsWith('http:') ||
+    url.startsWith('https:') ||
+    url.includes('://') ||
+    url.startsWith('javascript:') ||
+    url.startsWith('data:')
+  ) {
+    console.warn('[sanitizeReturnUrl] Blocked potentially malicious returnUrl:', url);
+    return '/';
+  }
+  // Ensure it starts with /
+  if (!url.startsWith('/')) {
+    return '/' + url;
+  }
+  return url;
+}
+
 // Login route that redirects logged-in users to returnUrl or home
 function LoginRoute() {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') || '/';
+  const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl'));
 
   console.log('[LoginRoute] Render - loading:', loading, 'user:', !!user);
 
@@ -100,7 +123,7 @@ function LoginRoute() {
 
   if (user) {
     console.log('[LoginRoute] User found, redirecting to:', returnUrl);
-    return <Navigate to={returnUrl} />;
+    return <Navigate to={returnUrl} replace />;
   }
   console.log('[LoginRoute] No user, showing login');
   return <Login />;

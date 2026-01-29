@@ -3,6 +3,29 @@ import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { isDevBypassAllowed, activateDevBypass } from '../lib/devBypass';
 
+// Sanitize returnUrl to prevent open redirect attacks
+// Only allows relative paths starting with /
+function sanitizeReturnUrl(url) {
+  if (!url) return '/';
+  // Block absolute URLs, protocol-relative URLs, and special protocols
+  if (
+    url.startsWith('//') ||
+    url.startsWith('http:') ||
+    url.startsWith('https:') ||
+    url.includes('://') ||
+    url.startsWith('javascript:') ||
+    url.startsWith('data:')
+  ) {
+    console.warn('[Login] Blocked potentially malicious returnUrl:', url);
+    return '/';
+  }
+  // Ensure it starts with /
+  if (!url.startsWith('/')) {
+    return '/' + url;
+  }
+  return url;
+}
+
 const Login = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -11,7 +34,7 @@ const Login = () => {
   const [searchParams] = useSearchParams();
 
   // Get return URL from query params (for invite redirects, etc.)
-  const returnUrl = searchParams.get('returnUrl') || '/';
+  const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl'));
 
   // Check if dev bypass is allowed (localhost + env flag)
   const devBypassEnabled = isDevBypassAllowed();

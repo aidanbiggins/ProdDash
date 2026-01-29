@@ -107,6 +107,31 @@ export function createDevBypassSession(): object {
 }
 
 /**
+ * Sanitize redirect URL to prevent open redirect attacks
+ * Only allows relative paths starting with /
+ */
+function sanitizeRedirectUrl(url: string): string {
+  if (!url) return '/';
+  // Block absolute URLs, protocol-relative URLs, and special protocols
+  if (
+    url.startsWith('//') ||
+    url.startsWith('http:') ||
+    url.startsWith('https:') ||
+    url.includes('://') ||
+    url.startsWith('javascript:') ||
+    url.startsWith('data:')
+  ) {
+    console.warn('[DevBypass] Blocked potentially malicious redirect URL:', url);
+    return '/';
+  }
+  // Ensure it starts with /
+  if (!url.startsWith('/')) {
+    return '/' + url;
+  }
+  return url;
+}
+
+/**
  * Activate dev bypass - creates and stores session, then redirects
  * Returns true if successful, false if not allowed
  */
@@ -118,8 +143,9 @@ export function activateDevBypass(redirectUrl: string = '/'): boolean {
 
   const session = createDevBypassSession();
   if (setDevBypassSession(session)) {
-    console.log('[DevBypass] Activated, redirecting to:', redirectUrl);
-    window.location.href = redirectUrl;
+    const safeUrl = sanitizeRedirectUrl(redirectUrl);
+    console.log('[DevBypass] Activated, redirecting to:', safeUrl);
+    window.location.href = safeUrl;
     return true;
   }
   return false;

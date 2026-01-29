@@ -12,6 +12,7 @@ import { FilterBar } from '../common/FilterBar';
 import { CSVUpload } from '../CSVUpload';
 import { useDashboard } from '../../hooks/useDashboardContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { getPathFromTab, getRedirectPath, parseUrl, type TabType } from '../../routes';
 import {
   SidebarProvider,
@@ -234,7 +235,6 @@ function isSettingsSubView(value: string): value is SettingsSubView {
 
 export function AppLayoutV2({ defaultTab = 'command-center' }: AppLayoutV2Props) {
   const [activeTab, setActiveTab] = useState<TabId>(defaultTab);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [diagnoseSubView, setDiagnoseSubView] = useState<DiagnoseSubView>('overview');
   const [planSubView, setPlanSubView] = useState<PlanSubView>('capacity');
   const [settingsSubView, setSettingsSubView] = useState<SettingsSubView>('data-health');
@@ -244,26 +244,12 @@ export function AppLayoutV2({ defaultTab = 'command-center' }: AppLayoutV2Props)
 
   const { state, selectRecruiter, updateFilters, importCSVs, isAiEnabled, aiConfig } = useDashboard();
   const { user, signOut } = useAuth();
-
-  // Initialize theme from localStorage or system preference
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-      document.documentElement.classList.toggle('dark', prefersDark);
-    }
-  }, []);
+  const { resolvedTheme: theme, setTheme } = useTheme();
 
   // Toggle theme
   const toggleTheme = () => {
     const newTheme = theme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   // Check if data is loaded
@@ -532,7 +518,7 @@ export function AppLayoutV2({ defaultTab = 'command-center' }: AppLayoutV2Props)
                 onClick={() => {
                   setActiveTab('settings');
                   setSettingsSubView('ai-settings');
-                  navigate('/settings/ai-settings');
+                  navigate('/settings/ai');
                 }}
               />
               {/* Theme Toggle */}

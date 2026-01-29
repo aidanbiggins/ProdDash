@@ -8,12 +8,35 @@ import {
 } from '../productivity-dashboard/services/organizationService';
 import { OrganizationInvite } from '../productivity-dashboard/types/auth';
 
+// Sanitize returnUrl to prevent open redirect attacks
+// Only allows relative paths starting with /
+function sanitizeReturnUrl(url: string | null): string {
+  if (!url) return '/';
+  // Block absolute URLs, protocol-relative URLs, and special protocols
+  if (
+    url.startsWith('//') ||
+    url.startsWith('http:') ||
+    url.startsWith('https:') ||
+    url.includes('://') ||
+    url.startsWith('javascript:') ||
+    url.startsWith('data:')
+  ) {
+    console.warn('[sanitizeReturnUrl] Blocked potentially malicious returnUrl:', url);
+    return '/';
+  }
+  // Ensure it starts with /
+  if (!url.startsWith('/')) {
+    return '/' + url;
+  }
+  return url;
+}
+
 const OnboardingPage: React.FC = () => {
   // Get memberships directly from AuthContext - it already loaded them
   const { user, supabaseUser, refreshMemberships, switchOrganization, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const returnUrl = searchParams.get('returnUrl') || '/';
+  const returnUrl = sanitizeReturnUrl(searchParams.get('returnUrl'));
 
   const [loadingInvites, setLoadingInvites] = useState(true);
   const [invites, setInvites] = useState<OrganizationInvite[]>([]);

@@ -24,7 +24,8 @@ import { format } from 'date-fns';
 // CSV conversion helpers for Ultimate Demo bundle
 function formatDateForCSV(date: Date | null | undefined): string {
   if (!date) return '';
-  return format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+  // Use toISOString() for proper UTC timestamp (not local time with misleading 'Z')
+  return date.toISOString();
 }
 
 function escapeCSV(value: string | null | undefined): string {
