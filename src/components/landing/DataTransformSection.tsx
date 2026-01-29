@@ -91,6 +91,8 @@ export function DataTransformSection() {
   useLayoutEffect(() => {
     if (!rightColRef.current || !measureRef.current) return;
 
+    let rafId: number | null = null;
+
     const updateHeights = () => {
       const visualBlocks = Array.from(
         measureRef.current?.querySelectorAll<HTMLElement>('[data-measure="visual"]') ?? []
@@ -112,8 +114,16 @@ export function DataTransformSection() {
       });
     };
 
+    // Debounce ResizeObserver callback with requestAnimationFrame to prevent loop
+    const debouncedUpdate = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(updateHeights);
+    };
+
     updateHeights();
-    const resizeObserver = new ResizeObserver(updateHeights);
+    const resizeObserver = new ResizeObserver(debouncedUpdate);
     resizeObserver.observe(rightColRef.current);
 
     const timeoutId = window.setTimeout(updateHeights, 150);
@@ -121,6 +131,9 @@ export function DataTransformSection() {
     return () => {
       resizeObserver.disconnect();
       window.clearTimeout(timeoutId);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
     };
   }, []);
 
