@@ -1069,40 +1069,115 @@ export function ForecastingTabV2({
             </span>
           </div>
 
-          {/* Health Table */}
+          {/* Health List - Cards on mobile, Table on desktop */}
           <div className="glass-panel">
             <div className="px-4 py-3 border-b border-border flex justify-between items-center flex-wrap gap-2">
               <span className="text-sm font-semibold text-foreground">Open Requisitions</span>
               <span className="text-xs text-muted-foreground">
-                Click any row for forecast details and risk analysis
+                Tap for details
               </span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[800px]">
+
+            {/* Mobile Card Layout */}
+            <div className="md:hidden divide-y divide-border">
+              {filteredHealthMetrics
+                .sort((a, b) => {
+                  const pmA = preMortemByReqId.get(a.reqId);
+                  const pmB = preMortemByReqId.get(b.reqId);
+                  const riskA = pmA?.risk_score ?? 0;
+                  const riskB = pmB?.risk_score ?? 0;
+                  if (riskB !== riskA) return riskB - riskA;
+                  return a.healthScore - b.healthScore;
+                })
+                .slice(healthPage * HEALTH_PAGE_SIZE, (healthPage + 1) * HEALTH_PAGE_SIZE)
+                .map((req) => {
+                  const preMortemItem = preMortemByReqId.get(req.reqId);
+                  return (
+                    <div
+                      key={req.reqId}
+                      className={`p-3 cursor-pointer active:bg-muted/50 ${
+                        selectedHealthReq === req.reqId ? 'bg-primary/10' : ''
+                      }`}
+                      onClick={() =>
+                        setSelectedHealthReq(selectedHealthReq === req.reqId ? null : req.reqId)
+                      }
+                    >
+                      {/* Row 1: Title + Badges */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-foreground text-sm leading-tight">{req.reqTitle}</div>
+                          <div className="text-xs text-muted-foreground">{req.function} · {req.level}</div>
+                        </div>
+                        <div className="flex gap-1 flex-shrink-0">
+                          <span
+                            className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getHealthBadgeClass(req.healthStatus)}`}
+                          >
+                            {req.healthScore}
+                          </span>
+                          {preMortemItem && (
+                            <span
+                              className={`inline-flex items-center rounded text-xs font-medium px-1.5 py-0.5 ${getRiskBadgeClass(preMortemItem.risk_band)}`}
+                            >
+                              {preMortemItem.risk_band}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Row 2: Metrics */}
+                      <div className="flex items-center gap-4 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">Days: </span>
+                          <span className={req.daysOpen !== null && req.daysOpen > req.benchmarkTTF ? 'text-bad font-semibold' : 'text-foreground'}>
+                            {req.daysOpen ?? 'N/A'}
+                          </span>
+                          <span className="text-muted-foreground">/{req.benchmarkTTF}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Pipeline: </span>
+                          <span className={req.pipelineGap < 0 ? 'text-bad font-semibold' : 'text-foreground'}>
+                            {req.currentPipelineDepth}
+                          </span>
+                          <span className="text-muted-foreground">/{req.benchmarkPipelineDepth}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Fill: </span>
+                          <span className="text-foreground">
+                            {req.predictedFillDate ? format(req.predictedFillDate, 'MMM d') : '?'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden md:block">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Role
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Days
+                    <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Days Open
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Pipeline
                     </th>
-                    <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Status
                     </th>
-                    <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Risk
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground hidden md:table-cell">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Failure Mode
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Fill Date
+                    <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Predicted Fill
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground hidden lg:table-cell">
+                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground hidden lg:table-cell">
                       Primary Issue
                     </th>
                   </tr>
@@ -1130,13 +1205,13 @@ export function ForecastingTabV2({
                             setSelectedHealthReq(selectedHealthReq === req.reqId ? null : req.reqId)
                           }
                         >
-                          <td className="px-3 py-3">
-                            <div className="font-medium text-foreground truncate max-w-[200px]">{req.reqTitle}</div>
+                          <td className="px-4 py-3">
+                            <div className="font-medium text-foreground">{req.reqTitle}</div>
                             <div className="text-xs text-muted-foreground">
-                              {req.function} {req.level}
+                              {req.function} · {req.level}
                             </div>
                           </td>
-                          <td className="px-3 py-3 text-right whitespace-nowrap">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             {req.daysOpen !== null ? (
                               <>
                                 <span
@@ -1149,14 +1224,14 @@ export function ForecastingTabV2({
                                   {req.daysOpen}d
                                 </span>
                                 <div className="text-xs text-muted-foreground">
-                                  /{req.benchmarkTTF}d
+                                  / {req.benchmarkTTF}d benchmark
                                 </div>
                               </>
                             ) : (
                               <span className="text-muted-foreground">N/A</span>
                             )}
                           </td>
-                          <td className="px-3 py-3 text-right whitespace-nowrap">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             <span
                               className={
                                 req.pipelineGap < 0 ? 'text-bad font-bold' : 'text-foreground'
@@ -1168,29 +1243,29 @@ export function ForecastingTabV2({
                               /{req.benchmarkPipelineDepth}
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-center">
+                          <td className="px-4 py-3 text-center">
                             <span
-                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getHealthBadgeClass(req.healthStatus)}`}
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getHealthBadgeClass(req.healthStatus)}`}
                             >
                               {req.healthScore}
                             </span>
                           </td>
-                          <td className="px-3 py-3 text-center">
+                          <td className="px-4 py-3 text-center">
                             {preMortemItem ? (
                               <span
-                                className={`inline-flex items-center rounded-full font-mono px-1.5 py-0.5 text-xs ${getRiskBadgeClass(preMortemItem.risk_band)}`}
+                                className={`inline-flex items-center rounded-full font-mono px-2 py-1 text-xs ${getRiskBadgeClass(preMortemItem.risk_band)}`}
                                 title={`Risk Score: ${preMortemItem.risk_score}/100`}
                               >
-                                {preMortemItem.risk_band}
+                                {preMortemItem.risk_band} {preMortemItem.risk_score}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
+                              <span className="text-muted-foreground text-sm">-</span>
                             )}
                           </td>
-                          <td className="px-3 py-3 hidden md:table-cell">
+                          <td className="px-4 py-3">
                             {preMortemItem ? (
                               <span
-                                className={`text-xs ${
+                                className={`text-sm ${
                                   preMortemItem.risk_band === 'HIGH'
                                     ? 'text-bad'
                                     : preMortemItem.risk_band === 'MED'
@@ -1201,20 +1276,20 @@ export function ForecastingTabV2({
                                 {getFailureModeLabel(preMortemItem.failure_mode)}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
+                              <span className="text-muted-foreground text-sm">-</span>
                             )}
                           </td>
-                          <td className="px-3 py-3 text-right whitespace-nowrap">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             {req.predictedFillDate ? (
-                              <span className="text-foreground text-xs">
+                              <span className="text-foreground">
                                 {format(req.predictedFillDate, 'MMM d')}
                               </span>
                             ) : (
-                              <span className="text-bad text-xs">?</span>
+                              <span className="text-bad">Unknown</span>
                             )}
                           </td>
-                          <td className="px-3 py-3 hidden lg:table-cell">
-                            <span className="text-xs text-muted-foreground truncate max-w-[150px] block">
+                          <td className="px-4 py-3 hidden lg:table-cell">
+                            <span className="text-sm text-muted-foreground">
                               {req.primaryIssue || '-'}
                             </span>
                           </td>
@@ -1224,11 +1299,12 @@ export function ForecastingTabV2({
                 </tbody>
               </table>
             </div>
+
             {/* Pagination */}
             {filteredHealthMetrics.length > HEALTH_PAGE_SIZE && (
               <div className="px-4 py-3 border-t border-border flex justify-between items-center flex-wrap gap-2">
                 <span className="text-muted-foreground text-sm">
-                  Showing {healthPage * HEALTH_PAGE_SIZE + 1}-
+                  {healthPage * HEALTH_PAGE_SIZE + 1}-
                   {Math.min((healthPage + 1) * HEALTH_PAGE_SIZE, filteredHealthMetrics.length)} of{' '}
                   {filteredHealthMetrics.length}
                 </span>
@@ -1239,7 +1315,7 @@ export function ForecastingTabV2({
                     disabled={healthPage === 0}
                     onClick={() => setHealthPage((p) => p - 1)}
                   >
-                    Previous
+                    Prev
                   </button>
                   <button
                     type="button"
