@@ -601,42 +601,52 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
 
             <form onSubmit={handleSubmit}>
               {/* Unified Drop Zone */}
-              <div className="border-2 border-dashed border-primary/30 rounded-lg p-8 text-center mb-4 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 transition-colors">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center mb-4 bg-muted/30 hover:bg-muted/50 hover:border-primary/50 transition-colors">
                 <p className="text-base font-medium text-foreground mb-2">Drag & Drop Files Here</p>
-                <p className="text-sm text-muted-foreground">Supports CSV, XLS, XLSX — "Universal Report" or individual files</p>
+                <p className="text-sm text-muted-foreground mb-4">Supports CSV, XLS, XLSX — "Universal Report" or individual files</p>
 
-                <input
-                  type="file"
-                  className="mt-4 w-full px-3 py-2 text-sm bg-card border border-border rounded-md text-foreground file:mr-3 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:font-medium file:cursor-pointer cursor-pointer"
-                  accept={FILE_ACCEPT}
-                  multiple
-                  onChange={(e) => {
-                    // Simple implementation for now - just map to standard inputs
-                    const fileList = e.target.files;
-                    if (!fileList) return;
+                <label className="inline-flex items-center gap-3 cursor-pointer">
+                  <span className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                    Choose Files
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {files.requisitions || files.candidates || files.events || files.users
+                      ? `${[files.requisitions, files.candidates, files.events, files.users].filter(Boolean).length} file(s) selected`
+                      : 'No files selected'}
+                  </span>
+                  <input
+                    type="file"
+                    className="sr-only"
+                    accept={FILE_ACCEPT}
+                    multiple
+                    onChange={(e) => {
+                      // Simple implementation for now - just map to standard inputs
+                      const fileList = e.target.files;
+                      if (!fileList) return;
 
-                    // Identify files by name heuristic or just assign first one to requisitions if single
-                    if (fileList.length === 1) {
-                      setFiles(prev => ({ ...prev, requisitions: fileList[0] }));
-                    } else {
-                      // Smart auto-assign based on filename (works for CSV and Excel)
-                      Array.from(fileList).forEach(f => {
-                        const name = f.name.toLowerCase().replace(/\.(csv|xlsx?|xls)$/i, '');
-                        if (name.includes('req') || name.includes('job') || name.includes('universal')) {
-                          setFiles(p => ({ ...p, requisitions: f }));
-                        } else if (name.includes('cand') || name.includes('person') || name.includes('applicant')) {
-                          setFiles(p => ({ ...p, candidates: f }));
-                        } else if (name.includes('event') || name.includes('activity') || name.includes('history')) {
-                          setFiles(p => ({ ...p, events: f }));
-                        } else if (name.includes('user') || name.includes('recruiter') || name.includes('team')) {
-                          setFiles(p => ({ ...p, users: f }));
-                        }
-                      });
-                    }
-                    setErrors([]);
-                  }}
-                  disabled={uploading || isLoading}
-                />
+                      // Identify files by name heuristic or just assign first one to requisitions if single
+                      if (fileList.length === 1) {
+                        setFiles(prev => ({ ...prev, requisitions: fileList[0] }));
+                      } else {
+                        // Smart auto-assign based on filename (works for CSV and Excel)
+                        Array.from(fileList).forEach(f => {
+                          const name = f.name.toLowerCase().replace(/\.(csv|xlsx?|xls)$/i, '');
+                          if (name.includes('req') || name.includes('job') || name.includes('universal')) {
+                            setFiles(p => ({ ...p, requisitions: f }));
+                          } else if (name.includes('cand') || name.includes('person') || name.includes('applicant')) {
+                            setFiles(p => ({ ...p, candidates: f }));
+                          } else if (name.includes('event') || name.includes('activity') || name.includes('history')) {
+                            setFiles(p => ({ ...p, events: f }));
+                          } else if (name.includes('user') || name.includes('recruiter') || name.includes('team')) {
+                            setFiles(p => ({ ...p, users: f }));
+                          }
+                        });
+                      }
+                      setErrors([]);
+                    }}
+                    disabled={uploading || isLoading}
+                  />
+                </label>
               </div>
 
               {/* Selected Files Status */}
