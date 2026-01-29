@@ -29,6 +29,7 @@ import {
   PieChart,
   AlertTriangle,
   CheckCircle,
+  Info,
 } from 'lucide-react';
 import {
   Requisition,
@@ -1003,7 +1004,15 @@ export function ForecastingTabV2({
               }`}
               onClick={() => setHealthFilter('all')}
             >
-              <StatLabel className="mb-2">Total Open</StatLabel>
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <StatLabel>Total Open</StatLabel>
+                <span
+                  className="cursor-help"
+                  title="All open requisitions currently being tracked"
+                >
+                  <Info className="w-3.5 h-3.5 text-muted-foreground/60" />
+                </span>
+              </div>
               <StatValue>{healthSummary.total}</StatValue>
             </div>
             <div
@@ -1012,7 +1021,15 @@ export function ForecastingTabV2({
               }`}
               onClick={() => setHealthFilter('on-track')}
             >
-              <StatLabel className="mb-2 text-good">On Track</StatLabel>
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <StatLabel className="text-good">On Track</StatLabel>
+                <span
+                  className="cursor-help"
+                  title="Health score ≥ 70: Days open within benchmark, pipeline at target depth, recent activity"
+                >
+                  <Info className="w-3.5 h-3.5 text-good/60" />
+                </span>
+              </div>
               <StatValue color="success">{healthSummary.onTrack}</StatValue>
             </div>
             <div
@@ -1021,7 +1038,15 @@ export function ForecastingTabV2({
               }`}
               onClick={() => setHealthFilter('at-risk')}
             >
-              <StatLabel className="mb-2 text-warn">At Risk</StatLabel>
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <StatLabel className="text-warn">At Risk</StatLabel>
+                <span
+                  className="cursor-help"
+                  title="Health score 40-69: Approaching benchmark TTF, thin pipeline, or slowing velocity"
+                >
+                  <Info className="w-3.5 h-3.5 text-warn/60" />
+                </span>
+              </div>
               <StatValue color="warning">{healthSummary.atRisk}</StatValue>
             </div>
             <div
@@ -1030,7 +1055,15 @@ export function ForecastingTabV2({
               }`}
               onClick={() => setHealthFilter('off-track')}
             >
-              <StatLabel className="mb-2 text-bad">Off Track</StatLabel>
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <StatLabel className="text-bad">Off Track</StatLabel>
+                <span
+                  className="cursor-help"
+                  title="Health score < 40: Exceeded benchmark TTF, empty/stalled pipeline, or no recent activity"
+                >
+                  <Info className="w-3.5 h-3.5 text-bad/60" />
+                </span>
+              </div>
               <StatValue color="danger">{healthSummary.offTrack}</StatValue>
             </div>
           </div>
