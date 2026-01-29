@@ -2,6 +2,7 @@
 // Displays when PII is detected during import, offering anonymization options
 
 import React from 'react';
+import { ShieldAlert, X, AlertTriangle, ShieldCheck, User, Mail, Phone, MapPin, FileText } from 'lucide-react';
 import { PIIDetectionResult, PIIField } from '../../services/piiService';
 
 interface PIIWarningModalProps {
@@ -13,22 +14,13 @@ interface PIIWarningModalProps {
   isProcessing?: boolean;
 }
 
-const PII_TYPE_ICONS: Record<string, string> = {
-  name: 'bi-person-fill',
-  email: 'bi-envelope-fill',
-  phone: 'bi-telephone-fill',
-  address: 'bi-geo-alt-fill',
-  ssn: 'bi-shield-exclamation',
-  other: 'bi-file-text-fill'
-};
-
-const PII_TYPE_COLORS: Record<string, string> = {
-  name: '#3b82f6',
-  email: '#8b5cf6',
-  phone: '#06b6d4',
-  address: '#f59e0b',
-  ssn: '#ef4444',
-  other: '#64748b'
+const PII_TYPE_ICONS: Record<string, React.ReactNode> = {
+  name: <User className="w-4 h-4" />,
+  email: <Mail className="w-4 h-4" />,
+  phone: <Phone className="w-4 h-4" />,
+  address: <MapPin className="w-4 h-4" />,
+  ssn: <ShieldAlert className="w-4 h-4" />,
+  other: <FileText className="w-4 h-4" />
 };
 
 export function PIIWarningModal({
@@ -47,85 +39,62 @@ export function PIIWarningModal({
     <>
       {/* Backdrop */}
       <div
-        className="modal-backdrop fade show"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div
-        className="fixed inset-0 flex items-center justify-center"
+        className="fixed inset-0 flex items-center justify-center z-50 p-4"
         tabIndex={-1}
         role="dialog"
-        style={{ zIndex: 1055 }}
       >
-        <div className="w-full max-w-3xl mx-4">
-          <div
-            className="rounded-2xl"
-            style={{
-              background: 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-            }}
-          >
+        <div className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="glass-panel rounded-xl border border-bad/30">
             {/* Header */}
-            <div
-              className="border-0 pb-0"
-              style={{ padding: '1.5rem 1.5rem 1rem' }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="flex items-center justify-center"
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    background: 'rgba(239, 68, 68, 0.15)',
-                    color: '#ef4444'
-                  }}
-                >
-                  <i className="bi bi-shield-exclamation" style={{ fontSize: '1.5rem' }}></i>
-                </div>
-                <div className="flex-1">
-                  <h5 className="mb-1 text-lg" style={{ color: '#f8fafc', fontWeight: 600 }}>
-                    Sensitive Data Detected
-                  </h5>
-                  <p className="mb-0 text-sm" style={{ color: '#94a3b8' }}>
-                    {candidateCount.toLocaleString()} candidates contain personally identifiable information
-                  </p>
+            <div className="px-6 pt-6 pb-4 border-b border-border">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-bad/20 text-bad">
+                    <ShieldAlert className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h5 className="text-lg font-semibold text-foreground">
+                      Sensitive Data Detected
+                    </h5>
+                    <p className="text-sm text-muted-foreground">
+                      {candidateCount.toLocaleString()} candidates contain personally identifiable information
+                    </p>
+                  </div>
                 </div>
                 <button
                   type="button"
-                  className="p-1 rounded hover:bg-white/10 text-white/60 hover:text-white"
+                  className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                   onClick={onClose}
                   disabled={isProcessing}
                 >
-                  <i className="bi bi-x-lg"></i>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Body */}
-            <div style={{ padding: '1.5rem' }}>
+            <div className="px-6 py-4 space-y-4">
               {/* Warning Message */}
-              <div
-                className="p-3 rounded-lg mb-4"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  border: '1px solid rgba(239, 68, 68, 0.2)'
-                }}
-              >
-                <p className="mb-0" style={{ color: '#fca5a5', fontSize: '0.9rem' }}>
-                  <i className="bi bi-exclamation-triangle-fill mr-2"></i>
-                  Your import contains candidate PII including names and contact information.
-                  Consider anonymizing this data to protect candidate privacy while maintaining
-                  full dashboard functionality.
+              <div className="p-3 rounded-lg bg-bad/10 border border-bad/20">
+                <p className="text-sm text-bad flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                  <span>
+                    Your import contains candidate PII including names and contact information.
+                    Consider anonymizing this data to protect candidate privacy while maintaining
+                    full dashboard functionality.
+                  </span>
                 </p>
               </div>
 
               {/* Detected Fields */}
-              <div className="mb-4">
-                <h6 className="mb-3" style={{ color: '#e2e8f0', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div>
+                <h6 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Detected PII Types
                 </h6>
                 <div className="flex flex-wrap gap-2">
@@ -137,40 +106,31 @@ export function PIIWarningModal({
 
               {/* Sample Data Preview */}
               {sampleData.length > 0 && (
-                <div className="mb-4">
-                  <h6 className="mb-3" style={{ color: '#e2e8f0', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div>
+                  <h6 className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Sample Data (Masked)
                   </h6>
-                  <div
-                    className="rounded-lg overflow-hidden"
-                    style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    <table className="w-full text-sm mb-0">
+                  <div className="glass-panel rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
                       <thead>
-                        <tr style={{ background: 'rgba(15, 23, 42, 0.8)' }}>
-                          <th style={{ color: '#94a3b8', fontWeight: 500, padding: '0.75rem', border: 'none' }}>Type</th>
-                          <th style={{ color: '#94a3b8', fontWeight: 500, padding: '0.75rem', border: 'none' }}>Field</th>
-                          <th style={{ color: '#94a3b8', fontWeight: 500, padding: '0.75rem', border: 'none' }}>Sample Value</th>
+                        <tr className="border-b border-border">
+                          <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Type</th>
+                          <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Field</th>
+                          <th className="text-left px-4 py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Sample Value</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className="divide-y divide-border/50">
                         {sampleData.slice(0, 5).map((sample, idx) => (
-                          <tr key={idx} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                            <td style={{ color: '#e2e8f0', padding: '0.75rem', border: 'none' }}>
-                              <span
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                                style={{
-                                  background: `${PII_TYPE_COLORS[sample.type]}20`,
-                                  color: PII_TYPE_COLORS[sample.type],
-                                }}
-                              >
+                          <tr key={idx}>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-primary/20 text-primary">
                                 {sample.type}
                               </span>
                             </td>
-                            <td style={{ color: '#94a3b8', padding: '0.75rem', border: 'none', fontFamily: 'monospace' }}>
+                            <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
                               {sample.field}
                             </td>
-                            <td style={{ color: '#e2e8f0', padding: '0.75rem', border: 'none', fontFamily: 'monospace' }}>
+                            <td className="px-4 py-3 text-foreground font-mono text-xs">
                               {sample.value}
                             </td>
                           </tr>
@@ -182,19 +142,16 @@ export function PIIWarningModal({
               )}
 
               {/* What Anonymization Does */}
-              <div
-                className="p-3 rounded-lg"
-                style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)' }}
-              >
-                <h6 className="mb-2" style={{ color: '#86efac', fontSize: '0.85rem' }}>
-                  <i className="bi bi-shield-check mr-2"></i>
+              <div className="p-3 rounded-lg bg-good/10 border border-good/20">
+                <h6 className="mb-2 text-sm font-medium text-good flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" />
                   What Anonymization Does
                 </h6>
-                <ul className="mb-0 pl-3" style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                <ul className="space-y-1 text-sm text-muted-foreground pl-6">
                   <li>Replaces candidate names with realistic pseudonyms</li>
                   <li>Converts email addresses to anonymous placeholders</li>
                   <li>Removes phone numbers and other sensitive identifiers</li>
-                  <li className="mt-1" style={{ color: '#86efac' }}>
+                  <li className="text-good">
                     <strong>Preserves:</strong> Recruiter names, HM names, req data, dates, stages, and all metrics
                   </li>
                 </ul>
@@ -202,13 +159,10 @@ export function PIIWarningModal({
             </div>
 
             {/* Footer */}
-            <div
-              className="flex justify-end gap-3 border-0 pt-0"
-              style={{ padding: '0 1.5rem 1.5rem' }}
-            >
+            <div className="px-6 py-4 flex flex-col sm:flex-row justify-end gap-3 border-t border-border">
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 text-white"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-muted hover:bg-muted/80 text-foreground border border-border transition-colors"
                 onClick={onClose}
                 disabled={isProcessing}
               >
@@ -216,37 +170,31 @@ export function PIIWarningModal({
               </button>
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium rounded-md"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-bad/20 hover:bg-bad/30 text-bad border border-bad/30 transition-colors inline-flex items-center justify-center gap-2"
                 onClick={onImportAsIs}
                 disabled={isProcessing}
-                style={{
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  color: '#fca5a5',
-                  border: '1px solid rgba(239, 68, 68, 0.3)'
-                }}
               >
                 {isProcessing ? (
-                  <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin inline-block mr-2" />
+                  <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
                 ) : (
-                  <i className="bi bi-exclamation-triangle mr-2"></i>
+                  <AlertTriangle className="w-4 h-4" />
                 )}
                 Import with PII
               </button>
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium rounded-md bg-green-600 hover:bg-green-700 text-white"
+                className="px-4 py-2 text-sm font-medium rounded-md bg-good hover:bg-good/90 text-good-foreground min-w-[160px] transition-colors inline-flex items-center justify-center gap-2"
                 onClick={onAnonymize}
                 disabled={isProcessing}
-                style={{ minWidth: '160px' }}
               >
                 {isProcessing ? (
                   <>
-                    <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin inline-block mr-2" />
+                    <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
                     Processing...
                   </>
                 ) : (
                   <>
-                    <i className="bi bi-shield-check mr-2"></i>
+                    <ShieldCheck className="w-4 h-4" />
                     Anonymize & Import
                   </>
                 )}
@@ -262,22 +210,12 @@ export function PIIWarningModal({
 // Field badge component
 function FieldBadge({ field }: { field: PIIField }) {
   const icon = PII_TYPE_ICONS[field.type] || PII_TYPE_ICONS.other;
-  const color = PII_TYPE_COLORS[field.type] || PII_TYPE_COLORS.other;
 
   return (
-    <div
-      className="flex items-center gap-2 px-3 py-2 rounded-full"
-      style={{
-        background: `${color}15`,
-        border: `1px solid ${color}30`
-      }}
-    >
-      <i className={icon} style={{ color, fontSize: '0.9rem' }}></i>
-      <span style={{ color: '#e2e8f0', fontSize: '0.85rem' }}>{field.description}</span>
-      <span
-        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-        style={{ background: color, color: 'white' }}
-      >
+    <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-primary/10 border border-primary/20">
+      <span className="text-primary">{icon}</span>
+      <span className="text-sm text-foreground">{field.description}</span>
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary text-primary-foreground">
         {field.count.toLocaleString()}
       </span>
     </div>
