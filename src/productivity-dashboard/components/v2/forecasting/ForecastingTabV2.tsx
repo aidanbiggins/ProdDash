@@ -1053,19 +1053,19 @@ export function ForecastingTabV2({
               className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('HIGH')}`}
             >
               <AlertTriangle className="w-3 h-3" />
-              {riskSummary.high}
+              {riskSummary.high} <span className="hidden sm:inline">High</span>
             </span>
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('MED')}`}
             >
               <AlertCircle className="w-3 h-3" />
-              {riskSummary.med}
+              {riskSummary.med} <span className="hidden sm:inline">Med</span>
             </span>
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('LOW')}`}
             >
               <CheckCircle className="w-3 h-3" />
-              {riskSummary.low}
+              {riskSummary.low} <span className="hidden sm:inline">Low</span>
             </span>
           </div>
 
