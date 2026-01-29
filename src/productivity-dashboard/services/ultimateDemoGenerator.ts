@@ -78,35 +78,35 @@ interface HMPersona {
   description: string;
 }
 
-// Fixed recruiter personas - always same IDs and names
+// Fixed recruiter personas - IDs are name-based for human-readable fallback display
 const RECRUITER_PERSONAS: RecruiterPersona[] = [
-  { id: 'recruiter_alpha', name: 'Sarah Chen', trait: 'strong_closer', screenSpeed: 4, closeRate: 0.92, capacity: 8, description: 'Strong closer, excellent candidate experience' },
-  { id: 'recruiter_beta', name: 'Marcus Rodriguez', trait: 'overloaded', screenSpeed: 3, closeRate: 0.78, capacity: 5, description: 'Overloaded with 12 reqs, struggling to keep up' },
-  { id: 'recruiter_gamma', name: 'Emily Watson', trait: 'slow_screener', screenSpeed: 2, closeRate: 0.85, capacity: 7, description: 'Thorough but slow at initial screens' },
-  { id: 'recruiter_delta', name: 'James Park', trait: 'great_offers', screenSpeed: 3, closeRate: 0.95, capacity: 6, description: 'Excellent at closing offers, top performer' },
-  { id: 'recruiter_epsilon', name: 'Priya Sharma', trait: 'balanced', screenSpeed: 3, closeRate: 0.82, capacity: 7, description: 'Solid all-around performer' },
-  { id: 'recruiter_zeta', name: 'David Kim', trait: 'new_hire', screenSpeed: 2, closeRate: 0.70, capacity: 4, description: 'New hire, still ramping up' },
-  { id: 'recruiter_eta', name: 'Lisa Thompson', trait: 'senior', screenSpeed: 4, closeRate: 0.88, capacity: 9, description: 'Senior recruiter, mentors others' },
-  { id: 'recruiter_theta', name: 'Alex Rivera', trait: 'average', screenSpeed: 3, closeRate: 0.80, capacity: 6, description: 'Consistent middle performer' },
+  { id: 'sarah_chen', name: 'Sarah Chen', trait: 'strong_closer', screenSpeed: 4, closeRate: 0.92, capacity: 8, description: 'Strong closer, excellent candidate experience' },
+  { id: 'marcus_rodriguez', name: 'Marcus Rodriguez', trait: 'overloaded', screenSpeed: 3, closeRate: 0.78, capacity: 5, description: 'Overloaded with 12 reqs, struggling to keep up' },
+  { id: 'emily_watson', name: 'Emily Watson', trait: 'slow_screener', screenSpeed: 2, closeRate: 0.85, capacity: 7, description: 'Thorough but slow at initial screens' },
+  { id: 'james_park', name: 'James Park', trait: 'great_offers', screenSpeed: 3, closeRate: 0.95, capacity: 6, description: 'Excellent at closing offers, top performer' },
+  { id: 'priya_sharma', name: 'Priya Sharma', trait: 'balanced', screenSpeed: 3, closeRate: 0.82, capacity: 7, description: 'Solid all-around performer' },
+  { id: 'david_kim', name: 'David Kim', trait: 'new_hire', screenSpeed: 2, closeRate: 0.70, capacity: 4, description: 'New hire, still ramping up' },
+  { id: 'lisa_thompson', name: 'Lisa Thompson', trait: 'senior', screenSpeed: 4, closeRate: 0.88, capacity: 9, description: 'Senior recruiter, mentors others' },
+  { id: 'alex_rivera', name: 'Alex Rivera', trait: 'average', screenSpeed: 3, closeRate: 0.80, capacity: 6, description: 'Consistent middle performer' },
 ];
 
-// Fixed HM personas - always same IDs and names
+// Fixed HM personas - IDs are name-based for human-readable fallback display
 const HM_PERSONAS: HMPersona[] = [
-  { id: 'hm_fast_1', name: 'Michael Chang', trait: 'fast_responder', feedbackDays: 1, decisionSpeed: 5, description: 'Responds within hours, decisive' },
-  { id: 'hm_fast_2', name: 'Jennifer Lee', trait: 'fast_responder', feedbackDays: 1, decisionSpeed: 4, description: 'Quick feedback, knows what they want' },
-  { id: 'hm_slow_1', name: 'Robert Wilson', trait: 'slow_responder', feedbackDays: 5, decisionSpeed: 2, description: 'Slow to respond, often needs reminders' },
-  { id: 'hm_slow_2', name: 'Amanda Foster', trait: 'very_slow', feedbackDays: 8, decisionSpeed: 1, description: 'Very slow feedback, major bottleneck' },
-  { id: 'hm_decisive', name: 'Chris Martinez', trait: 'decisive', feedbackDays: 2, decisionSpeed: 5, description: 'Decisive after review, clear feedback' },
-  { id: 'hm_indecisive', name: 'Patricia Brown', trait: 'indecisive', feedbackDays: 4, decisionSpeed: 2, description: 'Often changes mind, needs multiple rounds' },
-  { id: 'hm_balanced_1', name: 'Daniel Taylor', trait: 'balanced', feedbackDays: 2, decisionSpeed: 3, description: 'Balanced approach, reasonable timelines' },
-  { id: 'hm_balanced_2', name: 'Michelle Anderson', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Good partner, meets SLAs' },
-  { id: 'hm_balanced_3', name: 'Kevin Patel', trait: 'balanced', feedbackDays: 2, decisionSpeed: 4, description: 'Engaged manager, proactive' },
-  { id: 'hm_balanced_4', name: 'Rachel Kim', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Standard response times' },
-  { id: 'hm_balanced_5', name: 'Thomas Garcia', trait: 'balanced', feedbackDays: 2, decisionSpeed: 3, description: 'Reliable feedback loop' },
-  { id: 'hm_balanced_6', name: 'Nicole Davis', trait: 'balanced', feedbackDays: 2, decisionSpeed: 4, description: 'Active in process' },
-  { id: 'hm_balanced_7', name: 'Andrew Miller', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Consistent behavior' },
-  { id: 'hm_balanced_8', name: 'Stephanie White', trait: 'balanced', feedbackDays: 2, decisionSpeed: 3, description: 'Good communicator' },
-  { id: 'hm_balanced_9', name: 'Brandon Moore', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Standard HM' },
+  { id: 'michael_chang', name: 'Michael Chang', trait: 'fast_responder', feedbackDays: 1, decisionSpeed: 5, description: 'Responds within hours, decisive' },
+  { id: 'jennifer_lee', name: 'Jennifer Lee', trait: 'fast_responder', feedbackDays: 1, decisionSpeed: 4, description: 'Quick feedback, knows what they want' },
+  { id: 'robert_wilson', name: 'Robert Wilson', trait: 'slow_responder', feedbackDays: 5, decisionSpeed: 2, description: 'Slow to respond, often needs reminders' },
+  { id: 'amanda_foster', name: 'Amanda Foster', trait: 'very_slow', feedbackDays: 8, decisionSpeed: 1, description: 'Very slow feedback, major bottleneck' },
+  { id: 'chris_martinez', name: 'Chris Martinez', trait: 'decisive', feedbackDays: 2, decisionSpeed: 5, description: 'Decisive after review, clear feedback' },
+  { id: 'patricia_brown', name: 'Patricia Brown', trait: 'indecisive', feedbackDays: 4, decisionSpeed: 2, description: 'Often changes mind, needs multiple rounds' },
+  { id: 'daniel_taylor', name: 'Daniel Taylor', trait: 'balanced', feedbackDays: 2, decisionSpeed: 3, description: 'Balanced approach, reasonable timelines' },
+  { id: 'michelle_anderson', name: 'Michelle Anderson', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Good partner, meets SLAs' },
+  { id: 'kevin_patel', name: 'Kevin Patel', trait: 'balanced', feedbackDays: 2, decisionSpeed: 4, description: 'Engaged manager, proactive' },
+  { id: 'rachel_kim', name: 'Rachel Kim', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Standard response times' },
+  { id: 'thomas_garcia', name: 'Thomas Garcia', trait: 'balanced', feedbackDays: 2, decisionSpeed: 3, description: 'Reliable feedback loop' },
+  { id: 'nicole_davis', name: 'Nicole Davis', trait: 'balanced', feedbackDays: 2, decisionSpeed: 4, description: 'Active in process' },
+  { id: 'andrew_miller', name: 'Andrew Miller', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Consistent behavior' },
+  { id: 'stephanie_white', name: 'Stephanie White', trait: 'balanced', feedbackDays: 2, decisionSpeed: 3, description: 'Good communicator' },
+  { id: 'brandon_moore', name: 'Brandon Moore', trait: 'balanced', feedbackDays: 3, decisionSpeed: 3, description: 'Standard HM' },
 ];
 
 // ============================================
@@ -466,8 +466,8 @@ function generateIntentionalReqs(
     };
   };
 
-  // Pattern: Overloaded recruiter (Marcus Rodriguez - recruiter_beta)
-  const overloadedRecruiter = recruiters.find(r => r.id === 'recruiter_beta')!;
+  // Pattern: Overloaded recruiter (Marcus Rodriguez)
+  const overloadedRecruiter = recruiters.find(r => r.id === 'marcus_rodriguez')!;
   for (let i = 0; i < 12; i++) {
     const hm = seededItem(hms, random);
     reqs.push(createReq({
@@ -477,9 +477,9 @@ function generateIntentionalReqs(
     }));
   }
 
-  // Pattern: HM bottleneck reqs (Robert Wilson - hm_slow_1, Amanda Foster - hm_slow_2)
-  const slowHM1 = hms.find(h => h.id === 'hm_slow_1')!;
-  const slowHM2 = hms.find(h => h.id === 'hm_slow_2')!;
+  // Pattern: HM bottleneck reqs (Robert Wilson, Amanda Foster)
+  const slowHM1 = hms.find(h => h.id === 'robert_wilson')!;
+  const slowHM2 = hms.find(h => h.id === 'amanda_foster')!;
 
   // Reqs for slow HMs
   for (let i = 0; i < 4; i++) {
@@ -524,8 +524,8 @@ function generateIntentionalReqs(
     }));
   }
 
-  // Pattern: Thin pipeline req
-  const thinPipelineRecruiter = recruiters.find(r => r.id === 'recruiter_gamma')!;
+  // Pattern: Thin pipeline req (Emily Watson)
+  const thinPipelineRecruiter = recruiters.find(r => r.id === 'emily_watson')!;
   reqs.push(createReq({
     recruiterId: thinPipelineRecruiter.id,
     hmId: hms[0].id,
@@ -536,8 +536,8 @@ function generateIntentionalReqs(
     hasThinPipeline: true,
   }));
 
-  // Pattern: High performer's reqs (James Park - recruiter_delta)
-  const highPerformer = recruiters.find(r => r.id === 'recruiter_delta')!;
+  // Pattern: High performer's reqs (James Park)
+  const highPerformer = recruiters.find(r => r.id === 'james_park')!;
   for (let i = 0; i < 6; i++) {
     const hm = hms[(i + 1) % hms.length];
     const closedChance = random();

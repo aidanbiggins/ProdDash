@@ -44,6 +44,7 @@ import {
   formatRate,
   safeRate
 } from '../../../services/velocityThresholds';
+import { analyzeLoadVsPerformance, LoadVsPerformanceResult } from '../../../services/loadVsPerformanceService';
 
 interface VelocityInsightsTabV2Props {
   metrics: VelocityMetrics;
@@ -731,6 +732,12 @@ export function VelocityInsightsTabV2({
     return calculatePipelineHealth(requisitions, candidates, events, users, hmFriction, config, filters);
   }, [requisitions, candidates, events, users, hmFriction, config, filters]);
 
+  // Load vs Performance analysis - tests "do recruiters hire faster with fewer reqs?"
+  const loadVsPerformance = useMemo((): LoadVsPerformanceResult | null => {
+    if (!requisitions?.length || !candidates?.length) return null;
+    return analyzeLoadVsPerformance(requisitions, candidates);
+  }, [requisitions, candidates]);
+
   // Load historical benchmarks
   const handleLoadHistorical = () => {
     if (!requisitions || !candidates || !events || !config) return;
@@ -1023,7 +1030,109 @@ export function VelocityInsightsTabV2({
         </div>
       )}
 
-      {/* SECTION 6: Key Insights */}
+      {/* SECTION 6: Load vs Performance */}
+      {loadVsPerformance && loadVsPerformance.sampleSize >= 10 && (
+        <div className="mb-3">
+          <SectionHeaderLocal
+            icon="⚖️"
+            title="Workload vs. Hiring Speed"
+            subtitle="Does recruiter workload impact time-to-fill?"
+            rightContent={<DataChip n={loadVsPerformance.sampleSize} confidence={loadVsPerformance.confidence} />}
+          />
+          <div className="glass-panel p-4">
+            {/* Insight Banner */}
+            <div className={`p-3 rounded mb-4 ${
+              loadVsPerformance.correlation.direction === 'positive' ? 'bg-warn/10 border border-warn/30' :
+              loadVsPerformance.correlation.direction === 'negative' ? 'bg-primary/10 border border-primary/30' :
+              'bg-muted/30 border border-border'
+            }`}>
+              <div className="flex items-start gap-2">
+                <span className="text-lg">
+                  {loadVsPerformance.correlation.direction === 'positive' ? '⚠️' :
+                   loadVsPerformance.correlation.direction === 'negative' ? '🔄' : '➖'}
+                </span>
+                <div>
+                  <div className="font-semibold text-foreground text-sm mb-1">
+                    {loadVsPerformance.correlation.direction === 'positive' ? 'Higher workload = slower hiring' :
+                     loadVsPerformance.correlation.direction === 'negative' ? 'Unexpected: Higher workload = faster hiring' :
+                     'No significant correlation found'}
+                  </div>
+                  <div className="text-muted-foreground text-xs">
+                    {loadVsPerformance.insight}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Buckets Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="p-2 text-left text-muted-foreground font-medium">Concurrent Reqs</th>
+                    <th className="p-2 text-center text-muted-foreground font-medium">Median TTF</th>
+                    <th className="p-2 text-center text-muted-foreground font-medium">Avg TTF</th>
+                    <th className="p-2 text-center text-muted-foreground font-medium">Hires</th>
+                    <th className="p-2 text-left text-muted-foreground font-medium">Visual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadVsPerformance.buckets.map((bucket, idx) => (
+                    <tr key={idx} className="border-t border-border">
+                      <td className="p-2 text-foreground font-medium">{bucket.label}</td>
+                      <td className="p-2 text-center font-mono">
+                        {bucket.medianTTF !== null ? (
+                          <span className={
+                            idx === 0 ? 'text-good' :
+                            idx === loadVsPerformance.buckets.length - 1 && bucket.medianTTF && loadVsPerformance.buckets[0].medianTTF &&
+                            bucket.medianTTF > loadVsPerformance.buckets[0].medianTTF * 1.2 ? 'text-bad' :
+                            'text-foreground'
+                          }>
+                            {bucket.medianTTF.toFixed(0)}d
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="p-2 text-center font-mono text-muted-foreground">
+                        {bucket.avgTTF !== null ? `${bucket.avgTTF.toFixed(0)}d` : '—'}
+                      </td>
+                      <td className="p-2 text-center font-mono text-muted-foreground">
+                        {bucket.hireCount > 0 ? bucket.hireCount : '—'}
+                      </td>
+                      <td className="p-2">
+                        {bucket.medianTTF !== null && bucket.hireCount >= 3 && (
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden max-w-[100px]">
+                              <div
+                                className={`h-full rounded-full ${
+                                  idx === 0 ? 'bg-good' :
+                                  bucket.medianTTF > (loadVsPerformance.buckets[0].medianTTF || 30) * 1.2 ? 'bg-bad' :
+                                  'bg-primary'
+                                }`}
+                                style={{ width: `${Math.min((bucket.medianTTF / 60) * 100, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer explanation */}
+            <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+              <strong>Method:</strong> For each hire, we count how many reqs the recruiter had open at that time,
+              then compare median TTF across workload buckets. A positive correlation suggests overloaded recruiters
+              hire slower.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 7: Key Insights */}
       {insights.length > 0 && (
         <div className="mb-3">
           <SectionHeaderLocal

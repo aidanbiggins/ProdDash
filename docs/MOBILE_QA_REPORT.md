@@ -1,8 +1,8 @@
 # Mobile QA Report
 
 **Date:** 2026-01-28
-**Version:** V2 Mobile Completion Phase A
-**Build:** Post V2_MOBILE_COMPLETION_V1_BUILD
+**Version:** V2 Mobile Completion - COMPLETE
+**Build:** V2_MOBILE_COMPLETION_V1_BUILD Final
 
 ---
 
@@ -68,16 +68,16 @@ Most are intentionally compact UI elements:
 3. **Metric drilldown close button (p-1)** - Low-frequency action
 4. **Modal close buttons** - Some still need 44px target (minor)
 
-### Legacy Components Not Yet Migrated
+### Legacy Components Remaining (Settings Only)
 
-The following legacy components are wrapped by V2 but not yet converted:
+The following legacy components in Settings are wrapped by V2 but not yet converted to native V2:
 - `AiProviderSettings.tsx` - Modal should become Sheet on mobile (functional as-is)
-- Various scenario forms - Should use V2 form primitives
+- `SlaSettingsTab.tsx` - Tables scroll horizontally (functional)
+- `DataHealthTab.tsx` - Tables scroll horizontally (functional)
+- `OrgSettingsTab.tsx` - Form stacks on mobile (functional)
 
-**Fixed (mobile-usable but still legacy):**
-- `SlaSettingsTab.tsx` - Tables now scroll horizontally with min-width
-- `DataHealthTab.tsx` - Tables now scroll horizontally with min-width
-- `FitExplainDrawer.tsx` - Full-width on mobile, 44px close button
+**All Plan Tab Components Now V2 Native:**
+- CapacityTabV2, CapacityRebalancerTabV2, ForecastingTabV2, ScenarioLibraryTabV2 and all their sub-components
 
 ---
 
@@ -145,14 +145,16 @@ Recommended viewport widths:
 | `/settings/pipeline-targets` | ✅ Done | Table has min-width (700px) + horizontal scroll wrapper, action buttons stack on mobile with 44px touch targets |
 | `/settings/data-health` | ✅ Done | Both tables have min-width (800px) + horizontal scroll wrappers |
 
-### Plan Routes (B2) ✅ COMPLETE
+### Plan Routes (B2) ✅ COMPLETE - FULL V2 MIGRATION
 
 | Route | Status | Changes |
 |-------|--------|---------|
-| `/plan/capacity` | ✅ Done | FitExplainDrawer: full-width on mobile, 44px close button |
-| `/plan/rebalancer` | ✅ Done | MoveDetailDrawer uses GlassDrawer (now mobile-responsive) |
-| `/plan/forecast` | ✅ Done | ReqHealthDrawer: full-width on mobile, 44px close button with lucide-react X icon |
-| `/plan/scenarios` | ✅ Done | All forms (SpinUpTeam, RecruiterLeaves, HiringFreeze): 44px min-height buttons, full-width on mobile |
+| `/plan/capacity` | ✅ V2 Native | **CapacityTabV2** created with SubViewHeader, glass-panel, RecruiterLoadTableV2, FitExplainDrawerV2, OverloadExplainDrawerV2 |
+| `/plan/rebalancer` | ✅ V2 Native | **CapacityRebalancerTabV2** created with WorkloadBarV2, RecruiterCardV2, RecruiterWorkloadDrawerV2, MoveDetailDrawerV2, MoveCardV2 |
+| `/plan/forecast` | ✅ V2 Native | **ForecastingTabV2** created with OracleConfidenceWidgetV2, OracleBacksideV2, CalibrationCardV2, DistributionChartV2, ReqHealthDrawerV2 |
+| `/plan/scenarios` | ✅ V2 Native | **ScenarioLibraryTabV2** created with 16 components: ScenarioSelectorV2, ScenarioOutputPanelV2, FeasibilityBadgeV2, DeltasCardV2, ConfidenceCardV2, BottlenecksCardV2, ActionPlanCardV2, CitationsDrawerV2, GenerateActionPlanButtonV2, ExplainForExecsButtonV2, SpinUpTeamFormV2, HiringFreezeFormV2, RecruiterLeavesFormV2 |
+
+**PlanTabV2.tsx** now imports all V2 components directly instead of legacy wrappers.
 
 ### Diagnose Routes (B3)
 

@@ -298,6 +298,16 @@ export function aggregateConfidences(confidences: ConfidenceLevel[]): Confidence
 }
 
 /**
+ * Convert ID like "emily_watson" to "Emily Watson"
+ */
+function formatIdAsName(id: string): string {
+    return id
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+}
+
+/**
  * Get recruiter display name with privacy
  */
 export function getRecruiterDisplayName(
@@ -307,7 +317,8 @@ export function getRecruiterDisplayName(
     privacyMode: PrivacyMode
 ): string {
     if (privacyMode === 'full' || privacyMode === 'local') {
-        return recruiterName ?? `Recruiter ${index + 1}`;
+        // Use || to also catch empty strings, with fallback to formatted ID
+        return recruiterName || formatIdAsName(recruiterId);
     }
     return `Recruiter ${index + 1}`;
 }

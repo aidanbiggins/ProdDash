@@ -23,9 +23,10 @@ describe('CapacityRebalancerTab Contracts', () => {
       expect(displayName).toBe('Alice Smith');
     });
 
-    it('getRecruiterDisplayName returns fallback when name is null in full mode', () => {
-      const displayName = getRecruiterDisplayName('rec-001', null, 0, 'full');
-      expect(displayName).toBe('Recruiter 1');
+    it('getRecruiterDisplayName returns formatted ID when name is null in full mode', () => {
+      // When name is null, falls back to formatting the ID
+      const displayName = getRecruiterDisplayName('emily_watson', null, 0, 'full');
+      expect(displayName).toBe('Emily Watson');
     });
 
     it('getRecruiterDisplayName returns anonymized name in anonymized mode', () => {

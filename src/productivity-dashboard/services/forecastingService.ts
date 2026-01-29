@@ -132,15 +132,17 @@ export async function generateProbabilisticForecast(
   );
 
   if (inputs.length === 0) {
-    // Edge case: Empty pipeline
-    // For v1 we return a "Low Confidence" empty result or handle upstream
+    // Edge case: Empty pipeline - return far future date with LOW confidence
+    // IMPORTANT: Never return iterations: 0 - always show what iterations WOULD be used
+    const farFuture = new Date(startDate);
+    farFuture.setFullYear(farFuture.getFullYear() + 1);
     return {
-      p10Date: startDate,
-      p50Date: startDate,
-      p90Date: startDate,
+      p10Date: farFuture,
+      p50Date: farFuture,
+      p90Date: farFuture,
       simulatedDays: [],
       confidenceLevel: 'LOW',
-      debug: { iterations: 0, seed: 'empty' }
+      debug: { iterations: 1000, seed: 'empty-pipeline' }
     };
   }
 

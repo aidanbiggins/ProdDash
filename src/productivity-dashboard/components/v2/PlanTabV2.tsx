@@ -4,12 +4,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Users, TrendingUp, Layers, Scale } from 'lucide-react';
 import { useDashboard } from '../../hooks/useDashboardContext';
 
-// Import legacy v1 tab components (embedded until native V2 versions exist)
-// @see ../\_legacy/README.md for migration status
-import { CapacityTab } from '../_legacy/capacity/CapacityTab';
-import { CapacityRebalancerTab } from '../_legacy/capacity-rebalancer/CapacityRebalancerTab';
-import { ForecastingTab } from '../_legacy/forecasting/ForecastingTab';
-import ScenarioLibraryTab from '../_legacy/scenarios/ScenarioLibraryTab';
+// Import V2 tab components
+import { CapacityTabV2 } from './capacity';
+import { CapacityRebalancerTabV2 } from './capacity-rebalancer';
+import { ForecastingTabV2 } from './forecasting';
+import { ScenarioLibraryTabV2 } from './scenarios';
 
 // Types
 import { ActionItem } from '../../types/actionTypes';
@@ -86,12 +85,12 @@ export function PlanTabV2({
 
     switch (activeSubView) {
       case 'capacity':
-        return <CapacityTab />;
+        return <CapacityTabV2 />;
       case 'rebalancer':
-        return <CapacityRebalancerTab />;
+        return <CapacityRebalancerTabV2 />;
       case 'forecasting':
         return (
-          <ForecastingTab
+          <ForecastingTabV2
             requisitions={state.dataStore.requisitions}
             candidates={state.dataStore.candidates}
             events={state.dataStore.events}
@@ -103,9 +102,9 @@ export function PlanTabV2({
           />
         );
       case 'scenarios':
-        return <ScenarioLibraryTab />;
+        return <ScenarioLibraryTabV2 />;
       default:
-        return <CapacityTab />;
+        return <CapacityTabV2 />;
     }
   };
 

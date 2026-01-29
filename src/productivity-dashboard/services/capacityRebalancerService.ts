@@ -44,6 +44,20 @@ import { computeGlobalDemand, applyCapacityPenaltyV11 } from './capacityPenaltyM
 import { DurationDistribution } from './probabilisticEngine';
 
 // ============================================
+// HELPERS
+// ============================================
+
+/**
+ * Convert ID like "emily_watson" to "Emily Watson"
+ */
+function formatIdAsName(id: string): string {
+    return id
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+}
+
+// ============================================
 // CONSTANTS
 // ============================================
 
@@ -171,9 +185,9 @@ export function computeRecruiterUtilization(input: RebalancerInput): Utilization
             recruiterIdCoverage
         );
 
-        // Get recruiter name
+        // Get recruiter name - use || to also catch empty strings, and format ID as name fallback
         const recruiterUser = users.find(u => u.user_id === recruiterId);
-        const recruiterName = recruiterUser?.name ?? `Recruiter (${recruiterId.substring(0, 6)})`;
+        const recruiterName = recruiterUser?.name || formatIdAsName(recruiterId);
 
         rows.push({
             recruiterId,

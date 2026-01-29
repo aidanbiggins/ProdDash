@@ -625,7 +625,7 @@ describe('Ultimate Demo Generator', () => {
       const bundle = generateUltimateDemo('pattern-test', DEFAULT_PACK_CONFIG);
 
       // Find Marcus Rodriguez's reqs
-      const marcusId = 'recruiter_beta';
+      const marcusId = 'marcus_rodriguez';
       const marcusReqs = bundle.requisitions.filter(r => r.recruiter_id === marcusId);
 
       expect(marcusReqs.length).toBeGreaterThanOrEqual(10);
