@@ -29,7 +29,6 @@ import {
   PieChart,
   AlertTriangle,
   CheckCircle,
-  AlertCircle,
 } from 'lucide-react';
 import {
   Requisition,
@@ -189,16 +188,6 @@ export function ForecastingTabV2({
     preMortemResults.forEach((pm) => map.set(pm.req_id, pm));
     return map;
   }, [preMortemResults]);
-
-  // Risk summary counts
-  const riskSummary = useMemo(
-    () => ({
-      high: preMortemResults.filter((r) => r.risk_band === 'HIGH').length,
-      med: preMortemResults.filter((r) => r.risk_band === 'MED').length,
-      low: preMortemResults.filter((r) => r.risk_band === 'LOW').length,
-    }),
-    [preMortemResults]
-  );
 
   // Filter health metrics
   const filteredHealthMetrics = useMemo(() => {
@@ -1046,33 +1035,6 @@ export function ForecastingTabV2({
             </div>
           </div>
 
-          {/* Pre-Mortem Risk Summary */}
-          <div className="flex gap-2 flex-wrap items-center">
-            <span
-              className="text-muted-foreground text-xs sm:text-sm cursor-help"
-              title="Pre-Mortem analysis predicts which reqs are likely to miss their hiring target based on pipeline health, days open, HM latency, and velocity trends"
-            >
-              Fill Risk:
-            </span>
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('HIGH')}`}
-            >
-              <AlertTriangle className="w-3 h-3" />
-              {riskSummary.high} <span className="hidden sm:inline">High</span>
-            </span>
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('MED')}`}
-            >
-              <AlertCircle className="w-3 h-3" />
-              {riskSummary.med} <span className="hidden sm:inline">Med</span>
-            </span>
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('LOW')}`}
-            >
-              <CheckCircle className="w-3 h-3" />
-              {riskSummary.low} <span className="hidden sm:inline">Low</span>
-            </span>
-          </div>
 
           {/* Health List - Cards on mobile, Table on desktop */}
           <div className="glass-panel">
