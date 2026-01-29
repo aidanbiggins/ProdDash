@@ -444,35 +444,35 @@ export function ForecastingTabV2({
       />
 
       {/* Sub-tab Navigation */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button
           type="button"
-          className={`px-4 py-3 rounded-md text-sm font-medium transition-colors min-h-[48px] flex items-center gap-2 ${
+          className={`px-3 md:px-4 py-3 rounded-md text-sm font-medium transition-colors min-h-[48px] flex items-center gap-2 ${
             activeSubTab === 'health'
               ? 'bg-primary text-primary-foreground'
               : 'glass-panel border border-border text-foreground hover:bg-muted'
           }`}
           onClick={() => setActiveSubTab('health')}
         >
-          <Heart className="w-4 h-4" />
-          Active Role Health
+          <Heart className="w-4 h-4 flex-shrink-0" />
+          <span className="hidden sm:inline">Active Role</span> Health
           {healthSummary.offTrack > 0 && (
-            <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-bad text-white ml-1">
+            <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-medium rounded-full bg-bad text-white">
               {healthSummary.offTrack}
             </span>
           )}
         </button>
         <button
           type="button"
-          className={`px-4 py-3 rounded-md text-sm font-medium transition-colors min-h-[48px] flex items-center gap-2 ${
+          className={`px-3 md:px-4 py-3 rounded-md text-sm font-medium transition-colors min-h-[48px] flex items-center gap-2 ${
             activeSubTab === 'planner'
               ? 'bg-primary text-primary-foreground'
               : 'glass-panel border border-border text-foreground hover:bg-muted'
           }`}
           onClick={() => setActiveSubTab('planner')}
         >
-          <Calculator className="w-4 h-4" />
-          New Role Planner
+          <Calculator className="w-4 h-4 flex-shrink-0" />
+          <span className="hidden sm:inline">New Role</span> Planner
         </button>
       </div>
 
@@ -1048,24 +1048,24 @@ export function ForecastingTabV2({
 
           {/* Pre-Mortem Risk Summary */}
           <div className="flex gap-2 flex-wrap items-center">
-            <span className="text-muted-foreground text-sm mr-2">Pre-Mortem Risk:</span>
+            <span className="text-muted-foreground text-xs sm:text-sm">Risk:</span>
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm ${getRiskBadgeClass('HIGH')}`}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('HIGH')}`}
             >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {riskSummary.high} High
+              <AlertTriangle className="w-3 h-3" />
+              {riskSummary.high}
             </span>
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm ${getRiskBadgeClass('MED')}`}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('MED')}`}
             >
-              <AlertCircle className="w-3.5 h-3.5" />
-              {riskSummary.med} Medium
+              <AlertCircle className="w-3 h-3" />
+              {riskSummary.med}
             </span>
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm ${getRiskBadgeClass('LOW')}`}
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('LOW')}`}
             >
-              <CheckCircle className="w-3.5 h-3.5" />
-              {riskSummary.low} Low
+              <CheckCircle className="w-3 h-3" />
+              {riskSummary.low}
             </span>
           </div>
 
@@ -1078,31 +1078,31 @@ export function ForecastingTabV2({
               </span>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[800px]">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Role
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Days Open
+                    <th className="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Days
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Pipeline
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-3 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Risk
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground hidden md:table-cell">
                       Failure Mode
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Predicted Fill
+                    <th className="px-3 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Fill Date
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground hidden lg:table-cell">
                       Primary Issue
                     </th>
                   </tr>
@@ -1130,13 +1130,13 @@ export function ForecastingTabV2({
                             setSelectedHealthReq(selectedHealthReq === req.reqId ? null : req.reqId)
                           }
                         >
-                          <td className="px-4 py-3">
-                            <div className="font-medium text-foreground">{req.reqTitle}</div>
-                            <div className="text-sm text-muted-foreground">
+                          <td className="px-3 py-3">
+                            <div className="font-medium text-foreground truncate max-w-[200px]">{req.reqTitle}</div>
+                            <div className="text-xs text-muted-foreground">
                               {req.function} {req.level}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-3 py-3 text-right whitespace-nowrap">
                             {req.daysOpen !== null ? (
                               <>
                                 <span
@@ -1148,15 +1148,15 @@ export function ForecastingTabV2({
                                 >
                                   {req.daysOpen}d
                                 </span>
-                                <div className="text-sm text-muted-foreground">
-                                  / {req.benchmarkTTF}d benchmark
+                                <div className="text-xs text-muted-foreground">
+                                  /{req.benchmarkTTF}d
                                 </div>
                               </>
                             ) : (
                               <span className="text-muted-foreground">N/A</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-3 py-3 text-right whitespace-nowrap">
                             <span
                               className={
                                 req.pipelineGap < 0 ? 'text-bad font-bold' : 'text-foreground'
@@ -1168,29 +1168,29 @@ export function ForecastingTabV2({
                               /{req.benchmarkPipelineDepth}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-3 py-3 text-center">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getHealthBadgeClass(req.healthStatus)}`}
+                              className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getHealthBadgeClass(req.healthStatus)}`}
                             >
                               {req.healthScore}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-center">
+                          <td className="px-3 py-3 text-center">
                             {preMortemItem ? (
                               <span
-                                className={`inline-flex items-center rounded-full font-mono px-2 py-1 text-xs ${getRiskBadgeClass(preMortemItem.risk_band)}`}
+                                className={`inline-flex items-center rounded-full font-mono px-1.5 py-0.5 text-xs ${getRiskBadgeClass(preMortemItem.risk_band)}`}
                                 title={`Risk Score: ${preMortemItem.risk_score}/100`}
                               >
-                                {preMortemItem.risk_band} {preMortemItem.risk_score}
+                                {preMortemItem.risk_band}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
+                              <span className="text-muted-foreground text-xs">-</span>
                             )}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-3 hidden md:table-cell">
                             {preMortemItem ? (
                               <span
-                                className={`text-sm ${
+                                className={`text-xs ${
                                   preMortemItem.risk_band === 'HIGH'
                                     ? 'text-bad'
                                     : preMortemItem.risk_band === 'MED'
@@ -1201,20 +1201,20 @@ export function ForecastingTabV2({
                                 {getFailureModeLabel(preMortemItem.failure_mode)}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-sm">-</span>
+                              <span className="text-muted-foreground text-xs">-</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-3 py-3 text-right whitespace-nowrap">
                             {req.predictedFillDate ? (
-                              <span className="text-foreground">
+                              <span className="text-foreground text-xs">
                                 {format(req.predictedFillDate, 'MMM d')}
                               </span>
                             ) : (
-                              <span className="text-bad">Unknown</span>
+                              <span className="text-bad text-xs">?</span>
                             )}
                           </td>
-                          <td className="px-4 py-3">
-                            <span className="text-sm text-muted-foreground">
+                          <td className="px-3 py-3 hidden lg:table-cell">
+                            <span className="text-xs text-muted-foreground truncate max-w-[150px] block">
                               {req.primaryIssue || '-'}
                             </span>
                           </td>
