@@ -19,8 +19,10 @@ import {
     clearDevBypassSession
 } from '../lib/devBypass';
 
-// Super admin email - always seeded as super admin on sign-in
-const SUPER_ADMIN_EMAIL = 'aidanbiggins@gmail.com';
+// Super admin email - configurable via environment variable
+// Set REACT_APP_SUPER_ADMIN_EMAIL in .env for production deployments
+// Falls back to empty string (no auto-seeding) if not configured
+const SUPER_ADMIN_EMAIL = process.env.REACT_APP_SUPER_ADMIN_EMAIL || '';
 
 const CURRENT_ORG_KEY = 'current_org_id';
 

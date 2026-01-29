@@ -118,7 +118,7 @@ function LoginRoute() {
 
   // Wait for auth to finish loading before deciding
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
   if (user) {
@@ -136,7 +136,7 @@ function ProtectedRoute({ children }) {
   console.log('[ProtectedRoute] Render - loading:', loading, 'user:', !!user);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
   if (!user) {
@@ -154,7 +154,7 @@ function HomeRoute() {
   console.log('[HomeRoute] Render - loading:', loading, 'user:', !!user, 'supabaseUser:', !!supabaseUser);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
   // Unauthenticated users see the landing page

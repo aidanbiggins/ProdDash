@@ -147,7 +147,7 @@ const OnboardingPage: React.FC = () => {
   // Show loading while auth is initializing or invites are loading
   if (authLoading || loadingInvites) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center min-h-screen">
         <div className="w-5 h-5 border-2 border-primary border-r-transparent rounded-full animate-spin" role="status">
           <span className="sr-only">Loading...</span>
         </div>
@@ -158,7 +158,7 @@ const OnboardingPage: React.FC = () => {
   const hasOptions = memberships.length > 0 || invites.length > 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center h-screen">
+    <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-screen">
       <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '500px', width: '100%' }}>
         <div className="p-6">
           <h1 className="text-lg font-semibold mb-1 text-center">Welcome to PlatoVue</h1>

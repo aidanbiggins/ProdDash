@@ -104,7 +104,7 @@ const Login = () => {
 
   if (!supabase) {
     return (
-      <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center h-screen">
+      <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-screen">
         <div className="bg-bg-glass border border-bad rounded-lg p-8 shadow-sm text-center" style={{ maxWidth: '500px' }}>
           <h1 className="text-xl font-semibold mb-3 text-bad">Setup Required</h1>
           <p className="text-lg">Database connection missing.</p>
@@ -117,7 +117,7 @@ const Login = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center h-screen">
+    <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-screen">
       <div className="bg-bg-glass border border-glass-border rounded-lg p-8 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
         <h1 className="text-xl font-semibold mb-4 text-center">Recruiting Planner</h1>
         <p className="text-muted-foreground text-center mb-4">Sign in to access shared data</p>

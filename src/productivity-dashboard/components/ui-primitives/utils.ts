@@ -1,12 +1,6 @@
 /**
  * UI Primitives Utility Functions
- * Tailwind-based class name merging utility
+ * Re-export from canonical location for consistent Tailwind class merging.
+ * Uses clsx + tailwind-merge to properly resolve class conflicts.
  */
-
-/**
- * Conditionally join class names together
- * Filters out falsy values and joins remaining classes
- */
-export function cn(...classes: (string | undefined | null | false)[]): string {
-  return classes.filter(Boolean).join(' ');
-}
+export { cn } from '../../../lib/utils';
