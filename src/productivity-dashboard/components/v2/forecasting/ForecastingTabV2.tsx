@@ -999,71 +999,67 @@ export function ForecastingTabV2({
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div
-              className={`glass-panel text-center cursor-pointer transition-colors p-4 ${
+              className={`glass-panel text-center cursor-pointer transition-colors p-4 relative ${
                 healthFilter === 'all' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
               }`}
               onClick={() => setHealthFilter('all')}
             >
-              <div className="flex items-center justify-center gap-1 mb-2">
-                <StatLabel>Total Open</StatLabel>
-                <span
-                  className="cursor-help"
-                  title="All open requisitions currently being tracked"
-                >
-                  <Info className="w-3.5 h-3.5 text-muted-foreground/60" />
-                </span>
-              </div>
+              <span
+                className="absolute top-2 right-2 cursor-help"
+                title="All open requisitions currently being tracked"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Info className="w-3.5 h-3.5 text-muted-foreground/40 hover:text-muted-foreground/70" />
+              </span>
+              <StatLabel className="mb-2">Total Open</StatLabel>
               <StatValue>{healthSummary.total}</StatValue>
             </div>
             <div
-              className={`glass-panel text-center cursor-pointer transition-colors p-4 ${
+              className={`glass-panel text-center cursor-pointer transition-colors p-4 relative ${
                 healthFilter === 'on-track' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
               }`}
               onClick={() => setHealthFilter('on-track')}
             >
-              <div className="flex items-center justify-center gap-1 mb-2">
-                <StatLabel className="text-good">On Track</StatLabel>
-                <span
-                  className="cursor-help"
-                  title="Health score ≥ 70: Days open within benchmark, pipeline at target depth, recent activity"
-                >
-                  <Info className="w-3.5 h-3.5 text-good/60" />
-                </span>
-              </div>
+              <span
+                className="absolute top-2 right-2 cursor-help"
+                title="Health score ≥ 70: Days open within benchmark, pipeline at target depth, recent activity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Info className="w-3.5 h-3.5 text-good/40 hover:text-good/70" />
+              </span>
+              <StatLabel className="mb-2 text-good">On Track</StatLabel>
               <StatValue color="success">{healthSummary.onTrack}</StatValue>
             </div>
             <div
-              className={`glass-panel text-center cursor-pointer transition-colors p-4 ${
+              className={`glass-panel text-center cursor-pointer transition-colors p-4 relative ${
                 healthFilter === 'at-risk' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
               }`}
               onClick={() => setHealthFilter('at-risk')}
             >
-              <div className="flex items-center justify-center gap-1 mb-2">
-                <StatLabel className="text-warn">At Risk</StatLabel>
-                <span
-                  className="cursor-help"
-                  title="Health score 40-69: Approaching benchmark TTF, thin pipeline, or slowing velocity"
-                >
-                  <Info className="w-3.5 h-3.5 text-warn/60" />
-                </span>
-              </div>
+              <span
+                className="absolute top-2 right-2 cursor-help"
+                title="Health score 40-69: Approaching benchmark TTF, thin pipeline, or slowing velocity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Info className="w-3.5 h-3.5 text-warn/40 hover:text-warn/70" />
+              </span>
+              <StatLabel className="mb-2 text-warn">At Risk</StatLabel>
               <StatValue color="warning">{healthSummary.atRisk}</StatValue>
             </div>
             <div
-              className={`glass-panel text-center cursor-pointer transition-colors p-4 ${
+              className={`glass-panel text-center cursor-pointer transition-colors p-4 relative ${
                 healthFilter === 'off-track' ? 'ring-2 ring-primary' : 'hover:bg-muted/50'
               }`}
               onClick={() => setHealthFilter('off-track')}
             >
-              <div className="flex items-center justify-center gap-1 mb-2">
-                <StatLabel className="text-bad">Off Track</StatLabel>
-                <span
-                  className="cursor-help"
-                  title="Health score < 40: Exceeded benchmark TTF, empty/stalled pipeline, or no recent activity"
-                >
-                  <Info className="w-3.5 h-3.5 text-bad/60" />
-                </span>
-              </div>
+              <span
+                className="absolute top-2 right-2 cursor-help"
+                title="Health score < 40: Exceeded benchmark TTF, empty/stalled pipeline, or no recent activity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Info className="w-3.5 h-3.5 text-bad/40 hover:text-bad/70" />
+              </span>
+              <StatLabel className="mb-2 text-bad">Off Track</StatLabel>
               <StatValue color="danger">{healthSummary.offTrack}</StatValue>
             </div>
           </div>
