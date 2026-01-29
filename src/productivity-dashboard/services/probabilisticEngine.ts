@@ -72,15 +72,18 @@ export function runSimulation(
 
     const simulatedDays: number[] = [];
 
+    // IMPORTANT: Use replenishment-aware simulation for realistic time-to-fill
+    // When a candidate fails, we model the time to source and try another candidate.
+    // This makes the forecast sensitive to pass rates - lower rates = more retries = longer time.
     for (let i = 0; i < iterations; i++) {
-        const days = simulateCandidateJourney(input.currentStage, params, rng);
+        const days = simulateTimeToFillWithReplenishment(input.currentStage, params, rng);
         if (days !== null) {
             simulatedDays.push(days);
         }
     }
 
-    // If we have very few successes (e.g. low conversion rates), we might get empty array
-    // In that case, we return a "failed" result or max safe integer
+    // If we have very few successes (e.g. extremely low conversion rates), we might get empty array
+    // In that case, we return a "failed" result
     if (simulatedDays.length === 0) {
         const dummyDate = new Date(input.startDate);
         dummyDate.setDate(dummyDate.getDate() + 365); // 1 year out fallback
@@ -151,6 +154,49 @@ function simulateCandidateJourney(
 
     // If we got here, candidate is Hired
     return daysElapsed;
+}
+
+/**
+ * Simulate time-to-fill WITH pipeline replenishment.
+ *
+ * When a candidate fails, we model sourcing a new candidate and trying again.
+ * This gives a realistic "time to fill this req" rather than just
+ * "time to hire IF this candidate succeeds."
+ *
+ * @param startStage - Stage to start from (typically SCREEN for new candidates)
+ * @param params - Simulation parameters with conversion rates and durations
+ * @param rng - Seeded random number generator
+ * @param sourcingTimeDays - Time to source a new candidate after one fails (default 5 days)
+ * @param maxAttempts - Maximum sourcing attempts before giving up (default 50)
+ * @returns Total days to fill (including retries), or null if max attempts exceeded
+ */
+function simulateTimeToFillWithReplenishment(
+    startStage: CanonicalStage,
+    params: SimulationParameters,
+    rng: seedrandom.PRNG,
+    sourcingTimeDays: number = 5,
+    maxAttempts: number = 50
+): number | null {
+    let totalDays = 0;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        // Try to hire this candidate
+        const journeyResult = simulateCandidateJourney(startStage, params, rng);
+
+        if (journeyResult !== null) {
+            // Success! Candidate was hired
+            return totalDays + journeyResult;
+        }
+
+        // Candidate failed - need to source a new one
+        // Add time spent on the failed candidate (partial journey) + sourcing time
+        // For simplicity, we model this as just sourcing time since the failed journey
+        // time is already "sunk" and we need fresh time to find someone new
+        totalDays += sourcingTimeDays;
+    }
+
+    // Exceeded max attempts - unable to fill
+    return null;
 }
 
 /**
@@ -493,4 +539,4 @@ export function runCapacityAwareForecast(
 }
 
 // Export helper for external use
-export { addDaysToDate, calculateConfidenceLevel, simulateCandidateJourney, sampleDuration };
+export { addDaysToDate, calculateConfidenceLevel, simulateCandidateJourney, simulateTimeToFillWithReplenishment, sampleDuration };
