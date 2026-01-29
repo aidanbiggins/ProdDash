@@ -1048,7 +1048,12 @@ export function ForecastingTabV2({
 
           {/* Pre-Mortem Risk Summary */}
           <div className="flex gap-2 flex-wrap items-center">
-            <span className="text-muted-foreground text-xs sm:text-sm">Risk:</span>
+            <span
+              className="text-muted-foreground text-xs sm:text-sm cursor-help"
+              title="Pre-Mortem analysis predicts which reqs are likely to miss their hiring target based on pipeline health, days open, HM latency, and velocity trends"
+            >
+              Fill Risk:
+            </span>
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs ${getRiskBadgeClass('HIGH')}`}
             >
