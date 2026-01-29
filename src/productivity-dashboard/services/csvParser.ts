@@ -782,6 +782,46 @@ export function parseUniversalCsv(csvContent: string): CsvImportResult {
   const usersMap = new Map<string, User>();
   const events: Event[] = [];
 
+  // Deterministic name generator - same ID always produces same name
+  const generateRealisticName = (id: string): string => {
+    const FIRST_NAMES = [
+      'Sarah', 'Marcus', 'Emily', 'James', 'Priya', 'David', 'Lisa', 'Alex',
+      'Michael', 'Jennifer', 'Robert', 'Amanda', 'Chris', 'Patricia', 'Daniel',
+      'Michelle', 'Kevin', 'Rachel', 'Thomas', 'Nicole', 'Andrew', 'Stephanie',
+      'Brandon', 'Nina', 'Ryan', 'Jessica', 'Tyler', 'Ashley', 'Justin', 'Lauren'
+    ];
+    const LAST_NAMES = [
+      'Chen', 'Rodriguez', 'Watson', 'Park', 'Sharma', 'Kim', 'Thompson', 'Rivera',
+      'Chang', 'Lee', 'Wilson', 'Foster', 'Martinez', 'Brown', 'Taylor', 'Anderson',
+      'Patel', 'Garcia', 'Davis', 'Miller', 'White', 'Moore', 'Johnson', 'Williams',
+      'Jones', 'Smith', 'Clark', 'Lewis', 'Young', 'Hall'
+    ];
+
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash = hash & hash;
+    }
+    hash = Math.abs(hash);
+
+    const firstName = FIRST_NAMES[hash % FIRST_NAMES.length];
+    const lastName = LAST_NAMES[(hash >> 8) % LAST_NAMES.length];
+    return `${firstName} ${lastName}`;
+  };
+
+  // Helper to format an ID-like string into a display name
+  const formatDisplayName = (value: string): string => {
+    // If it already looks like a proper name (has space, mixed case), keep it
+    if (value.includes(' ') && value !== value.toLowerCase() && value !== value.toUpperCase()) {
+      return value;
+    }
+    // Generate a realistic name from the ID
+    if (value.includes('_') || value === value.toLowerCase()) {
+      return generateRealisticName(value);
+    }
+    return value;
+  };
+
   // Helper to get or create user
   const getOrCreateUser = (name: string | undefined | null, role: UserRole): string => {
     if (!name || name.trim() === '') return '';
@@ -790,7 +830,7 @@ export function parseUniversalCsv(csvContent: string): CsvImportResult {
     if (!usersMap.has(userId)) {
       usersMap.set(userId, {
         user_id: userId,
-        name: name.trim(),
+        name: formatDisplayName(name.trim()),
         role: role,
         team: null,
         manager_user_id: null,

@@ -137,20 +137,42 @@ function PipelineHealthCardV2({
     return stage.durationStatus;
   };
 
+  const getStageDetails = (stageName: string) => {
+    const stage = healthSummary.stagePerformance.find(s =>
+      s.stageName.toLowerCase().includes(stageName.toLowerCase())
+    );
+    if (!stage) return { actual: 0, target: 0, status: 'ahead' };
+    return {
+      actual: stage.actualMedianDays,
+      target: stage.targetDays,
+      status: stage.durationStatus
+    };
+  };
+
   const stageIndicators = [
-    { label: 'Screen', status: getStageStatus('screen') },
-    { label: 'HM', status: getStageStatus('hm') },
-    { label: 'Onsite', status: getStageStatus('onsite') },
-    { label: 'Offer', status: getStageStatus('offer') },
+    { label: 'Screen', ...getStageDetails('screen') },
+    { label: 'HM', ...getStageDetails('hm') },
+    { label: 'Onsite', ...getStageDetails('onsite') },
+    { label: 'Offer', ...getStageDetails('offer') },
   ];
 
   const getIndicatorColor = (status: string) => {
     switch (status) {
       case 'ahead': return 'bg-good';
-      case 'on-track': return 'bg-accent';
+      case 'on-track': return 'bg-primary';
       case 'behind': return 'bg-warn';
       case 'critical': return 'bg-bad';
-      default: return 'bg-accent';
+      default: return 'bg-primary';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'ahead': return 'Ahead';
+      case 'on-track': return 'On Track';
+      case 'behind': return 'Behind';
+      case 'critical': return 'Critical';
+      default: return 'On Track';
     }
   };
 
@@ -192,11 +214,15 @@ function PipelineHealthCardV2({
         </div>
       </div>
 
-      {/* Stage indicators */}
+      {/* Stage indicators - hover for details */}
       <div className="flex items-center justify-between mb-3">
         {stageIndicators.map((stage) => (
-          <div key={stage.label} className="flex flex-col items-center gap-1">
-            <div className={`w-3 h-3 rounded-full ${getIndicatorColor(stage.status)}`} />
+          <div
+            key={stage.label}
+            className="flex flex-col items-center gap-1 cursor-help group"
+            title={`${stage.label}: ${stage.actual.toFixed(0)}d actual vs ${stage.target}d target — ${getStatusLabel(stage.status)}`}
+          >
+            <div className={`w-3 h-3 rounded-full ${getIndicatorColor(stage.status)} transition-transform group-hover:scale-125`} />
             <span className="text-[10px] text-muted-foreground">{stage.label}</span>
           </div>
         ))}
@@ -204,10 +230,10 @@ function PipelineHealthCardV2({
 
       {/* Top insight */}
       {topInsight && (
-        <div className="rounded-md bg-blue-500/10 border border-blue-500/20 p-2 text-xs">
+        <div className="rounded-md bg-primary/10 border border-primary/20 p-2 text-xs">
           <div className="flex items-start gap-2">
-            <HelpCircle className="w-3.5 h-3.5 text-blue-400 mt-0.5 shrink-0" />
-            <span className="text-blue-300">{topInsight.message}</span>
+            <HelpCircle className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+            <span className="text-primary">{topInsight.message}</span>
           </div>
         </div>
       )}

@@ -155,15 +155,15 @@ export function BespokeTable<T>({
     if (minWidth) tableStyle.minWidth = minWidth;
 
     return (
-        <div className="overflow-x-auto -mx-1 px-1">
+        <div className="overflow-x-auto">
             <table
-                className={`table table-bespoke table-hover mb-0 w-full ${className}`}
+                className={`w-full text-sm ${className}`}
                 style={tableStyle}
             >
                 <thead>
-                    <tr>
+                    <tr className="border-b border-border">
                         {selectable && (
-                            <th style={{ width: '40px' }}>
+                            <th className="px-3 py-3 text-left" style={{ width: '40px' }}>
                                 <Checkbox
                                     checked={isAllSelected}
                                     onChange={handleSelectAll}
@@ -173,30 +173,34 @@ export function BespokeTable<T>({
                         {visibleColumns.map(column => (
                             <th
                                 key={column.key}
-                                className={getHeaderClass(column)}
+                                className={`px-3 py-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground ${
+                                    column.sortable ? 'cursor-pointer hover:text-foreground transition-colors' : ''
+                                } ${sortColumn === column.key ? 'text-accent' : ''} ${getHeaderClass(column)}`}
                                 style={column.width ? { width: column.width } : undefined}
                                 onClick={() => handleHeaderClick(column)}
                             >
-                                {column.header}
-                                {column.sortable && sortColumn === column.key && (
-                                    <span className="sort-indicator">
-                                        {sortDirection === 'desc' ? '▼' : '▲'}
-                                    </span>
-                                )}
+                                <span className="inline-flex items-center gap-1">
+                                    {column.header}
+                                    {column.sortable && sortColumn === column.key && (
+                                        <span className="text-accent">
+                                            {sortDirection === 'desc' ? '▼' : '▲'}
+                                        </span>
+                                    )}
+                                </span>
                             </th>
                         ))}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-border/50">
                     {data.length === 0 ? (
                         <tr>
                             <td
                                 colSpan={visibleColumns.length + (selectable ? 1 : 0)}
-                                className="empty-state"
+                                className="px-3 py-8 text-center text-muted-foreground"
                             >
                                 {emptyState || (
                                     <div>
-                                        <div className="empty-state-icon">📭</div>
+                                        <div className="text-2xl mb-2">📭</div>
                                         <div>No data available</div>
                                     </div>
                                 )}
@@ -209,11 +213,13 @@ export function BespokeTable<T>({
                             return (
                                 <tr
                                     key={key}
-                                    className={`${onRowClick ? 'cursor-pointer' : ''} ${isSelected ? 'selected' : ''}`}
+                                    className={`${onRowClick ? 'cursor-pointer' : ''} ${
+                                        isSelected ? 'bg-accent/10' : 'hover:bg-muted/30'
+                                    } transition-colors`}
                                     onClick={() => onRowClick?.(item)}
                                 >
                                     {selectable && (
-                                        <td onClick={e => e.stopPropagation()}>
+                                        <td className="px-3 py-3" onClick={e => e.stopPropagation()}>
                                             <Checkbox
                                                 checked={isSelected}
                                                 onChange={() => handleRowSelect(key)}
@@ -221,7 +227,7 @@ export function BespokeTable<T>({
                                         </td>
                                     )}
                                     {visibleColumns.map(column => (
-                                        <td key={column.key} className={getCellClass(column)}>
+                                        <td key={column.key} className={`px-3 py-3 ${getCellClass(column)}`}>
                                             {renderCell(column, item, index)}
                                         </td>
                                     ))}
@@ -245,7 +251,7 @@ export function badgeCell<T>(
     getBadgeClass: (item: T) => string
 ): (item: T) => React.ReactNode {
     return (item: T) => (
-        <span className={`badge-bespoke ${getBadgeClass(item)}`}>
+        <span className={`inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded text-[10px] font-medium ${getBadgeClass(item)}`}>
             {getValue(item)}
         </span>
     );
@@ -258,10 +264,10 @@ export function primaryWithSubtitle<T>(
 ): (item: T) => React.ReactNode {
     return (item: T) => (
         <div>
-            <div className="cell-primary text-truncate" title={getPrimary(item)}>
+            <div className="text-sm font-medium text-foreground truncate" title={getPrimary(item)}>
                 {getPrimary(item)}
             </div>
-            <small className="cell-muted cell-small">{getSubtitle(item)}</small>
+            <small className="text-xs text-muted-foreground">{getSubtitle(item)}</small>
         </div>
     );
 }
@@ -273,9 +279,9 @@ export function numericCell<T>(
 ): (item: T) => React.ReactNode {
     return (item: T) => {
         const value = getValue(item);
-        if (value === null || value === undefined) return <span className="cell-muted">—</span>;
+        if (value === null || value === undefined) return <span className="text-muted-foreground">—</span>;
         return (
-            <span className="cell-numeric">
+            <span className="font-mono text-foreground">
                 {value}{suffix || ''}
             </span>
         );

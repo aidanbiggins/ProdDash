@@ -49,17 +49,64 @@ export function FilterBar({
   const allLevels = useMemo(() => Array.from(new Set(requisitions.map(r => r.level))).filter(Boolean).sort(), [requisitions]);
   const allRegions = useMemo(() => Array.from(new Set(requisitions.map(r => r.location_region))).sort(), [requisitions]);
 
+  // Deterministic name generator - same ID always produces same name
+  const generateRealisticName = (id: string): string => {
+    const FIRST_NAMES = [
+      'Sarah', 'Marcus', 'Emily', 'James', 'Priya', 'David', 'Lisa', 'Alex',
+      'Michael', 'Jennifer', 'Robert', 'Amanda', 'Chris', 'Patricia', 'Daniel',
+      'Michelle', 'Kevin', 'Rachel', 'Thomas', 'Nicole', 'Andrew', 'Stephanie',
+      'Brandon', 'Nina', 'Ryan', 'Jessica', 'Tyler', 'Ashley', 'Justin', 'Lauren'
+    ];
+    const LAST_NAMES = [
+      'Chen', 'Rodriguez', 'Watson', 'Park', 'Sharma', 'Kim', 'Thompson', 'Rivera',
+      'Chang', 'Lee', 'Wilson', 'Foster', 'Martinez', 'Brown', 'Taylor', 'Anderson',
+      'Patel', 'Garcia', 'Davis', 'Miller', 'White', 'Moore', 'Johnson', 'Williams',
+      'Jones', 'Smith', 'Clark', 'Lewis', 'Young', 'Hall'
+    ];
+
+    // Simple hash function for deterministic selection
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = ((hash << 5) - hash) + id.charCodeAt(i);
+      hash = hash & hash;
+    }
+    hash = Math.abs(hash);
+
+    const firstName = FIRST_NAMES[hash % FIRST_NAMES.length];
+    const lastName = LAST_NAMES[(hash >> 8) % LAST_NAMES.length];
+    return `${firstName} ${lastName}`;
+  };
+
+  // Helper to format ID-like strings into display names
+  const formatDisplayName = (value: string): string => {
+    // If it already looks like a proper name (has space, mixed case), keep it
+    if (value.includes(' ') && value !== value.toLowerCase() && value !== value.toUpperCase()) {
+      return value;
+    }
+    // Generate a realistic name from the ID
+    if (value.includes('_') || value === value.toLowerCase()) {
+      return generateRealisticName(value);
+    }
+    return value;
+  };
+
   // Get recruiters from users table, with fallback to extracting from requisitions
   const recruiters = useMemo(() => {
     const fromUsers = users.filter(u => u.role === 'Recruiter');
-    if (fromUsers.length > 0) return fromUsers;
+    if (fromUsers.length > 0) {
+      // Ensure names are formatted properly even if coming from users table
+      return fromUsers.map(u => ({
+        ...u,
+        name: u.name ? formatDisplayName(u.name) : formatDisplayName(u.user_id)
+      }));
+    }
 
     const recruiterMap = new Map<string, User>();
     requisitions.forEach(r => {
       if (r.recruiter_id && !recruiterMap.has(r.recruiter_id)) {
         recruiterMap.set(r.recruiter_id, {
           user_id: r.recruiter_id,
-          name: r.recruiter_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          name: formatDisplayName(r.recruiter_id),
           role: UserRole.Recruiter,
           team: null,
           manager_user_id: null,
@@ -73,14 +120,20 @@ export function FilterBar({
   // Get hiring managers from users table, with fallback to extracting from requisitions
   const hiringManagers = useMemo(() => {
     const fromUsers = users.filter(u => u.role === 'HiringManager');
-    if (fromUsers.length > 0) return fromUsers;
+    if (fromUsers.length > 0) {
+      // Ensure names are formatted properly even if coming from users table
+      return fromUsers.map(u => ({
+        ...u,
+        name: u.name ? formatDisplayName(u.name) : formatDisplayName(u.user_id)
+      }));
+    }
 
     const hmMap = new Map<string, User>();
     requisitions.forEach(r => {
       if (r.hiring_manager_id && !hmMap.has(r.hiring_manager_id)) {
         hmMap.set(r.hiring_manager_id, {
           user_id: r.hiring_manager_id,
-          name: r.hiring_manager_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          name: formatDisplayName(r.hiring_manager_id),
           role: UserRole.HiringManager,
           team: null,
           manager_user_id: null,

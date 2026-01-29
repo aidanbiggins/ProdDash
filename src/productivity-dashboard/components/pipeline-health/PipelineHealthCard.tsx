@@ -1,11 +1,12 @@
-// Pipeline Health Summary Card Component
+// Pipeline Health Summary Card Component (V2)
 // Shows ideal vs actual pipeline performance with insights
 
-import React, { useMemo } from 'react';
+import React, { useState } from 'react';
+import { Info } from 'lucide-react';
 import { LogoSpinner } from '../common/LogoSpinner';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ReferenceLine, Cell
+  Cell
 } from 'recharts';
 import {
   PipelineHealthSummary,
@@ -22,17 +23,24 @@ interface PipelineHealthCardProps {
 }
 
 const STATUS_COLORS: Record<PerformanceStatus, string> = {
-  ahead: '#22c55e',      // Green
-  'on-track': '#3b82f6', // Blue
-  behind: '#f59e0b',     // Amber
-  critical: '#dc2626'    // Red
+  ahead: 'var(--good)',
+  'on-track': 'var(--primary)',
+  behind: 'var(--warn)',
+  critical: 'var(--bad)'
 };
 
-const STATUS_BG_COLORS: Record<PerformanceStatus, string> = {
-  ahead: 'rgba(34, 197, 94, 0.1)',
-  'on-track': 'rgba(59, 130, 246, 0.1)',
-  behind: 'rgba(245, 158, 11, 0.1)',
-  critical: 'rgba(220, 38, 38, 0.1)'
+const STATUS_BG_CLASSES: Record<PerformanceStatus, string> = {
+  ahead: 'bg-good/10',
+  'on-track': 'bg-primary/10',
+  behind: 'bg-warn/10',
+  critical: 'bg-bad/10'
+};
+
+const STATUS_TEXT_CLASSES: Record<PerformanceStatus, string> = {
+  ahead: 'text-good',
+  'on-track': 'text-primary',
+  behind: 'text-warn',
+  critical: 'text-bad'
 };
 
 const STATUS_LABELS: Record<PerformanceStatus, string> = {
@@ -44,10 +52,10 @@ const STATUS_LABELS: Record<PerformanceStatus, string> = {
 
 function getStatusBadgeClass(status: PerformanceStatus): string {
   const classes: Record<PerformanceStatus, string> = {
-    ahead: 'badge-success-soft',
-    'on-track': 'badge-primary-soft',
-    behind: 'badge-warning-soft',
-    critical: 'badge-danger-soft'
+    ahead: 'bg-good/20 text-good',
+    'on-track': 'bg-primary/20 text-primary',
+    behind: 'bg-warn/20 text-warn',
+    critical: 'bg-bad/20 text-bad'
   };
   return classes[status];
 }
@@ -60,8 +68,8 @@ export function PipelineHealthCard({
 }: PipelineHealthCardProps) {
   if (isLoading) {
     return (
-      <div className="card-bespoke">
-        <div className="card-body text-center py-5">
+      <div className="glass-panel p-4">
+        <div className="text-center py-5">
           <LogoSpinner size={32} message="Calculating pipeline health..." layout="stacked" />
         </div>
       </div>
@@ -70,12 +78,12 @@ export function PipelineHealthCard({
 
   if (!healthSummary) {
     return (
-      <div className="card-bespoke">
-        <div className="card-body text-center py-4">
-          <i className="bi bi-bar-chart text-muted-foreground" style={{ fontSize: '2rem' }}></i>
+      <div className="glass-panel p-4">
+        <div className="text-center py-4">
+          <i className="bi bi-bar-chart text-muted-foreground text-2xl"></i>
           <div className="mt-2 text-muted-foreground">No pipeline data available</div>
           {onConfigureClick && (
-            <button className="px-3 py-1.5 text-xs rounded border border-white/10 text-muted-foreground hover:bg-white/5 mt-3" onClick={onConfigureClick}>
+            <button className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground hover:bg-muted/50 mt-3" onClick={onConfigureClick}>
               <i className="bi bi-gear mr-1"></i>
               Configure Benchmarks
             </button>
@@ -105,25 +113,25 @@ export function PipelineHealthCard({
   }
 
   return (
-    <div className="card-bespoke">
-      <div className="card-header flex justify-between items-center">
+    <div className="glass-panel">
+      <div className="flex justify-between items-center p-4 border-b border-border">
         <div>
-          <h6 className="mb-0">
-            <i className="bi bi-speedometer2 mr-2"></i>
+          <h6 className="text-base font-semibold text-foreground flex items-center gap-2">
+            <i className="bi bi-speedometer2"></i>
             Pipeline Health
           </h6>
-          <small className="text-muted-foreground">Ideal vs Actual Performance</small>
+          <span className="text-xs text-muted-foreground">Ideal vs Actual Performance</span>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <div className={`badge-bespoke ${getStatusBadgeClass(healthSummary.overallStatus)}`}>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeClass(healthSummary.overallStatus)}`}>
               {STATUS_LABELS[healthSummary.overallStatus]}
-            </div>
-            <div className="small text-muted-foreground mt-1">Score: {healthSummary.healthScore}/100</div>
+            </span>
+            <div className="text-xs text-muted-foreground mt-1">Score: {healthSummary.healthScore}/100</div>
           </div>
           {onConfigureClick && (
             <button
-              className="px-3 py-1.5 text-xs rounded border border-white/10 text-muted-foreground hover:bg-white/5"
+              className="px-3 py-1.5 text-xs rounded border border-border text-muted-foreground hover:bg-muted/50 transition-colors"
               onClick={onConfigureClick}
               title="Configure benchmarks"
             >
@@ -134,58 +142,52 @@ export function PipelineHealthCard({
         </div>
       </div>
 
-      <div className="card-body">
+      <div className="p-4 space-y-4">
         {/* TTF Summary */}
-        <div className="grid grid-cols-12 gap-3 mb-4">
-          <div className="col-span-12 md:col-span-4">
-            <div className="text-center p-3 rounded" style={{ background: STATUS_BG_COLORS[healthSummary.ttfStatus] }}>
-              <div className="stat-label text-muted-foreground">Target TTF</div>
-              <div className="stat-value">{healthSummary.targetTTF}d</div>
+        <div className="grid grid-cols-3 gap-3">
+          <div className={`text-center p-3 rounded ${STATUS_BG_CLASSES[healthSummary.ttfStatus]}`}>
+            <div className="text-[0.65rem] uppercase tracking-wider text-muted-foreground mb-1">Target TTF</div>
+            <div className="font-mono text-2xl font-bold text-foreground">{healthSummary.targetTTF}d</div>
+          </div>
+          <div className={`text-center p-3 rounded ${STATUS_BG_CLASSES[healthSummary.ttfStatus]}`}>
+            <div className="text-[0.65rem] uppercase tracking-wider text-muted-foreground mb-1">Actual Median TTF</div>
+            <div className={`font-mono text-2xl font-bold ${STATUS_TEXT_CLASSES[healthSummary.ttfStatus]}`}>
+              {healthSummary.actualMedianTTF.toFixed(0)}d
             </div>
           </div>
-          <div className="col-span-12 md:col-span-4">
-            <div className="text-center p-3 rounded" style={{ background: STATUS_BG_COLORS[healthSummary.ttfStatus] }}>
-              <div className="stat-label text-muted-foreground">Actual Median TTF</div>
-              <div className="stat-value" style={{ color: STATUS_COLORS[healthSummary.ttfStatus] }}>
-                {healthSummary.actualMedianTTF.toFixed(0)}d
-              </div>
-            </div>
-          </div>
-          <div className="col-span-12 md:col-span-4">
-            <div className="text-center p-3 rounded" style={{ background: STATUS_BG_COLORS[healthSummary.ttfStatus] }}>
-              <div className="stat-label text-muted-foreground">Variance</div>
-              <div className="stat-value" style={{ color: STATUS_COLORS[healthSummary.ttfStatus] }}>
-                {healthSummary.ttfVariance > 0 ? '+' : ''}{healthSummary.ttfVariance.toFixed(0)}d
-              </div>
+          <div className={`text-center p-3 rounded ${STATUS_BG_CLASSES[healthSummary.ttfStatus]}`}>
+            <div className="text-[0.65rem] uppercase tracking-wider text-muted-foreground mb-1">Variance</div>
+            <div className={`font-mono text-2xl font-bold ${STATUS_TEXT_CLASSES[healthSummary.ttfStatus]}`}>
+              {healthSummary.ttfVariance > 0 ? '+' : ''}{healthSummary.ttfVariance.toFixed(0)}d
             </div>
           </div>
         </div>
 
         {/* Timeline Comparison Chart */}
-        <div className="mb-4">
-          <h6 className="small text-muted-foreground mb-3">Stage Duration: Target vs Actual</h6>
+        <div>
+          <div className="text-xs text-muted-foreground mb-3">Stage Duration: Target vs Actual</div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} layout="vertical" margin={{ left: 80, right: 20, top: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
-              <XAxis type="number" fontSize={11} unit="d" stroke="#94A3B8" tick={{ fill: '#94A3B8', fontFamily: "'JetBrains Mono', monospace" }} />
-              <YAxis dataKey="name" type="category" fontSize={11} width={75} stroke="#94A3B8" tick={{ fill: '#94A3B8' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis type="number" fontSize={11} unit="d" stroke="var(--muted-foreground)" tick={{ fill: 'var(--muted-foreground)', fontFamily: "'JetBrains Mono', monospace" }} />
+              <YAxis dataKey="name" type="category" fontSize={11} width={75} stroke="var(--muted-foreground)" tick={{ fill: 'var(--muted-foreground)' }} />
               <Tooltip
                 content={({ active, payload }) => {
                   if (!active || !payload?.[0]) return null;
                   const d = payload[0].payload as typeof chartData[0];
                   return (
-                    <div style={{ background: '#0a0a0a', border: '1px solid #3f3f46', borderRadius: '4px', padding: '8px 12px' }}>
-                      <div style={{ fontWeight: 600, color: '#f5f5f5' }}>{d.name}</div>
-                      <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Target: {d.target}d</div>
-                      <div style={{ fontSize: '0.85rem', color: '#94A3B8' }}>Actual: {d.actual.toFixed(1)}d</div>
-                      <div style={{ fontSize: '0.85rem', color: STATUS_COLORS[d.status] }}>
+                    <div className="glass-panel p-3 text-sm">
+                      <div className="font-semibold text-foreground">{d.name}</div>
+                      <div className="text-muted-foreground">Target: {d.target}d</div>
+                      <div className="text-muted-foreground">Actual: {d.actual.toFixed(1)}d</div>
+                      <div className={STATUS_TEXT_CLASSES[d.status]}>
                         {d.variance > 0 ? `+${d.variance.toFixed(1)}d behind` : `${Math.abs(d.variance).toFixed(1)}d ahead`}
                       </div>
                     </div>
                   );
                 }}
               />
-              <Bar dataKey="target" fill="#3f3f46" name="Target" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="target" fill="var(--muted)" name="Target" radius={[0, 4, 4, 0]} />
               <Bar dataKey="actual" name="Actual" radius={[0, 4, 4, 0]}>
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status]} />
@@ -196,13 +198,11 @@ export function PipelineHealthCard({
         </div>
 
         {/* Stage Performance Summary */}
-        <div className="mb-4">
-          <h6 className="small text-muted-foreground mb-3">Stage Performance</h6>
-          <div className="grid grid-cols-12 gap-2">
+        <div>
+          <div className="text-xs text-muted-foreground mb-3">Stage Performance</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {healthSummary.stagePerformance.map(stage => (
-              <div key={stage.stage} className="col-span-6 md:col-span-3">
-                <StageHealthMini stage={stage} />
-              </div>
+              <StageHealthMini key={stage.stage} stage={stage} />
             ))}
           </div>
         </div>
@@ -210,11 +210,11 @@ export function PipelineHealthCard({
         {/* Top Insights */}
         {healthSummary.topInsights.length > 0 && (
           <div>
-            <h6 className="small text-muted-foreground mb-3">
-              <i className="bi bi-lightbulb mr-1"></i>
+            <div className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
+              <i className="bi bi-lightbulb"></i>
               Key Insights
-            </h6>
-            <div className="list-group list-group-flush">
+            </div>
+            <div className="space-y-2">
               {healthSummary.topInsights.slice(0, 3).map((insight, i) => (
                 <InsightItem key={i} insight={insight} />
               ))}
@@ -223,7 +223,7 @@ export function PipelineHealthCard({
         )}
       </div>
 
-      <div className="card-footer text-muted-foreground small">
+      <div className="px-4 py-3 border-t border-border text-xs text-muted-foreground">
         Based on {healthSummary.sampleSize} hires in selected period
       </div>
     </div>
@@ -238,72 +238,106 @@ function CompactHealthCard({
   healthSummary: PipelineHealthSummary;
   onConfigureClick?: () => void;
 }) {
+  const [showLegend, setShowLegend] = useState(false);
+
   return (
-    <div className="card-bespoke h-full">
-      <div className="card-body">
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <div className="stat-label text-muted-foreground">Pipeline Health</div>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="stat-value">{healthSummary.healthScore}</span>
-              <span className={`badge-bespoke ${getStatusBadgeClass(healthSummary.overallStatus)}`}>
-                {STATUS_LABELS[healthSummary.overallStatus]}
-              </span>
+    <div className="glass-panel h-full p-4">
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <div className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">Pipeline Health</div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="font-mono text-2xl font-bold text-foreground">{healthSummary.healthScore}</span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getStatusBadgeClass(healthSummary.overallStatus)}`}>
+              {STATUS_LABELS[healthSummary.overallStatus]}
+            </span>
+          </div>
+        </div>
+        {onConfigureClick && (
+          <button
+            className="p-1 border-0 bg-transparent text-muted-foreground hover:text-foreground transition-colors"
+            onClick={onConfigureClick}
+            title="Configure Benchmarks"
+          >
+            <i className="bi bi-gear"></i>
+          </button>
+        )}
+      </div>
+
+      {/* Mini TTF comparison */}
+      <div className="flex justify-between text-sm mb-3">
+        <span className="text-muted-foreground">TTF:</span>
+        <span>
+          <span className={STATUS_TEXT_CLASSES[healthSummary.ttfStatus]}>
+            {healthSummary.actualMedianTTF.toFixed(0)}d
+          </span>
+          <span className="text-muted-foreground"> / {healthSummary.targetTTF}d target</span>
+        </span>
+      </div>
+
+      {/* Stage status dots with legend button */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">Stage Status</span>
+          <button
+            onClick={() => setShowLegend(!showLegend)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title="Show legend"
+          >
+            <Info className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Legend (collapsible) */}
+        {showLegend && (
+          <div className="mb-2 p-2 rounded bg-muted/30 border border-border text-[0.65rem]">
+            <div className="grid grid-cols-2 gap-1">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-good"></span>
+                <span className="text-muted-foreground">Ahead of target</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary"></span>
+                <span className="text-muted-foreground">On track</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-warn"></span>
+                <span className="text-muted-foreground">Behind target</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-bad"></span>
+                <span className="text-muted-foreground">Critical</span>
+              </div>
             </div>
           </div>
-          {onConfigureClick && (
-            <button
-              className="p-0 border-0 bg-transparent text-muted-foreground hover:text-foreground"
-              onClick={onConfigureClick}
-              title="Configure"
-            >
-              <i className="bi bi-gear"></i>
-            </button>
-          )}
-        </div>
+        )}
 
-        {/* Mini TTF comparison */}
-        <div className="flex justify-between small mb-3">
-          <span className="text-muted-foreground">TTF:</span>
-          <span>
-            <span style={{ color: STATUS_COLORS[healthSummary.ttfStatus] }}>
-              {healthSummary.actualMedianTTF.toFixed(0)}d
-            </span>
-            <span className="text-muted-foreground"> / {healthSummary.targetTTF}d target</span>
-          </span>
-        </div>
-
-        {/* Stage status dots */}
-        <div className="flex gap-2 mb-3">
+        {/* Stage dots */}
+        <div className="flex gap-2">
           {healthSummary.stagePerformance.map(stage => (
             <div
               key={stage.stage}
-              className="grow text-center"
-              title={`${stage.stageName}: ${stage.actualMedianDays.toFixed(0)}d (target: ${stage.targetDays}d)`}
+              className="grow text-center group cursor-help"
+              title={`${stage.stageName}: ${stage.actualMedianDays.toFixed(0)}d actual (target: ${stage.targetDays}d) - ${STATUS_LABELS[stage.durationStatus]}`}
             >
               <div
-                className="rounded-full mx-auto mb-1"
-                style={{
-                  width: 12,
-                  height: 12,
-                  backgroundColor: STATUS_COLORS[stage.durationStatus]
-                }}
+                className="w-3 h-3 rounded-full mx-auto mb-1 transition-transform group-hover:scale-125"
+                style={{ backgroundColor: STATUS_COLORS[stage.durationStatus] }}
               />
-              <div className="small text-muted-foreground" style={{ fontSize: '0.65rem' }}>
+              <div className="text-[0.65rem] text-muted-foreground">
                 {stage.stageName.split(' ')[0]}
               </div>
             </div>
           ))}
         </div>
-
-        {/* Top insight */}
-        {healthSummary.topInsights[0] && (
-          <div className="p-3 rounded-lg bg-white/5 border border-glass-border text-foreground small mb-0 py-2 px-3" style={{ fontSize: '0.75rem' }}>
-            <i className={`bi ${healthSummary.topInsights[0].severity === 'critical' ? 'bi-exclamation-triangle text-danger' : 'bi-info-circle text-primary'} mr-1`}></i>
-            {healthSummary.topInsights[0].message}
-          </div>
-        )}
       </div>
+
+      {/* Top insight */}
+      {healthSummary.topInsights[0] && (
+        <div className="p-2 rounded bg-muted/30 border border-border text-xs text-foreground">
+          <i className={`bi ${healthSummary.topInsights[0].severity === 'critical' ? 'bi-exclamation-triangle text-bad' : 'bi-info-circle text-primary'} mr-1`}></i>
+          {healthSummary.topInsights[0].message}
+        </div>
+      )}
     </div>
   );
 }
@@ -319,21 +353,18 @@ function StageHealthMini({ stage }: { stage: StagePerformance }) {
         : 'ahead';
 
   return (
-    <div
-      className="p-2 rounded text-center"
-      style={{ background: STATUS_BG_COLORS[worstStatus], border: `1px solid ${STATUS_COLORS[worstStatus]}20` }}
-    >
-      <div className="font-medium small">{stage.stageName}</div>
-      <div className="flex justify-between mt-1" style={{ fontSize: '0.7rem' }}>
-        <span title="Duration">
-          <i className="bi bi-clock mr-1"></i>
-          <span style={{ color: STATUS_COLORS[stage.durationStatus] }}>
+    <div className={`p-2 rounded text-center ${STATUS_BG_CLASSES[worstStatus]} border border-current/20`}>
+      <div className="font-medium text-sm text-foreground">{stage.stageName}</div>
+      <div className="flex justify-between mt-1 text-[0.65rem]">
+        <span title="Duration" className="flex items-center gap-0.5">
+          <i className="bi bi-clock"></i>
+          <span className={STATUS_TEXT_CLASSES[stage.durationStatus]}>
             {stage.actualMedianDays.toFixed(0)}d
           </span>
         </span>
-        <span title="Pass Rate">
-          <i className="bi bi-funnel mr-1"></i>
-          <span style={{ color: STATUS_COLORS[stage.passRateStatus] }}>
+        <span title="Pass Rate" className="flex items-center gap-0.5">
+          <i className="bi bi-funnel"></i>
+          <span className={STATUS_TEXT_CLASSES[stage.passRateStatus]}>
             {(stage.actualPassRate * 100).toFixed(0)}%
           </span>
         </span>
@@ -344,22 +375,22 @@ function StageHealthMini({ stage }: { stage: StagePerformance }) {
 
 // Insight item
 function InsightItem({ insight }: { insight: PipelineInsight }) {
-  const severityIcon = {
-    critical: 'bi-exclamation-triangle-fill text-danger',
-    warning: 'bi-exclamation-circle-fill text-warning',
-    info: 'bi-info-circle-fill text-primary'
+  const severityConfig = {
+    critical: { icon: 'bi-exclamation-triangle-fill', class: 'text-bad' },
+    warning: { icon: 'bi-exclamation-circle-fill', class: 'text-warn' },
+    info: { icon: 'bi-info-circle-fill', class: 'text-primary' }
   }[insight.severity];
 
   return (
-    <div className="list-group-item px-0 py-2 border-0">
+    <div className="p-2 rounded bg-muted/30">
       <div className="flex items-start gap-2">
-        <i className={`bi ${severityIcon} mt-1`}></i>
-        <div className="grow">
-          <div className="small font-medium">{insight.message}</div>
-          <div className="small text-muted-foreground">{insight.dataPoint}</div>
+        <i className={`bi ${severityConfig.icon} ${severityConfig.class} mt-0.5`}></i>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium text-foreground">{insight.message}</div>
+          <div className="text-xs text-muted-foreground">{insight.dataPoint}</div>
           {insight.recommendation && (
-            <div className="small text-success mt-1">
-              <i className="bi bi-arrow-right mr-1"></i>
+            <div className="text-xs text-good mt-1 flex items-center gap-1">
+              <i className="bi bi-arrow-right"></i>
               {insight.recommendation}
             </div>
           )}

@@ -183,12 +183,11 @@ export function DataDrillDownModal({
 
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center"
-            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+            className="fixed inset-0 z-50 flex items-start justify-center pt-20 pb-4 overflow-y-auto bg-black/60 backdrop-blur-sm"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
-            <div className="w-full max-w-4xl mx-4 max-h-[90vh] flex flex-col">
-                <div className="bg-[var(--color-bg-surface)] rounded-lg overflow-hidden flex flex-col max-h-full">
+            <div className="w-full max-w-4xl mx-4 max-h-[calc(100vh-6rem)] flex flex-col">
+                <div className="glass-panel overflow-hidden flex flex-col max-h-full">
                     <div className="px-4 py-3 border-b border-glass-border flex justify-between items-start">
                         <div>
                             <h5 className="text-lg font-semibold mb-1">{title}</h5>
