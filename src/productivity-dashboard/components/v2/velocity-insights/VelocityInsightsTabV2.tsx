@@ -638,9 +638,9 @@ function DecisionBrief({
   // If no copilot insights yet, show minimal loading state
   if (copilotInsights.length === 0) {
     return (
-      <div className="glass-panel p-3 mb-4">
+      <div className="glass-panel p-4 mb-4">
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <i className="bi bi-hourglass-split"></i>
+          <span className="w-4 h-4 border-2 border-current border-r-transparent rounded-full animate-spin" />
           <span>Analyzing velocity data...</span>
         </div>
       </div>
@@ -648,29 +648,27 @@ function DecisionBrief({
   }
 
   return (
-    <div className="glass-panel p-3 mb-4">
+    <div className="glass-panel p-4 mb-4">
       <div className="flex flex-col gap-3">
         {/* Row 1: Blockers status */}
         <div className="flex items-start gap-3">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${hasP0 ? 'bg-bad/15' : 'bg-good/15'}`}>
-            <i className={`bi ${hasP0 ? 'bi-exclamation-octagon-fill text-bad' : 'bi-check-circle-fill text-good'}`}></i>
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${hasP0 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+            <i className={`bi text-lg ${hasP0 ? 'bi-exclamation-octagon-fill text-red-400' : 'bi-check-circle-fill text-green-400'}`}></i>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Blocked Now
-              </span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="stat-label">Blocked Now</span>
               {hasP0 && (
-                <span className="bg-bad/15 text-bad px-1.5 py-0.5 rounded text-[0.6rem] font-mono font-semibold">
+                <span className="bg-red-500/15 text-red-400 px-1.5 py-0.5 rounded text-[0.65rem] font-mono font-medium">
                   {p0Insights.length} P0{p0Insights.length > 1 ? 's' : ''}
                 </span>
               )}
             </div>
-            <div className="text-sm text-foreground truncate">
+            <div className="text-sm font-medium text-foreground truncate">
               {hasP0 ? topP0.title : 'No blockers detected'}
             </div>
             {hasP0 && topP0.claim && (
-              <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                 {topP0.claim}
               </div>
             )}
@@ -679,12 +677,10 @@ function DecisionBrief({
 
         {/* Row 2: Next action (only if P0 exists) */}
         {hasP0 && topP0.recommended_actions?.[0] && (
-          <div className="flex items-start gap-3 pl-11">
+          <div className="flex items-start gap-3 pl-[52px]">
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-0.5">
-                Next Action
-              </div>
-              <div className="text-xs text-accent truncate">
+              <div className="stat-label mb-1">Next Action</div>
+              <div className="text-sm text-accent truncate">
                 → {topP0.recommended_actions[0]}
               </div>
             </div>
@@ -692,34 +688,34 @@ function DecisionBrief({
         )}
 
         {/* Row 3: CTAs */}
-        <div className="flex items-center gap-2 pt-1 border-t border-border">
+        <div className="flex items-center gap-2 pt-2 border-t border-border">
           {hasP0 ? (
             <>
               <button
                 type="button"
                 onClick={() => onViewEvidence(topP0)}
-                className="px-3 py-1.5 text-xs bg-bad/10 border border-bad/30 rounded text-bad hover:bg-bad/20 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium bg-red-500/10 border border-red-500/30 rounded text-red-400 hover:bg-red-500/20 transition-colors"
               >
-                <i className="bi bi-eye mr-1"></i>
-                View top blocker
+                <i className="bi bi-eye mr-1.5"></i>
+                View blocker
               </button>
               <button
                 type="button"
                 onClick={() => onCreateAction(topP0)}
                 disabled={isActionCreated}
-                className={`px-3 py-1.5 text-xs rounded transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                   isActionCreated
                     ? 'bg-muted border border-border text-muted-foreground'
-                    : 'bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20'
+                    : 'bg-muted/50 border border-border text-foreground hover:bg-muted'
                 }`}
               >
-                <i className={`bi ${isActionCreated ? 'bi-check' : 'bi-plus-circle'} mr-1`}></i>
+                <i className={`bi ${isActionCreated ? 'bi-check' : 'bi-plus-circle'} mr-1.5`}></i>
                 {isActionCreated ? 'Added' : 'Create action'}
               </button>
             </>
           ) : (
-            <span className="text-xs text-muted-foreground">
-              <i className="bi bi-check-circle mr-1 text-good"></i>
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <i className="bi bi-check-circle text-green-400"></i>
               No urgent issues requiring immediate attention
             </span>
           )}
