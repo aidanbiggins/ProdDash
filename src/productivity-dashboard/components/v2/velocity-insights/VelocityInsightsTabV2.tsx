@@ -3,8 +3,17 @@
 /**
  * VelocityInsightsTabV2 - Pipeline Velocity Analysis Tab
  * V2 Version - Uses Tailwind tokens and glass-panel styling
- * Analyzes factors that contribute to fast, successful hires
- * Implements: stage timing gating, evidence drilldowns, dedupe actions, improved narratives
+ *
+ * Layout (optimized for fast verdict):
+ * 1. Executive Header - Key Metrics KPIs at top for fast verdict
+ * 2. AI Copilot Panel - Insights grouped by P0/P1/P2 severity
+ * 3. Deep Dive Accordion - Pipeline health, decay curves, cohort comparison (collapsed by default)
+ *
+ * Features:
+ * - Stage timing gating based on data capability
+ * - Evidence drilldown drawer with context
+ * - Action deduplication for insights
+ * - Mobile-responsive layout (375px+ tested)
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -22,12 +31,11 @@ import {
   Cell
 } from 'recharts';
 import { format } from 'date-fns';
-import { VelocityMetrics, DecayDataPoint, VelocityInsight, CohortComparison, SuccessFactorComparison, Requisition, Candidate, Event, User, HiringManagerFriction, MetricFilters, CanonicalStage } from '../../../types';
+import { VelocityMetrics, VelocityInsight, Requisition, Candidate, Event, User, HiringManagerFriction, MetricFilters } from '../../../types';
 import { DashboardConfig } from '../../../types/config';
 import { PipelineBenchmarkConfig, HistoricalBenchmarkResult } from '../../../types/pipelineTypes';
 import { ActionItem } from '../../../types/actionTypes';
 import { AiProviderConfig } from '../../../types/aiTypes';
-import { useIsMobile } from '../../../hooks/useIsMobile';
 import { PipelineHealthCard, BenchmarkConfigModal } from '../../pipeline-health';
 import { VelocityCopilotPanelV2 } from './VelocityCopilotPanelV2';
 import { SubViewHeader } from '../SubViewHeader';
@@ -40,9 +48,7 @@ import {
   MIN_DENOM_FOR_PASS_RATE,
   calculateConfidence,
   ConfidenceLevel,
-  detectStageTimingCapability,
-  formatRate,
-  safeRate
+  detectStageTimingCapability
 } from '../../../services/velocityThresholds';
 import { analyzeLoadVsPerformance, LoadVsPerformanceResult } from '../../../services/loadVsPerformanceService';
 
@@ -625,9 +631,6 @@ export function VelocityInsightsTabV2({
   onAddToActionQueue,
   aiConfig
 }: VelocityInsightsTabV2Props) {
-  const isMobile = useIsMobile();
-  const chartHeight = isMobile ? 250 : 320;
-
   const { candidateDecay, reqDecay, insights, cohortComparison } = metrics;
 
   // Evidence drawer state
