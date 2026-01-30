@@ -1053,16 +1053,13 @@ export function VelocityInsightsTabV2({
 
         {deepDiveExpanded && (
           <div className="mt-3 space-y-4">
-            {/* Pipeline Health */}
+            {/* Pipeline Health - card has its own header, no section header needed */}
             {(pipelineHealth || config) && (
-              <div>
-                <SectionHeaderLocal icon="🔬" title="Pipeline Health" subtitle="Stage-by-stage performance vs benchmarks" />
-                <PipelineHealthCard
-                  healthSummary={pipelineHealth}
-                  compact={false}
-                  onConfigureClick={() => setShowBenchmarkConfig(true)}
-                />
-              </div>
+              <PipelineHealthCard
+                healthSummary={pipelineHealth}
+                compact={false}
+                onConfigureClick={() => setShowBenchmarkConfig(true)}
+              />
             )}
 
             {/* Stage Timing (if available) */}
