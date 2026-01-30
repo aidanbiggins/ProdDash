@@ -181,21 +181,21 @@ export function CreateOrgModal({ isOpen, onClose, onCreate }: CreateOrgModalProp
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" tabIndex={-1}>
       <div className="w-full max-w-md mx-4">
-        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
-          <div className="flex items-center justify-between p-4 border-b border-glass-border">
+        <div className="bg-card border border-border rounded-lg shadow-lg">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <h5 className="font-semibold text-foreground">Create New Organization</h5>
-            <button type="button" className="text-muted-foreground hover:text-foreground disabled:opacity-50" onClick={onClose} disabled={isLoading}>&times;</button>
+            <button type="button" className="text-muted-foreground hover:text-foreground disabled:opacity-50 min-w-[44px] min-h-[44px] flex items-center justify-center" onClick={onClose} disabled={isLoading}>&times;</button>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="p-4">
               {error && (
-                <div className="p-3 rounded-lg bg-bad/10 border border-bad/30 text-bad mb-4">{error}</div>
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive mb-4">{error}</div>
               )}
               <div className="mb-3">
                 <label htmlFor="orgName" className="block text-xs font-medium text-muted-foreground mb-1">Organization Name</label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-50"
+                  className="w-full px-3 py-2 min-h-[44px] text-sm bg-muted border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
                   id="orgName"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -208,11 +208,11 @@ export function CreateOrgModal({ isOpen, onClose, onCreate }: CreateOrgModalProp
                 </p>
               </div>
             </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
-              <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-muted/80 disabled:opacity-50" onClick={onClose} disabled={isLoading}>
+            <div className="flex justify-end gap-2 p-4 border-t border-border">
+              <button type="button" className="px-4 py-2 min-h-[44px] text-sm font-medium rounded-md bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50" onClick={onClose} disabled={isLoading}>
                 Cancel
               </button>
-              <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50" disabled={isLoading || !name.trim()}>
+              <button type="submit" className="px-4 py-2 min-h-[44px] text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50" disabled={isLoading || !name.trim()}>
                 {isLoading ? 'Creating...' : 'Create Organization'}
               </button>
             </div>
