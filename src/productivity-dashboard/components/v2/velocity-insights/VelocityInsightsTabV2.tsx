@@ -869,18 +869,18 @@ export function VelocityInsightsTabV2({
         <button
           type="button"
           onClick={() => setDeepDiveExpanded(!deepDiveExpanded)}
-          className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg bg-muted/30 border border-border text-foreground hover:bg-muted/50 transition-colors"
+          className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-lg bg-muted/30 border border-border text-foreground hover:bg-muted/50 transition-colors"
         >
-          <div className="flex items-center gap-3">
-            <span className="w-7 h-7 bg-accent/15 rounded flex items-center justify-center text-sm">📊</span>
-            <div className="text-left">
-              <span className="font-semibold text-sm">Deep Dive Analysis</span>
-              <span className="text-muted-foreground text-xs ml-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-7 h-7 bg-accent/15 rounded flex items-center justify-center text-sm shrink-0">📊</span>
+            <div className="text-left min-w-0">
+              <span className="font-semibold text-sm block">Deep Dive Analysis</span>
+              <span className="text-muted-foreground text-xs block truncate">
                 Pipeline health, decay curves, cohort comparison
               </span>
             </div>
           </div>
-          <i className={`bi bi-chevron-down text-muted-foreground transition-transform ${deepDiveExpanded ? 'rotate-180' : ''}`}></i>
+          <i className={`bi bi-chevron-down text-muted-foreground transition-transform shrink-0 ${deepDiveExpanded ? 'rotate-180' : ''}`}></i>
         </button>
 
         {deepDiveExpanded && (
