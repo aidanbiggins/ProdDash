@@ -288,6 +288,77 @@ function DraftMessageModal({
   );
 }
 
+// Collapsible Severity Group Component
+function SeverityGroup({
+  severity,
+  insights,
+  factPack,
+  onCreateAction,
+  onDraftMessage,
+  onViewEvidence,
+  createdActionIds,
+  defaultExpanded = false
+}: {
+  severity: 'P0' | 'P1' | 'P2';
+  insights: AICopilotInsight[];
+  factPack: VelocityFactPack;
+  onCreateAction: (insight: AICopilotInsight) => void;
+  onDraftMessage: (insight: AICopilotInsight) => void;
+  onViewEvidence: (insight: AICopilotInsight) => void;
+  createdActionIds: Set<string>;
+  defaultExpanded?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
+  if (insights.length === 0) return null;
+
+  const config = {
+    P0: { label: 'Blocking', bgClass: 'bg-bad/10', borderClass: 'border-bad/30', textClass: 'text-bad' },
+    P1: { label: 'Risks', bgClass: 'bg-warn/10', borderClass: 'border-warn/30', textClass: 'text-warn' },
+    P2: { label: 'Optimizations', bgClass: 'bg-good/10', borderClass: 'border-good/30', textClass: 'text-good' }
+  };
+  const style = config[severity];
+
+  return (
+    <div className={`rounded-lg border ${style.borderClass} ${style.bgClass} mb-3`}>
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-3 py-2 text-left"
+      >
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium font-mono ${style.bgClass} ${style.textClass}`}>
+            {severity}
+          </span>
+          <span className={`text-sm font-medium ${style.textClass}`}>
+            {style.label}
+          </span>
+          <span className="text-muted-foreground text-xs">
+            ({insights.length})
+          </span>
+        </div>
+        <i className={`bi bi-chevron-down ${style.textClass} transition-transform ${expanded ? 'rotate-180' : ''}`}></i>
+      </button>
+
+      {expanded && (
+        <div className="px-3 pb-3">
+          {insights.map(insight => (
+            <AIInsightCard
+              key={insight.id}
+              insight={insight}
+              chartData={getChartDataForInsight(insight, factPack)}
+              onCreateAction={onCreateAction}
+              onDraftMessage={onDraftMessage}
+              onViewEvidence={onViewEvidence}
+              createdActionIds={createdActionIds}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Main Copilot Panel Component
 export function VelocityCopilotPanelV2({
   metrics,
@@ -550,20 +621,44 @@ export function VelocityCopilotPanelV2({
         </div>
       )}
 
-      {/* Insights - directly rendered, no intermediate banner */}
+      {/* Insights - grouped by severity with collapsible sections */}
       {!isLoading && insights.length > 0 && (
         <>
-          {insights.map(insight => (
-            <AIInsightCard
-              key={insight.id}
-              insight={insight}
-              chartData={getChartDataForInsight(insight, factPack)}
-              onCreateAction={handleCreateAction}
-              onDraftMessage={handleDraftMessage}
-              onViewEvidence={handleViewEvidence}
-              createdActionIds={createdActionIds}
-            />
-          ))}
+          {/* P0 Blocking - expanded by default */}
+          <SeverityGroup
+            severity="P0"
+            insights={insights.filter(i => i.severity === 'P0')}
+            factPack={factPack}
+            onCreateAction={handleCreateAction}
+            onDraftMessage={handleDraftMessage}
+            onViewEvidence={handleViewEvidence}
+            createdActionIds={createdActionIds}
+            defaultExpanded={true}
+          />
+
+          {/* P1 Risks - collapsed by default */}
+          <SeverityGroup
+            severity="P1"
+            insights={insights.filter(i => i.severity === 'P1')}
+            factPack={factPack}
+            onCreateAction={handleCreateAction}
+            onDraftMessage={handleDraftMessage}
+            onViewEvidence={handleViewEvidence}
+            createdActionIds={createdActionIds}
+            defaultExpanded={false}
+          />
+
+          {/* P2 Optimizations - collapsed by default */}
+          <SeverityGroup
+            severity="P2"
+            insights={insights.filter(i => i.severity === 'P2')}
+            factPack={factPack}
+            onCreateAction={handleCreateAction}
+            onDraftMessage={handleDraftMessage}
+            onViewEvidence={handleViewEvidence}
+            createdActionIds={createdActionIds}
+            defaultExpanded={false}
+          />
         </>
       )}
 
