@@ -807,7 +807,7 @@ export function RecruiterDetailTabV2({ onSelectRecruiter }: RecruiterDetailTabV2
                   <td className="px-3 py-3">
                     <code className="text-xs text-muted-foreground font-mono">{rd.req.req_id}</code>
                   </td>
-                  <td className="px-3 py-3 font-medium text-foreground max-w-[200px] truncate">
+                  <td className="px-3 py-3 text-sm font-medium text-foreground max-w-[200px] truncate">
                     {rd.req.req_title}
                   </td>
                   <td className="px-3 py-3 text-muted-foreground">

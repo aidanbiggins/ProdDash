@@ -354,17 +354,7 @@ export function AskPlatoVueTabV2({ onNavigateToTab, onAddActions, existingAction
   }, []);
 
   return (
-    <div className="p-4 md:p-6 max-w-[1600px] mx-auto min-h-[calc(100vh-200px)]">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-1">
-          Ask PlatoVue
-        </h1>
-        <p className="text-xs md:text-sm text-muted-foreground">
-          Ask questions about your recruiting data in plain English
-        </p>
-      </div>
-
+    <div className="max-w-[1600px] mx-auto min-h-[calc(100vh-200px)]">
       {/* Main Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6 min-h-[600px]">
 

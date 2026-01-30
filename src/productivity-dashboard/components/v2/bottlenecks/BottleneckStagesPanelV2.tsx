@@ -94,7 +94,7 @@ export function BottleneckStagesPanelV2({ stages, onStageClick }: BottleneckStag
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">
+                    <span className="text-sm font-medium text-foreground">
                       {stage.display_name}
                     </span>
                     <span className={`text-sm font-semibold ${colorClass}`}>

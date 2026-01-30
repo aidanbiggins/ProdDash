@@ -252,7 +252,7 @@ export function ReqDrilldownDrawerV2({
                   className="p-2 px-3 rounded text-sm bg-white/[0.02]"
                 >
                   <div className="flex justify-between items-center">
-                    <div className="font-medium text-foreground">
+                    <div className="text-sm font-medium text-foreground">
                       {metric.stage_key}
                       {metric.breached && (
                         <span className="ml-2 text-red-500 text-xs">

@@ -63,6 +63,7 @@ const ALLOWED_TYPOGRAPHY_FILES = [
   'ProgressIndicator.tsx',      // Step indicators with symbols
   'PipelineHealthCard.tsx',     // Chart tooltips
   'DataCoveragePanel.tsx',      // Coverage indicators
+  'SourceEffectivenessTabV2.tsx', // Recharts tooltips and chart labels
   // Drawer components with complex layouts
   'ActionDetailDrawer.tsx',     // Action detail with evidence
   'ExplainDrawer.tsx',          // AI explanations
@@ -148,6 +149,10 @@ const ALLOWED_COLOR_FILES = [
   'RecruiterDetailTabV2.tsx',   // Recruiter performance charts
   'PipelineFunnelV2.tsx',       // Funnel chart colors
   'PipelineChartV2.tsx',        // Pipeline visualization
+  'QualityTabV2.tsx',           // Quality metrics charts
+  'SourceEffectivenessTabV2.tsx', // Source effectiveness charts
+  'VelocityInsightsTabV2.tsx',  // Velocity decay charts
+  'MiniChartsV2.tsx',           // Mini spark charts
   // Common components with legitimate color needs
   'ActionDetailDrawer.tsx',     // Status colors (done/overdue)
   'ExplainDrawer.tsx',          // Explanation panels
@@ -203,6 +208,8 @@ const RAW_HEADER_REGEX = /<h([123])([^>]*)>/g;
 const STAT_CLASS_DEF_REGEX = /\.stat-(label|value)\s*\{/g;
 const HARDCODED_COLOR_REGEX = /#[0-9a-fA-F]{3,8}\b|rgb\s*\(|rgba\s*\(/g;
 const CARD_BESPOKE_REGEX = /className=["'][^"']*card-bespoke[^"']*["']/g;
+// Pattern to detect font-medium text-foreground without a size class (text-sm, text-xs, etc.)
+const FONT_SIZE_MISSING_REGEX = /font-medium\s+text-foreground|text-foreground\s+font-medium/g;
 
 let violations = [];
 
@@ -358,6 +365,26 @@ function scanFile(filePath) {
           CARD_BESPOKE_REGEX.lastIndex = 0;
         }
       }
+
+      // Rule 6: Check for font-medium text-foreground without explicit size class
+      // V2 components should always include text-sm, text-xs, etc. for consistency
+      if (isV2) {
+        if (FONT_SIZE_MISSING_REGEX.test(line)) {
+          // Check if line already has a size class
+          const hasSizeClass = /text-(xs|sm|base|lg|xl|2xl|3xl)/.test(line);
+          if (!hasSizeClass) {
+            violations.push({
+              type: 'FONT_SIZE_MISSING',
+              file: relativePath,
+              line: lineNum,
+              content: line.trim().substring(0, 100),
+              message: 'font-medium text-foreground without explicit size class. Add text-sm for table/list content.'
+            });
+          }
+          // Reset regex lastIndex
+          FONT_SIZE_MISSING_REGEX.lastIndex = 0;
+        }
+      }
     });
   }
 
@@ -441,7 +468,8 @@ function printReport() {
     'RAW_HEADER': 'Raw Header Tags',
     'STAT_CLASS_DEF': 'Stat Class Definitions Outside Theme',
     'HARDCODED_COLOR': 'Hardcoded Color Values',
-    'CARD_BESPOKE': 'Legacy card-bespoke Usage'
+    'CARD_BESPOKE': 'Legacy card-bespoke Usage',
+    'FONT_SIZE_MISSING': 'Missing Explicit Font Size in V2'
   };
 
   for (const [type, items] of Object.entries(byType)) {
@@ -463,7 +491,8 @@ function printReport() {
   console.log('  2. For V2: Use text-foreground/text-muted-foreground on headers');
   console.log('  3. For V1: Use PageHeader or SectionHeader components');
   console.log('  4. Replace hardcoded colors with CSS variables or Tailwind tokens');
-  console.log('  5. Replace card-bespoke with glass-panel or Card component\n');
+  console.log('  5. Replace card-bespoke with glass-panel or Card component');
+  console.log('  6. Add explicit text-sm to font-medium text-foreground for table/list content\n');
   console.log('See docs/UI_AUDIT_EXCEPTIONS.md for exception documentation.\n');
 
   return 1;

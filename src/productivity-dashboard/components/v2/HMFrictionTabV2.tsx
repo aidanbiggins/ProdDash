@@ -477,7 +477,7 @@ export function HMFrictionTabV2() {
                 <tbody className="divide-y divide-border">
                   {filteredFriction.slice(0, 20).map(f => (
                     <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
-                      <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
+                      <td className="px-3 py-2 text-sm font-medium text-foreground">{f.hmName}</td>
                       <td className="px-3 py-2 text-right text-muted-foreground">{f.reqsInRange}</td>
                       <td className="px-3 py-2 text-right">{f.loopCount}</td>
                       <td className="px-3 py-2 text-right">
@@ -539,7 +539,7 @@ export function HMFrictionTabV2() {
                           .sort((a, b) => b.composition.timeTaxPercent - a.composition.timeTaxPercent)
                           .map(f => (
                             <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
-                              <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
+                              <td className="px-3 py-2 text-sm font-medium text-foreground">{f.hmName}</td>
                               <td className="px-3 py-2 text-right text-bad font-bold">{f.composition.timeTaxPercent}%</td>
                               <td className="px-3 py-2 text-right">{f.feedbackLatencyMedian ? `${Math.round(f.feedbackLatencyMedian)} hrs` : '-'}</td>
                               <td className="px-3 py-2 text-right">{f.decisionLatencyMedian ? `${Math.round(f.decisionLatencyMedian)} hrs` : '-'}</td>
@@ -579,7 +579,7 @@ export function HMFrictionTabV2() {
                         : 0;
                       return (
                         <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
-                          <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
+                          <td className="px-3 py-2 text-sm font-medium text-foreground">{f.hmName}</td>
                           <td className="px-3 py-2 text-right font-mono font-bold">{Math.round(f.composition.totalLatencyHours / 24)}d</td>
                           <td className="px-3 py-2 text-right">
                             <div className="flex items-center justify-end gap-2">
@@ -624,7 +624,7 @@ export function HMFrictionTabV2() {
                       <tbody className="divide-y divide-border">
                         {fastHMs.map(f => (
                           <tr key={f.hmId} onClick={() => setSelectedHM(f.hmId)} className="cursor-pointer hover:bg-muted/30 transition-colors">
-                            <td className="px-3 py-2 font-medium text-foreground">{f.hmName}</td>
+                            <td className="px-3 py-2 text-sm font-medium text-foreground">{f.hmName}</td>
                             <td className="px-3 py-2 text-right">
                               <BadgeV2 variant="success">{f.hmWeight.toFixed(2)}x</BadgeV2>
                             </td>
@@ -816,7 +816,7 @@ export function HMFrictionTabV2() {
                       className={`cursor-pointer transition-colors ${selectedHM === row.hmId ? 'bg-accent/10' : 'hover:bg-muted/30'}`}
                     >
                       <td className="px-3 py-2" title={row.fullName}>
-                        <span className="font-medium text-foreground">{row.hmName}</span>
+                        <span className="text-sm font-medium text-foreground">{row.hmName}</span>
                       </td>
                       <td className={`px-3 py-2 text-center font-mono font-medium ${getHeatmapColor(row.feedback, 'feedback')}`}>
                         {row.feedback ?? '-'}
@@ -909,7 +909,7 @@ export function HMFrictionTabV2() {
                   className={`cursor-pointer transition-colors ${selectedHM === f.hmId ? 'bg-accent/10' : 'hover:bg-muted/30'}`}
                   onClick={() => setSelectedHM(selectedHM === f.hmId ? null : f.hmId)}
                 >
-                  <td className="px-3 py-3 font-medium text-foreground">{f.hmName}</td>
+                  <td className="px-3 py-3 text-sm font-medium text-foreground">{f.hmName}</td>
                   <td className="px-3 py-3 text-right text-muted-foreground">{f.reqsInRange}</td>
                   <td className="px-3 py-3 text-right">{f.loopCount}</td>
                   <td className="px-3 py-3 text-right">

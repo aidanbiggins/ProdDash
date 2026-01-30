@@ -145,7 +145,7 @@ export function BreachTableV2({ breaches, onReqClick, onExport }: BreachTableV2P
                   onClick={() => onReqClick?.(breach.req_id)}
                 >
                   <td className="px-3 py-3 align-middle">
-                    <div className="font-medium text-foreground">
+                    <div className="text-sm font-medium text-foreground">
                       {breach.req_id}
                     </div>
                     <div className="text-xs text-muted-foreground max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">

@@ -392,7 +392,7 @@ export function PipelineBenchmarksTab() {
                   <tr key={benchmark.stage} className="hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-3">
                       <div>
-                        <p className="font-medium text-foreground">{config?.label || benchmark.stage}</p>
+                        <p className="text-sm font-medium text-foreground">{config?.label || benchmark.stage}</p>
                         <p className="text-xs text-muted-foreground">{config?.description}</p>
                       </div>
                     </td>

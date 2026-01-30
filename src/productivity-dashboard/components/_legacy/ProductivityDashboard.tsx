@@ -72,6 +72,7 @@ export function ProductivityDashboard() {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [clearProgress, setClearProgress] = useState<ClearProgress | null>(null);
+  const [clearError, setClearError] = useState<string | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showHeaderMenu, setShowHeaderMenu] = useState(false);
   const [showAiSettings, setShowAiSettings] = useState(false);
@@ -317,6 +318,7 @@ export function ProductivityDashboard() {
   const handleClearDataConfirm = async () => {
     setIsClearing(true);
     setClearProgress(null);
+    setClearError(null);
     try {
       const result = await clearPersistedData((progress) => {
         setClearProgress(progress);
@@ -324,7 +326,14 @@ export function ProductivityDashboard() {
       if (result.success) {
         setShowClearConfirm(false);
         // Success handled by state reset
+      } else {
+        // Keep modal open to show error
+        setClearError(result.error || 'Failed to clear database');
       }
+    } catch (err) {
+      // Catch any unexpected errors (e.g., timeouts)
+      const message = err instanceof Error ? err.message : 'Unknown error clearing data';
+      setClearError(message);
     } finally {
       setIsClearing(false);
       setClearProgress(null);
@@ -1168,10 +1177,14 @@ export function ProductivityDashboard() {
           {/* Clear Data Confirmation Modal */}
           <ClearDataConfirmationModal
             isOpen={showClearConfirm}
-            onCancel={() => setShowClearConfirm(false)}
+            onCancel={() => {
+              setShowClearConfirm(false);
+              setClearError(null);
+            }}
             onConfirm={handleClearDataConfirm}
             isClearing={isClearing}
             clearProgress={clearProgress}
+            error={clearError}
           />
 
           {/* Create Organization Modal */}

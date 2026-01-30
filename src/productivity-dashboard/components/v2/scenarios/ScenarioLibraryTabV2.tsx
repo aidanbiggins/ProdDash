@@ -207,11 +207,13 @@ export function ScenarioLibraryTabV2({ className = '' }: ScenarioLibraryTabV2Pro
               <ArrowLeft size={16} className="mr-2" />
               Back to scenarios
             </button>
-            <div className="flex items-center gap-3">
-              {ScenarioIcon && <ScenarioIcon size={24} className="text-accent" />}
-              <SectionHeader title={SCENARIO_METADATA[selectedScenarioId].title} />
+            <div className="flex items-center gap-2">
+              {ScenarioIcon && <ScenarioIcon size={20} className="text-accent shrink-0" />}
+              <h3 className="text-lg font-semibold text-foreground">
+                {SCENARIO_METADATA[selectedScenarioId].title}
+              </h3>
             </div>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {SCENARIO_METADATA[selectedScenarioId].description}
             </p>
           </div>

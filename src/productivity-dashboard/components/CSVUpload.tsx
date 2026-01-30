@@ -170,6 +170,7 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [clearProgress, setClearProgress] = useState<ClearProgress | null>(null);
+  const [clearError, setClearError] = useState<string | null>(null);
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
 
@@ -458,15 +459,21 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
   const handleClearDataConfirm = async () => {
     setIsClearing(true);
     setClearProgress(null);
+    setClearError(null);
     try {
       const result = await clearPersistedData((progress) => {
         setClearProgress(progress);
       });
       if (!result.success) {
-        setErrors([result.error || 'Failed to clear database']);
+        // Keep modal open to show error
+        setClearError(result.error || 'Failed to clear database');
       } else {
         setShowClearConfirm(false);
       }
+    } catch (err) {
+      // Catch any unexpected errors (e.g., timeouts)
+      const message = err instanceof Error ? err.message : 'Unknown error clearing data';
+      setClearError(message);
     } finally {
       setIsClearing(false);
       setClearProgress(null);
@@ -756,10 +763,14 @@ export function CSVUpload({ onUpload, isLoading }: CSVUploadProps) {
               {/* Clear Data Confirmation Modal */}
               <ClearDataConfirmationModal
                 isOpen={showClearConfirm}
-                onCancel={() => setShowClearConfirm(false)}
+                onCancel={() => {
+                  setShowClearConfirm(false);
+                  setClearError(null);
+                }}
                 onConfirm={handleClearDataConfirm}
                 isClearing={isClearing}
                 clearProgress={clearProgress}
+                error={clearError}
               />
 
               {/* Import Progress Modal */}

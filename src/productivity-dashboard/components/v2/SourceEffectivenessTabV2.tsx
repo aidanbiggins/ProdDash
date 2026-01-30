@@ -99,7 +99,7 @@ function ChannelCard({ title, subtitle, channels, variant }: ChannelCardProps): 
                     >
                         <div className="flex items-center gap-2">
                             <SourceColorDot source={ch.source} size={10} />
-                            <span className="font-medium text-foreground">{ch.source}</span>
+                            <span className="text-sm font-medium text-foreground">{ch.source}</span>
                         </div>
                         <div className="text-right">
                             <ChannelMetric channel={ch} variant={variant} />

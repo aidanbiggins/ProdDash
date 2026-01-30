@@ -60,15 +60,16 @@
     /* Layout */
     --radius: 0.5rem;
 
-    /* Sidebar - Light Mode */
-    --sidebar-background: 0 0% 98%;
+    /* Sidebar - Light Mode (Glass effect) */
+    --sidebar-background: 0 0% 100% / 0.9;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent: 240 4.8% 95.9% / 0.8;
     --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
+    --sidebar-border: 220 13% 85%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-glow: 220 90% 60% / 0.08;
 
     /* Glass/Surface System - Light Mode */
     --glass-bg: 0 0% 100%;
@@ -122,15 +123,16 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar - Dark Mode */
-    --sidebar-background: 240 5.9% 10%;
+    /* Sidebar - Dark Mode (Glass effect) */
+    --sidebar-background: 222 47% 11% / 0.85;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent: 240 3.7% 15.9% / 0.7;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-border: 217 33% 25%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-glow: 217 91% 60% / 0.15;
 
     /* Glass/Surface System - Dark Mode */
     --glass-bg: 222 47% 11%;
@@ -416,6 +418,52 @@
 :focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+/* ============================================
+   SIDEBAR GLASS EFFECT
+   Translucent glass sidebar with depth glow
+   ============================================ */
+
+/* Sidebar glass container - adds glow behind sidebar */
+[data-sidebar="sidebar"] {
+  position: relative;
+  background: hsl(var(--sidebar-background));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid hsl(var(--sidebar-border));
+}
+
+/* Subtle glow effect behind sidebar for depth */
+[data-sidebar="sidebar"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--sidebar-glow)) 0%,
+    transparent 50%,
+    hsl(var(--sidebar-glow)) 100%
+  );
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Floating variant enhancement */
+.group-data-[variant=floating] [data-sidebar="sidebar"] {
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--sidebar-border));
+  box-shadow:
+    0 4px 6px -1px hsl(var(--sidebar-glow)),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile sidebar sheet override for glass effect */
+[data-sidebar="sidebar"][data-mobile="true"] {
+  background: hsl(var(--sidebar-background));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 /* Scrollbar styling */

@@ -250,7 +250,7 @@ const OnboardingPage: React.FC = () => {
                 <input
                   type="text"
                   id="orgName"
-                  className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md focus:border-primary focus:outline-none"
+                  className="w-full px-3 py-2 min-h-[44px] text-sm bg-muted/30 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                   placeholder="e.g., Acme Corp"
                   value={newOrgName}
                   onChange={(e) => setNewOrgName(e.target.value)}

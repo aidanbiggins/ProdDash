@@ -40,6 +40,7 @@ import {
   Clock,
   CheckCircle2,
   LayoutDashboard,
+  X,
 } from 'lucide-react';
 
 // Props interface
@@ -219,11 +220,45 @@ function mapStatus(status: Requisition['status']): RequisitionV2['status'] {
   return 'open';
 }
 
-// Helper to create sample bottlenecks from dashboard data
-function createBottlenecks(overview: OverviewMetrics | null, hmFriction: HiringManagerFriction[]): BottleneckItem[] {
+// Helper to create bottlenecks/risks from dashboard data
+// NOTE: This should NOT include actions - those have their own dedicated panel
+function createBottlenecks(
+  overview: OverviewMetrics | null,
+  hmFriction: HiringManagerFriction[],
+  stalledReqCount: number,
+  zombieReqCount: number
+): BottleneckItem[] {
   const bottlenecks: BottleneckItem[] = [];
 
-  // Check for slow stages
+  // CRITICAL: Zombie reqs are abandoned (worst - show first)
+  if (zombieReqCount > 0) {
+    bottlenecks.push({
+      id: 'zombie-reqs',
+      type: 'stage',
+      name: 'Zombie Requisitions',
+      severity: 'bad',
+      metric: 'Reqs with no activity 30+ days',
+      value: zombieReqCount,
+      impact: 'Abandoned reqs waste headcount allocation',
+      recommendation: 'Close zombie reqs or escalate to hiring managers',
+    });
+  }
+
+  // Stalled reqs are at risk of becoming zombies
+  if (stalledReqCount > 0) {
+    bottlenecks.push({
+      id: 'stalled-reqs',
+      type: 'stage',
+      name: 'Stalled Requisitions',
+      severity: stalledReqCount >= 5 ? 'bad' : 'warn',
+      metric: 'Reqs with no activity 14-30 days',
+      value: stalledReqCount,
+      impact: 'Reqs stalled 14+ days risk becoming zombie positions',
+      recommendation: 'Review and either revive recruiting efforts or close reqs',
+    });
+  }
+
+  // Check for slow TTF
   if (overview?.medianTTF !== null && overview?.medianTTF !== undefined && overview.medianTTF > 45) {
     bottlenecks.push({
       id: 'ttf-slow',
@@ -465,7 +500,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
   // KPI drill-down state
   const [kpiDrillDown, setKpiDrillDown] = useState<{
     isOpen: boolean;
-    type: 'ttf' | 'offers' | 'acceptRate' | 'stalledReqs' | 'hmLatency' | 'pipelineRatio' | null;
+    type: 'ttf' | 'offers' | 'acceptRate' | 'stalledReqs' | 'zombieReqs' | 'hmLatency' | 'pipelineRatio' | null;
   }>({ isOpen: false, type: null });
 
   // Action update counter to force re-render when actions change
@@ -494,6 +529,17 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
     setKpiDrillDown(prev => ({ ...prev, isOpen: false }));
   }, []);
 
+  // Handle risk item click - drill down into stalled/zombie reqs or show actions
+  // Handle risk item click - drill down into stalled/zombie reqs
+  const handleRiskClick = useCallback((riskId: string) => {
+    if (riskId === 'stalled-reqs') {
+      setKpiDrillDown({ isOpen: true, type: 'stalledReqs' });
+    } else if (riskId === 'zombie-reqs') {
+      setKpiDrillDown({ isOpen: true, type: 'zombieReqs' });
+    }
+    // Note: HM friction items (hm-slow-*) could be handled here for HM detail drawer
+  }, []);
+
   // Map data to V2 formats
   const openReqCount = useMemo(
     () =>
@@ -517,21 +563,34 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
     [overview, openReqCount, hmFriction, activeCandidateCount]
   );
 
-  const reqHealthScoreByReqId = useMemo(() => {
-    const scores = new Map<string, number>();
-    if (!dataStore.requisitions.length) return scores;
-
-    const assessments = assessAllReqHealth(
+  const reqHealthAssessments = useMemo(() => {
+    if (!dataStore.requisitions.length) return [];
+    return assessAllReqHealth(
       dataStore.requisitions,
       dataStore.candidates,
       dataStore.events,
       DEFAULT_HYGIENE_SETTINGS
     );
-    for (const a of assessments) {
+  }, [dataStore.requisitions, dataStore.candidates, dataStore.events]);
+
+  const reqHealthScoreByReqId = useMemo(() => {
+    const scores = new Map<string, number>();
+    for (const a of reqHealthAssessments) {
       scores.set(a.reqId, reqHealthStatusToScore(a.status));
     }
     return scores;
-  }, [dataStore.requisitions, dataStore.candidates, dataStore.events]);
+  }, [reqHealthAssessments]);
+
+  // Count stalled and zombie reqs for risk display
+  const { stalledReqCount, zombieReqCount } = useMemo(() => {
+    let stalled = 0;
+    let zombie = 0;
+    for (const a of reqHealthAssessments) {
+      if (a.status === ReqHealthStatus.STALLED) stalled++;
+      if (a.status === ReqHealthStatus.ZOMBIE) zombie++;
+    }
+    return { stalledReqCount: stalled, zombieReqCount: zombie };
+  }, [reqHealthAssessments]);
 
   // Create filtered data based on dashboard context filters - this is the source of truth for all metrics
   const filteredRequisitions = useMemo(() => {
@@ -594,8 +653,6 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
     return reqs;
   }, [filteredRequisitions, filteredCandidates, dataStore.events, reqHealthScoreByReqId]);
 
-  const bottlenecks = useMemo(() => createBottlenecks(overview, hmFriction), [overview, hmFriction]);
-
   // Generate unified action queue (includes HM actions, Explain actions, and manual actions from Ask)
   const datasetId = useMemo(() => {
     if (dataStore.lastImportAt) {
@@ -630,6 +687,12 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
   }, [dataStore, datasetId, actionUpdateCounter]);
 
   const openActions = useMemo(() => getOpenActions(unifiedActions), [unifiedActions]);
+
+  // Create bottlenecks/risks from operational data (NOT actions - those have their own panel)
+  const bottlenecks = useMemo(
+    () => createBottlenecks(overview, hmFriction, stalledReqCount, zombieReqCount),
+    [overview, hmFriction, stalledReqCount, zombieReqCount]
+  );
 
   const pipelineStages = useMemo(
     () => createPipelineStages(filteredCandidates, dataStore.config.stageMapping),
@@ -729,14 +792,22 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
         return buildOffersRecords(offersWithOutcome, filteredRequisitions, dataStore.users);
 
       case 'stalledReqs':
-        // Stalled requisitions (no activity in 14+ days)
+        // Stalled requisitions (no activity in 14-30 days)
         const stalledReqs = filteredRequisitions.filter(r => {
           if (r.closed_at) return false;
-          const healthScore = reqHealthScoreByReqId.get(r.req_id);
-          // Stalled reqs have score around 55, zombies around 20
-          return healthScore !== undefined && healthScore <= 55;
+          const assessment = reqHealthAssessments.find(a => a.reqId === r.req_id);
+          return assessment?.status === ReqHealthStatus.STALLED;
         });
         return buildReqsRecords(stalledReqs, dataStore.users);
+
+      case 'zombieReqs':
+        // Zombie requisitions (no activity in 30+ days)
+        const zombieReqs = filteredRequisitions.filter(r => {
+          if (r.closed_at) return false;
+          const assessment = reqHealthAssessments.find(a => a.reqId === r.req_id);
+          return assessment?.status === ReqHealthStatus.ZOMBIE;
+        });
+        return buildReqsRecords(zombieReqs, dataStore.users);
 
       case 'hmLatency':
         // Show open reqs as context for HM latency
@@ -750,15 +821,16 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
       default:
         return [];
     }
-  }, [kpiDrillDown.isOpen, kpiDrillDown.type, filteredCandidates, filteredRequisitions, dataStore.users, reqHealthScoreByReqId]);
+  }, [kpiDrillDown.isOpen, kpiDrillDown.type, filteredCandidates, filteredRequisitions, dataStore.users, reqHealthAssessments]);
 
   // Get drill-down type and title for KPI
   const kpiDrillDownConfig = useMemo(() => {
-    const configs: Record<string, { title: string; type: 'medianTTF' | 'offers' | 'offerAcceptRate' | 'stalledReqs' | 'openReqs' | 'pipelineCoverage' }> = {
+    const configs: Record<string, { title: string; type: 'medianTTF' | 'offers' | 'offerAcceptRate' | 'stalledReqs' | 'zombieReqs' | 'openReqs' | 'pipelineCoverage' }> = {
       ttf: { title: 'Time to Fill Breakdown', type: 'medianTTF' },
       offers: { title: 'All Offers Extended', type: 'offers' },
       acceptRate: { title: 'Offer Accept/Reject Status', type: 'offerAcceptRate' },
-      stalledReqs: { title: 'Stalled Requisitions', type: 'stalledReqs' },
+      stalledReqs: { title: 'Stalled Requisitions (14-30 days inactive)', type: 'stalledReqs' },
+      zombieReqs: { title: 'Zombie Requisitions (30+ days inactive)', type: 'zombieReqs' },
       hmLatency: { title: 'Open Requisitions', type: 'openReqs' },
       pipelineRatio: { title: 'Reqs by Pipeline Coverage', type: 'pipelineCoverage' },
     };
@@ -964,8 +1036,6 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
     );
   }
 
-  // Count risks by severity
-  const highRiskCount = bottlenecks.filter(b => b.severity === 'bad').length;
   // Action count from unified action queue
   const actionCount = openActions.length;
 
@@ -1021,29 +1091,19 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
         </section>
 
         {/* Two Column Layout: Risks | Actions */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
-          {/* Risks Panel */}
+        <div className="grid gap-6 lg:grid-cols-2 mb-8 items-start">
+          {/* Bottlenecks & Risks Section */}
           <section>
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-warn" />
-                <h2 className="text-base font-semibold text-foreground">Risks</h2>
-                {highRiskCount > 0 && (
-                  <span className="rounded-full bg-bad-bg px-2 py-0.5 text-xs font-medium text-bad">
-                    {highRiskCount} HIGH
-                  </span>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={handleViewRisks}
-                className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                View All
-                <ChevronRight className="h-4 w-4" />
-              </button>
+            <div className="mb-4 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warn" />
+              <h2 className="text-base font-semibold text-foreground">Bottlenecks & Risks</h2>
+              {bottlenecks.filter(b => b.severity === 'bad').length > 0 && (
+                <span className="rounded-full bg-bad/15 px-2 py-0.5 text-xs font-medium text-bad">
+                  {bottlenecks.filter(b => b.severity === 'bad').length} Critical
+                </span>
+              )}
             </div>
-            <BottleneckPanelV2 bottlenecks={bottlenecks} onViewAll={handleViewBottlenecks} />
+            <BottleneckPanelV2 bottlenecks={bottlenecks} onRiskClick={handleRiskClick} />
           </section>
 
           {/* Actions Section */}
@@ -1069,7 +1129,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             </div>
             {/* Unified Action Queue */}
             <div className="rounded-lg border border-glass-border bg-bg-glass">
-              <div className="max-h-[360px] divide-y divide-glass-border overflow-y-auto">
+              <div className="max-h-[400px] divide-y divide-glass-border overflow-y-auto">
                 {openActions.length === 0 ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">
                     No open actions. Great work!
@@ -1236,8 +1296,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
       {/* Confidence Breakdown Modal */}
       {showConfidenceBreakdown && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && setShowConfidenceBreakdown(false)}
         >
           <div className="w-full max-w-md mx-4 bg-[var(--color-bg-surface)] rounded-lg overflow-hidden">
@@ -1319,45 +1378,42 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
       {/* All Actions Modal */}
       {showAllActions && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && setShowAllActions(false)}
         >
-          <div className="w-full max-w-3xl bg-[var(--color-bg-surface)] rounded-xl overflow-hidden max-h-[85vh] flex flex-col shadow-2xl">
+          <div className="w-full max-w-2xl glass-panel rounded-xl overflow-hidden max-h-[85vh] flex flex-col">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-glass-border flex justify-between items-center shrink-0 bg-muted/30">
+            <div className="px-5 py-4 border-b border-border flex justify-between items-center shrink-0">
               <div>
-                <h5 className="text-xl font-semibold flex items-center gap-2 text-foreground">
+                <h5 className="text-lg font-semibold flex items-center gap-2 text-foreground">
                   <Zap className="h-5 w-5 text-accent" />
                   Action Queue
                 </h5>
-                <p className="text-sm text-muted-foreground mt-0.5">{actionCount} actions requiring attention</p>
+                <p className="text-sm text-muted-foreground">{actionCount} actions requiring attention</p>
               </div>
               <button
                 type="button"
-                className="text-muted-foreground hover:text-foreground p-2 rounded hover:bg-muted/50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-muted transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
                 onClick={() => setShowAllActions(false)}
               >
-                <span className="text-2xl leading-none">&times;</span>
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Actions List */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {openActions.map((action) => {
-                const priorityColor = action.priority === 'P0' ? 'border-l-bad' : action.priority === 'P1' ? 'border-l-warn' : 'border-l-good';
-                const priorityBg = action.priority === 'P0' ? 'bg-bad/5' : action.priority === 'P1' ? 'bg-warn/5' : 'bg-good/5';
                 const priorityLabel = action.priority === 'P0' ? 'Urgent' : action.priority === 'P1' ? 'High' : 'Normal';
                 const ownerLabel = action.owner_type === 'HIRING_MANAGER' ? 'Hiring Manager' : action.owner_type === 'RECRUITER' ? 'Recruiter' : 'TA Ops';
                 return (
                   <div
                     key={action.action_id}
-                    className={`rounded-lg border border-glass-border ${priorityBg} border-l-4 ${priorityColor} overflow-hidden`}
+                    className="rounded-lg border border-border bg-muted/20 overflow-hidden"
                   >
                     {/* Card Header */}
-                    <div className="px-4 py-3 flex items-center justify-between gap-4 bg-muted/20">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="text-base font-semibold text-foreground truncate">{action.title}</span>
+                    <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-border/50">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-semibold text-foreground">{action.title}</span>
                         <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-medium ${
                           action.priority === 'P0' ? 'bg-bad/20 text-bad' :
                           action.priority === 'P1' ? 'bg-warn/20 text-warn' : 'bg-good/20 text-good'
@@ -1371,27 +1427,27 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
                           saveActionState(datasetId, action.action_id, 'DONE');
                           setActionUpdateCounter(c => c + 1);
                         }}
-                        className="shrink-0 rounded-lg px-4 py-2 text-sm font-medium bg-good/10 text-good hover:bg-good/20 transition-colors flex items-center gap-2"
+                        className="shrink-0 rounded-md px-3 py-1.5 text-xs font-medium bg-good/10 text-good hover:bg-good/20 transition-colors flex items-center gap-1.5 border border-good/30"
                       >
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-3.5 w-3.5" />
                         Mark Done
                       </button>
                     </div>
 
                     {/* Card Body */}
-                    <div className="px-4 py-3 space-y-3">
-                      {/* Key details in a clean row */}
-                      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                    <div className="px-4 py-3 space-y-2">
+                      {/* Key details */}
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
                         {action.candidate_name && (
                           <div>
                             <span className="text-muted-foreground">Candidate:</span>{' '}
-                            <span className="text-foreground font-medium">{action.candidate_name}</span>
+                            <span className="text-foreground">{action.candidate_name}</span>
                           </div>
                         )}
                         {action.req_title && (
                           <div>
                             <span className="text-muted-foreground">Req:</span>{' '}
-                            <span className="text-foreground font-medium">{action.req_title}</span>
+                            <span className="text-foreground">{action.req_title}</span>
                           </div>
                         )}
                         <div>
@@ -1400,9 +1456,9 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
                         </div>
                       </div>
 
-                      {/* Status badge */}
+                      {/* Status */}
                       {action.evidence?.short_reason && (
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/40 text-sm">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="text-foreground">{action.evidence.short_reason}</span>
                         </div>
@@ -1438,85 +1494,63 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
       {/* Single Action Detail Modal */}
       {selectedAction && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && setSelectedAction(null)}
         >
-          <div className="w-full max-w-lg bg-[var(--color-bg-surface)] rounded-xl overflow-hidden shadow-2xl">
-            {/* Header with priority indicator */}
-            <div className={`px-6 py-4 border-b-4 ${
-              selectedAction.priority === 'P0' ? 'border-b-bad bg-bad/10' :
-              selectedAction.priority === 'P1' ? 'border-b-warn bg-warn/10' : 'border-b-good bg-good/10'
-            }`}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                      selectedAction.priority === 'P0' ? 'bg-bad/20 text-bad' :
-                      selectedAction.priority === 'P1' ? 'bg-warn/20 text-warn' : 'bg-good/20 text-good'
-                    }`}>
-                      {selectedAction.priority === 'P0' ? 'Urgent' : selectedAction.priority === 'P1' ? 'High Priority' : 'Normal'}
-                    </span>
-                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
-                      {selectedAction.owner_type === 'HIRING_MANAGER' ? 'Hiring Manager' : selectedAction.owner_type === 'RECRUITER' ? 'Recruiter' : 'TA Ops'}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground">{selectedAction.title}</h3>
-                </div>
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-muted/50 transition-colors"
-                  onClick={() => setSelectedAction(null)}
-                >
-                  <span className="text-2xl leading-none">&times;</span>
-                </button>
+          <div className="w-full max-w-md glass-panel rounded-xl overflow-hidden">
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-border flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-foreground">{selectedAction.title}</h3>
+                {selectedAction.evidence?.short_reason && (
+                  <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    {selectedAction.evidence.short_reason}
+                  </p>
+                )}
               </div>
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground p-1.5 rounded-md hover:bg-muted transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
+                onClick={() => setSelectedAction(null)}
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
 
             {/* Body */}
-            <div className="px-6 py-5 space-y-5">
-              {/* Context Section */}
-              <div className="space-y-3">
+            <div className="px-5 py-4 space-y-4">
+              {/* Context details */}
+              <div className="space-y-2.5 text-sm">
                 {selectedAction.candidate_name && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 text-sm text-muted-foreground">Candidate</div>
-                    <div className="text-sm font-medium text-foreground">{selectedAction.candidate_name}</div>
+                  <div className="flex">
+                    <span className="w-24 text-muted-foreground shrink-0">Candidate</span>
+                    <span className="text-sm text-foreground font-medium">{selectedAction.candidate_name}</span>
                   </div>
                 )}
                 {selectedAction.req_title && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-24 text-sm text-muted-foreground">Requisition</div>
-                    <div className="text-sm font-medium text-foreground">{selectedAction.req_title}</div>
+                  <div className="flex">
+                    <span className="w-24 text-muted-foreground shrink-0">Requisition</span>
+                    <span className="text-sm text-foreground font-medium">{selectedAction.req_title}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-3">
-                  <div className="w-24 text-sm text-muted-foreground">Owner</div>
-                  <div className="text-sm text-foreground">{selectedAction.owner_name || 'Unassigned'}</div>
+                <div className="flex">
+                  <span className="w-24 text-muted-foreground shrink-0">Owner</span>
+                  <span className="text-foreground">{selectedAction.owner_name || 'Unassigned'}</span>
                 </div>
               </div>
 
-              {/* Status */}
-              {selectedAction.evidence?.short_reason && (
-                <div className="p-4 rounded-lg bg-muted/30 border border-glass-border">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Status:</span>
-                    <span className="font-medium text-foreground">{selectedAction.evidence.short_reason}</span>
-                  </div>
-                </div>
-              )}
-
               {/* What to do */}
               {selectedAction.recommended_steps && selectedAction.recommended_steps.length > 0 && (
-                <div>
-                  <div className="text-sm font-semibold text-foreground mb-3">What to do</div>
+                <div className="pt-3 border-t border-border">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Next step</div>
                   <div className="space-y-2">
                     {selectedAction.recommended_steps.map((step, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-accent/20 text-accent text-xs font-semibold flex items-center justify-center">
+                      <div key={idx} className="flex items-start gap-2.5 text-sm">
+                        <span className="shrink-0 w-5 h-5 rounded-full bg-accent/20 text-accent text-xs font-medium flex items-center justify-center mt-0.5">
                           {idx + 1}
                         </span>
-                        <p className="text-sm text-foreground leading-relaxed pt-0.5">{step}</p>
+                        <p className="text-foreground">{step}</p>
                       </div>
                     ))}
                   </div>
@@ -1524,8 +1558,8 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
               )}
             </div>
 
-            {/* Footer Actions */}
-            <div className="px-6 py-4 border-t border-glass-border bg-muted/20 flex items-center justify-between gap-4">
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-border flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedAction(null)}
@@ -1540,7 +1574,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
                   setActionUpdateCounter(c => c + 1);
                   setSelectedAction(null);
                 }}
-                className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-good text-white hover:bg-good/90 transition-colors flex items-center gap-2"
+                className="px-4 py-2 rounded-md text-sm font-medium bg-good text-white hover:bg-good/90 transition-colors flex items-center gap-2"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Mark as Done

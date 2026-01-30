@@ -114,7 +114,7 @@ export function OracleBacksideV2({
             <tbody className="divide-y divide-border">
               {explainData.pipelineCounts.map((pc) => (
                 <tr key={pc.stage}>
-                  <th className="py-1 text-left font-medium text-foreground">{pc.stageName}</th>
+                  <th className="py-1 text-left text-sm font-medium text-foreground">{pc.stageName}</th>
                   <td className="py-1 text-right font-mono text-foreground">{pc.count}</td>
                 </tr>
               ))}
@@ -138,7 +138,7 @@ export function OracleBacksideV2({
             <tbody className="divide-y divide-border">
               {explainData.stageRates.map((sr) => (
                 <tr key={sr.stage}>
-                  <th className="py-1 text-left font-medium text-foreground">{sr.stageName}</th>
+                  <th className="py-1 text-left text-sm font-medium text-foreground">{sr.stageName}</th>
                   <td className="py-1 text-center font-mono text-foreground">
                     {(sr.observed * 100).toFixed(0)}%
                   </td>
@@ -170,7 +170,7 @@ export function OracleBacksideV2({
             <tbody className="divide-y divide-border">
               {explainData.stageDurations.map((sd) => (
                 <tr key={sd.stage}>
-                  <th className="py-1 text-left font-medium text-foreground">{sd.stageName}</th>
+                  <th className="py-1 text-left text-sm font-medium text-foreground">{sd.stageName}</th>
                   <td
                     className={`py-1 text-center font-mono ${
                       sd.model === 'lognormal' ? 'text-good' : 'text-muted-foreground'
@@ -324,7 +324,7 @@ export function OracleBacksideV2({
                     </thead>
                     <tbody className="divide-y divide-border">
                       <tr>
-                        <th className="py-1 text-left font-medium text-foreground">Screen</th>
+                        <th className="py-1 text-left text-sm font-medium text-foreground">Screen</th>
                         <td className="py-1 text-center font-mono text-foreground">
                           {explainData.capacity.profile.recruiter.screens_per_week.throughput_per_week.toFixed(
                             1
@@ -336,7 +336,7 @@ export function OracleBacksideV2({
                       </tr>
                       {explainData.capacity.profile.recruiter.hm_screens_per_week && (
                         <tr>
-                          <th className="py-1 text-left font-medium text-foreground">HM Screen</th>
+                          <th className="py-1 text-left text-sm font-medium text-foreground">HM Screen</th>
                           <td className="py-1 text-center font-mono text-foreground">
                             {explainData.capacity.profile.recruiter.hm_screens_per_week.throughput_per_week.toFixed(
                               1
@@ -349,7 +349,7 @@ export function OracleBacksideV2({
                       )}
                       {explainData.capacity.profile.recruiter.onsites_per_week && (
                         <tr>
-                          <th className="py-1 text-left font-medium text-foreground">Onsite</th>
+                          <th className="py-1 text-left text-sm font-medium text-foreground">Onsite</th>
                           <td className="py-1 text-center font-mono text-foreground">
                             {explainData.capacity.profile.recruiter.onsites_per_week.throughput_per_week.toFixed(
                               1
@@ -362,7 +362,7 @@ export function OracleBacksideV2({
                       )}
                       {explainData.capacity.profile.recruiter.offers_per_week && (
                         <tr>
-                          <th className="py-1 text-left font-medium text-foreground">Offer</th>
+                          <th className="py-1 text-left text-sm font-medium text-foreground">Offer</th>
                           <td className="py-1 text-center font-mono text-foreground">
                             {explainData.capacity.profile.recruiter.offers_per_week.throughput_per_week.toFixed(
                               1
@@ -403,7 +403,7 @@ export function OracleBacksideV2({
                       </thead>
                       <tbody className="divide-y divide-border">
                         <tr>
-                          <th className="py-1 text-left font-medium text-foreground">Interviews</th>
+                          <th className="py-1 text-left text-sm font-medium text-foreground">Interviews</th>
                           <td className="py-1 text-center font-mono text-foreground">
                             {explainData.capacity.profile.hm.interviews_per_week.throughput_per_week.toFixed(
                               1
@@ -438,7 +438,7 @@ export function OracleBacksideV2({
                     <tbody className="divide-y divide-border">
                       {explainData.capacity.penaltyResultV11.top_bottlenecks.map((b) => (
                         <tr key={b.stage}>
-                          <th className="py-1 text-left font-medium text-foreground">
+                          <th className="py-1 text-left text-sm font-medium text-foreground">
                             {b.stage_name}
                           </th>
                           <td className="py-1 text-center">
@@ -495,7 +495,7 @@ export function OracleBacksideV2({
                         .slice(0, 4)
                         .map((d) => (
                           <tr key={d.stage}>
-                            <th className="py-1 text-left font-medium text-foreground">
+                            <th className="py-1 text-left text-sm font-medium text-foreground">
                               {d.stage_name}
                             </th>
                             <td className="py-1 text-center font-mono text-foreground">

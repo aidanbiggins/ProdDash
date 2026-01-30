@@ -910,7 +910,7 @@ export function ForecastingTabV2({
                       <div key={src.source} className="flex items-center mb-3">
                         <div className="flex-1">
                           <div className="flex justify-between mb-1">
-                            <span className="font-medium text-foreground">{src.source}</span>
+                            <span className="text-sm font-medium text-foreground">{src.source}</span>
                             <span className="text-foreground">{src.targetPercentage}%</span>
                           </div>
                           <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
@@ -961,7 +961,7 @@ export function ForecastingTabV2({
                             {risk.severity.toUpperCase()}
                           </span>
                           <div className="flex-1">
-                            <div className="font-medium text-foreground">{risk.factor}</div>
+                            <div className="text-sm font-medium text-foreground">{risk.factor}</div>
                             <div className="text-sm text-muted-foreground">{risk.dataPoint}</div>
                             <div className="text-sm mt-1 text-foreground">
                               <strong>Impact:</strong> {risk.impact}
@@ -1202,7 +1202,7 @@ export function ForecastingTabV2({
                           }
                         >
                           <td className="px-4 py-3">
-                            <div className="font-medium text-foreground">{req.reqTitle}</div>
+                            <div className="text-sm font-medium text-foreground">{req.reqTitle}</div>
                             <div className="text-xs text-muted-foreground">
                               {req.function} · {req.level}
                             </div>

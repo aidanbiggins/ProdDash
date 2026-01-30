@@ -420,7 +420,7 @@ function HMOverviewV2({
                       />
                     </td>
                     <td className="px-3 py-3">
-                      <div className="font-medium text-foreground">{hm.hmName}</div>
+                      <div className="text-sm font-medium text-foreground">{hm.hmName}</div>
                       {hm.team && <div className="text-xs text-muted-foreground">{hm.team}</div>}
                     </td>
                     <td className="px-3 py-3 text-right font-mono">{hm.totalOpenReqs}</td>
@@ -628,7 +628,7 @@ function HMScorecardV2({
                 className="cursor-pointer hover:bg-muted/30 transition-colors"
               >
                 <td className="px-3 py-3">
-                  <div className="font-medium text-foreground truncate max-w-[150px]" title={r.reqTitle}>{r.reqTitle}</div>
+                  <div className="text-sm font-medium text-foreground truncate max-w-[150px]" title={r.reqTitle}>{r.reqTitle}</div>
                   <div className="text-xs text-muted-foreground">{r.reqId}</div>
                 </td>
                 {showHmColumn && (
@@ -931,7 +931,7 @@ function HMActionQueueV2({
                       </td>
                     )}
                     <td className="px-3 py-3">
-                      <div className="font-medium text-foreground truncate max-w-[140px]" title={a.reqTitle}>{a.reqTitle}</div>
+                      <div className="text-sm font-medium text-foreground truncate max-w-[140px]" title={a.reqTitle}>{a.reqTitle}</div>
                       <div className="text-xs text-muted-foreground">{a.reqId}</div>
                     </td>
                     <td className="px-3 py-3">

@@ -36,7 +36,7 @@ export function RebalanceRecommendationsV2({
     return (
       <div className="glass-panel p-6 text-center">
         <CheckCircle className="w-8 h-8 text-good mx-auto mb-2" />
-        <p className="text-foreground font-medium">Team is Well Balanced</p>
+        <p className="text-sm text-foreground font-medium">Team is Well Balanced</p>
         <p className="text-sm text-muted-foreground mt-1">
           No rebalancing recommendations at this time.
         </p>
@@ -61,7 +61,7 @@ export function RebalanceRecommendationsV2({
                   <span className="text-xs font-medium px-2 py-0.5 rounded bg-primary/20 text-primary">
                     #{rec.rank}
                   </span>
-                  <span className="font-medium text-foreground truncate max-w-[200px]" title={rec.reqTitle}>
+                  <span className="text-sm font-medium text-foreground truncate max-w-[200px]" title={rec.reqTitle}>
                     {rec.reqTitle}
                   </span>
                 </div>
@@ -82,7 +82,7 @@ export function RebalanceRecommendationsV2({
               {/* From */}
               <div className="text-center flex-1">
                 <div className="text-xs text-muted-foreground mb-1">From</div>
-                <div className="font-medium text-foreground">
+                <div className="text-sm font-medium text-foreground">
                   {getDisplayName(rec.fromRecruiterName, 'from')}
                 </div>
                 <div className="flex items-center justify-center gap-1 mt-1 text-xs">
@@ -99,7 +99,7 @@ export function RebalanceRecommendationsV2({
               {/* To */}
               <div className="text-center flex-1">
                 <div className="text-xs text-muted-foreground mb-1">To</div>
-                <div className="font-medium text-foreground">
+                <div className="text-sm font-medium text-foreground">
                   {getDisplayName(rec.toRecruiterName, 'to')}
                 </div>
                 <div className="flex items-center justify-center gap-1 mt-1 text-xs">

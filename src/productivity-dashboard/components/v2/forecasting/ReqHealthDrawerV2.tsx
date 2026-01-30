@@ -206,7 +206,7 @@ export function ReqHealthDrawerV2({
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <div className="font-medium text-foreground mb-1">
+                          <div className="text-sm font-medium text-foreground mb-1">
                             {driver.description}
                           </div>
                           <div className="text-sm text-muted-foreground">
@@ -319,7 +319,7 @@ export function ReqHealthDrawerV2({
                       {action.priority}
                     </span>
                     <div className="flex-1">
-                      <div className="font-medium text-foreground">{action.action}</div>
+                      <div className="text-sm font-medium text-foreground">{action.action}</div>
                       <div className="text-sm text-muted-foreground mt-1">
                         {action.expectedImpact}
                         <span className="text-primary ml-2">({action.owner})</span>
@@ -347,7 +347,7 @@ export function ReqHealthDrawerV2({
                         {intervention.priority}
                       </span>
                       <div className="flex-1">
-                        <div className="font-medium text-foreground">{intervention.title}</div>
+                        <div className="text-sm font-medium text-foreground">{intervention.title}</div>
                         <div className="text-sm text-muted-foreground mt-1">
                           {intervention.description}
                           <span className="text-primary ml-2">({intervention.owner_type})</span>
@@ -375,7 +375,7 @@ export function ReqHealthDrawerV2({
                       {intervention.priority}
                     </span>
                     <div className="flex-1">
-                      <div className="font-medium text-foreground">{intervention.title}</div>
+                      <div className="text-sm font-medium text-foreground">{intervention.title}</div>
                       <div className="text-sm text-muted-foreground mt-1">
                         {intervention.description}
                         <span className="text-primary ml-2">({intervention.owner_type})</span>

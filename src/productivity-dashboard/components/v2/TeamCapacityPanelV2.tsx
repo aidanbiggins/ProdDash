@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Users, Info, ChevronRight, AlertTriangle, CheckCircle, TrendingDown } from 'lucide-react';
 import type { TeamCapacity } from './types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/ui/tooltip';
@@ -95,8 +95,6 @@ export function TeamCapacityPanelV2({
   onViewAll,
   isComplexityWeighted = false
 }: TeamCapacityPanelV2Props) {
-  const [showRecruiterList, setShowRecruiterList] = useState(false);
-
   // Aggregate stats
   const totalRecruiters = teams.reduce((sum, t) => sum + t.headcount, 0);
   const totalOpenReqs = teams.reduce((sum, t) => sum + t.openReqs, 0);
@@ -111,18 +109,11 @@ export function TeamCapacityPanelV2({
   const status = getCapacityStatus(overallUtilization);
   const statusConfig = getStatusConfig(status);
 
-  // Identify recruiters with issues (need to convert utilization to percentage if it's decimal)
+  // Convert utilization to percentage (might be 0-1 or 0-100 scale)
   const recruitersWithUtilization = recruiters.map(r => ({
     ...r,
-    // Fix: utilization might be 0-1 scale, convert to 0-100
     utilizationPct: r.utilization > 1 ? Math.round(r.utilization) : Math.round(r.utilization * 100)
   }));
-
-  const overloadedRecruiters = recruitersWithUtilization.filter(r => r.utilizationPct > 100);
-  const stretchedRecruiters = recruitersWithUtilization.filter(r => r.utilizationPct > 85 && r.utilizationPct <= 100);
-  const availableRecruiters = recruitersWithUtilization.filter(r => r.utilizationPct <= 30);
-
-  const hasProblems = overloadedRecruiters.length > 0 || stretchedRecruiters.length > 0;
 
   return (
     <div className="glass-panel h-full flex flex-col">
@@ -193,56 +184,27 @@ export function TeamCapacityPanelV2({
           )}
         </div>
 
-        {/* Alerts (only show if there are problems) */}
-        {hasProblems && (
-          <div className="space-y-2 mb-4">
-            {overloadedRecruiters.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-red-400 bg-red-500/10 rounded px-2 py-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>
-                  <strong>{overloadedRecruiters.length}</strong> recruiter{overloadedRecruiters.length !== 1 ? 's' : ''} overloaded
-                  ({overloadedRecruiters.map(r => r.recruiterName.split('_').pop()).join(', ')})
-                </span>
-              </div>
-            )}
-            {stretchedRecruiters.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-500/10 rounded px-2 py-1.5">
-                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>
-                  <strong>{stretchedRecruiters.length}</strong> near capacity
-                </span>
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* Available capacity callout (only if significantly underutilized) */}
-        {!hasProblems && availableRecruiters.length >= 3 && (
-          <div className="flex items-center gap-2 text-xs text-green-400 bg-green-500/10 rounded px-2 py-1.5 mb-4">
-            <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>
-              <strong>{availableRecruiters.length}</strong> recruiters have significant availability
-            </span>
-          </div>
-        )}
-
-        {/* Expandable Recruiter List */}
-        {showRecruiterList && recruitersWithUtilization.length > 0 && (
-          <div className="border-t border-border pt-3 mt-3 max-h-[180px] overflow-y-auto space-y-2">
+        {/* Recruiter List - always visible */}
+        {recruitersWithUtilization.length > 0 && (
+          <div className="space-y-2.5">
             {recruitersWithUtilization
               .sort((a, b) => b.utilizationPct - a.utilizationPct)
               .map((r) => {
                 const barColor = getBarColor(r.utilizationPct);
+                const displayName = r.recruiterName.includes('_')
+                  ? r.recruiterName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                  : r.recruiterName;
                 return (
-                  <div key={r.recruiterId} className="flex items-center gap-2 text-xs">
-                    <span className="text-foreground truncate w-24">{r.recruiterName}</span>
-                    <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div key={r.recruiterId} className="flex items-center gap-3">
+                    <span className="text-sm text-foreground truncate w-28 shrink-0">{displayName}</span>
+                    <div className="flex-1 h-2 rounded-full bg-muted/50 overflow-hidden">
                       <div
-                        className={`h-full rounded-full ${barColor}`}
+                        className={`h-full rounded-full transition-all ${barColor}`}
                         style={{ width: `${Math.min(r.utilizationPct, 100)}%` }}
                       />
                     </div>
-                    <span className={`font-mono w-10 text-right ${
+                    <span className={`font-mono text-sm w-12 text-right shrink-0 ${
                       r.utilizationPct > 100 ? 'text-red-400' :
                       r.utilizationPct > 85 ? 'text-amber-400' :
                       r.utilizationPct < 30 ? 'text-slate-400' : 'text-foreground'
@@ -256,29 +218,19 @@ export function TeamCapacityPanelV2({
         )}
       </div>
 
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-border flex items-center justify-between">
-        {recruitersWithUtilization.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowRecruiterList(!showRecruiterList)}
-            className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-          >
-            {showRecruiterList ? 'Hide' : 'Show'} breakdown
-            <ChevronRight className={`w-3 h-3 transition-transform ${showRecruiterList ? 'rotate-90' : ''}`} />
-          </button>
-        )}
-        {onViewAll && (
+      {/* Footer - just the capacity planning link */}
+      {onViewAll && (
+        <div className="px-4 py-3 border-t border-border">
           <button
             type="button"
             onClick={onViewAll}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             Capacity planning
             <ChevronRight className="w-3 h-3" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

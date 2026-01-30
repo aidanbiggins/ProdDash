@@ -42,7 +42,7 @@ export function ScenarioOutputPanelV2({
 
           {output.blocked.missing_data.length > 0 && (
             <div className="text-left mt-4">
-              <h6 className="text-foreground font-medium mb-2">Missing Data:</h6>
+              <h6 className="text-sm text-foreground font-medium mb-2">Missing Data:</h6>
               <ul className="space-y-2">
                 {output.blocked.missing_data.map((item, idx) => (
                   <li key={idx} className="flex items-start">
@@ -59,7 +59,7 @@ export function ScenarioOutputPanelV2({
 
           {output.blocked.fix_instructions.length > 0 && (
             <div className="text-left mt-4">
-              <h6 className="text-foreground font-medium mb-2">To Fix:</h6>
+              <h6 className="text-sm text-foreground font-medium mb-2">To Fix:</h6>
               <ul className="list-decimal pl-5 space-y-1">
                 {output.blocked.fix_instructions.map((instruction, idx) => (
                   <li key={idx} className="text-muted-foreground">

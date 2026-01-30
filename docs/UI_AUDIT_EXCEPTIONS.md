@@ -56,6 +56,10 @@ These files are allowed to use hardcoded hex colors (`#abc123`) or `rgb()`/`rgba
 | `RecruiterDetailTabV2.tsx` | Performance charts |
 | `PipelineFunnelV2.tsx` | Funnel visualization |
 | `PipelineChartV2.tsx` | Pipeline chart colors |
+| `QualityTabV2.tsx` | Quality metrics bar/horizontal charts |
+| `SourceEffectivenessTabV2.tsx` | Source effectiveness pie/bar charts |
+| `VelocityInsightsTabV2.tsx` | Velocity decay area charts |
+| `MiniChartsV2.tsx` | Mini spark charts for velocity panel |
 
 **Status/Badge Components:**
 | File | Justification |

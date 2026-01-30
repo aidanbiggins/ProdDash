@@ -109,19 +109,9 @@ export function PlanTabV2({
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-1">
-          Plan
-        </h1>
-        <p className="text-xs md:text-sm text-muted-foreground">
-          Capacity planning, forecasting, and scenario modeling
-        </p>
-      </div>
-
+    <div className="max-w-[1600px] mx-auto">
       {/* Sub-navigation */}
-      <div className="flex gap-1 overflow-x-auto pb-2 mb-6 -mx-4 px-4 md:mx-0 md:px-0">
+      <div className="flex gap-1 overflow-x-auto pb-2 mb-4">
         {subViews.map((view) => (
           <button
             key={view.id}

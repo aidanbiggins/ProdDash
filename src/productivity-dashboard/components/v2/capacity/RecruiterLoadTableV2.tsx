@@ -208,7 +208,7 @@ export function RecruiterLoadTableV2({
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(row.status)}
-                    <span className="font-medium text-foreground">
+                    <span className="text-sm font-medium text-foreground">
                       {getDisplayName(row, idx)}
                     </span>
                     {getConfidenceBadge(row.confidence)}

@@ -29,7 +29,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
   return (
     <div className="org-switcher relative">
       <button
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border border-glass-border text-foreground hover:bg-bg-elevated transition-colors"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border border-glass-border text-foreground hover:bg-muted transition-colors"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
@@ -37,7 +37,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
         <i className="bi bi-building"></i>
         <span className="org-name max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{currentOrg?.name || 'Select Organization'}</span>
         {userRole && (
-          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${userRole === 'super_admin' ? 'bg-bad text-white' : userRole === 'admin' ? 'bg-accent text-bg-base' : 'bg-bg-elevated text-muted-foreground'}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${userRole === 'super_admin' ? 'bg-bad text-white' : userRole === 'admin' ? 'bg-accent text-bg-base' : 'bg-muted text-muted-foreground'}`}>
             {roleLabel}
           </span>
         )}
@@ -47,7 +47,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[1000]" onClick={() => setIsOpen(false)} />
-          <ul className="absolute top-full left-0 z-[1001] mt-1 min-w-[250px] py-1 bg-bg-surface border border-glass-border rounded-md shadow-glass-elevated">
+          <ul className="absolute top-full left-0 z-[1001] mt-1 min-w-[250px] py-1 bg-background border border-border rounded-md shadow-lg">
             {memberships.length === 0 ? (
               <li className="px-3 py-2 text-sm text-muted-foreground">
                 No organizations
@@ -57,12 +57,12 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
                 <li key={membership.organization_id}>
                   <button
                     className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
-                      membership.organization_id === currentOrg?.id ? 'bg-accent text-bg-base' : 'text-foreground hover:bg-bg-elevated'
+                      membership.organization_id === currentOrg?.id ? 'bg-accent text-bg-base' : 'text-foreground hover:bg-muted'
                     }`}
                     onClick={() => handleSelect(membership.organization_id)}
                   >
                     <span>{membership.organization.name}</span>
-                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${membership.organization_id === currentOrg?.id ? 'bg-white/30' : 'bg-bg-elevated text-muted-foreground'}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${membership.organization_id === currentOrg?.id ? 'bg-white/30' : 'bg-muted text-muted-foreground'}`}>
                       {membership.role}
                     </span>
                   </button>
@@ -70,12 +70,12 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
               ))
             )}
 
-            {(hasMultipleOrgs || memberships.length > 0) && <li className="my-1 border-t border-glass-border" />}
+            {(hasMultipleOrgs || memberships.length > 0) && <li className="my-1 border-t border-border" />}
 
             {onOrgSettings && currentOrg && (userRole === 'admin' || userRole === 'super_admin') && (
               <li>
                 <button
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-bg-elevated transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                   onClick={() => {
                     onOrgSettings();
                     setIsOpen(false);
@@ -90,7 +90,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
             {onCreateOrg && (
               <li>
                 <button
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-bg-elevated transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                   onClick={() => {
                     onCreateOrg();
                     setIsOpen(false);
@@ -209,7 +209,7 @@ export function CreateOrgModal({ isOpen, onClose, onCreate }: CreateOrgModalProp
               </div>
             </div>
             <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
-              <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80 disabled:opacity-50" onClick={onClose} disabled={isLoading}>
+              <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-muted/80 disabled:opacity-50" onClick={onClose} disabled={isLoading}>
                 Cancel
               </button>
               <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50" disabled={isLoading || !name.trim()}>

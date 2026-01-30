@@ -1,10 +1,10 @@
 import React from 'react';
-import { AlertTriangle, TrendingUp, User, Building2, FileText } from 'lucide-react';
+import { AlertTriangle, TrendingUp, User, Building2, FileText, ChevronRight } from 'lucide-react';
 import type { BottleneckItem, RiskLevel } from './types';
 
 interface BottleneckPanelV2Props {
   bottlenecks: BottleneckItem[];
-  onViewAll?: () => void;
+  onRiskClick?: (riskId: string) => void;
 }
 
 const severityColors: Record<RiskLevel, { bg: string; border: string; text: string; dot: string }> = {
@@ -41,32 +41,26 @@ const typeIcons: Record<string, React.ReactNode> = {
   requisition: <FileText className="w-4 h-4" />,
 };
 
-export function BottleneckPanelV2({ bottlenecks, onViewAll }: BottleneckPanelV2Props) {
+export function BottleneckPanelV2({ bottlenecks, onRiskClick }: BottleneckPanelV2Props) {
   const sortedBottlenecks = [...bottlenecks].sort((a, b) => {
     const severityOrder: Record<RiskLevel, number> = { bad: 0, warn: 1, neutral: 2, good: 3 };
     return severityOrder[a.severity] - severityOrder[b.severity];
   });
 
   return (
-    <div className="glass-panel">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-        <AlertTriangle className="w-4 h-4 text-amber-500" />
-        <h3 className="text-sm font-semibold text-foreground">Bottlenecks & Risks</h3>
-        <span className="ml-auto px-2 py-0.5 rounded text-xs font-medium bg-red-500/15 text-red-400">
-          {bottlenecks.filter(b => b.severity === 'bad').length} Critical
-        </span>
-      </div>
-
+    <div className="rounded-lg border border-glass-border bg-bg-glass">
       {/* Bottleneck List */}
-      <div className="p-3 space-y-2 max-h-[400px] overflow-y-auto">
+      <div className="p-3 space-y-2">
         {sortedBottlenecks.map((bottleneck, index) => {
           const colors = severityColors[bottleneck.severity];
+          const isClickable = !!onRiskClick;
 
           return (
-            <div
+            <button
               key={bottleneck.id}
-              className={`p-3 rounded-lg border-l-2 ${colors.bg} ${colors.border} transition-colors hover:bg-accent/30`}
+              type="button"
+              onClick={() => onRiskClick?.(bottleneck.id)}
+              className={`w-full text-left p-3 rounded-lg border-l-2 ${colors.bg} ${colors.border} transition-colors hover:bg-accent/20 ${isClickable ? 'cursor-pointer' : ''}`}
             >
               {/* Header Row */}
               <div className="flex items-start gap-2 mb-2">
@@ -87,6 +81,9 @@ export function BottleneckPanelV2({ bottlenecks, onViewAll }: BottleneckPanelV2P
                     </span>
                   </div>
                 </div>
+                {isClickable && (
+                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                )}
               </div>
 
               {/* Impact */}
@@ -100,21 +97,11 @@ export function BottleneckPanelV2({ bottlenecks, onViewAll }: BottleneckPanelV2P
                   {bottleneck.recommendation}
                 </p>
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
 
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-border">
-        <button
-          type="button"
-          onClick={onViewAll}
-          className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
-        >
-          View all bottlenecks
-        </button>
-      </div>
     </div>
   );
 }

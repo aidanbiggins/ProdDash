@@ -239,7 +239,7 @@ export function DataHealthTabV2({
               <tbody className="divide-y divide-border/50">
                 {ghostCandidates.slice(0, 50).map(ghost => (
                   <tr key={ghost.candidateId} className="hover:bg-muted/30">
-                    <td className="px-4 py-3 font-medium text-foreground">{ghost.candidateName || ghost.candidateId}</td>
+                    <td className="px-4 py-3 text-sm font-medium text-foreground">{ghost.candidateName || ghost.candidateId}</td>
                     <td className="px-4 py-3">
                       <div className="truncate max-w-[200px]" title={ghost.reqTitle}>
                         {ghost.reqTitle}
@@ -320,7 +320,7 @@ export function DataHealthTabV2({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-medium text-foreground truncate max-w-[250px]" title={req.req_title}>
+                      <div className="text-sm font-medium text-foreground truncate max-w-[250px]" title={req.req_title}>
                         {req.req_title}
                       </div>
                       <span className="text-xs text-muted-foreground">{req.req_id}</span>

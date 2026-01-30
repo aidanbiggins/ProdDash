@@ -356,7 +356,7 @@ export function CapacityRebalancerTabV2() {
                     <div className="flex items-start gap-2 p-2 rounded bg-muted/30">
                       <span className="text-primary font-bold">1.</span>
                       <div>
-                        <span className="font-medium text-foreground">Hire more recruiters</span>
+                        <span className="text-sm font-medium text-foreground">Hire more recruiters</span>
                         <span className="text-muted-foreground ml-1">
                           — Team needs ~{Math.ceil(utilizationResult.summary.totalDemand / 10)} recruiters
                           at current demand (you have {utilizationResult.rows.length})
@@ -366,7 +366,7 @@ export function CapacityRebalancerTabV2() {
                     <div className="flex items-start gap-2 p-2 rounded bg-muted/30">
                       <span className="text-primary font-bold">2.</span>
                       <div>
-                        <span className="font-medium text-foreground">Reduce demand</span>
+                        <span className="text-sm font-medium text-foreground">Reduce demand</span>
                         <span className="text-muted-foreground ml-1">
                           — Pause or close low-priority reqs to bring utilization under 100%
                         </span>
@@ -375,7 +375,7 @@ export function CapacityRebalancerTabV2() {
                     <div className="flex items-start gap-2 p-2 rounded bg-muted/30">
                       <span className="text-primary font-bold">3.</span>
                       <div>
-                        <span className="font-medium text-foreground">Outsource or use agencies</span>
+                        <span className="text-sm font-medium text-foreground">Outsource or use agencies</span>
                         <span className="text-muted-foreground ml-1">
                           — Temporarily offload sourcing for high-volume roles
                         </span>

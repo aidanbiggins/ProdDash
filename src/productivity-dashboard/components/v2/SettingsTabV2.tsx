@@ -113,17 +113,7 @@ export function SettingsTabV2({ defaultSubView = 'data-health', onSubViewChange 
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
-      {/* Page Header */}
-      <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight mb-1">
-          Settings
-        </h1>
-        <p className="text-xs md:text-sm text-muted-foreground">
-          Configure data sources, SLAs, AI integrations, and organization settings
-        </p>
-      </div>
-
+    <div className="max-w-[1600px] mx-auto">
       {/* Sub-navigation - Mobile dropdown / Desktop tabs */}
       {isMobile ? (
         <div className="relative mb-6">

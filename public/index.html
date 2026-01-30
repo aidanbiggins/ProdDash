@@ -3,7 +3,68 @@
 
 <head>
   <!-- Must run first: prevent Safari extension conflicts -->
-  <script>var data = null;</script>
+  <script>
+    (function() {
+      // Define 'data' globally to prevent extension errors
+      var data = window.data = null;
+
+      // List of error patterns to suppress (typically from browser extensions)
+      var suppressPatterns = [
+        "Can't find variable: data",
+        "data is not defined",
+        "Can't find variable: $",
+        "$ is not defined"
+      ];
+
+      function shouldSuppress(msg) {
+        if (!msg) return false;
+        for (var i = 0; i < suppressPatterns.length; i++) {
+          if (msg.indexOf(suppressPatterns[i]) !== -1) return true;
+        }
+        return false;
+      }
+
+      // Intercept errors before React sees them (capture phase)
+      window.addEventListener('error', function(e) {
+        if (shouldSuppress(e.message)) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          console.warn('[Extension error suppressed]', e.message);
+          return false;
+        }
+      }, true);
+
+      // Hide CRA error overlay when it appears with extension errors
+      var observer = new MutationObserver(function(mutations) {
+        var overlay = document.querySelector('iframe[style*="position: fixed"]');
+        if (overlay && overlay.contentDocument) {
+          var content = overlay.contentDocument.body?.textContent || '';
+          if (shouldSuppress(content)) {
+            overlay.style.display = 'none';
+            console.warn('[Extension error overlay hidden]');
+          }
+        }
+        // Also check for the newer error overlay format
+        var errorDiv = document.getElementById('webpack-dev-server-client-overlay');
+        if (errorDiv) {
+          var text = errorDiv.textContent || '';
+          if (shouldSuppress(text)) {
+            errorDiv.style.display = 'none';
+            console.warn('[Extension error overlay hidden]');
+          }
+        }
+      });
+
+      // Start observing once DOM is ready
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+      } else {
+        document.addEventListener('DOMContentLoaded', function() {
+          observer.observe(document.body, { childList: true, subtree: true });
+        });
+      }
+    })();
+  </script>
   <meta charset="utf-8" />
   <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />

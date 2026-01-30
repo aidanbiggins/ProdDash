@@ -90,7 +90,8 @@ export function PipelineFunnelV2({ stages, benchmarks, onStageClick }: PipelineF
       <div className="p-6">
         <div className="space-y-4">
           {stages.map((stage, index) => {
-            const barWidth = Math.max((stage.count / maxCount) * 100, 15);
+            // Minimum 20% width to ensure numbers are readable on mobile
+            const barWidth = Math.max((stage.count / maxCount) * 100, 20);
             const color = stageColors[index % stageColors.length];
             const benchmark = getBenchmarkForStage(stage.name, benchmarks);
             const hasConversion = index < stages.length - 1 && stage.conversionRate !== undefined;
@@ -125,7 +126,7 @@ export function PipelineFunnelV2({ stages, benchmarks, onStageClick }: PipelineF
                     <button
                       type="button"
                       onClick={() => onStageClick?.(stage.name, stage.count)}
-                      className="h-10 rounded-lg transition-all duration-500 relative overflow-hidden cursor-pointer hover:ring-2 hover:ring-accent/50 focus:outline-none focus:ring-2 focus:ring-accent"
+                      className="h-10 min-w-[60px] rounded-lg transition-all duration-500 relative cursor-pointer hover:ring-2 hover:ring-accent/50 focus:outline-none focus:ring-2 focus:ring-accent flex items-center"
                       style={{
                         width: `${barWidth}%`,
                         backgroundColor: `${color}20`,
@@ -139,11 +140,9 @@ export function PipelineFunnelV2({ stages, benchmarks, onStageClick }: PipelineF
                           background: `linear-gradient(90deg, ${color}40 0%, transparent 100%)`,
                         }}
                       />
-                      <div className="absolute inset-0 flex items-center px-3">
-                        <span className="font-mono text-lg font-semibold text-foreground">
-                          {stage.count}
-                        </span>
-                      </div>
+                      <span className="relative z-10 px-3 font-mono text-lg font-semibold text-foreground whitespace-nowrap">
+                        {stage.count}
+                      </span>
                     </button>
 
                     {/* Conversion Arrow with Target Comparison */}

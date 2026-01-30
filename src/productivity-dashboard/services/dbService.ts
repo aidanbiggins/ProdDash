@@ -354,8 +354,29 @@ export interface ClearProgress {
 export type ClearProgressCallback = (progress: ClearProgress) => void;
 
 /**
+ * Timeout wrapper for Supabase queries to prevent hanging indefinitely.
+ * Creates a race between the query and a timeout, throwing if timeout wins.
+ */
+function createTimeoutRace(timeoutMs: number, operationName: string): {
+    promise: Promise<never>;
+    clear: () => void;
+} {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const promise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+            reject(new Error(`${operationName} timeout after ${timeoutMs}ms`));
+        }, timeoutMs);
+    });
+    return {
+        promise,
+        clear: () => clearTimeout(timeoutId)
+    };
+}
+
+/**
  * Helper to delete rows from a table in chunks.
  * Uses 200-row batches to avoid URL length limits with .in() queries.
+ * Includes 30s timeout per query to prevent indefinite hangs.
  */
 async function chunkedDelete(
     table: string,
@@ -369,6 +390,7 @@ async function chunkedDelete(
 
     const startTime = Date.now();
     let totalDeleted = 0;
+    const QUERY_TIMEOUT = 30000; // 30 seconds per query
 
     // Delete records matching the org_id
     if (orgId) {
@@ -377,44 +399,68 @@ async function chunkedDelete(
 
         while (hasMore) {
             // Get a batch of IDs - use smaller chunk to keep URL size manageable
-            const { data, error: selectError } = await client
-                .from(table)
-                .select(idColumn)
-                .eq('organization_id', orgId)
-                .limit(chunkSize);
+            const timeout1 = createTimeoutRace(QUERY_TIMEOUT, `SELECT from ${table}`);
+            try {
+                const selectResult = await Promise.race([
+                    client
+                        .from(table)
+                        .select(idColumn)
+                        .eq('organization_id', orgId)
+                        .limit(chunkSize),
+                    timeout1.promise
+                ]);
+                timeout1.clear();
 
-            if (selectError) {
-                console.error(`[DB Clear] Error selecting from ${table}:`, selectError);
-                throw selectError;
+                const { data, error: selectError } = selectResult;
+
+                if (selectError) {
+                    console.error(`[DB Clear] Error selecting from ${table}:`, selectError);
+                    throw selectError;
+                }
+
+                if (!data || data.length === 0) {
+                    hasMore = false;
+                    break;
+                }
+
+                // Delete this batch using .in() with IDs - smaller chunk avoids URL length limits
+                const ids = data.map((row: any) => row[idColumn]);
+                const timeout2 = createTimeoutRace(QUERY_TIMEOUT, `DELETE from ${table}`);
+                try {
+                    const deleteResult = await Promise.race([
+                        client
+                            .from(table)
+                            .delete()
+                            .in(idColumn, ids),
+                        timeout2.promise
+                    ]);
+                    timeout2.clear();
+
+                    const { error: deleteError } = deleteResult;
+
+                    if (deleteError) {
+                        console.error(`[DB Clear] Error deleting from ${table}:`, deleteError);
+                        throw deleteError;
+                    }
+                } catch (err) {
+                    timeout2.clear();
+                    throw err;
+                }
+
+                totalDeleted += ids.length;
+                onProgress?.(totalDeleted);
+                if (totalDeleted % 1000 === 0 || data.length < chunkSize) {
+                    console.log(`[DB Clear] ${table}: deleted ${totalDeleted} rows so far...`);
+                }
+
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 20));
+
+                if (data.length < chunkSize) hasMore = false;
+            } catch (err) {
+                timeout1.clear();
+                throw err;
             }
-
-            if (!data || data.length === 0) {
-                hasMore = false;
-                break;
-            }
-
-            // Delete this batch using .in() with IDs - smaller chunk avoids URL length limits
-            const ids = data.map((row: any) => row[idColumn]);
-            const { error: deleteError } = await client
-                .from(table)
-                .delete()
-                .in(idColumn, ids);
-
-            if (deleteError) {
-                console.error(`[DB Clear] Error deleting from ${table}:`, deleteError);
-                throw deleteError;
-            }
-
-            totalDeleted += ids.length;
-            onProgress?.(totalDeleted);
-            if (totalDeleted % 1000 === 0 || data.length < chunkSize) {
-                console.log(`[DB Clear] ${table}: deleted ${totalDeleted} rows so far...`);
-            }
-
-            // Small delay to avoid rate limiting
-            await new Promise(resolve => setTimeout(resolve, 20));
-
-            if (data.length < chunkSize) hasMore = false;
         }
         console.log(`[DB Clear] Deleted ${totalDeleted} rows from ${table} in ${Date.now() - startTime}ms`);
     }
@@ -423,36 +469,60 @@ async function chunkedDelete(
     let nullDeleted = 0;
     let hasMoreNull = true;
     while (hasMoreNull) {
-        const { data, error: selectError } = await client
-            .from(table)
-            .select(idColumn)
-            .is('organization_id', null)
-            .limit(chunkSize);
+        const timeout3 = createTimeoutRace(QUERY_TIMEOUT, `SELECT NULL org from ${table}`);
+        try {
+            const selectResult = await Promise.race([
+                client
+                    .from(table)
+                    .select(idColumn)
+                    .is('organization_id', null)
+                    .limit(chunkSize),
+                timeout3.promise
+            ]);
+            timeout3.clear();
 
-        if (selectError) {
-            console.error(`[DB Clear] Error selecting NULL org from ${table}:`, selectError);
-            throw selectError;
+            const { data, error: selectError } = selectResult;
+
+            if (selectError) {
+                console.error(`[DB Clear] Error selecting NULL org from ${table}:`, selectError);
+                throw selectError;
+            }
+
+            if (!data || data.length === 0) {
+                hasMoreNull = false;
+                break;
+            }
+
+            const ids = data.map((row: any) => row[idColumn]);
+            const timeout4 = createTimeoutRace(QUERY_TIMEOUT, `DELETE NULL org from ${table}`);
+            try {
+                const deleteResult = await Promise.race([
+                    client
+                        .from(table)
+                        .delete()
+                        .in(idColumn, ids),
+                    timeout4.promise
+                ]);
+                timeout4.clear();
+
+                const { error: deleteError } = deleteResult;
+
+                if (deleteError) {
+                    console.error(`[DB Clear] Error deleting NULL org from ${table}:`, deleteError);
+                    throw deleteError;
+                }
+            } catch (err) {
+                timeout4.clear();
+                throw err;
+            }
+
+            nullDeleted += ids.length;
+            onProgress?.(totalDeleted + nullDeleted);
+            if (data.length < chunkSize) hasMoreNull = false;
+        } catch (err) {
+            timeout3.clear();
+            throw err;
         }
-
-        if (!data || data.length === 0) {
-            hasMoreNull = false;
-            break;
-        }
-
-        const ids = data.map((row: any) => row[idColumn]);
-        const { error: deleteError } = await client
-            .from(table)
-            .delete()
-            .in(idColumn, ids);
-
-        if (deleteError) {
-            console.error(`[DB Clear] Error deleting NULL org from ${table}:`, deleteError);
-            throw deleteError;
-        }
-
-        nullDeleted += ids.length;
-        onProgress?.(totalDeleted + nullDeleted);
-        if (data.length < chunkSize) hasMoreNull = false;
     }
     if (nullDeleted > 0) {
         console.log(`[DB Clear] Deleted ${nullDeleted} rows with NULL org_id from ${table}`);

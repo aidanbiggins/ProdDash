@@ -116,7 +116,7 @@ export function FitMatrixV2({
           <tbody>
             {recruiters.map(([recruiterId, recruiterName], rIdx) => (
               <tr key={recruiterId} className="border-t border-border">
-                <td className="px-2 py-2 font-medium text-foreground whitespace-nowrap sticky left-0 bg-bg-glass">
+                <td className="px-2 py-2 text-sm font-medium text-foreground whitespace-nowrap sticky left-0 bg-bg-glass">
                   {getDisplayName(recruiterName, rIdx, 'recruiter')}
                 </td>
                 {segments.map(segment => {

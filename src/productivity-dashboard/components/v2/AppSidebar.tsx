@@ -202,12 +202,12 @@ export function AppSidebar({ activeTab, onTabChange, userEmail, onSignOut, dataS
                     title={stale ? 'Data may be outdated. Click to update.' : 'Click to update data'}
                 >
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Database className={`h-3 w-3 ${stale ? 'text-warning' : 'text-sidebar-foreground/50'}`} />
-                        <span>{dataStats.candidateCount.toLocaleString()}</span>
-                        <span className="opacity-50">•</span>
-                        <span>{dataStats.reqCount} reqs</span>
+                        <Database className={`h-3 w-3 shrink-0 ${stale ? 'text-warning' : 'text-sidebar-foreground/50'}`} />
+                        <span className="truncate">
+                            {dataStats.reqCount} reqs · {dataStats.candidateCount.toLocaleString()} candidates
+                        </span>
                         {stale && (
-                            <span className="ml-auto flex items-center gap-1 text-warning">
+                            <span className="ml-auto flex items-center shrink-0">
                                 <span className="relative flex h-1.5 w-1.5">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-warning"></span>
@@ -216,8 +216,8 @@ export function AppSidebar({ activeTab, onTabChange, userEmail, onSignOut, dataS
                         )}
                     </div>
                     <div className={`text-[10px] mt-0.5 pl-[18px] ${stale ? 'text-warning/80' : 'text-muted-foreground/70'}`}>
-                        {formatLastUpdated(dataStats.lastUpdated)}
-                        {stale && ' · Refresh recommended'}
+                        Updated {formatLastUpdated(dataStats.lastUpdated).toLowerCase()}
+                        {stale && ' · refresh recommended'}
                     </div>
                 </button>
             )}

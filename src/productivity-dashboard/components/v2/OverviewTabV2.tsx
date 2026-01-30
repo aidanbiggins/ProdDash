@@ -538,7 +538,7 @@ export function OverviewTabV2({ onSelectRecruiter }: OverviewTabV2Props) {
                 <span className="text-muted-foreground font-medium">
                   Overall ({overallPTR.from} → {overallPTR.to})
                 </span>
-                <span className="font-mono text-foreground font-medium">
+                <span className="font-mono text-sm text-foreground font-medium">
                   {overallPTR.rate !== null ? `${overallPTR.rate.toFixed(1)}%` : '—'}
                 </span>
               </div>

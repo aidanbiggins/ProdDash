@@ -181,9 +181,9 @@ export function SpinUpTeamFormV2({
             onChange={(e) => setHiringManagerId(e.target.value)}
           >
             <option value="">Not specified</option>
-            {hiringManagers.map((hm, idx) => (
+            {hiringManagers.map((hm) => (
               <option key={hm.hm_id} value={hm.hm_id}>
-                Manager {idx + 1}
+                {hm.name}
               </option>
             ))}
           </select>
@@ -197,7 +197,7 @@ export function SpinUpTeamFormV2({
           Assigned Recruiters (Optional)
         </label>
         <div className="flex flex-wrap gap-2">
-          {recruiters.map((r, idx) => (
+          {recruiters.map((r) => (
             <button
               key={r.recruiter_id}
               type="button"
@@ -208,7 +208,7 @@ export function SpinUpTeamFormV2({
               }`}
               onClick={() => toggleRecruiter(r.recruiter_id)}
             >
-              Recruiter {idx + 1}
+              {r.name}
               {assignedRecruiterIds.includes(r.recruiter_id) && (
                 <Check size={14} className="ml-1" />
               )}

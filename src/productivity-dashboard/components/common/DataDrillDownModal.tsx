@@ -16,6 +16,7 @@ export type DrillDownType =
     | 'submittals'
     | 'openReqs'
     | 'stalledReqs'
+    | 'zombieReqs'
     | 'pipelineStage'
     | 'pipelineCoverage';
 
@@ -383,6 +384,7 @@ function getColumns(type: DrillDownType): { key: string; label: string }[] {
             ];
         case 'openReqs':
         case 'stalledReqs':
+        case 'zombieReqs':
             return [
                 { key: 'reqId', label: 'Req ID' },
                 { key: 'reqTitle', label: 'Job Title' },

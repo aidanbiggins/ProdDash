@@ -227,7 +227,7 @@ export function QualityTabV2({ quality }: QualityTabV2Props) {
                 <tbody className="divide-y divide-border">
                   {topRecruiters.map(r => (
                     <tr key={r.recruiterId} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-3 py-3 font-medium text-foreground">{r.recruiterName}</td>
+                      <td className="px-3 py-3 text-sm font-medium text-foreground">{r.recruiterName}</td>
                       <td className="px-3 py-3 text-right font-mono">{r.offerCount}</td>
                       <td className="px-3 py-3 text-right">
                         <BadgeV2 variant="success">
@@ -269,7 +269,7 @@ export function QualityTabV2({ quality }: QualityTabV2Props) {
                 <tbody className="divide-y divide-border">
                   {bottomRecruiters.map(r => (
                     <tr key={r.recruiterId} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-3 py-3 font-medium text-foreground">{r.recruiterName}</td>
+                      <td className="px-3 py-3 text-sm font-medium text-foreground">{r.recruiterName}</td>
                       <td className="px-3 py-3 text-right font-mono">{r.offerCount}</td>
                       <td className="px-3 py-3 text-right">
                         <BadgeV2 variant={r.acceptanceRate !== null && r.acceptanceRate >= 0.6 ? 'warning' : 'danger'}>

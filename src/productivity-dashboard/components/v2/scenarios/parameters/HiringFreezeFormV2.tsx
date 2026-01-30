@@ -166,10 +166,10 @@ export function HiringFreezeFormV2({ onSubmit, isRunning }: HiringFreezeFormV2Pr
       </div>
 
       {/* Impact Preview */}
-      <div className="p-3 rounded-lg bg-primary/10 text-primary flex items-start">
+      <div className="p-3 rounded-lg bg-primary/10 text-primary flex items-start text-sm">
         <Info size={16} className="mr-2 mt-0.5 shrink-0" />
         <div>
-          <strong>Impact Preview:</strong> A {freezeWeeks}-week freeze with "
+          <span className="font-semibold">Impact Preview:</span> A {freezeWeeks}-week freeze with "
           {candidateAction.toLowerCase().replace('_', ' ')}" action will affect{' '}
           {scopeType === 'ALL' ? 'all open requisitions' : `requisitions in scope`}. Expect
           candidate decay and potential pipeline attrition.

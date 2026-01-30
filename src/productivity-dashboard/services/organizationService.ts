@@ -237,7 +237,13 @@ export async function getUserMemberships(userId: string): Promise<OrganizationMe
 
   try {
     console.log('[OrgService] Querying organization_members...');
-    const { data, error } = await supabase
+
+    // Add timeout to prevent hanging indefinitely (must be shorter than auth timeout)
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('organization_members query timeout')), 5000);
+    });
+
+    const queryPromise = supabase
       .from('organization_members')
       .select(`
         id,
@@ -255,6 +261,8 @@ export async function getUserMemberships(userId: string): Promise<OrganizationMe
         )
       `)
       .eq('user_id', userId);
+
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
     console.log('[OrgService] Query complete. Error:', error, 'Data:', data?.length ?? 0, 'rows');
     if (error) throw error;
@@ -519,8 +527,9 @@ export async function checkIsSuperAdmin(userId: string): Promise<boolean> {
     console.log('[OrgService] Querying super_admins...');
 
     // Add timeout to prevent hanging indefinitely
+    // Must be shorter than auth loading timeout (10s) to avoid race conditions
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('super_admins query timeout')), 15000);
+      setTimeout(() => reject(new Error('super_admins query timeout')), 5000);
     });
 
     const queryPromise = supabase
