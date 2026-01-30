@@ -37,7 +37,7 @@ import { PipelineBenchmarkConfig, HistoricalBenchmarkResult } from '../../../typ
 import { ActionItem } from '../../../types/actionTypes';
 import { AiProviderConfig } from '../../../types/aiTypes';
 import { PipelineHealthCard, BenchmarkConfigModal } from '../../pipeline-health';
-import { VelocityCopilotPanelV2 } from './VelocityCopilotPanelV2';
+import { VelocityCopilotPanelV2, AICopilotInsight } from './VelocityCopilotPanelV2';
 import { SubViewHeader } from '../SubViewHeader';
 import { VELOCITY_PAGE_HELP } from '../../_legacy/velocity-insights/velocityHelpContent';
 import { calculatePipelineHealth, generateHistoricalBenchmarks } from '../../../services';
@@ -618,6 +618,117 @@ function CompactInsightCard({
   );
 }
 
+// Decision Brief - compact top summary of blockers and next action
+function DecisionBrief({
+  copilotInsights,
+  onViewEvidence,
+  onCreateAction,
+  createdActionIds
+}: {
+  copilotInsights: AICopilotInsight[];
+  onViewEvidence: (insight: AICopilotInsight) => void;
+  onCreateAction: (insight: AICopilotInsight) => void;
+  createdActionIds: Set<string>;
+}) {
+  const p0Insights = copilotInsights.filter(i => i.severity === 'P0');
+  const topP0 = p0Insights[0] ?? null;
+  const hasP0 = p0Insights.length > 0;
+  const isActionCreated = topP0 ? createdActionIds.has(topP0.id) : false;
+
+  // If no copilot insights yet, show minimal loading state
+  if (copilotInsights.length === 0) {
+    return (
+      <div className="glass-panel p-3 mb-4">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <i className="bi bi-hourglass-split"></i>
+          <span>Analyzing velocity data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-panel p-3 mb-4">
+      <div className="flex flex-col gap-3">
+        {/* Row 1: Blockers status */}
+        <div className="flex items-start gap-3">
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${hasP0 ? 'bg-bad/15' : 'bg-good/15'}`}>
+            <i className={`bi ${hasP0 ? 'bi-exclamation-octagon-fill text-bad' : 'bi-check-circle-fill text-good'}`}></i>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Blocked Now
+              </span>
+              {hasP0 && (
+                <span className="bg-bad/15 text-bad px-1.5 py-0.5 rounded text-[0.6rem] font-mono font-semibold">
+                  {p0Insights.length} P0{p0Insights.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-foreground truncate">
+              {hasP0 ? topP0.title : 'No blockers detected'}
+            </div>
+            {hasP0 && topP0.claim && (
+              <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                {topP0.claim}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 2: Next action (only if P0 exists) */}
+        {hasP0 && topP0.recommended_actions?.[0] && (
+          <div className="flex items-start gap-3 pl-11">
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-0.5">
+                Next Action
+              </div>
+              <div className="text-xs text-accent truncate">
+                → {topP0.recommended_actions[0]}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Row 3: CTAs */}
+        <div className="flex items-center gap-2 pt-1 border-t border-border">
+          {hasP0 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => onViewEvidence(topP0)}
+                className="px-3 py-1.5 text-xs bg-bad/10 border border-bad/30 rounded text-bad hover:bg-bad/20 transition-colors"
+              >
+                <i className="bi bi-eye mr-1"></i>
+                View top blocker
+              </button>
+              <button
+                type="button"
+                onClick={() => onCreateAction(topP0)}
+                disabled={isActionCreated}
+                className={`px-3 py-1.5 text-xs rounded transition-colors ${
+                  isActionCreated
+                    ? 'bg-muted border border-border text-muted-foreground'
+                    : 'bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20'
+                }`}
+              >
+                <i className={`bi ${isActionCreated ? 'bi-check' : 'bi-plus-circle'} mr-1`}></i>
+                {isActionCreated ? 'Added' : 'Create action'}
+              </button>
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              <i className="bi bi-check-circle mr-1 text-good"></i>
+              No urgent issues requiring immediate attention
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function VelocityInsightsTabV2({
   metrics,
   requisitions,
@@ -633,11 +744,14 @@ export function VelocityInsightsTabV2({
 }: VelocityInsightsTabV2Props) {
   const { candidateDecay, reqDecay, insights, cohortComparison } = metrics;
 
+  // Copilot insights state - lifted up for Decision Brief
+  const [copilotInsights, setCopilotInsights] = useState<AICopilotInsight[]>([]);
+
   // Evidence drawer state
   const [evidenceDrawerOpen, setEvidenceDrawerOpen] = useState(false);
   const [selectedInsight, setSelectedInsight] = useState<VelocityInsight | null>(null);
 
-  // Track created action IDs to prevent duplicates
+  // Track created action IDs to prevent duplicates (shared between Decision Brief and Copilot Panel)
   const [createdActionIds, setCreatedActionIds] = useState<Set<string>>(new Set());
 
   // Deep Dive accordion state - collapsed by default per plan
@@ -725,6 +839,52 @@ export function VelocityInsightsTabV2({
     setSelectedInsight(null);
   }, []);
 
+  // Handle copilot insight view evidence - convert AICopilotInsight to VelocityInsight
+  const handleCopilotViewEvidence = useCallback((insight: AICopilotInsight) => {
+    const velocityInsight: VelocityInsight = {
+      type: insight.severity === 'P0' ? 'warning' : insight.severity === 'P1' ? 'warning' : 'info',
+      title: insight.title,
+      description: insight.claim,
+      evidence: insight.citations.join(', '),
+      sampleSize: insight.deep_link_params?.sample_size as number | undefined,
+      soWhat: insight.why_now,
+      nextStep: insight.recommended_actions[0],
+      confidence: insight.severity === 'P0' ? 'HIGH' : insight.severity === 'P1' ? 'MED' : 'LOW'
+    };
+    setSelectedInsight(velocityInsight);
+    setEvidenceDrawerOpen(true);
+  }, []);
+
+  // Handle create action from copilot insight (for Decision Brief)
+  const handleCopilotCreateAction = useCallback((insight: AICopilotInsight) => {
+    if (!onAddToActionQueue) return;
+    if (createdActionIds.has(insight.id)) return;
+
+    const actionItem: ActionItem = {
+      action_id: `ai_copilot_${insight.id}`,
+      action_type: 'PROCESS_OPTIMIZATION',
+      owner_type: 'TA_OPS',
+      owner_id: 'velocity_copilot',
+      owner_name: 'Velocity Copilot',
+      req_id: ((insight.deep_link_params?.filter as { req_ids?: string[] })?.req_ids?.[0]) || 'N/A',
+      title: insight.title,
+      priority: insight.severity,
+      due_in_days: insight.severity === 'P0' ? 3 : insight.severity === 'P1' ? 7 : 14,
+      due_date: new Date(Date.now() + (insight.severity === 'P0' ? 3 : insight.severity === 'P1' ? 7 : 14) * 24 * 60 * 60 * 1000),
+      created_at: new Date(),
+      status: 'OPEN',
+      evidence: {
+        kpi_key: insight.citations[0] || 'velocity_copilot',
+        explain_provider_key: 'velocity_copilot',
+        short_reason: `${insight.claim} Citations: ${insight.citations.join(', ')}`
+      },
+      recommended_steps: insight.recommended_actions
+    };
+
+    onAddToActionQueue(actionItem);
+    setCreatedActionIds(prev => new Set(prev).add(insight.id));
+  }, [onAddToActionQueue, createdActionIds]);
+
   // Pipeline Health state
   const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
   const [historicalBenchmarks, setHistoricalBenchmarks] = useState<HistoricalBenchmarkResult | null>(null);
@@ -802,7 +962,15 @@ export function VelocityInsightsTabV2({
         helpContent={VELOCITY_PAGE_HELP}
       />
 
-      {/* EXECUTIVE HEADER: Key Metrics first for fast verdict */}
+      {/* Decision Brief - quick summary of blockers and next action */}
+      <DecisionBrief
+        copilotInsights={copilotInsights}
+        onViewEvidence={handleCopilotViewEvidence}
+        onCreateAction={handleCopilotCreateAction}
+        createdActionIds={createdActionIds}
+      />
+
+      {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
         <div className="glass-panel p-3 h-full text-center">
           <div className="stat-label mb-1">Median TTF</div>
@@ -861,6 +1029,7 @@ export function VelocityInsightsTabV2({
           aiConfig={aiConfig}
           onAddToActionQueue={onAddToActionQueue}
           onViewEvidence={handleViewEvidence}
+          onInsightsChange={setCopilotInsights}
         />
       )}
 
