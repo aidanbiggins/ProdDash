@@ -637,6 +637,9 @@ export function VelocityInsightsTabV2({
   // Track created action IDs to prevent duplicates
   const [createdActionIds, setCreatedActionIds] = useState<Set<string>>(new Set());
 
+  // Deep Dive accordion state - collapsed by default per plan
+  const [deepDiveExpanded, setDeepDiveExpanded] = useState(false);
+
   // Date range for chart footers
   const dateRange = useMemo(() => ({
     start: filters?.dateRange?.startDate ?? new Date(),
@@ -796,26 +799,8 @@ export function VelocityInsightsTabV2({
         helpContent={VELOCITY_PAGE_HELP}
       />
 
-      {/* AI Copilot Panel */}
-      {requisitions && candidates && events && filters && (
-        <VelocityCopilotPanelV2
-          metrics={metrics}
-          requisitions={requisitions}
-          candidates={candidates}
-          events={events}
-          filters={filters}
-          aiConfig={aiConfig}
-          onAddToActionQueue={onAddToActionQueue}
-          onViewEvidence={handleViewEvidence}
-        />
-      )}
-
-      {/* Limited Data Banner */}
-      <LimitedDataBanner sections={limitedDataSections} />
-
-      {/* SECTION 1: KPIs */}
-      <SectionHeaderLocal icon="📊" title="Key Metrics" subtitle="Velocity performance indicators" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+      {/* EXECUTIVE HEADER: Key Metrics first for fast verdict */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
         <div className="glass-panel p-3 h-full text-center">
           <div className="stat-label mb-1">Median TTF</div>
           <div className="font-mono font-bold text-2xl text-accent">
@@ -862,17 +847,320 @@ export function VelocityInsightsTabV2({
         </div>
       </div>
 
-      {/* SECTION 2: Pipeline Health */}
-      {(pipelineHealth || config) && (
-        <div className="mb-3">
-          <SectionHeaderLocal icon="🔬" title="Pipeline Health" subtitle="Stage-by-stage performance vs benchmarks" />
-          <PipelineHealthCard
-            healthSummary={pipelineHealth}
-            compact={false}
-            onConfigureClick={() => setShowBenchmarkConfig(true)}
-          />
-        </div>
+      {/* AI Copilot Panel - P0 insights first */}
+      {requisitions && candidates && events && filters && (
+        <VelocityCopilotPanelV2
+          metrics={metrics}
+          requisitions={requisitions}
+          candidates={candidates}
+          events={events}
+          filters={filters}
+          aiConfig={aiConfig}
+          onAddToActionQueue={onAddToActionQueue}
+          onViewEvidence={handleViewEvidence}
+        />
       )}
+
+      {/* Limited Data Banner */}
+      <LimitedDataBanner sections={limitedDataSections} />
+
+      {/* DEEP DIVE ACCORDION - collapsed by default */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setDeepDiveExpanded(!deepDiveExpanded)}
+          className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-lg bg-muted/30 border border-border text-foreground hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="w-7 h-7 bg-accent/15 rounded flex items-center justify-center text-sm">📊</span>
+            <div className="text-left">
+              <span className="font-semibold text-sm">Deep Dive Analysis</span>
+              <span className="text-muted-foreground text-xs ml-2">
+                Pipeline health, decay curves, cohort comparison
+              </span>
+            </div>
+          </div>
+          <i className={`bi bi-chevron-down text-muted-foreground transition-transform ${deepDiveExpanded ? 'rotate-180' : ''}`}></i>
+        </button>
+
+        {deepDiveExpanded && (
+          <div className="mt-3 space-y-4">
+            {/* Pipeline Health */}
+            {(pipelineHealth || config) && (
+              <div>
+                <SectionHeaderLocal icon="🔬" title="Pipeline Health" subtitle="Stage-by-stage performance vs benchmarks" />
+                <PipelineHealthCard
+                  healthSummary={pipelineHealth}
+                  compact={false}
+                  onConfigureClick={() => setShowBenchmarkConfig(true)}
+                />
+              </div>
+            )}
+
+            {/* Stage Timing (if available) */}
+            {stageTimingCapability.capability !== 'NONE' && stageTimingCapability.canShowStageDuration && (
+              <div>
+                <SectionHeaderLocal icon="⏱️" title="Stage Timing" subtitle="Time spent in each stage" />
+                {/* Stage timing visualization would go here */}
+              </div>
+            )}
+
+            {/* Decay Curves */}
+            <div>
+              <SectionHeaderLocal icon="📉" title="Decay Analysis" subtitle="How time affects outcomes" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                {/* Candidate Decay Curve */}
+                <div className="glass-panel p-3 h-full">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h6 className="mb-0 text-xs text-foreground">Candidate Decay</h6>
+                      <small className="text-muted-foreground text-[0.65rem]">Acceptance by time in process</small>
+                    </div>
+                    <DataChip n={candidateDecay.totalOffers} confidence={offerConfidence.level} />
+                  </div>
+                  {candidateChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={candidateChartData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
+                        <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" angle={-20} textAnchor="end" height={50} />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" tickFormatter={(v) => `${v}%`} />
+                        <Tooltip content={({ active, payload }) => {
+                          if (!active || !payload?.[0]) return null;
+                          const d = payload[0].payload;
+                          return (
+                            <div className="bg-background border border-border rounded p-2 text-xs shadow-lg">
+                              <div className="text-foreground font-semibold">{d.name}</div>
+                              <div style={{ color: getDecayColor(d.rate / 100) }}>{d.rate}% accept</div>
+                              <div className="text-muted-foreground">{d.count} offers</div>
+                            </div>
+                          );
+                        }} />
+                        {candidateDecay.decayStartDay && (
+                          <ReferenceLine x={candidateChartData.find(d => d.minDays >= candidateDecay.decayStartDay!)?.name} stroke="#dc2626" strokeDasharray="5 5" />
+                        )}
+                        <Bar dataKey="rate" radius={[2, 2, 0, 0]}>
+                          {candidateChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={getDecayColor(entry.rate / 100)} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground text-xs">
+                      Not enough offer data
+                    </div>
+                  )}
+                  <ChartHelp text="Each bar shows offer acceptance rate by days in process. Declining bars = candidate interest decay. Aim to extend offers before the decay starts." />
+                </div>
+
+                {/* Req Decay Curve */}
+                <div className="glass-panel p-3 h-full">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h6 className="mb-0 text-xs text-foreground">Requisition Decay</h6>
+                      <small className="text-muted-foreground text-[0.65rem]">Fill probability by days open</small>
+                    </div>
+                    <DataChip n={reqDecay.totalReqs} confidence={reqConfidence.level} />
+                  </div>
+                  {reqChartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <AreaChart data={reqChartData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
+                        <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" angle={-20} textAnchor="end" height={50} />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" tickFormatter={(v) => `${v}%`} />
+                        <Tooltip content={({ active, payload }) => {
+                          if (!active || !payload?.[0]) return null;
+                          const d = payload[0].payload;
+                          return (
+                            <div className="bg-background border border-border rounded p-2 text-xs shadow-lg">
+                              <div className="text-foreground font-semibold">{d.name}</div>
+                              <div className="text-teal-400">{d.rate}% fill rate</div>
+                              <div className="text-muted-foreground">{d.count} reqs</div>
+                            </div>
+                          );
+                        }} />
+                        <ReferenceLine y={Math.round(reqDecay.overallFillRate * 100)} stroke="#6b7280" strokeDasharray="3 3" />
+                        <Area type="monotone" dataKey="rate" stroke="#2dd4bf" strokeWidth={2} fill="url(#fillGradient)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground text-xs">
+                      Not enough req data
+                    </div>
+                  )}
+                  <ChartHelp text="Shows fill rate by days open. Declining curve = longer-open reqs are harder to fill. Consider interventions for stale reqs." />
+                </div>
+              </div>
+            </div>
+
+            {/* Fast vs Slow Cohort */}
+            {metrics.cohortComparison && (metrics.cohortComparison.fastHires.count > 0 || metrics.cohortComparison.slowHires.count > 0) && (
+              <div>
+                <SectionHeaderLocal
+                  icon="🏆"
+                  title="Fast vs Slow Hires"
+                  subtitle={`Top 25% (${metrics.cohortComparison.fastHires.count}) vs bottom 25% (${metrics.cohortComparison.slowHires.count})`}
+                  rightContent={<DataChip n={metrics.cohortComparison.fastHires.count + metrics.cohortComparison.slowHires.count} confidence={cohortConfidence.level} />}
+                />
+                <div className="glass-panel p-0 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs mb-0">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="p-2 text-left text-muted-foreground font-medium">Factor</th>
+                          <th className="p-2 text-center text-good font-medium">Fast ({Math.round(metrics.cohortComparison.fastHires.avgTimeToFill)}d)</th>
+                          <th className="p-2 text-center text-bad font-medium">Slow ({Math.round(metrics.cohortComparison.slowHires.avgTimeToFill)}d)</th>
+                          <th className="p-2 text-center text-muted-foreground font-medium">Impact</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {metrics.cohortComparison.factors.slice(0, 5).map((factor, idx) => (
+                          <tr key={idx} className="border-t border-border">
+                            <td className="p-2 text-foreground">{factor.factor}</td>
+                            <td className="p-2 text-center text-good">{factor.fastHiresValue} {factor.unit}</td>
+                            <td className="p-2 text-center text-bad">{factor.slowHiresValue} {factor.unit}</td>
+                            <td className="p-2 text-center">
+                              <span className={`px-1.5 py-0.5 rounded text-[0.6rem] ${
+                                factor.impactLevel === 'high' ? 'bg-bad/15 text-bad' :
+                                factor.impactLevel === 'medium' ? 'bg-warn/15 text-warn' : 'bg-muted text-muted-foreground'
+                              }`}>
+                                {factor.impactLevel}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Load vs Performance */}
+            {loadVsPerformance && loadVsPerformance.sampleSize >= 10 && (
+              <div>
+                <SectionHeaderLocal
+                  icon="⚖️"
+                  title="Workload vs. Hiring Speed"
+                  subtitle="Does recruiter workload impact time-to-fill?"
+                  rightContent={<DataChip n={loadVsPerformance.sampleSize} confidence={loadVsPerformance.confidence} />}
+                />
+                <div className="glass-panel p-4">
+                  {/* Insight Banner */}
+                  <div className={`p-3 rounded mb-4 ${
+                    loadVsPerformance.correlation.direction === 'positive' ? 'bg-warn/10 border border-warn/30' :
+                    loadVsPerformance.correlation.direction === 'negative' ? 'bg-primary/10 border border-primary/30' :
+                    'bg-muted/30 border border-border'
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg">
+                        {loadVsPerformance.correlation.direction === 'positive' ? '⚠️' :
+                         loadVsPerformance.correlation.direction === 'negative' ? '🔄' : '➖'}
+                      </span>
+                      <div>
+                        <div className="font-semibold text-foreground text-sm mb-1">
+                          {loadVsPerformance.correlation.direction === 'positive' ? 'Higher workload = slower hiring' :
+                           loadVsPerformance.correlation.direction === 'negative' ? 'Unexpected: Higher workload = faster hiring' :
+                           'No significant correlation found'}
+                        </div>
+                        <div className="text-muted-foreground text-xs">
+                          {loadVsPerformance.insight}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Buckets Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="p-2 text-left text-muted-foreground font-medium">Concurrent Reqs</th>
+                          <th className="p-2 text-center text-muted-foreground font-medium">Median TTF</th>
+                          <th className="p-2 text-center text-muted-foreground font-medium">Avg TTF</th>
+                          <th className="p-2 text-center text-muted-foreground font-medium">Hires</th>
+                          <th className="p-2 text-left text-muted-foreground font-medium">Visual</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {loadVsPerformance.buckets.map((bucket, idx) => (
+                          <tr key={idx} className="border-t border-border">
+                            <td className="p-2 text-sm text-foreground font-medium">{bucket.label}</td>
+                            <td className="p-2 text-center font-mono">
+                              {bucket.medianTTF !== null ? (
+                                <span className={
+                                  idx === 0 ? 'text-good' :
+                                  idx === loadVsPerformance.buckets.length - 1 && bucket.medianTTF && loadVsPerformance.buckets[0].medianTTF &&
+                                  bucket.medianTTF > loadVsPerformance.buckets[0].medianTTF * 1.2 ? 'text-bad' :
+                                  'text-foreground'
+                                }>
+                                  {bucket.medianTTF.toFixed(0)}d
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </td>
+                            <td className="p-2 text-center font-mono text-muted-foreground">
+                              {bucket.avgTTF !== null ? `${bucket.avgTTF.toFixed(0)}d` : '—'}
+                            </td>
+                            <td className="p-2 text-center font-mono text-muted-foreground">
+                              {bucket.hireCount > 0 ? bucket.hireCount : '—'}
+                            </td>
+                            <td className="p-2">
+                              {bucket.medianTTF !== null && bucket.hireCount >= 3 && (
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden max-w-[100px]">
+                                    <div
+                                      className={`h-full rounded-full ${
+                                        idx === 0 ? 'bg-good' :
+                                        bucket.medianTTF > (loadVsPerformance.buckets[0].medianTTF || 30) * 1.2 ? 'bg-bad' :
+                                        'bg-primary'
+                                      }`}
+                                      style={{ width: `${Math.min((bucket.medianTTF / 60) * 100, 100)}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Footer explanation */}
+                  <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
+                    <strong>Method:</strong> For each hire, we count how many reqs the recruiter had open at that time,
+                    then compare median TTF across workload buckets. A positive correlation suggests overloaded recruiters
+                    hire slower.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* What-if Simulator CTA */}
+            <div className="glass-panel p-4 text-center">
+              <div className="text-3xl mb-2">🔮</div>
+              <div className="text-sm font-semibold text-foreground mb-2">What-if Analysis</div>
+              <p className="text-muted-foreground mb-3 text-xs">
+                Run hiring scenarios to understand potential outcomes.
+              </p>
+              <a
+                href="/plan/scenarios"
+                className="inline-flex items-center px-4 py-2 bg-accent text-white rounded hover:bg-accent/90 transition-colors text-sm"
+              >
+                Open Scenario Library <i className="bi bi-arrow-right ml-1"></i>
+              </a>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Benchmark Config Modal */}
       {config && (
@@ -886,293 +1174,6 @@ export function VelocityInsightsTabV2({
           isLoadingHistorical={isLoadingHistorical}
         />
       )}
-
-      {/* SECTION 3: Stage Timing (if available) */}
-      {stageTimingCapability.capability !== 'NONE' && stageTimingCapability.canShowStageDuration && (
-        <div className="mb-3">
-          <SectionHeaderLocal icon="⏱️" title="Stage Timing" subtitle="Time spent in each stage" />
-          {/* Stage timing visualization would go here */}
-        </div>
-      )}
-
-      {/* SECTION 4: Decay Curves */}
-      <SectionHeaderLocal icon="📉" title="Decay Analysis" subtitle="How time affects outcomes" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
-        {/* Candidate Decay Curve */}
-        <div className="glass-panel p-3 h-full">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h6 className="mb-0 text-xs text-foreground">Candidate Decay</h6>
-              <small className="text-muted-foreground text-[0.65rem]">Acceptance by time in process</small>
-            </div>
-            <DataChip n={candidateDecay.totalOffers} confidence={offerConfidence.level} />
-          </div>
-          {candidateChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={candidateChartData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" angle={-20} textAnchor="end" height={50} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" tickFormatter={(v) => `${v}%`} />
-                <Tooltip content={({ active, payload }) => {
-                  if (!active || !payload?.[0]) return null;
-                  const d = payload[0].payload;
-                  return (
-                    <div className="bg-background border border-border rounded p-2 text-xs shadow-lg">
-                      <div className="text-foreground font-semibold">{d.name}</div>
-                      <div style={{ color: getDecayColor(d.rate / 100) }}>{d.rate}% accept</div>
-                      <div className="text-muted-foreground">{d.count} offers</div>
-                    </div>
-                  );
-                }} />
-                {candidateDecay.decayStartDay && (
-                  <ReferenceLine x={candidateChartData.find(d => d.minDays >= candidateDecay.decayStartDay!)?.name} stroke="#dc2626" strokeDasharray="5 5" />
-                )}
-                <Bar dataKey="rate" radius={[2, 2, 0, 0]}>
-                  {candidateChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getDecayColor(entry.rate / 100)} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center py-4 text-muted-foreground text-xs">
-              Not enough offer data
-            </div>
-          )}
-          <ChartHelp text="Each bar shows offer acceptance rate by days in process. Declining bars = candidate interest decay. Aim to extend offers before the decay starts." />
-        </div>
-
-        {/* Req Decay Curve */}
-        <div className="glass-panel p-3 h-full">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h6 className="mb-0 text-xs text-foreground">Requisition Decay</h6>
-              <small className="text-muted-foreground text-[0.65rem]">Fill probability by days open</small>
-            </div>
-            <DataChip n={reqDecay.totalReqs} confidence={reqConfidence.level} />
-          </div>
-          {reqChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={reqChartData} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2dd4bf" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#2dd4bf" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" angle={-20} textAnchor="end" height={50} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 9, fill: '#6b7280' }} stroke="#3f3f46" tickFormatter={(v) => `${v}%`} />
-                <Tooltip content={({ active, payload }) => {
-                  if (!active || !payload?.[0]) return null;
-                  const d = payload[0].payload;
-                  return (
-                    <div className="bg-background border border-border rounded p-2 text-xs shadow-lg">
-                      <div className="text-foreground font-semibold">{d.name}</div>
-                      <div className="text-teal-400">{d.rate}% fill rate</div>
-                      <div className="text-muted-foreground">{d.count} reqs</div>
-                    </div>
-                  );
-                }} />
-                <ReferenceLine y={Math.round(reqDecay.overallFillRate * 100)} stroke="#6b7280" strokeDasharray="3 3" />
-                <Area type="monotone" dataKey="rate" stroke="#2dd4bf" strokeWidth={2} fill="url(#fillGradient)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="text-center py-4 text-muted-foreground text-xs">
-              Not enough req data
-            </div>
-          )}
-          <ChartHelp text="Shows fill rate by days open. Declining curve = longer-open reqs are harder to fill. Consider interventions for stale reqs." />
-        </div>
-      </div>
-
-      {/* SECTION 5: Fast vs Slow Cohort */}
-      {metrics.cohortComparison && (metrics.cohortComparison.fastHires.count > 0 || metrics.cohortComparison.slowHires.count > 0) && (
-        <div className="mb-3">
-          <SectionHeaderLocal
-            icon="🏆"
-            title="Fast vs Slow Hires"
-            subtitle={`Top 25% (${metrics.cohortComparison.fastHires.count}) vs bottom 25% (${metrics.cohortComparison.slowHires.count})`}
-            rightContent={<DataChip n={metrics.cohortComparison.fastHires.count + metrics.cohortComparison.slowHires.count} confidence={cohortConfidence.level} />}
-          />
-          <div className="glass-panel p-0 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs mb-0">
-                <thead>
-                  <tr className="bg-muted/50">
-                    <th className="p-2 text-left text-muted-foreground font-medium">Factor</th>
-                    <th className="p-2 text-center text-good font-medium">Fast ({Math.round(metrics.cohortComparison.fastHires.avgTimeToFill)}d)</th>
-                    <th className="p-2 text-center text-bad font-medium">Slow ({Math.round(metrics.cohortComparison.slowHires.avgTimeToFill)}d)</th>
-                    <th className="p-2 text-center text-muted-foreground font-medium">Impact</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {metrics.cohortComparison.factors.slice(0, 5).map((factor, idx) => (
-                    <tr key={idx} className="border-t border-border">
-                      <td className="p-2 text-foreground">{factor.factor}</td>
-                      <td className="p-2 text-center text-good">{factor.fastHiresValue} {factor.unit}</td>
-                      <td className="p-2 text-center text-bad">{factor.slowHiresValue} {factor.unit}</td>
-                      <td className="p-2 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[0.6rem] ${
-                          factor.impactLevel === 'high' ? 'bg-bad/15 text-bad' :
-                          factor.impactLevel === 'medium' ? 'bg-warn/15 text-warn' : 'bg-muted text-muted-foreground'
-                        }`}>
-                          {factor.impactLevel}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SECTION 6: Load vs Performance */}
-      {loadVsPerformance && loadVsPerformance.sampleSize >= 10 && (
-        <div className="mb-3">
-          <SectionHeaderLocal
-            icon="⚖️"
-            title="Workload vs. Hiring Speed"
-            subtitle="Does recruiter workload impact time-to-fill?"
-            rightContent={<DataChip n={loadVsPerformance.sampleSize} confidence={loadVsPerformance.confidence} />}
-          />
-          <div className="glass-panel p-4">
-            {/* Insight Banner */}
-            <div className={`p-3 rounded mb-4 ${
-              loadVsPerformance.correlation.direction === 'positive' ? 'bg-warn/10 border border-warn/30' :
-              loadVsPerformance.correlation.direction === 'negative' ? 'bg-primary/10 border border-primary/30' :
-              'bg-muted/30 border border-border'
-            }`}>
-              <div className="flex items-start gap-2">
-                <span className="text-lg">
-                  {loadVsPerformance.correlation.direction === 'positive' ? '⚠️' :
-                   loadVsPerformance.correlation.direction === 'negative' ? '🔄' : '➖'}
-                </span>
-                <div>
-                  <div className="font-semibold text-foreground text-sm mb-1">
-                    {loadVsPerformance.correlation.direction === 'positive' ? 'Higher workload = slower hiring' :
-                     loadVsPerformance.correlation.direction === 'negative' ? 'Unexpected: Higher workload = faster hiring' :
-                     'No significant correlation found'}
-                  </div>
-                  <div className="text-muted-foreground text-xs">
-                    {loadVsPerformance.insight}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Buckets Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="p-2 text-left text-muted-foreground font-medium">Concurrent Reqs</th>
-                    <th className="p-2 text-center text-muted-foreground font-medium">Median TTF</th>
-                    <th className="p-2 text-center text-muted-foreground font-medium">Avg TTF</th>
-                    <th className="p-2 text-center text-muted-foreground font-medium">Hires</th>
-                    <th className="p-2 text-left text-muted-foreground font-medium">Visual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadVsPerformance.buckets.map((bucket, idx) => (
-                    <tr key={idx} className="border-t border-border">
-                      <td className="p-2 text-foreground font-medium">{bucket.label}</td>
-                      <td className="p-2 text-center font-mono">
-                        {bucket.medianTTF !== null ? (
-                          <span className={
-                            idx === 0 ? 'text-good' :
-                            idx === loadVsPerformance.buckets.length - 1 && bucket.medianTTF && loadVsPerformance.buckets[0].medianTTF &&
-                            bucket.medianTTF > loadVsPerformance.buckets[0].medianTTF * 1.2 ? 'text-bad' :
-                            'text-foreground'
-                          }>
-                            {bucket.medianTTF.toFixed(0)}d
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="p-2 text-center font-mono text-muted-foreground">
-                        {bucket.avgTTF !== null ? `${bucket.avgTTF.toFixed(0)}d` : '—'}
-                      </td>
-                      <td className="p-2 text-center font-mono text-muted-foreground">
-                        {bucket.hireCount > 0 ? bucket.hireCount : '—'}
-                      </td>
-                      <td className="p-2">
-                        {bucket.medianTTF !== null && bucket.hireCount >= 3 && (
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden max-w-[100px]">
-                              <div
-                                className={`h-full rounded-full ${
-                                  idx === 0 ? 'bg-good' :
-                                  bucket.medianTTF > (loadVsPerformance.buckets[0].medianTTF || 30) * 1.2 ? 'bg-bad' :
-                                  'bg-primary'
-                                }`}
-                                style={{ width: `${Math.min((bucket.medianTTF / 60) * 100, 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Footer explanation */}
-            <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
-              <strong>Method:</strong> For each hire, we count how many reqs the recruiter had open at that time,
-              then compare median TTF across workload buckets. A positive correlation suggests overloaded recruiters
-              hire slower.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SECTION 7: Key Insights */}
-      {insights.length > 0 && (
-        <div className="mb-3">
-          <SectionHeaderLocal
-            icon="💡"
-            title="Key Insights"
-            subtitle={`${insights.length} findings from velocity analysis`}
-            rightContent={
-              <span className="text-muted-foreground text-[0.65rem]">
-                {insights.filter(i => i.type === 'warning').length} warnings
-              </span>
-            }
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {insights.map((insight, idx) => (
-              <CompactInsightCard
-                key={idx}
-                insight={insight}
-                onCreateAction={onAddToActionQueue ? handleCreateAction : undefined}
-                onViewEvidence={handleViewEvidence}
-                isActionCreated={createdActionIds.has(generateActionId(insight))}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* SECTION 7: What-if Simulator CTA */}
-      <div className="glass-panel p-4 text-center mb-3">
-        <div className="text-3xl mb-2">🔮</div>
-        <div className="text-sm font-semibold text-foreground mb-2">What-if Analysis</div>
-        <p className="text-muted-foreground mb-3 text-xs">
-          Run hiring scenarios to understand potential outcomes.
-        </p>
-        <a
-          href="/plan/scenarios"
-          className="inline-flex items-center px-4 py-2 bg-accent text-white rounded hover:bg-accent/90 transition-colors text-sm"
-        >
-          Open Scenario Library <i className="bi bi-arrow-right ml-1"></i>
-        </a>
-      </div>
 
       {/* Evidence Drawer and Backdrop */}
       <DrawerBackdrop isOpen={evidenceDrawerOpen} onClose={handleCloseEvidence} />
