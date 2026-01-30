@@ -29,7 +29,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
   return (
     <div className="org-switcher relative">
       <button
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border border-glass-border text-foreground hover:bg-muted transition-colors"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border border-border text-foreground hover:bg-muted transition-colors"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
@@ -37,7 +37,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
         <i className="bi bi-building"></i>
         <span className="org-name max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">{currentOrg?.name || 'Select Organization'}</span>
         {userRole && (
-          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${userRole === 'super_admin' ? 'bg-bad text-white' : userRole === 'admin' ? 'bg-accent text-bg-base' : 'bg-muted text-muted-foreground'}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${userRole === 'super_admin' ? 'bg-bad text-white' : userRole === 'admin' ? 'bg-accent text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
             {roleLabel}
           </span>
         )}
@@ -57,7 +57,7 @@ export function OrgSwitcher({ onCreateOrg, onOrgSettings }: OrgSwitcherProps) {
                 <li key={membership.organization_id}>
                   <button
                     className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
-                      membership.organization_id === currentOrg?.id ? 'bg-accent text-bg-base' : 'text-foreground hover:bg-muted'
+                      membership.organization_id === currentOrg?.id ? 'bg-accent text-primary-foreground' : 'text-foreground hover:bg-muted'
                     }`}
                     onClick={() => handleSelect(membership.organization_id)}
                   >

@@ -36,7 +36,7 @@ type SortField = 'title' | 'daysOpen' | 'healthScore';
 type SortDirection = 'asc' | 'desc';
 
 const priorityConfig: Record<Priority, { bg: string; text: string; label: string }> = {
-  critical: { bg: 'bg-bad-bg', text: 'text-bad-text', label: 'Critical' },
+  critical: { bg: 'bg-destructive/10', text: 'text-destructive', label: 'Critical' },
   high: { bg: 'bg-warn-bg', text: 'text-warn-text', label: 'High' },
   medium: { bg: 'bg-[rgba(59,130,246,0.15)]', text: 'text-[#93c5fd]', label: 'Medium' },
   low: { bg: 'bg-[rgba(100,116,139,0.15)]', text: 'text-muted-foreground', label: 'Low' },

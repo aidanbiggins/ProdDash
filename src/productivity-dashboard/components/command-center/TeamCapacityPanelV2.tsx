@@ -22,7 +22,7 @@ interface TeamCapacityPanelV2Props {
 type UtilizationLevel = 'overloaded' | 'high' | 'balanced' | 'available' | 'underutilized';
 
 const utilizationConfig: Record<UtilizationLevel, { bar: string; text: string; label: string }> = {
-  overloaded: { bar: 'bg-bad', text: 'text-bad-text', label: 'Overloaded' },
+  overloaded: { bar: 'bg-bad', text: 'text-destructive', label: 'Overloaded' },
   high: { bar: 'bg-warn', text: 'text-warn-text', label: 'High' },
   balanced: { bar: 'bg-[#3b82f6]', text: 'text-[#93c5fd]', label: 'Balanced' },
   available: { bar: 'bg-good', text: 'text-good-text', label: 'Available' },

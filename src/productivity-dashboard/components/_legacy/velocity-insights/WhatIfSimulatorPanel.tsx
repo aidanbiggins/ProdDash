@@ -539,7 +539,7 @@ Format each bullet as: • [insight] (Citation: [data source])`;
       {/* Action Buttons */}
       <div className="flex gap-2 mt-3 flex-wrap">
         <button
-          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
+          className="px-3 py-1.5 text-xs bg-card border border-border rounded hover:bg-white/10"
           onClick={handleGenerateNarrative}
           disabled={narrativeLoading}
           title={hasAI ? 'Generate AI analysis' : 'Generate analysis (deterministic)'}
@@ -559,7 +559,7 @@ Format each bullet as: • [insight] (Citation: [data source])`;
         </button>
 
         <button
-          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
+          className="px-3 py-1.5 text-xs bg-card border border-border rounded hover:bg-white/10"
           onClick={handleReset}
           data-testid="reset-btn"
         >

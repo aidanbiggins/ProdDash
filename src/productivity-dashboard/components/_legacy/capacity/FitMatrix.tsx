@@ -113,7 +113,7 @@ export function FitMatrix({ cells, onCellClick }: FitMatrixProps) {
 
   if (cells.length === 0) {
     return (
-      <div className="rounded-lg border border-glass-border bg-bg-glass">
+      <div className="rounded-lg border border-border bg-card">
         <div className="px-4 py-3 border-b border-white/10">
           <h6 className="text-sm font-semibold text-foreground">
             <i className="bi bi-grid mr-2"></i>
@@ -130,7 +130,7 @@ export function FitMatrix({ cells, onCellClick }: FitMatrixProps) {
   }
 
   return (
-    <div className="rounded-lg border border-glass-border bg-bg-glass">
+    <div className="rounded-lg border border-border bg-card">
       <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
         <h6 className="text-sm font-semibold text-foreground">
           <i className="bi bi-grid mr-2"></i>

@@ -15,7 +15,7 @@ function ConfidenceBadge({ confidence }: { confidence: ConfidenceLevel }) {
     HIGH: 'bg-good-bg text-good',
     MED: 'bg-warn-bg text-warn',
     LOW: 'bg-white/10 text-muted-foreground',
-    INSUFFICIENT: 'bg-bad-bg text-bad'
+    INSUFFICIENT: 'bg-destructive/10 text-bad'
   }[confidence];
 
   return (
@@ -109,7 +109,7 @@ export function FitExplainDrawer({
   const fitColorClass = cell.fitScore > 0.1 ? 'text-good' :
                         cell.fitScore > -0.1 ? 'text-muted-foreground' : 'text-bad';
   const fitBgClass = cell.fitScore > 0.1 ? 'bg-good-bg' :
-                     cell.fitScore > -0.1 ? 'bg-white/5' : 'bg-bad-bg';
+                     cell.fitScore > -0.1 ? 'bg-white/5' : 'bg-destructive/10';
 
   return (
     <>
@@ -121,9 +121,9 @@ export function FitExplainDrawer({
 
       {/* Drawer - Full width on mobile, 450px on desktop */}
       <div
-        className="fixed top-0 right-0 h-full w-full md:w-[450px] md:max-w-[90vw] z-[1050] overflow-y-auto bg-bg-surface border-l border-glass-border"
+        className="fixed top-0 right-0 h-full w-full md:w-[450px] md:max-w-[90vw] z-[1050] overflow-y-auto bg-card border-l border-border"
       >
-        <div className="sticky top-0 bg-bg-surface/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
+        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
           <div className="flex justify-between items-start">
             <div>
               <h5 className="text-base font-semibold text-foreground">

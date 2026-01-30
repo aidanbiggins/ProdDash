@@ -190,7 +190,7 @@ export function QualityTab({ quality }: QualityTabProps) {
       <div className="grid grid-cols-12 gap-4 mb-4">
         <div className="col-span-12 md:col-span-6">
           <div className="card-bespoke h-full">
-            <div className="card-header border-b border-glass-border">
+            <div className="card-header border-b border-border">
               <h6 className="mb-0">Top 5 Recruiters <span className="text-muted-foreground font-normal">(Offer Acceptance)</span></h6>
             </div>
             <div className="card-body p-0">
@@ -223,7 +223,7 @@ export function QualityTab({ quality }: QualityTabProps) {
         </div>
         <div className="col-span-12 md:col-span-6">
           <div className="card-bespoke h-full">
-            <div className="card-header border-b border-glass-border">
+            <div className="card-header border-b border-border">
               <h6 className="mb-0">Bottom 5 Recruiters <span className="text-muted-foreground font-normal">(Offer Acceptance)</span></h6>
             </div>
             <div className="card-body p-0">

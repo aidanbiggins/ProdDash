@@ -98,7 +98,7 @@ export function DrawerContent({
     <div
       className={cn(
         'fixed z-50 flex flex-col',
-        'bg-bg-base border-glass-border shadow-glass-elevated',
+        'bg-bg-base border-border shadow-lg',
         directionClasses[direction],
         className
       )}
@@ -115,7 +115,7 @@ export function DrawerHeader({ className, children, ...props }: DrawerHeaderProp
   return (
     <div
       className={cn(
-        'flex flex-col gap-1.5 p-4 border-b border-glass-border',
+        'flex flex-col gap-1.5 p-4 border-b border-border',
         className
       )}
       {...props}
@@ -170,7 +170,7 @@ export function DrawerFooter({ className, children, ...props }: DrawerFooterProp
   return (
     <div
       className={cn(
-        'mt-auto flex flex-col gap-2 p-4 border-t border-glass-border',
+        'mt-auto flex flex-col gap-2 p-4 border-t border-border',
         className
       )}
       {...props}

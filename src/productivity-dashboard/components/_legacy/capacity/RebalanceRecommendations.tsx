@@ -17,7 +17,7 @@ function RecommendationCard({
   onApply?: () => void;
 }) {
   return (
-    <div className="border border-glass-border rounded-lg p-3 mb-2">
+    <div className="border border-border rounded-lg p-3 mb-2">
       <div className="flex justify-between items-start mb-2">
         <div>
           <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-accent/15 text-accent mr-2">#{rec.rank}</span>
@@ -34,7 +34,7 @@ function RecommendationCard({
           <div className="text-muted-foreground">From:</div>
           <div className="text-foreground">
             {rec.fromRecruiterName}
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-bad-bg text-bad ml-1">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-destructive/10 text-bad ml-1">
               {Math.round(rec.fromUtilization * 100)}%
             </span>
           </div>
@@ -69,7 +69,7 @@ function RecommendationCard({
       {onApply && (
         <div className="text-right">
           <button
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-white/5 border border-glass-border text-foreground hover:bg-white/10 transition-colors"
+            className="px-3 py-1.5 text-sm font-medium rounded-md bg-white/5 border border-border text-foreground hover:bg-white/10 transition-colors"
             onClick={onApply}
           >
             <i className="bi bi-check2 mr-1"></i>
@@ -89,7 +89,7 @@ export function RebalanceRecommendations({
 
   if (recommendations.length === 0) {
     return (
-      <div className="rounded-lg border border-glass-border bg-bg-glass">
+      <div className="rounded-lg border border-border bg-card">
         <div className="px-4 py-3 border-b border-white/10">
           <h6 className="text-sm font-semibold text-foreground">
             <i className="bi bi-arrows-move mr-2"></i>
@@ -106,7 +106,7 @@ export function RebalanceRecommendations({
   }
 
   return (
-    <div className="rounded-lg border border-glass-border bg-bg-glass">
+    <div className="rounded-lg border border-border bg-card">
       <div
         className="flex justify-between items-center px-4 py-3 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-colors"
         onClick={() => setIsCollapsed(!isCollapsed)}

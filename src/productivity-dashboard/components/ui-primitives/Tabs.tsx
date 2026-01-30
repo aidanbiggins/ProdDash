@@ -63,7 +63,7 @@ export function TabsList({ className, children, ...props }: TabsListProps) {
       role="tablist"
       className={cn(
         'inline-flex h-9 w-fit items-center justify-center rounded-lg p-1',
-        'bg-bg-surface text-muted-foreground',
+        'bg-card text-muted-foreground',
         className
       )}
       {...props}
@@ -99,8 +99,8 @@ export function TabsTrigger({
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2',
         'disabled:pointer-events-none disabled:opacity-50',
         isActive
-          ? 'bg-bg-elevated text-foreground border-glass-border shadow-sm'
-          : 'text-muted-foreground hover:text-foreground hover:bg-bg-elevated/50',
+          ? 'bg-muted text-foreground border-border shadow-sm'
+          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50',
         className
       )}
       onClick={() => setActiveTab(value)}

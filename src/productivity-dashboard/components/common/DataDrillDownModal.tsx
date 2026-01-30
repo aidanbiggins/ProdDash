@@ -189,7 +189,7 @@ export function DataDrillDownModal({
         >
             <div className="w-full max-w-4xl mx-4 max-h-[calc(100vh-6rem)] flex flex-col">
                 <div className="glass-panel overflow-hidden flex flex-col max-h-full">
-                    <div className="px-4 py-3 border-b border-glass-border flex justify-between items-start">
+                    <div className="px-4 py-3 border-b border-border flex justify-between items-start">
                         <div>
                             <h5 className="text-lg font-semibold mb-1">{title}</h5>
                             <div className="flex items-center gap-3">
@@ -204,16 +204,16 @@ export function DataDrillDownModal({
 
                     <div className="flex-1 overflow-auto">
                         {/* Search and Export */}
-                        <div className="flex justify-between items-center p-3 border-b border-glass-border">
+                        <div className="flex justify-between items-center p-3 border-b border-border">
                             <input
                                 type="text"
-                                className="w-full max-w-xs px-3 py-1.5 text-sm bg-transparent border border-glass-border rounded-md focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                                className="w-full max-w-xs px-3 py-1.5 text-sm bg-transparent border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-accent-primary"
                                 placeholder="Search..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                             <button
-                                className="px-3 py-1.5 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-glass-border"
+                                className="px-3 py-1.5 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-border"
                                 onClick={exportCSV}
                             >
                                 <i className="bi bi-download mr-1"></i>
@@ -223,7 +223,7 @@ export function DataDrillDownModal({
 
                         {/* Formula (if provided) */}
                         {formula && (
-                            <div className="px-3 py-2 border-b border-glass-border" style={{ background: 'rgba(30, 41, 59, 0.6)' }}>
+                            <div className="px-3 py-2 border-b border-border" style={{ background: 'rgba(30, 41, 59, 0.6)' }}>
                                 <small style={{ color: '#94A3B8' }}>
                                     <strong style={{ color: '#F8FAFC' }}>Formula:</strong> <code style={{ color: '#2dd4bf' }}>{formula}</code>
                                 </small>
@@ -273,14 +273,14 @@ export function DataDrillDownModal({
                         </div>
                     </div>
 
-                    <div className="px-4 py-3 border-t border-glass-border flex justify-between items-center">
+                    <div className="px-4 py-3 border-t border-border flex justify-between items-center">
                         <span className="text-muted-foreground text-sm">
                             Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, sortedRecords.length)} of {sortedRecords.length} records
                         </span>
                         {totalPages > 1 && (
                             <div className="inline-flex rounded-md shadow-sm mx-auto">
                                 <button
-                                    className="px-3 py-1.5 text-sm border border-glass-border rounded-l-md hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-1.5 text-sm border border-border rounded-l-md hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page === 0}
                                     onClick={() => setPage(0)}
                                     title="First page"
@@ -288,24 +288,24 @@ export function DataDrillDownModal({
                                     <i className="bi bi-chevron-bar-left"></i>
                                 </button>
                                 <button
-                                    className="px-3 py-1.5 text-sm border-y border-glass-border hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-1.5 text-sm border-y border-border hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page === 0}
                                     onClick={() => setPage(p => p - 1)}
                                 >
                                     Previous
                                 </button>
-                                <span className="px-3 py-1.5 text-sm border-y border-glass-border bg-white/5">
+                                <span className="px-3 py-1.5 text-sm border-y border-border bg-white/5">
                                     {page + 1} / {totalPages}
                                 </span>
                                 <button
-                                    className="px-3 py-1.5 text-sm border-y border-glass-border hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-1.5 text-sm border-y border-border hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page >= totalPages - 1}
                                     onClick={() => setPage(p => p + 1)}
                                 >
                                     Next
                                 </button>
                                 <button
-                                    className="px-3 py-1.5 text-sm border border-glass-border rounded-r-md hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-1.5 text-sm border border-border rounded-r-md hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={page >= totalPages - 1}
                                     onClick={() => setPage(totalPages - 1)}
                                     title="Last page"
@@ -314,7 +314,7 @@ export function DataDrillDownModal({
                                 </button>
                             </div>
                         )}
-                        <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-glass-border" onClick={onClose}>
+                        <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-[var(--color-bg-surface)] hover:bg-[var(--color-bg-base)] border border-border" onClick={onClose}>
                             Close
                         </button>
                     </div>

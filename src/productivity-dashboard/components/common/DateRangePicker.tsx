@@ -101,14 +101,14 @@ export function DateRangePicker({ dateRange, onChange }: DateRangePickerProps) {
       <div className="flex items-center gap-2">
         <input
           type="date"
-          className="w-[130px] px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+          className="w-[130px] px-3 py-2 text-sm bg-card border border-border rounded-md"
           value={format(dateRange.startDate, 'yyyy-MM-dd')}
           onChange={handleStartDateChange}
         />
         <span className="text-[#94A3B8] text-[0.85rem]">to</span>
         <input
           type="date"
-          className="w-[130px] px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+          className="w-[130px] px-3 py-2 text-sm bg-card border border-border rounded-md"
           value={format(dateRange.endDate, 'yyyy-MM-dd')}
           onChange={handleEndDateChange}
         />

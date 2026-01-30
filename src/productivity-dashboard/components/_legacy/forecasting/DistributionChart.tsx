@@ -94,7 +94,7 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
                             if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                    <div className="bg-white p-2 border border-glass-border shadow-sm rounded text-xs">
+                                    <div className="bg-white p-2 border border-border shadow-sm rounded text-xs">
                                         <div className="font-bold">{data.dateStr}</div>
                                         <div>Prob: {data.percentage.toFixed(1)}% ({data.count} sims)</div>
                                     </div>

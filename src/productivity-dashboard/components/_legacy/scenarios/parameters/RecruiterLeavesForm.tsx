@@ -79,7 +79,7 @@ export default function RecruiterLeavesForm({
         <div className="col-span-12 md:col-span-6">
           <label className="block text-xs font-medium text-muted-foreground mb-1">Departing Recruiter</label>
           <select
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
             value={recruiterId}
             onChange={e => setRecruiterId(e.target.value)}
             required
@@ -103,7 +103,7 @@ export default function RecruiterLeavesForm({
           <label className="block text-xs font-medium text-muted-foreground mb-1">Departure Date</label>
           <input
             type="date"
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
             value={departureDate}
             onChange={e => setDepartureDate(e.target.value)}
             min={new Date().toISOString().split('T')[0]}

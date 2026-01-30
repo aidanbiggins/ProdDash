@@ -48,7 +48,7 @@ export function BottleneckPanelV2({ bottlenecks, onRiskClick }: BottleneckPanelV
   });
 
   return (
-    <div className="rounded-lg border border-glass-border bg-bg-glass">
+    <div className="rounded-lg border border-border bg-card">
       {/* Bottleneck List */}
       <div className="p-3 space-y-2">
         {sortedBottlenecks.map((bottleneck, index) => {

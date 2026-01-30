@@ -14,9 +14,9 @@ export function Card({ className, elevated, children, ...props }: CardProps) {
     <div
       className={cn(
         // Glass panel base
-        'flex flex-col gap-4 rounded-xl border border-glass-border',
-        'bg-bg-surface backdrop-blur-[12px]',
-        elevated ? 'shadow-glass-elevated' : 'shadow-glass',
+        'flex flex-col gap-4 rounded-xl border border-border',
+        'bg-card backdrop-blur-[12px]',
+        elevated ? 'shadow-lg' : 'shadow-glass',
         className
       )}
       {...props}

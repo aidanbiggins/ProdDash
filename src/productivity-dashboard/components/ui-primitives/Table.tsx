@@ -25,7 +25,7 @@ export interface TableHeaderProps extends React.HTMLAttributes<HTMLTableSectionE
 export function TableHeader({ className, children, ...props }: TableHeaderProps) {
   return (
     <thead
-      className={cn('[&_tr]:border-b [&_tr]:border-glass-border', className)}
+      className={cn('[&_tr]:border-b [&_tr]:border-border', className)}
       {...props}
     >
       {children}
@@ -52,7 +52,7 @@ export function TableFooter({ className, children, ...props }: TableFooterProps)
   return (
     <tfoot
       className={cn(
-        'bg-bg-surface/50 border-t border-glass-border font-medium [&>tr]:last:border-b-0',
+        'bg-card/50 border-t border-border font-medium [&>tr]:last:border-b-0',
         className
       )}
       {...props}
@@ -70,9 +70,9 @@ export function TableRow({ className, selected, children, ...props }: TableRowPr
   return (
     <tr
       className={cn(
-        'border-b border-glass-border transition-colors',
-        'hover:bg-bg-elevated/50',
-        selected && 'bg-bg-elevated',
+        'border-b border-border transition-colors',
+        'hover:bg-muted/50',
+        selected && 'bg-muted',
         className
       )}
       {...props}

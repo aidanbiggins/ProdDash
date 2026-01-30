@@ -68,7 +68,7 @@ export default function SpinUpTeamForm({
           <label className="block text-xs font-medium text-muted-foreground mb-1">Team Size</label>
           <input
             type="number"
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
             value={headcount}
             onChange={e => setHeadcount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
             min={1}
@@ -82,7 +82,7 @@ export default function SpinUpTeamForm({
           <label className="block text-xs font-medium text-muted-foreground mb-1">Target Timeline (Days)</label>
           <input
             type="number"
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
             value={targetDays}
             onChange={e => setTargetDays(Math.max(30, Math.min(180, parseInt(e.target.value) || 60)))}
             min={30}
@@ -95,7 +95,7 @@ export default function SpinUpTeamForm({
         <div className="col-span-12 md:col-span-4">
           <label className="block text-xs font-medium text-muted-foreground mb-1">Function</label>
           <select
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
             value={roleFunction}
             onChange={e => setRoleFunction(e.target.value)}
           >
@@ -109,7 +109,7 @@ export default function SpinUpTeamForm({
         <div className="col-span-12 md:col-span-4">
           <label className="block text-xs font-medium text-muted-foreground mb-1">Level</label>
           <select
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
             value={level}
             onChange={e => setLevel(e.target.value)}
           >
@@ -123,7 +123,7 @@ export default function SpinUpTeamForm({
         <div className="col-span-12 md:col-span-4">
           <label className="block text-xs font-medium text-muted-foreground mb-1">Location Type</label>
           <select
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
             value={locationType}
             onChange={e => setLocationType(e.target.value as 'Remote' | 'Hybrid' | 'Onsite')}
           >
@@ -137,7 +137,7 @@ export default function SpinUpTeamForm({
         <div className="col-span-12 md:col-span-6">
           <label className="block text-xs font-medium text-muted-foreground mb-1">Hiring Manager (Optional)</label>
           <select
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
             value={hiringManagerId}
             onChange={e => setHiringManagerId(e.target.value)}
           >
@@ -162,7 +162,7 @@ export default function SpinUpTeamForm({
                 className={`px-4 py-2.5 min-h-[44px] text-sm rounded-md mr-2 mb-2 transition-colors ${
                   assignedRecruiterIds.includes(r.recruiter_id)
                     ? 'bg-accent-primary text-white'
-                    : 'border border-glass-border bg-transparent text-muted-foreground hover:bg-surface-elevated'
+                    : 'border border-border bg-transparent text-muted-foreground hover:bg-surface-elevated'
                 }`}
                 onClick={() => toggleRecruiter(r.recruiter_id)}
               >

@@ -16,7 +16,7 @@ function getHealthBadgeClass(status: string) {
     case 'at-risk':
       return 'bg-warn-bg text-warn';
     case 'off-track':
-      return 'bg-bad-bg text-bad';
+      return 'bg-destructive/10 text-bad';
     default:
       return 'bg-white/10 text-muted-foreground';
   }
@@ -31,7 +31,7 @@ function getVelocityBadgeClass(trend: string) {
     case 'declining':
       return 'bg-warn-bg text-warn';
     case 'stalled':
-      return 'bg-bad-bg text-bad';
+      return 'bg-destructive/10 text-bad';
     default:
       return 'bg-white/10 text-muted-foreground';
   }
@@ -43,7 +43,7 @@ function getPriorityStyles(priority: string): { badgeClass: string; borderClass:
     case 'urgent':
     case 'high':
     case 'critical':
-      return { badgeClass: 'bg-bad-bg text-bad', borderClass: 'border-l-bad' };
+      return { badgeClass: 'bg-destructive/10 text-bad', borderClass: 'border-l-bad' };
     case 'important':
     case 'medium':
       return { badgeClass: 'bg-warn-bg text-warn', borderClass: 'border-l-warn' };
@@ -55,7 +55,7 @@ function getPriorityStyles(priority: string): { badgeClass: string; borderClass:
 function getRiskBandBadgeClass(band: string) {
   switch (band) {
     case 'HIGH':
-      return 'bg-bad-bg text-bad';
+      return 'bg-destructive/10 text-bad';
     case 'MED':
       return 'bg-warn-bg text-warn';
     case 'LOW':
@@ -99,7 +99,7 @@ export function ReqHealthDrawer({
       />
 
       {/* Drawer - full-width on mobile, 560px on desktop */}
-      <div className="fixed top-0 right-0 bottom-0 w-full md:w-[560px] z-[1050] flex flex-col overflow-hidden bg-bg-glass border-l border-glass-border">
+      <div className="fixed top-0 right-0 bottom-0 w-full md:w-[560px] z-[1050] flex flex-col overflow-hidden bg-card border-l border-border">
         {/* Header */}
         <div className="p-4 flex justify-between items-start border-b border-white/10">
           <div className="flex-1 min-w-0">
@@ -146,7 +146,7 @@ export function ReqHealthDrawer({
               />
             </div>
           ) : (
-            <div className="rounded-lg border border-glass-border bg-bg-glass p-4 text-center mb-4 text-muted-foreground">
+            <div className="rounded-lg border border-border bg-card p-4 text-center mb-4 text-muted-foreground">
               <LogoSpinner size={32} message="Running Oracle Simulation..." layout="stacked" />
             </div>
           )}

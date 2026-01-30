@@ -28,7 +28,7 @@ const severityConfig: Record<RiskLevel, { bg: string; border: string; text: stri
   bad: {
     bg: 'bg-[rgba(239,68,68,0.08)]',
     border: 'border-l-bad',
-    text: 'text-bad-text',
+    text: 'text-destructive',
   },
   warn: {
     bg: 'bg-[rgba(245,158,11,0.08)]',
@@ -114,7 +114,7 @@ export function BottleneckPanelV2({ bottlenecks, onViewAll }: BottleneckPanelV2P
         <AlertTriangleIcon />
         <h3 className="text-sm font-semibold text-foreground">Bottlenecks &amp; Risks</h3>
         {criticalCount > 0 && (
-          <span className="ml-auto px-2 py-0.5 rounded text-xs font-medium bg-bad-bg text-bad-text">
+          <span className="ml-auto px-2 py-0.5 rounded text-xs font-medium bg-destructive/10 text-destructive">
             {criticalCount} Critical
           </span>
         )}

@@ -78,7 +78,7 @@ export function CapacityTab() {
       <div className="w-full px-4 py-4">
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-12">
-            <div className="rounded-lg border border-glass-border bg-bg-glass">
+            <div className="rounded-lg border border-border bg-card">
               <div className="text-center py-8 px-4">
                 <i className="bi bi-exclamation-triangle text-warn text-4xl"></i>
                 <h5 className="mt-3 text-lg font-semibold text-foreground">Insufficient Data for Capacity Analysis</h5>

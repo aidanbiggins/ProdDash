@@ -21,8 +21,8 @@ export function Select({
     <select
       className={cn(
         // Base styles
-        'h-9 w-full min-w-0 rounded-md border border-glass-border',
-        'bg-bg-surface/30 px-3 py-1 text-sm text-foreground',
+        'h-9 w-full min-w-0 rounded-md border border-border',
+        'bg-card/30 px-3 py-1 text-sm text-foreground',
         'shadow-sm transition-all duration-200',
         // Focus styles
         'outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/20',

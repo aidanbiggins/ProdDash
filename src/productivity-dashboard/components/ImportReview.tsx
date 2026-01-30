@@ -109,8 +109,8 @@ export function ImportReview({ onClose }: ImportReviewProps) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
         <div className="w-full max-w-5xl mx-4">
-          <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
-            <div className="flex items-center justify-between p-4 border-b border-glass-border">
+          <div className="bg-card border border-border rounded-lg shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <h5 className="font-semibold text-foreground">Import Review</h5>
               <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
             </div>
@@ -129,14 +129,14 @@ export function ImportReview({ onClose }: ImportReviewProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
       <div className="w-full max-w-5xl mx-4 flex flex-col max-h-[90vh]">
-        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-glass-border">
+        <div className="bg-card border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <h5 className="font-semibold text-foreground">Import Review & Field Mapping</h5>
             <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
           </div>
 
           {/* Tabs */}
-          <div className="border-b border-glass-border px-3">
+          <div className="border-b border-border px-3">
             <div className="flex gap-1">
               <button
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview' ? 'border-accent text-accent' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
@@ -189,8 +189,8 @@ export function ImportReview({ onClose }: ImportReviewProps) {
             )}
           </div>
 
-          <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
-            <button className="px-4 py-2 text-sm font-medium rounded-md border border-glass-border text-muted-foreground hover:text-foreground hover:bg-bg-elevated" onClick={onClose}>
+          <div className="flex justify-end gap-2 p-4 border-t border-border">
+            <button className="px-4 py-2 text-sm font-medium rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted" onClick={onClose}>
               Close
             </button>
           </div>
@@ -327,7 +327,7 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
       {/* Toggle for unmapped columns */}
       <div className="mb-3">
         <button
-          className="px-3 py-1.5 text-sm font-medium rounded border border-glass-border text-muted-foreground hover:text-foreground hover:bg-bg-elevated transition-colors"
+          className="px-3 py-1.5 text-sm font-medium rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           onClick={() => setShowUnmapped(!showUnmapped)}
         >
           {showUnmapped ? 'Show Mapped Only' : `Show All (including ${entity.unmappedColumns.length} unmapped)`}
@@ -338,7 +338,7 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-glass-border bg-bg-elevated">
+            <tr className="border-b border-border bg-muted">
               <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Original Column</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Maps To</th>
               <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Coverage</th>
@@ -355,7 +355,7 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
                 return b.coverage - a.coverage;
               })
               .map((cm, i) => (
-                <tr key={i} className={`border-b border-glass-border ${cm.mappedTo ? '' : 'bg-bg-elevated/50'}`}>
+                <tr key={i} className={`border-b border-border ${cm.mappedTo ? '' : 'bg-muted/50'}`}>
                   <td className="px-3 py-2">
                     <code className="text-xs text-accent">{cm.originalName}</code>
                   </td>
@@ -363,12 +363,12 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
                     {cm.mappedTo ? (
                       <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-good text-white">{cm.mappedTo}</span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-bg-elevated text-muted-foreground">unmapped</span>
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-muted text-muted-foreground">unmapped</span>
                     )}
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-bg-elevated rounded overflow-hidden">
+                      <div className="w-24 h-2 bg-muted rounded overflow-hidden">
                         <div
                           className={`h-full ${cm.coverage > 80 ? 'bg-good' : cm.coverage > 50 ? 'bg-warn' : 'bg-bad'}`}
                           style={{ width: `${cm.coverage}%` }}
@@ -396,7 +396,7 @@ function EntityTab({ entity }: { entity: EntityDiagnostics }) {
           .slice(0, 12)
           .map(([field, stats]) => (
             <div key={field} className="flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-bg-elevated rounded overflow-hidden">
+              <div className="flex-1 h-1.5 bg-muted rounded overflow-hidden">
                 <div
                   className={`h-full ${stats.coverage > 80 ? 'bg-good' : stats.coverage > 50 ? 'bg-warn' : 'bg-bad'}`}
                   style={{ width: `${stats.coverage}%` }}

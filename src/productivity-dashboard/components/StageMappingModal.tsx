@@ -96,8 +96,8 @@ export function StageMappingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-5xl mx-4">
-        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated max-h-[90vh] flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-glass-border">
+        <div className="bg-card border border-border rounded-lg shadow-lg max-h-[90vh] flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <h5 className="font-semibold text-foreground">Stage Mapping Configuration</h5>
             <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
           </div>
@@ -120,7 +120,7 @@ export function StageMappingModal({
                   <strong>Missing mappings for:</strong>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {validation.missingStages.map(s => (
-                      <span key={s} className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-warn text-bg-base">{s}</span>
+                      <span key={s} className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-warn text-primary-foreground">{s}</span>
                     ))}
                   </div>
                 </div>
@@ -129,7 +129,7 @@ export function StageMappingModal({
 
             {/* Auto-suggest button */}
             <div className="mb-4">
-              <button className="px-3 py-1.5 text-sm font-medium rounded border border-glass-border text-muted-foreground hover:text-foreground hover:bg-bg-elevated transition-colors" onClick={handleAutoSuggest}>
+              <button className="px-3 py-1.5 text-sm font-medium rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" onClick={handleAutoSuggest}>
                 Auto-suggest Mappings
               </button>
               <span className="text-muted-foreground text-sm ml-2">
@@ -141,9 +141,9 @@ export function StageMappingModal({
               {/* Mapping Table */}
               <div className="md:col-span-2">
                 <h6 className="mb-3 font-semibold text-foreground">Stage Mappings</h6>
-                <div className="overflow-auto max-h-[400px] border border-glass-border rounded">
+                <div className="overflow-auto max-h-[400px] border border-border rounded">
                   <table className="w-full text-sm">
-                    <thead className="bg-bg-elevated sticky top-0">
+                    <thead className="bg-muted sticky top-0">
                       <tr>
                         <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">ATS Stage Name</th>
                         <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Canonical Stage</th>
@@ -154,13 +154,13 @@ export function StageMappingModal({
                       {allStages.map(stage => {
                         const mapping = mappings.find(m => m.atsStage === stage);
                         return (
-                          <tr key={stage} className="border-b border-glass-border">
+                          <tr key={stage} className="border-b border-border">
                             <td className="px-3 py-2">
                               <code className="text-accent">{stage}</code>
                             </td>
                             <td className="px-3 py-2">
                               <select
-                                className="w-full px-2 py-1 text-sm bg-bg-surface/30 border border-glass-border rounded text-foreground focus:outline-none focus:border-accent"
+                                className="w-full px-2 py-1 text-sm bg-card/30 border border-border rounded text-foreground focus:outline-none focus:border-accent"
                                 value={mapping?.canonicalStage || ''}
                                 onChange={(e) => handleMappingChange(
                                   stage,
@@ -179,7 +179,7 @@ export function StageMappingModal({
                               {mapping ? (
                                 <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-good text-white">Mapped</span>
                               ) : (
-                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-bg-elevated text-muted-foreground">Unmapped</span>
+                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-muted text-muted-foreground">Unmapped</span>
                               )}
                             </td>
                           </tr>
@@ -195,7 +195,7 @@ export function StageMappingModal({
                 <h6 className="mb-3 font-semibold text-foreground">Canonical Stages Reference</h6>
                 <div className="space-y-1 text-sm">
                   {CANONICAL_STAGES.map(cs => (
-                    <div key={cs.value} className="p-2 rounded bg-bg-elevated border border-glass-border">
+                    <div key={cs.value} className="p-2 rounded bg-muted border border-border">
                       <div className="flex justify-between items-center">
                         <strong className="text-foreground">{cs.label}</strong>
                         {validation.mappedStages.includes(cs.value) && (
@@ -210,7 +210,7 @@ export function StageMappingModal({
             </div>
 
             {/* Summary */}
-            <div className="mt-4 p-3 rounded bg-bg-elevated border border-glass-border">
+            <div className="mt-4 p-3 rounded bg-muted border border-border">
               <div className="grid grid-cols-3 text-center">
                 <div>
                   <div className="text-2xl font-bold text-foreground">{allStages.length}</div>
@@ -227,13 +227,13 @@ export function StageMappingModal({
               </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
-            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80" onClick={onClose}>
+          <div className="flex justify-end gap-2 p-4 border-t border-border">
+            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-muted text-foreground hover:bg-muted/80" onClick={onClose}>
               Cancel
             </button>
             <button
               type="button"
-              className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               onClick={handleSave}
               disabled={!validation.isComplete}
             >

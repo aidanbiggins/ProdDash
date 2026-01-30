@@ -105,11 +105,11 @@ const Login = () => {
   if (!supabase) {
     return (
       <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-screen">
-        <div className="bg-bg-glass border border-bad rounded-lg p-8 shadow-sm text-center" style={{ maxWidth: '500px' }}>
+        <div className="bg-card border border-bad rounded-lg p-8 shadow-sm text-center" style={{ maxWidth: '500px' }}>
           <h1 className="text-xl font-semibold mb-3 text-bad">Setup Required</h1>
           <p className="text-lg">Database connection missing.</p>
           <p>The app cannot persist data or log you in until you connect it to Supabase.</p>
-          <hr className="my-4 border-glass-border" />
+          <hr className="my-4 border-border" />
           <p className="text-sm text-muted-foreground">See <code>setup_supabase.md</code> for instructions.</p>
         </div>
       </div>
@@ -118,14 +118,14 @@ const Login = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-screen">
-      <div className="bg-bg-glass border border-glass-border rounded-lg p-8 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+      <div className="bg-card border border-border rounded-lg p-8 shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
         <h1 className="text-xl font-semibold mb-4 text-center">Recruiting Planner</h1>
         <p className="text-muted-foreground text-center mb-4">Sign in to access shared data</p>
 
         {/* Google Sign-In Button */}
         <button
           type="button"
-          className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium rounded-md bg-transparent text-foreground border border-glass-border hover:bg-white/10 gap-2 mb-3"
+          className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium rounded-md bg-transparent text-foreground border border-border hover:bg-white/10 gap-2 mb-3"
           onClick={handleGoogleSignIn}
           disabled={googleLoading || loading}
         >
@@ -139,9 +139,9 @@ const Login = () => {
         </button>
 
         <div className="flex items-center mb-3">
-          <hr className="grow border-glass-border" />
+          <hr className="grow border-border" />
           <span className="px-2 text-muted-foreground text-sm">or</span>
-          <hr className="grow border-glass-border" />
+          <hr className="grow border-border" />
         </div>
 
         <form onSubmit={handleLogin}>
@@ -149,7 +149,7 @@ const Login = () => {
             <label className="block text-xs font-medium text-muted-foreground mb-1">Email address</label>
             <input
               type="email"
-              className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md focus:border-primary focus:outline-none"
+              className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md focus:border-primary focus:outline-none"
               placeholder="name@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -158,7 +158,7 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
+            className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-primary/90"
             disabled={loading || googleLoading}
           >
             {loading ? 'Sending link...' : 'Send Magic Link'}
@@ -166,7 +166,7 @@ const Login = () => {
         </form>
 
         {message && (
-          <div className={`mt-3 p-3 rounded-lg border ${message.includes('Error') ? 'bg-bad-bg border-bad/20 text-bad-text' : 'bg-good-bg border-good/20 text-good-text'}`}>
+          <div className={`mt-3 p-3 rounded-lg border ${message.includes('Error') ? 'bg-destructive/10 border-bad/20 text-destructive' : 'bg-good-bg border-good/20 text-good-text'}`}>
             {message}
           </div>
         )}

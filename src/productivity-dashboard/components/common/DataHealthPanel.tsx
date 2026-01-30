@@ -59,7 +59,7 @@ export function DataHealthPanel({ health, onConfigureStages }: DataHealthPanelPr
 
   return (
     <div className="card-bespoke">
-      <div className="px-4 py-3 border-b border-glass-border flex justify-between items-center">
+      <div className="px-4 py-3 border-b border-border flex justify-between items-center">
         <h6 className="mb-0 font-semibold">Data Health</h6>
         <div className={`health-grade ${getGradeClass(healthGrade)}`}>
           {healthGrade}

@@ -1042,7 +1042,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
   return (
     <div className="min-h-screen bg-background">
       {/* Page Header */}
-      <header className="border-b border-glass-border bg-background/80">
+      <header className="border-b border-border bg-background/80">
         <div className="mx-auto flex h-14 max-w-[1600px] items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-light">
@@ -1128,7 +1128,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
               )}
             </div>
             {/* Unified Action Queue */}
-            <div className="rounded-lg border border-glass-border bg-bg-glass">
+            <div className="rounded-lg border border-border bg-card">
               <div className="max-h-[400px] divide-y divide-glass-border overflow-y-auto">
                 {openActions.length === 0 ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">
@@ -1208,7 +1208,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             <button
               type="button"
               onClick={() => handleForecastClick('offers')}
-              className="rounded-lg border border-glass-border bg-bg-glass p-4 text-left transition-colors hover:bg-accent/10 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent"
+              className="rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-accent/10 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent"
               title="View active offers"
             >
               <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Pending Offers</div>
@@ -1218,7 +1218,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             <button
               type="button"
               onClick={() => handleForecastClick('openReqs')}
-              className="rounded-lg border border-glass-border bg-bg-glass p-4 text-left transition-colors hover:bg-accent/10 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent"
+              className="rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-accent/10 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent"
               title="View open requisitions"
             >
               <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Open Reqs</div>
@@ -1228,7 +1228,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             <button
               type="button"
               onClick={() => setShowConfidenceBreakdown(true)}
-              className="rounded-lg border border-glass-border bg-bg-glass p-4 text-left transition-colors hover:bg-accent/10 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent"
+              className="rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-accent/10 hover:border-accent/50 focus:outline-none focus:ring-2 focus:ring-accent"
               title="View confidence breakdown"
             >
               <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Confidence</div>
@@ -1301,7 +1301,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
         >
           <div className="w-full max-w-md mx-4 bg-[var(--color-bg-surface)] rounded-lg overflow-hidden">
             {/* Header */}
-            <div className="px-4 py-3 border-b border-glass-border flex justify-between items-center">
+            <div className="px-4 py-3 border-b border-border flex justify-between items-center">
               <div>
                 <h5 className="text-lg font-semibold">Pipeline Confidence</h5>
                 <p className="text-xs text-muted-foreground">How we calculate forecast reliability</p>
@@ -1316,7 +1316,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             </div>
 
             {/* Overall Score */}
-            <div className="px-4 py-4 border-b border-glass-border bg-muted/30">
+            <div className="px-4 py-4 border-b border-border bg-muted/30">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">Overall Score</span>
                 <div className="flex items-center gap-3">
@@ -1334,7 +1334,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             {/* Factors */}
             <div className="px-4 py-3 space-y-3 max-h-[400px] overflow-y-auto">
               {confidenceBreakdown.factors.map((factor, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-muted/20 border border-glass-border">
+                <div key={idx} className="p-3 rounded-lg bg-muted/20 border border-border">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-foreground">{factor.label}</span>
                     <div className="flex items-center gap-2">
@@ -1366,7 +1366,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-3 border-t border-glass-border">
+            <div className="px-4 py-3 border-t border-border">
               <p className="text-xs text-muted-foreground">
                 Confidence reflects how reliable the forecast is based on pipeline health, conversion rates, and req status.
               </p>
@@ -1466,7 +1466,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
 
                       {/* Recommended action */}
                       {action.recommended_steps && action.recommended_steps.length > 0 && (
-                        <div className="pt-2 border-t border-glass-border/50">
+                        <div className="pt-2 border-t border-border/50">
                           <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Next Step</div>
                           {action.recommended_steps.map((step, stepIdx) => (
                             <p key={stepIdx} className="text-sm text-foreground leading-relaxed">
@@ -1482,7 +1482,7 @@ export function CommandCenterV2({ onNavigateToTab }: CommandCenterV2Props) {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-3 border-t border-glass-border shrink-0 bg-muted/20">
+            <div className="px-6 py-3 border-t border-border shrink-0 bg-muted/20">
               <p className="text-xs text-muted-foreground">
                 Actions are generated from HM pending reviews, system recommendations, and Ask PlatoVue action plans.
               </p>

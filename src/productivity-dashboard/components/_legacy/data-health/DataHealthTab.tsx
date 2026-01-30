@@ -39,7 +39,7 @@ interface DataHealthTabProps {
 const STATUS_CLASSES: Record<ReqHealthStatus, { bg: string; text: string; border: string }> = {
   [ReqHealthStatus.ACTIVE]: { bg: 'bg-good-bg', text: 'text-good', border: 'border-good' },
   [ReqHealthStatus.STALLED]: { bg: 'bg-warn-bg', text: 'text-warn', border: 'border-warn' },
-  [ReqHealthStatus.ZOMBIE]: { bg: 'bg-bad-bg', text: 'text-bad', border: 'border-bad' },
+  [ReqHealthStatus.ZOMBIE]: { bg: 'bg-destructive/10', text: 'text-bad', border: 'border-bad' },
   [ReqHealthStatus.AT_RISK]: { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500' }
 };
 
@@ -132,7 +132,7 @@ export function DataHealthTab({
       <div className="grid grid-cols-12 gap-3 mb-4">
         {/* Hygiene Score */}
         <div className="col-span-12 md:col-span-3">
-          <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+          <div className="rounded-lg border border-border bg-card h-full">
             <div className="text-center py-6 px-4">
               <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Data Hygiene Score</div>
               <div className={`font-mono text-4xl font-bold ${summary.hygieneScore >= 80 ? 'text-good' : summary.hygieneScore >= 60 ? 'text-warn' : 'text-bad'}`}>
@@ -145,7 +145,7 @@ export function DataHealthTab({
 
         {/* TTF Comparison */}
         <div className="col-span-12 md:col-span-3">
-          <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+          <div className="rounded-lg border border-border bg-card h-full">
             <div className="text-center py-6 px-4">
               <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">True TTF vs Raw</div>
               <div className="flex justify-center items-baseline gap-2">
@@ -169,7 +169,7 @@ export function DataHealthTab({
         {/* Zombie Count */}
         <div className="col-span-12 md:col-span-3">
           <div
-            className={`rounded-lg border bg-bg-glass h-full cursor-pointer transition-colors hover:bg-white/5 ${activeFilter === ReqHealthStatus.ZOMBIE ? 'border-l-[3px] border-l-bad border-glass-border' : 'border-glass-border'}`}
+            className={`rounded-lg border bg-card h-full cursor-pointer transition-colors hover:bg-white/5 ${activeFilter === ReqHealthStatus.ZOMBIE ? 'border-l-[3px] border-l-bad border-border' : 'border-border'}`}
             onClick={() => setActiveFilter(activeFilter === ReqHealthStatus.ZOMBIE ? 'ALL' : ReqHealthStatus.ZOMBIE)}
           >
             <div className="text-center py-6 px-4">
@@ -183,7 +183,7 @@ export function DataHealthTab({
         {/* Ghost Candidates */}
         <div className="col-span-12 md:col-span-3">
           <div
-            className={`rounded-lg border bg-bg-glass h-full cursor-pointer transition-colors hover:bg-white/5 ${showGhostCandidates ? 'border-l-[3px] border-l-purple-500 border-glass-border' : 'border-glass-border'}`}
+            className={`rounded-lg border bg-card h-full cursor-pointer transition-colors hover:bg-white/5 ${showGhostCandidates ? 'border-l-[3px] border-l-purple-500 border-border' : 'border-border'}`}
             onClick={() => setShowGhostCandidates(!showGhostCandidates)}
           >
             <div className="text-center py-6 px-4">
@@ -228,7 +228,7 @@ export function DataHealthTab({
 
       {/* Ghost Candidates Panel */}
       {showGhostCandidates && (
-        <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+        <div className="rounded-lg border border-border bg-card mb-4">
           <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
             <h6 className="text-sm font-semibold text-foreground">
               <span className="mr-2">👻</span>
@@ -272,7 +272,7 @@ export function DataHealthTab({
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{ghost.recruiterName}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${ghost.status === 'ABANDONED' ? 'bg-bad-bg text-bad' : 'bg-warn-bg text-warn'}`}>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${ghost.status === 'ABANDONED' ? 'bg-destructive/10 text-bad' : 'bg-warn-bg text-warn'}`}>
                         {ghost.status === 'ABANDONED' ? 'Abandoned' : 'Stagnant'}
                       </span>
                     </td>
@@ -292,7 +292,7 @@ export function DataHealthTab({
       )}
 
       {/* Requisition Health Table */}
-      <div className="rounded-lg border border-glass-border bg-bg-glass">
+      <div className="rounded-lg border border-border bg-card">
         <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
           <h6 className="text-sm font-semibold text-foreground">
             Requisition Health Status
@@ -387,7 +387,7 @@ export function DataHealthTab({
       </div>
 
       {/* Interpretation Guide */}
-      <div className="rounded-lg border border-glass-border bg-bg-glass mt-4">
+      <div className="rounded-lg border border-border bg-card mt-4">
         <div className="px-4 py-3 border-b border-white/10">
           <h6 className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted-foreground">
             Understanding Data Hygiene

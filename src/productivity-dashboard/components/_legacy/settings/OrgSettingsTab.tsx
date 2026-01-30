@@ -176,7 +176,7 @@ export function OrgSettingsTab() {
       />
 
       {/* Error/Success Messages */}
-      {error && <div className="p-3 rounded-lg bg-bad-bg border border-bad/30 text-bad mb-4">{error}</div>}
+      {error && <div className="p-3 rounded-lg bg-destructive/10 border border-bad/30 text-bad mb-4">{error}</div>}
       {success && <div className="p-3 rounded-lg bg-good-bg border border-good/30 text-good mb-4">{success}</div>}
 
       {/* General Settings */}

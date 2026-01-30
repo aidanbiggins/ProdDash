@@ -12,11 +12,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
-  default: 'bg-accent text-bg-base hover:bg-accent-hover',
+  default: 'bg-accent text-primary-foreground hover:bg-primary/90',
   destructive: 'bg-bad text-white hover:bg-bad/90',
-  outline: 'border border-glass-border bg-transparent hover:bg-bg-surface hover:text-foreground',
+  outline: 'border border-border bg-transparent hover:bg-card hover:text-foreground',
   secondary: 'bg-purple text-white hover:bg-purple/80',
-  ghost: 'hover:bg-bg-surface hover:text-foreground',
+  ghost: 'hover:bg-card hover:text-foreground',
   link: 'text-accent underline-offset-4 hover:underline',
 };
 

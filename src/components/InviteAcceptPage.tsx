@@ -84,7 +84,7 @@ export function InviteAcceptPage() {
     const returnUrl = window.location.pathname;
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+        <div className="bg-card border border-border rounded-lg shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
           <div className="text-center p-8">
             <h4 className="mb-4 text-lg font-semibold">Organization Invite</h4>
             {invite ? (
@@ -95,13 +95,13 @@ export function InviteAcceptPage() {
                 <p className="mb-4">Please log in to accept this invite.</p>
                 <a
                   href={`/login?returnUrl=${encodeURIComponent(returnUrl)}`}
-                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-primary/90"
                 >
                   Log In to Accept
                 </a>
               </>
             ) : (
-              <div className="p-3 rounded-lg bg-bad-bg border border-bad/20 text-bad-text">{error || 'Invalid invite'}</div>
+              <div className="p-3 rounded-lg bg-destructive/10 border border-bad/20 text-destructive">{error || 'Invalid invite'}</div>
             )}
           </div>
         </div>
@@ -113,7 +113,7 @@ export function InviteAcceptPage() {
   if (error && !invite) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
+        <div className="bg-card border border-border rounded-lg shadow-sm" style={{ maxWidth: '400px', width: '100%' }}>
           <div className="text-center p-8">
             <div className="text-bad mb-4">
               <i className="bi bi-exclamation-circle" style={{ fontSize: '3rem' }}></i>
@@ -121,7 +121,7 @@ export function InviteAcceptPage() {
             <h4 className="mb-3 text-lg font-semibold">Invalid Invite</h4>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-background hover:bg-primary/90"
               onClick={() => navigate('/')}
             >
               Go to Dashboard
@@ -135,7 +135,7 @@ export function InviteAcceptPage() {
   // Show invite acceptance form
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface">
-      <div className="bg-bg-glass border border-glass-border rounded-lg shadow-sm" style={{ maxWidth: '450px', width: '100%' }}>
+      <div className="bg-card border border-border rounded-lg shadow-sm" style={{ maxWidth: '450px', width: '100%' }}>
         <div className="p-8">
           <div className="text-center mb-4">
             <div className="bg-primary/10 rounded-full inline-flex items-center justify-center mb-3" style={{ width: '60px', height: '60px' }}>
@@ -144,7 +144,7 @@ export function InviteAcceptPage() {
             <h4 className="text-lg font-semibold">Organization Invite</h4>
           </div>
 
-          {error && <div className="p-3 rounded-lg bg-bad-bg border border-bad/20 text-bad-text">{error}</div>}
+          {error && <div className="p-3 rounded-lg bg-destructive/10 border border-bad/20 text-destructive">{error}</div>}
 
           <div className="text-center mb-4">
             <p className="mb-2">You've been invited to join:</p>
@@ -160,7 +160,7 @@ export function InviteAcceptPage() {
 
           <div className="grid gap-2">
             <button
-              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md bg-primary text-background hover:bg-accent-hover"
+              className="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md bg-primary text-background hover:bg-primary/90"
               onClick={handleAccept}
               disabled={accepting}
             >
@@ -174,7 +174,7 @@ export function InviteAcceptPage() {
               )}
             </button>
             <button
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-transparent text-foreground border border-glass-border hover:bg-white/10"
+              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-transparent text-foreground border border-border hover:bg-white/10"
               onClick={() => navigate('/')}
               disabled={accepting}
             >

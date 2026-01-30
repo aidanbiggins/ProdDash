@@ -30,8 +30,8 @@ const statusConfig: Record<RiskLevel, { bg: string; text: string; label: string 
     label: 'At Risk',
   },
   bad: {
-    bg: 'bg-bad-bg',
-    text: 'text-bad-text',
+    bg: 'bg-destructive/10',
+    text: 'text-destructive',
     label: 'Critical',
   },
   neutral: {

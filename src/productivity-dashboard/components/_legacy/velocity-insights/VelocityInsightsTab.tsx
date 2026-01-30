@@ -732,7 +732,7 @@ function CompactInsightCard({
       <div className="flex items-center gap-2 flex-wrap">
         {onViewEvidence && (
           <button
-            className="px-1.5 py-0.5 rounded bg-bg-glass border border-glass-border hover:bg-white/10"
+            className="px-1.5 py-0.5 rounded bg-card border border-border hover:bg-white/10"
             onClick={() => onViewEvidence(insight)}
             style={{
               background: 'rgba(96, 165, 250, 0.1)',

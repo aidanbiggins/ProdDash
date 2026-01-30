@@ -57,7 +57,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
           <label className="block text-xs font-medium text-muted-foreground mb-1">Freeze Duration (Weeks)</label>
           <input
             type="number"
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
             value={freezeWeeks}
             onChange={e => setFreezeWeeks(Math.max(1, Math.min(26, parseInt(e.target.value) || 4)))}
             min={1}
@@ -70,7 +70,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
         <div className="col-span-12 md:col-span-6">
           <label className="block text-xs font-medium text-muted-foreground mb-1">Candidate Action</label>
           <select
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
             value={candidateAction}
             onChange={e => setCandidateAction(e.target.value as 'HOLD' | 'REJECT_SOFT' | 'WITHDRAW')}
           >
@@ -89,7 +89,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
         <div className="col-span-12 md:col-span-6">
           <label className="block text-xs font-medium text-muted-foreground mb-1">Scope</label>
           <select
-            className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+            className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
             value={scopeType}
             onChange={e => {
               setScopeType(e.target.value as typeof scopeType);
@@ -114,7 +114,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
             </label>
             {scopeType === 'FUNCTION' ? (
               <select
-                className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+                className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
                 value={scopeFilterValue}
                 onChange={e => setScopeFilterValue(e.target.value)}
               >
@@ -125,7 +125,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
               </select>
             ) : scopeType === 'LEVEL' ? (
               <select
-                className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md appearance-none"
+                className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md appearance-none"
                 value={scopeFilterValue}
                 onChange={e => setScopeFilterValue(e.target.value)}
               >
@@ -137,7 +137,7 @@ export default function HiringFreezeForm({ onSubmit, isRunning }: HiringFreezeFo
             ) : (
               <input
                 type="text"
-                className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+                className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
                 value={scopeFilterValue}
                 onChange={e => setScopeFilterValue(e.target.value)}
                 placeholder="REQ-001, REQ-002, ..."

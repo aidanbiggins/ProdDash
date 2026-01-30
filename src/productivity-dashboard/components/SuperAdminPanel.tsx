@@ -107,8 +107,8 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" tabIndex={-1}>
         <div className="w-full max-w-lg mx-4">
-          <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
-            <div className="flex items-center justify-between p-4 border-b border-glass-border">
+          <div className="bg-card border border-border rounded-lg shadow-lg">
+            <div className="flex items-center justify-between p-4 border-b border-border">
               <h5 className="font-semibold text-foreground">Access Denied</h5>
               <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
             </div>
@@ -117,8 +117,8 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                 You do not have super admin privileges.
               </div>
             </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
-              <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80" onClick={onClose}>
+            <div className="flex justify-end gap-2 p-4 border-t border-border">
+              <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-muted text-foreground hover:bg-muted/80" onClick={onClose}>
                 Close
               </button>
             </div>
@@ -131,7 +131,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" tabIndex={-1}>
       <div className="w-full max-w-5xl mx-4">
-        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated">
+        <div className="bg-card border border-border rounded-lg shadow-lg">
           <div className="flex items-center justify-between p-4 bg-bad text-white rounded-t-lg">
             <h5 className="font-semibold">Super Admin Panel</h5>
             <button type="button" className="text-white/70 hover:text-white" onClick={onClose}>&times;</button>
@@ -142,7 +142,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
             {success && <div className="p-3 rounded-lg bg-good/10 border border-good/30 text-good mb-4">{success}</div>}
 
             {/* Navigation */}
-            <div className="flex gap-1 mb-4 border-b border-glass-border">
+            <div className="flex gap-1 mb-4 border-b border-border">
               <button
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeSection === 'orgs' ? 'border-accent text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 onClick={() => setActiveSection('orgs')}
@@ -170,7 +170,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-glass-border">
+                        <tr className="border-b border-border">
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Name</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Slug</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Created</th>
@@ -179,7 +179,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                       </thead>
                       <tbody>
                         {organizations.map((org) => (
-                          <tr key={org.id} className="border-b border-glass-border hover:bg-bg-elevated/50">
+                          <tr key={org.id} className="border-b border-border hover:bg-muted/50">
                             <td className="px-3 py-2">
                               <strong className="text-foreground">{org.name}</strong>
                               <br />
@@ -192,7 +192,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                             <td className="px-3 py-2">
                               <div className="flex gap-1">
                                 <button
-                                  className="px-2 py-1 text-xs font-medium rounded border border-accent text-accent hover:bg-accent hover:text-bg-base transition-colors"
+                                  className="px-2 py-1 text-xs font-medium rounded border border-accent text-accent hover:bg-accent hover:text-primary-foreground transition-colors"
                                   onClick={() => handleImpersonateOrg(org.id)}
                                   title="Switch to this organization"
                                 >
@@ -216,7 +216,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                 )}
 
                 <button
-                  className="mt-3 px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80 disabled:opacity-50"
+                  className="mt-3 px-4 py-2 text-sm font-medium rounded-md bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50"
                   onClick={loadData}
                   disabled={isLoading}
                 >
@@ -237,7 +237,7 @@ export function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
                 <ol className="mb-4 text-muted-foreground list-decimal list-inside space-y-1">
                   <li>Get the user's UUID from the <code className="text-accent">auth.users</code> table in Supabase</li>
                   <li>Insert into <code className="text-accent">super_admins</code> table:
-                    <pre className="p-2 rounded mt-2 bg-bg-elevated border border-glass-border text-foreground text-sm">
+                    <pre className="p-2 rounded mt-2 bg-muted border border-border text-foreground text-sm">
 {`INSERT INTO super_admins (user_id)
 VALUES ('user-uuid-here');`}
                     </pre>
@@ -251,8 +251,8 @@ VALUES ('user-uuid-here');`}
               </div>
             )}
           </div>
-          <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
-            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80" onClick={onClose}>
+          <div className="flex justify-end gap-2 p-4 border-t border-border">
+            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-muted text-foreground hover:bg-muted/80" onClick={onClose}>
               Close
             </button>
           </div>

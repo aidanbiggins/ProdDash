@@ -336,7 +336,7 @@ export function ForecastingTab({
   // Get risk badge classes (Tailwind)
   const getRiskBadgeClass = (band: RiskBand) => {
     switch (band) {
-      case 'HIGH': return 'bg-bad-bg text-bad border border-bad';
+      case 'HIGH': return 'bg-destructive/10 text-bad border border-bad';
       case 'MED': return 'bg-warn-bg text-warn border border-warn';
       case 'LOW': return 'bg-good-bg text-good border border-good';
       default: return 'bg-white/10 text-muted-foreground border border-white/10';
@@ -412,7 +412,7 @@ export function ForecastingTab({
     switch (status) {
       case 'on-track': return 'bg-good-bg text-good border border-good';
       case 'at-risk': return 'bg-warn-bg text-warn border border-warn';
-      case 'off-track': return 'bg-bad-bg text-bad border border-bad';
+      case 'off-track': return 'bg-destructive/10 text-bad border border-bad';
     }
   };
 
@@ -434,7 +434,7 @@ export function ForecastingTab({
       {/* Sub-tab Navigation */}
       <div className="flex gap-2 mb-4">
         <button
-          className={activeSubTab === 'health' ? 'px-4 py-2 bg-accent text-white rounded hover:bg-accent/90' : 'px-4 py-2 bg-bg-glass border border-glass-border rounded hover:bg-white/10'}
+          className={activeSubTab === 'health' ? 'px-4 py-2 bg-accent text-white rounded hover:bg-accent/90' : 'px-4 py-2 bg-card border border-border rounded hover:bg-white/10'}
           onClick={() => setActiveSubTab('health')}
         >
           <i className="bi bi-heart-pulse mr-2"></i>
@@ -444,7 +444,7 @@ export function ForecastingTab({
           )}
         </button>
         <button
-          className={activeSubTab === 'planner' ? 'px-4 py-2 bg-accent text-white rounded hover:bg-accent/90' : 'px-4 py-2 bg-bg-glass border border-glass-border rounded hover:bg-white/10'}
+          className={activeSubTab === 'planner' ? 'px-4 py-2 bg-accent text-white rounded hover:bg-accent/90' : 'px-4 py-2 bg-card border border-border rounded hover:bg-white/10'}
           onClick={() => setActiveSubTab('planner')}
         >
           <i className="bi bi-calculator mr-2"></i>
@@ -474,7 +474,7 @@ export function ForecastingTab({
 
           {/* Step 1: Role Profile */}
           {wizardStep === 'profile' && (
-            <div className="rounded-lg border border-glass-border bg-bg-glass">
+            <div className="rounded-lg border border-border bg-card">
               <div className="px-4 py-3 border-b border-white/10">
                 <SectionHeader
                   title="Step 1: Define Role Profile"
@@ -486,7 +486,7 @@ export function ForecastingTab({
                   <div className="col-span-12 md:col-span-6">
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Function *</label>
                     <select
-                      className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+                      className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
                       value={roleProfile.function}
                       onChange={e => setRoleProfile({ ...roleProfile, function: e.target.value })}
                     >
@@ -499,7 +499,7 @@ export function ForecastingTab({
                   <div className="col-span-12 md:col-span-6">
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Level *</label>
                     <select
-                      className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+                      className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
                       value={roleProfile.level}
                       onChange={e => setRoleProfile({ ...roleProfile, level: e.target.value })}
                     >
@@ -512,7 +512,7 @@ export function ForecastingTab({
                   <div className="col-span-12 md:col-span-6">
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Location Type *</label>
                     <select
-                      className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+                      className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
                       value={roleProfile.locationType}
                       onChange={e => setRoleProfile({ ...roleProfile, locationType: e.target.value })}
                     >
@@ -525,7 +525,7 @@ export function ForecastingTab({
                   <div className="col-span-12 md:col-span-6">
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Job Family *</label>
                     <select
-                      className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+                      className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
                       value={roleProfile.jobFamily}
                       onChange={e => setRoleProfile({ ...roleProfile, jobFamily: e.target.value })}
                     >
@@ -551,7 +551,7 @@ export function ForecastingTab({
 
           {/* Step 2: Hiring Manager */}
           {wizardStep === 'hm' && (
-            <div className="rounded-lg border border-glass-border bg-bg-glass">
+            <div className="rounded-lg border border-border bg-card">
               <div className="px-4 py-3 border-b border-white/10">
                 <SectionHeader
                   title="Step 2: Select Hiring Manager (Optional)"
@@ -563,7 +563,7 @@ export function ForecastingTab({
                   <div className="col-span-12 md:col-span-6">
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Hiring Manager</label>
                     <select
-                      className="w-full px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+                      className="w-full px-3 py-2 text-sm bg-card border border-border rounded-md"
                       value={roleProfile.hiringManagerId || ''}
                       onChange={e => setRoleProfile({ ...roleProfile, hiringManagerId: e.target.value || undefined })}
                     >
@@ -614,7 +614,7 @@ export function ForecastingTab({
                 </div>
                 <div className="flex justify-between mt-4">
                   <button
-                    className="px-4 py-2 bg-bg-glass border border-glass-border rounded hover:bg-white/10"
+                    className="px-4 py-2 bg-card border border-border rounded hover:bg-white/10"
                     onClick={() => setWizardStep('profile')}
                   >
                     <i className="bi bi-arrow-left mr-2"></i> Back
@@ -644,13 +644,13 @@ export function ForecastingTab({
                       simulationParams={simParams || undefined}
                     />
                   ) : (
-                    <div className="rounded-lg border border-glass-border bg-bg-glass text-center h-full flex items-center justify-center">
+                    <div className="rounded-lg border border-border bg-card text-center h-full flex items-center justify-center">
                       <LogoSpinner size={40} layout="stacked" />
                     </div>
                   )}
                 </div>
                 <div className="col-span-12 md:col-span-3">
-                  <div className="rounded-lg border border-glass-border bg-bg-glass text-center h-full">
+                  <div className="rounded-lg border border-border bg-card text-center h-full">
                     <div className="p-4">
                       <StatLabel className="mb-2">Candidates Needed</StatLabel>
                       <StatValue>{forecast.pipelineRequirements.totalCandidatesNeeded}</StatValue>
@@ -669,7 +669,7 @@ export function ForecastingTab({
               </div>
 
               {/* Milestone Timeline - Funnel over time */}
-              <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+              <div className="rounded-lg border border-border bg-card mb-4">
                 <div className="px-4 py-3 border-b border-white/10">
                   <h6 className="mb-0 text-foreground"><i className="bi bi-funnel mr-2"></i> Pipeline Funnel Over Time</h6>
                 </div>
@@ -734,7 +734,7 @@ export function ForecastingTab({
               <div className="grid grid-cols-12 gap-4 mb-4">
                 {/* Pipeline Requirements */}
                 <div className="col-span-12 md:col-span-6">
-                  <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+                  <div className="rounded-lg border border-border bg-card h-full">
                     <div className="px-4 py-3 border-b border-white/10">
                       <h6 className="mb-0 text-foreground"><i className="bi bi-funnel mr-2"></i> Pipeline Requirements</h6>
                     </div>
@@ -766,7 +766,7 @@ export function ForecastingTab({
 
                 {/* Source Mix */}
                 <div className="col-span-12 md:col-span-6">
-                  <div className="rounded-lg border border-glass-border bg-bg-glass h-full">
+                  <div className="rounded-lg border border-border bg-card h-full">
                     <div className="px-4 py-3 border-b border-white/10">
                       <h6 className="mb-0 text-foreground"><i className="bi bi-pie-chart mr-2"></i> Recommended Source Mix</h6>
                     </div>
@@ -803,7 +803,7 @@ export function ForecastingTab({
 
               {/* Risk Factors */}
               {forecast.riskFactors.length > 0 && (
-                <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+                <div className="rounded-lg border border-border bg-card mb-4">
                   <div className="px-4 py-3 border-b border-white/10">
                     <h6 className="mb-0 text-foreground"><i className="bi bi-exclamation-triangle mr-2"></i> Risk Factors</h6>
                   </div>
@@ -812,7 +812,7 @@ export function ForecastingTab({
                       {forecast.riskFactors.map((risk, i) => (
                         <div key={i} className="p-3">
                           <div className="flex items-start">
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mr-3 ${risk.severity === 'high' ? 'bg-bad-bg text-bad' : risk.severity === 'medium' ? 'bg-warn-bg text-warn' : 'bg-white/10 text-muted-foreground'}`}>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium mr-3 ${risk.severity === 'high' ? 'bg-destructive/10 text-bad' : risk.severity === 'medium' ? 'bg-warn-bg text-warn' : 'bg-white/10 text-muted-foreground'}`}>
                               {risk.severity.toUpperCase()}
                             </span>
                             <div className="grow">
@@ -835,7 +835,7 @@ export function ForecastingTab({
 
               {/* Actions */}
               <div className="flex justify-between">
-                <button className="px-4 py-2 bg-bg-glass border border-glass-border rounded hover:bg-white/10" onClick={handleResetWizard}>
+                <button className="px-4 py-2 bg-card border border-border rounded hover:bg-white/10" onClick={handleResetWizard}>
                   <i className="bi bi-arrow-counterclockwise mr-2"></i> Start Over
                 </button>
               </div>
@@ -853,7 +853,7 @@ export function ForecastingTab({
             <div className="grid grid-cols-12 gap-3 mb-4">
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'all' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
+                  className={`rounded-lg border bg-card text-center cursor-pointer transition-colors ${healthFilter === 'all' ? 'border-accent shadow-lg' : 'border-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('all')}
                 >
                   <div className="p-4">
@@ -864,7 +864,7 @@ export function ForecastingTab({
               </div>
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'on-track' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
+                  className={`rounded-lg border bg-card text-center cursor-pointer transition-colors ${healthFilter === 'on-track' ? 'border-accent shadow-lg' : 'border-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('on-track')}
                 >
                   <div className="p-4">
@@ -875,7 +875,7 @@ export function ForecastingTab({
               </div>
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'at-risk' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
+                  className={`rounded-lg border bg-card text-center cursor-pointer transition-colors ${healthFilter === 'at-risk' ? 'border-accent shadow-lg' : 'border-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('at-risk')}
                 >
                   <div className="p-4">
@@ -886,7 +886,7 @@ export function ForecastingTab({
               </div>
               <div className="col-span-6 md:col-span-3">
                 <div
-                  className={`rounded-lg border bg-bg-glass text-center cursor-pointer transition-colors ${healthFilter === 'off-track' ? 'border-accent shadow-lg' : 'border-glass-border hover:border-white/20'}`}
+                  className={`rounded-lg border bg-card text-center cursor-pointer transition-colors ${healthFilter === 'off-track' ? 'border-accent shadow-lg' : 'border-border hover:border-white/20'}`}
                   onClick={() => setHealthFilter('off-track')}
                 >
                   <div className="p-4">
@@ -915,7 +915,7 @@ export function ForecastingTab({
             </div>
 
             {/* Health Table */}
-            <div className="rounded-lg border border-glass-border bg-bg-glass mb-4">
+            <div className="rounded-lg border border-border bg-card mb-4">
               <div className="px-4 py-3 border-b border-white/10 flex justify-between items-center">
                 <h6 className="mb-0 text-foreground">Open Requisitions</h6>
                 <span className="text-sm text-muted-foreground">Click any row for forecast details and risk analysis</span>
@@ -1029,14 +1029,14 @@ export function ForecastingTab({
                     </span>
                     <div className="inline-flex rounded-md shadow-sm">
                       <button
-                        className="inline-flex items-center px-3 py-1.5 text-sm border border-glass-border rounded-l-md text-muted-foreground hover:bg-white/5 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center px-3 py-1.5 text-sm border border-border rounded-l-md text-muted-foreground hover:bg-white/5 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         disabled={healthPage === 0}
                         onClick={() => setHealthPage(p => p - 1)}
                       >
                         Previous
                       </button>
                       <button
-                        className="inline-flex items-center px-3 py-1.5 text-sm border border-glass-border border-l-0 rounded-r-md text-muted-foreground hover:bg-white/5 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="inline-flex items-center px-3 py-1.5 text-sm border border-border border-l-0 rounded-r-md text-muted-foreground hover:bg-white/5 hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         disabled={(healthPage + 1) * HEALTH_PAGE_SIZE >= filteredHealthMetrics.length}
                         onClick={() => setHealthPage(p => p + 1)}
                       >

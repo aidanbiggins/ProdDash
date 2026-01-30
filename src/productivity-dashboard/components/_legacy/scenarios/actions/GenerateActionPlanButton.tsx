@@ -106,7 +106,7 @@ export default function GenerateActionPlanButton({
             role="dialog"
           >
             <div className="bg-surface-base rounded-lg shadow-xl max-w-md w-full">
-              <div className="flex items-center justify-between p-4 border-b border-glass-border">
+              <div className="flex items-center justify-between p-4 border-b border-border">
                 <h5 className="text-lg font-semibold">Add to Action Queue</h5>
                 <button
                   type="button"
@@ -141,10 +141,10 @@ export default function GenerateActionPlanButton({
                   )}
                 </div>
               </div>
-              <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
+              <div className="flex justify-end gap-2 p-4 border-t border-border">
                 <button
                   type="button"
-                  className="px-4 py-2 rounded-md border border-glass-border bg-transparent text-muted-foreground hover:bg-surface-elevated transition-colors"
+                  className="px-4 py-2 rounded-md border border-border bg-transparent text-muted-foreground hover:bg-surface-elevated transition-colors"
                   onClick={() => setShowConfirm(false)}
                 >
                   Cancel

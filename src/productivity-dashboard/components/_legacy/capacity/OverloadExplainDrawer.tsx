@@ -73,9 +73,9 @@ export function OverloadExplainDrawer({
 
       {/* Drawer */}
       <div
-        className="fixed top-0 right-0 h-full w-[450px] max-w-[90vw] z-[1050] overflow-y-auto bg-bg-surface border-l border-glass-border"
+        className="fixed top-0 right-0 h-full w-[450px] max-w-[90vw] z-[1050] overflow-y-auto bg-card border-l border-border"
       >
-        <div className="sticky top-0 bg-bg-surface/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
+        <div className="sticky top-0 bg-card/95 backdrop-blur-sm border-b border-white/10 px-4 py-3">
           <div className="flex justify-between items-start">
             <h5 className="text-base font-semibold text-foreground">
               Why is {recruiterLoad.recruiterName} overloaded?
@@ -102,7 +102,7 @@ export function OverloadExplainDrawer({
               <div className="text-xs text-muted-foreground">Capacity</div>
               <div className="font-mono font-bold text-foreground">{recruiterLoad.capacityWU} WU</div>
             </div>
-            <div className={`text-center p-3 rounded-lg ${recruiterLoad.utilization > 1.1 ? 'bg-bad-bg' : 'bg-good-bg'}`}>
+            <div className={`text-center p-3 rounded-lg ${recruiterLoad.utilization > 1.1 ? 'bg-destructive/10' : 'bg-good-bg'}`}>
               <div className="text-xs text-muted-foreground">Utilization</div>
               <div className={`font-mono font-bold ${utilizationClass}`}>
                 {Math.round(recruiterLoad.utilization * 100)}%

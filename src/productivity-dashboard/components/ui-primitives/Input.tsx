@@ -13,8 +13,8 @@ export function Input({ className, type = 'text', ...props }: InputProps) {
       type={type}
       className={cn(
         // Base styles
-        'h-9 w-full min-w-0 rounded-md border border-glass-border',
-        'bg-bg-surface/30 px-3 py-1 text-sm text-foreground',
+        'h-9 w-full min-w-0 rounded-md border border-border',
+        'bg-card/30 px-3 py-1 text-sm text-foreground',
         'placeholder:text-muted-foreground',
         'shadow-sm transition-all duration-200',
         // Focus styles

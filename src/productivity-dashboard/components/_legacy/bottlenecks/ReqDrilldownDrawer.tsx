@@ -363,7 +363,7 @@ export function ReqDrilldownDrawer({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-3 px-4 border-t border-glass-border flex gap-2">
+        <div className="p-3 px-4 border-t border-border flex gap-2">
           {worstBreach?.attribution_owner_id &&
             worstBreach.attribution_owner_type === 'HM' &&
             onViewHMScorecard && (

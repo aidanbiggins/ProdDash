@@ -35,7 +35,7 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
         <span>Team Demand</span>
         <span>{demand} WU</span>
       </div>
-      <div className="h-2 bg-bg-glass rounded mb-2 capacity-progress-track">
+      <div className="h-2 bg-card rounded mb-2 capacity-progress-track">
         <div
           className={`h-full rounded ${isOverDemand ? 'bg-red-500' : 'bg-primary'}`}
           style={{ width: `${demandPercent}%` }}
@@ -46,7 +46,7 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
         <span>Team Capacity</span>
         <span>{capacity} WU</span>
       </div>
-      <div className="h-2 bg-bg-glass rounded capacity-progress-track">
+      <div className="h-2 bg-card rounded capacity-progress-track">
         <div
           className="h-full rounded bg-green-500"
           style={{ width: `${capacityPercent}%` }}
@@ -58,7 +58,7 @@ function CapacityGauge({ demand, capacity }: { demand: number; capacity: number 
 
 // Map status to Tailwind classes
 const STATUS_CLASS: Record<string, { panel: string; badge: string; label: string }> = {
-  understaffed: { panel: 'bg-bad-bg border border-bad/30', badge: 'bg-bad-bg text-bad', label: 'Understaffed' },
+  understaffed: { panel: 'bg-destructive/10 border border-bad/30', badge: 'bg-destructive/10 text-bad', label: 'Understaffed' },
   overstaffed: { panel: 'bg-warn-bg border border-warn/30', badge: 'bg-warn-bg text-warn', label: 'Overstaffed' },
   balanced: { panel: 'bg-good-bg border border-good/30', badge: 'bg-good-bg text-good', label: 'Balanced' }
 };
@@ -67,7 +67,7 @@ export function TeamCapacitySummary({ summary }: TeamCapacitySummaryProps) {
   const statusStyle = STATUS_CLASS[summary.status] || STATUS_CLASS.balanced;
 
   return (
-    <div className="rounded-lg border border-glass-border bg-bg-glass">
+    <div className="rounded-lg border border-border bg-card">
       <div className="flex justify-between items-center px-4 py-3 border-b border-white/10">
         <h6 className="text-sm font-semibold text-foreground">
           <i className="bi bi-people mr-2"></i>

@@ -32,7 +32,7 @@ export function MetricDrillDown({
   return (
     <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
       <div className="w-full max-w-4xl mx-4 rounded-lg" style={{ background: 'var(--bg-surface)', border: '1px solid var(--glass-border)' }}>
-        <div className="flex items-center justify-between p-4 border-b border-glass-border">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <h5 className="text-lg font-medium" style={{ color: '#F8FAFC' }}>{metricName}</h5>
           <button type="button" className="p-1 rounded hover:bg-white/10 text-white/60 hover:text-white" onClick={onClose}>
             <i className="bi bi-x-lg"></i>
@@ -66,7 +66,7 @@ export function MetricDrillDown({
                 <table className="w-full text-sm">
                   <tbody>
                     {Object.entries(additionalInfo).map(([key, val]) => (
-                      <tr key={key} className="border-b border-glass-border">
+                      <tr key={key} className="border-b border-border">
                         <td className="py-2 text-muted-foreground">{key}</td>
                         <td className="py-2 font-bold" style={{ color: '#F8FAFC' }}>{val}</td>
                       </tr>
@@ -106,7 +106,7 @@ export function MetricDrillDown({
               </div>
             )}
         </div>
-        <div className="flex justify-end p-4 border-t border-glass-border">
+        <div className="flex justify-end p-4 border-t border-border">
           <button
             type="button"
             className="px-4 py-2 text-sm font-medium rounded-md bg-white/10 hover:bg-white/20 text-white"

@@ -35,7 +35,7 @@ const ComparisonView = ({ socket }) => {
     });
     
     return (
-      <table className="w-full border border-glass-border">
+      <table className="w-full border border-border">
         <thead>
           <tr>
             <th>Metric</th>

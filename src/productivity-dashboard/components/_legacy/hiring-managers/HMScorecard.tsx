@@ -215,7 +215,7 @@ export function HMScorecard({ reqRollups, selectedHmUserIds, onSelectReq }: HMSc
                     <span className="badge-bespoke badge-neutral-soft">{sortedRollups.length} reqs</span>
                     <input
                         type="text"
-                        className="px-3 py-2 text-sm bg-bg-glass border border-glass-border rounded-md"
+                        className="px-3 py-2 text-sm bg-card border border-border rounded-md"
                         placeholder="Search reqs..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}

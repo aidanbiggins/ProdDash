@@ -184,7 +184,7 @@ function AIInsightCard({
       {/* Action Buttons */}
       <div className="flex gap-2 flex-wrap items-center">
         <button
-          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
+          className="px-3 py-1.5 text-xs bg-card border border-border rounded hover:bg-white/10"
           onClick={() => onCreateAction(insight)}
           disabled={isActionCreated}
           style={isActionCreated ? { opacity: 0.5 } : {}}
@@ -195,7 +195,7 @@ function AIInsightCard({
         </button>
 
         <button
-          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
+          className="px-3 py-1.5 text-xs bg-card border border-border rounded hover:bg-white/10"
           onClick={() => onDraftMessage(insight)}
           data-testid="draft-message-btn"
         >
@@ -204,7 +204,7 @@ function AIInsightCard({
         </button>
 
         <button
-          className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
+          className="px-3 py-1.5 text-xs bg-card border border-border rounded hover:bg-white/10"
           onClick={() => onViewEvidence(insight)}
           data-testid="view-evidence-btn"
         >
@@ -575,7 +575,7 @@ export function VelocityCopilotPanel({
               </button>
             )}
             <button
-              className="px-3 py-1.5 text-xs bg-bg-glass border border-glass-border rounded hover:bg-white/10"
+              className="px-3 py-1.5 text-xs bg-card border border-border rounded hover:bg-white/10"
               onClick={handleGenerateDeterministic}
               data-testid="generate-deterministic-btn"
             >

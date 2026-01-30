@@ -10,13 +10,13 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantClasses: Record<NonNullable<BadgeProps['variant']>, string> = {
-  default: 'border-transparent bg-accent text-bg-base',
+  default: 'border-transparent bg-accent text-primary-foreground',
   secondary: 'border-transparent bg-purple text-white',
   destructive: 'border-transparent bg-bad text-white',
-  outline: 'text-foreground border-glass-border',
+  outline: 'text-foreground border-border',
   good: 'border-transparent bg-good-bg text-good-text border border-good-border',
   warn: 'border-transparent bg-warn-bg text-warn-text border border-warn-border',
-  bad: 'border-transparent bg-bad-bg text-bad-text border border-bad-border',
+  bad: 'border-transparent bg-destructive/10 text-destructive border border-bad-border',
 };
 
 export function Badge({

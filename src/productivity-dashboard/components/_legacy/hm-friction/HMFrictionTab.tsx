@@ -437,7 +437,7 @@ export function HMFrictionTab({
               {expandedKPI === 'latencyImpact' && 'Latency Impact by HM'}
               {expandedKPI === 'fastHMs' && 'Fast Hiring Managers'}
             </h6>
-            <button className="px-3 py-1.5 text-sm bg-bg-glass border border-glass-border rounded hover:bg-opacity-80 transition-colors" onClick={() => setExpandedKPI(null)}>
+            <button className="px-3 py-1.5 text-sm bg-card border border-border rounded hover:bg-opacity-80 transition-colors" onClick={() => setExpandedKPI(null)}>
               <i className="bi bi-x-lg"></i> Close
             </button>
           </div>
@@ -909,7 +909,7 @@ export function HMFrictionTab({
       <div className="card-bespoke">
         <div className="card-header flex justify-between items-center">
           <h6 className="mb-0 text-base font-semibold">All Hiring Managers</h6>
-          <button className="px-3 py-1.5 text-sm bg-bg-glass border border-glass-border rounded hover:bg-opacity-80 transition-colors" onClick={handleExport}>
+          <button className="px-3 py-1.5 text-sm bg-card border border-border rounded hover:bg-opacity-80 transition-colors" onClick={handleExport}>
             Export CSV
           </button>
         </div>

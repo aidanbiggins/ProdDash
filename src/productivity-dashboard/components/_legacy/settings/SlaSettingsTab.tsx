@@ -130,7 +130,7 @@ export function SlaSettingsTab() {
         <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
           <table className="w-full text-sm" style={{ minWidth: '700px' }}>
             <thead>
-              <tr className="border-b border-glass-border">
+              <tr className="border-b border-border">
                 <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Stage</th>
                 <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">Display Name</th>
                 <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">SLA (hours)</th>
@@ -212,7 +212,7 @@ export function SlaSettingsTab() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-glass-border">
+        <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-4 border-t border-border">
           <button
             className="px-4 py-2.5 rounded-md font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
             onClick={handleSave}

@@ -176,7 +176,7 @@ export default function ScenarioOutputPanel({
         <ExplainForExecsButton output={output} />
 
         <button
-          className="px-4 py-2 rounded-md border border-glass-border bg-transparent text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors"
+          className="px-4 py-2 rounded-md border border-border bg-transparent text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition-colors"
           onClick={() => setShowCitations(true)}
         >
           <i className="bi bi-quote mr-2" />

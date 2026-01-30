@@ -184,7 +184,7 @@ export function RecruiterWorkloadDrawer({ recruiter, requisitions, candidates, p
 
             {/* Confidence Reasons */}
             {recruiter.confidenceReasons.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-glass-border">
+                <div className="mt-4 pt-3 border-t border-border">
                     <div className="text-muted-foreground mb-2 text-[0.7rem] uppercase tracking-wide">
                         Confidence Notes
                     </div>

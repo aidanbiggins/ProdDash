@@ -99,7 +99,7 @@ export function FitMatrixV2({
         <table className="w-full text-xs">
           <thead>
             <tr>
-              <th className="px-2 py-2 text-left text-muted-foreground font-medium sticky left-0 bg-bg-glass">
+              <th className="px-2 py-2 text-left text-muted-foreground font-medium sticky left-0 bg-card">
                 Recruiter
               </th>
               {segments.map((segment, idx) => (
@@ -116,7 +116,7 @@ export function FitMatrixV2({
           <tbody>
             {recruiters.map(([recruiterId, recruiterName], rIdx) => (
               <tr key={recruiterId} className="border-t border-border">
-                <td className="px-2 py-2 text-sm font-medium text-foreground whitespace-nowrap sticky left-0 bg-bg-glass">
+                <td className="px-2 py-2 text-sm font-medium text-foreground whitespace-nowrap sticky left-0 bg-card">
                   {getDisplayName(recruiterName, rIdx, 'recruiter')}
                 </td>
                 {segments.map(segment => {

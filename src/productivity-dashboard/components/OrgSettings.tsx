@@ -193,8 +193,8 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" tabIndex={-1}>
       <div className="w-full max-w-3xl mx-4">
-        <div className="bg-bg-surface border border-glass-border rounded-lg shadow-glass-elevated max-h-[90vh] flex flex-col">
-          <div className="flex items-center justify-between p-4 border-b border-glass-border">
+        <div className="bg-card border border-border rounded-lg shadow-lg max-h-[90vh] flex flex-col">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <h5 className="font-semibold text-foreground">Organization Settings</h5>
             <button type="button" className="text-muted-foreground hover:text-foreground" onClick={onClose}>&times;</button>
           </div>
@@ -204,7 +204,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
             {success && <div className="p-3 rounded-lg bg-good/10 border border-good/30 text-good mb-4">{success}</div>}
 
             {/* Navigation */}
-            <div className="flex gap-1 mb-4 border-b border-glass-border">
+            <div className="flex gap-1 mb-4 border-b border-border">
               <button
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeSection === 'general' ? 'border-accent text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
                 onClick={() => setActiveSection('general')}
@@ -240,13 +240,13 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                 <div className="flex gap-2 mb-3">
                   <input
                     type="text"
-                    className="flex-1 px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground focus:outline-none focus:border-accent disabled:opacity-50"
+                    className="flex-1 px-3 py-2 text-sm bg-card/30 border border-border rounded-md text-foreground focus:outline-none focus:border-accent disabled:opacity-50"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
                     disabled={!canManage || isLoading}
                   />
                   <button
-                    className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-medium rounded-md bg-accent text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                     onClick={handleSaveName}
                     disabled={!canManage || isLoading || orgName === currentOrg?.name}
                   >
@@ -264,7 +264,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-glass-border">
+                    <tr className="border-b border-border">
                       <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">User ID</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Role</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Joined</th>
@@ -273,7 +273,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                   </thead>
                   <tbody>
                     {members.map((member) => (
-                      <tr key={member.id} className="border-b border-glass-border">
+                      <tr key={member.id} className="border-b border-border">
                         <td className="px-3 py-2">
                           <code className="text-xs text-accent">{member.user_id.slice(0, 8)}...</code>
                           {member.user_id === supabaseUser?.id && (
@@ -283,7 +283,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                         <td className="px-3 py-2">
                           {canManage && member.user_id !== supabaseUser?.id ? (
                             <select
-                              className="w-[100px] px-2 py-1 text-sm bg-bg-surface/30 border border-glass-border rounded text-foreground focus:outline-none focus:border-accent disabled:opacity-50"
+                              className="w-[100px] px-2 py-1 text-sm bg-card/30 border border-border rounded text-foreground focus:outline-none focus:border-accent disabled:opacity-50"
                               value={member.role}
                               onChange={(e) => handleUpdateMemberRole(member.id, e.target.value as 'admin' | 'member')}
                               disabled={isLoading}
@@ -292,7 +292,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                               <option value="member">Member</option>
                             </select>
                           ) : (
-                            <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${member.role === 'admin' ? 'bg-accent text-bg-base' : 'bg-bg-elevated text-muted-foreground'}`}>
+                            <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${member.role === 'admin' ? 'bg-accent text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                               {member.role}
                             </span>
                           )}
@@ -330,7 +330,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                       <div className="md:col-span-6">
                         <input
                           type="email"
-                          className="w-full px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent disabled:opacity-50"
+                          className="w-full px-3 py-2 text-sm bg-card/30 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent disabled:opacity-50"
                           placeholder="Email address"
                           value={inviteEmail}
                           onChange={(e) => setInviteEmail(e.target.value)}
@@ -340,7 +340,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                       </div>
                       <div className="md:col-span-3">
                         <select
-                          className="w-full px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground focus:outline-none focus:border-accent disabled:opacity-50"
+                          className="w-full px-3 py-2 text-sm bg-card/30 border border-border rounded-md text-foreground focus:outline-none focus:border-accent disabled:opacity-50"
                           value={inviteRole}
                           onChange={(e) => setInviteRole(e.target.value as 'admin' | 'member')}
                           disabled={isLoading}
@@ -352,7 +352,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                       <div className="md:col-span-3">
                         <button
                           type="submit"
-                          className="w-full px-4 py-2 text-sm font-medium rounded-md bg-accent text-bg-base hover:bg-accent-hover disabled:opacity-50"
+                          className="w-full px-4 py-2 text-sm font-medium rounded-md bg-accent text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                           disabled={isLoading || !inviteEmail}
                         >
                           Send Invite
@@ -368,7 +368,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-glass-border">
+                        <tr className="border-b border-border">
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Email</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Role</th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Expires</th>
@@ -377,10 +377,10 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                       </thead>
                       <tbody>
                         {invites.map((invite) => (
-                          <tr key={invite.id} className="border-b border-glass-border">
+                          <tr key={invite.id} className="border-b border-border">
                             <td className="px-3 py-2 text-foreground">{invite.email}</td>
                             <td className="px-3 py-2">
-                              <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${invite.role === 'admin' ? 'bg-accent text-bg-base' : 'bg-bg-elevated text-muted-foreground'}`}>
+                              <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${invite.role === 'admin' ? 'bg-accent text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                                 {invite.role}
                               </span>
                             </td>
@@ -389,7 +389,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                             </td>
                             <td className="px-3 py-2">
                               <button
-                                className="px-2 py-1 text-xs font-medium rounded border border-glass-border text-muted-foreground hover:text-foreground hover:bg-bg-elevated transition-colors mr-2"
+                                className="px-2 py-1 text-xs font-medium rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors mr-2"
                                 onClick={() => copyInviteLink(invite.token)}
                                 title="Copy invite link"
                               >
@@ -438,7 +438,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          className="flex-1 px-3 py-2 text-sm bg-bg-surface/30 border border-glass-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent"
+                          className="flex-1 px-3 py-2 text-sm bg-card/30 border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent"
                           value={deleteConfirmText}
                           onChange={(e) => setDeleteConfirmText(e.target.value)}
                           placeholder="Organization name"
@@ -451,7 +451,7 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
                           {isLoading ? 'Deleting...' : 'Confirm Delete'}
                         </button>
                         <button
-                          className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80"
+                          className="px-4 py-2 text-sm font-medium rounded-md bg-muted text-foreground hover:bg-muted/80"
                           onClick={() => {
                             setShowDeleteConfirm(false);
                             setDeleteConfirmText('');
@@ -466,8 +466,8 @@ export function OrgSettings({ isOpen, onClose }: OrgSettingsProps) {
               </div>
             )}
           </div>
-          <div className="flex justify-end gap-2 p-4 border-t border-glass-border">
-            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-bg-elevated text-foreground hover:bg-bg-elevated/80" onClick={onClose}>
+          <div className="flex justify-end gap-2 p-4 border-t border-border">
+            <button type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-muted text-foreground hover:bg-muted/80" onClick={onClose}>
               Close
             </button>
           </div>

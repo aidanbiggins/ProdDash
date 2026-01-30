@@ -93,7 +93,7 @@ export const DataCoveragePanel: React.FC<DataCoveragePanelProps> = ({
               {snapshots.slice(-5).map((snapshot, index) => (
                 <div
                   key={snapshot.id}
-                  className="snapshot-item flex justify-between items-center py-2 border-b border-glass-border"
+                  className="snapshot-item flex justify-between items-center py-2 border-b border-border"
                 >
                   <div className="flex items-center">
                     <span className="snapshot-marker mr-2">
@@ -213,7 +213,7 @@ export const GatedFeature: React.FC<GatedFeatureProps> = ({
         </p>
         {onImportClick && (
           <div className="flex gap-2 justify-center">
-            <button type="button" className="px-3 py-1.5 text-sm font-medium rounded bg-primary text-background hover:bg-accent-hover" onClick={onImportClick}>
+            <button type="button" className="px-3 py-1.5 text-sm font-medium rounded bg-primary text-background hover:bg-primary/90" onClick={onImportClick}>
               Import New Snapshot
             </button>
             <button type="button" className="px-3 py-1.5 text-sm font-medium rounded border border-muted-foreground text-muted-foreground hover:bg-muted-foreground hover:text-background">
