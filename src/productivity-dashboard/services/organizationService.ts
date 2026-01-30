@@ -89,7 +89,7 @@ export async function createOrganization(
     } catch (rpcErr: any) {
       console.warn('[OrgService] RPC unavailable, using direct insert:', rpcErr.message);
 
-      // Direct insert as fallback
+      // Direct insert as fallback - return all fields directly
       const { data: insertedOrg, error: insertError } = await supabase
         .from('organizations')
         .insert({
@@ -97,7 +97,7 @@ export async function createOrganization(
           slug: slug,
           created_by: userId
         })
-        .select('id')
+        .select('*')
         .single();
 
       if (insertError) {
@@ -121,22 +121,53 @@ export async function createOrganization(
         console.error('[OrgService] Failed to create membership:', memberError);
         // Don't throw - org was created, membership might fail due to trigger
       }
+
+      // Return directly from insert - no need to refetch
+      console.log('[OrgService] Organization created successfully:', insertedOrg);
+      return insertedOrg as Organization;
     }
 
     if (!newOrgId) {
       throw new Error('Failed to create organization: no ID returned');
     }
 
-    // Fetch the created organization
-    const { data: org, error: fetchError } = await supabase
-      .from('organizations')
-      .select('*')
-      .eq('id', newOrgId)
-      .single();
+    // For RPC path: fetch with retry logic for RLS timing
+    let org = null;
+    let fetchError = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) {
+        // Wait before retry (100ms, 300ms)
+        await new Promise(resolve => setTimeout(resolve, attempt * 200 + 100));
+        console.log(`[OrgService] Fetch retry attempt ${attempt + 1}...`);
+      }
 
-    if (fetchError || !org) {
-      console.error('[OrgService] Failed to fetch created org:', fetchError);
-      throw new Error('Organization created but failed to fetch details');
+      const result = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', newOrgId)
+        .single();
+
+      if (!result.error && result.data) {
+        org = result.data;
+        break;
+      }
+      fetchError = result.error;
+    }
+
+    if (!org) {
+      console.error('[OrgService] Failed to fetch created org after retries:', fetchError);
+      // Return a minimal org object rather than failing completely
+      // The org was created successfully, we just can't fetch it due to RLS timing
+      console.log('[OrgService] Returning minimal org object');
+      return {
+        id: newOrgId,
+        name: input.name,
+        slug: slug,
+        created_by: userId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        deleted_at: null
+      } as Organization;
     }
 
     console.log('[OrgService] Organization created successfully:', org);
