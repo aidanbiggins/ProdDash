@@ -47,7 +47,6 @@ import {
   MIN_REQS_FOR_REQ_DECAY,
   MIN_DENOM_FOR_PASS_RATE,
   calculateConfidence,
-  ConfidenceLevel,
   detectStageTimingCapability
 } from '../../../services/velocityThresholds';
 import { analyzeLoadVsPerformance, LoadVsPerformanceResult } from '../../../services/loadVsPerformanceService';
@@ -66,73 +65,24 @@ interface VelocityInsightsTabV2Props {
   aiConfig?: AiProviderConfig | null;
 }
 
-// Confidence badge component
-function ConfidenceBadge({ level, sampleSize }: { level: ConfidenceLevel; sampleSize: number }) {
-  const colors: Record<ConfidenceLevel, string> = {
-    HIGH: 'bg-good/15 text-good',
-    MED: 'bg-warn/15 text-warn',
-    LOW: 'bg-bad/15 text-bad',
-    INSUFFICIENT: 'bg-muted text-muted-foreground'
-  };
-
-  return (
-    <span
-      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[0.6rem] font-semibold uppercase font-mono ${colors[level]}`}
-      title={`Sample size: ${sampleSize}`}
-    >
-      {level} (n={sampleSize})
-    </span>
-  );
-}
-
-// Chart footer component showing data window and confidence
-function ChartFooter({
-  dateRange,
-  sampleSize,
-  sampleLabel,
-  threshold,
-  context
-}: {
-  dateRange: { start: Date; end: Date };
-  sampleSize: number;
-  sampleLabel: string;
-  threshold: number;
-  context: string;
-}) {
-  const confidence = calculateConfidence(sampleSize, threshold, context);
-
-  return (
-    <div className="flex items-center justify-between mt-2 px-2 py-1 bg-black/20 rounded-sm text-[0.65rem] text-muted-foreground">
-      <span>
-        {format(dateRange.start, 'MMM d, yyyy')} – {format(dateRange.end, 'MMM d, yyyy')}
-      </span>
-      <span>
-        {sampleSize} {sampleLabel}
-      </span>
-      <ConfidenceBadge level={confidence.level} sampleSize={sampleSize} />
-    </div>
-  );
-}
-
-// Limited data banner component
+// Limited data banner component - only shows if there's meaningful data but not enough
 function LimitedDataBanner({ sections }: { sections: Array<{ name: string; n: number; threshold: number }> }) {
-  const limitedSections = sections.filter(s => s.n < s.threshold);
+  // Filter: only show sections that have SOME data but not enough (n > 0 but < threshold)
+  // Skip sections with n=0 (no data at all - not useful to report)
+  const limitedSections = sections.filter(s => s.n > 0 && s.n < s.threshold);
   if (limitedSections.length === 0) return null;
 
   return (
-    <div className="p-3 rounded mb-4 flex items-start gap-2 bg-warn/10 border border-warn/30 text-warn">
-      <i className="bi bi-exclamation-triangle-fill mt-1"></i>
-      <div>
-        <div className="font-semibold text-sm">Limited Data Available</div>
-        <div className="text-xs text-muted-foreground">
-          Some sections have insufficient data for reliable analysis:
-          {limitedSections.map((s, i) => (
-            <span key={s.name}>
-              {i > 0 && ', '}
-              <strong>{s.name}</strong> (n={s.n}, need {s.threshold})
-            </span>
-          ))}
-        </div>
+    <div className="p-3 rounded mb-4 flex items-start gap-2 bg-warn/10 border border-warn/30">
+      <i className="bi bi-exclamation-triangle text-warn mt-0.5"></i>
+      <div className="text-sm text-muted-foreground">
+        <span className="text-warn font-medium">Limited data: </span>
+        {limitedSections.map((s, i) => (
+          <span key={s.name}>
+            {i > 0 && ', '}
+            {s.name} ({s.n}/{s.threshold} needed)
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -462,23 +412,17 @@ function getDecayColor(rate: number): string {
   return '#EF4444';
 }
 
-// Section Header component
-function SectionHeaderLocal({ icon, title, subtitle, rightContent }: {
-  icon: string;
+// Section Header component - clean V2 style without emojis
+function SectionHeaderLocal({ title, subtitle, rightContent }: {
   title: string;
   subtitle?: string;
   rightContent?: React.ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2">
-        <span className="w-7 h-7 bg-accent/15 rounded flex items-center justify-center text-sm">
-          {icon}
-        </span>
-        <div>
-          <h6 className="mb-0 text-sm font-semibold text-foreground">{title}</h6>
-          {subtitle && <small className="text-muted-foreground text-[0.7rem]">{subtitle}</small>}
-        </div>
+      <div>
+        <h6 className="mb-0 text-sm font-semibold text-foreground">{title}</h6>
+        {subtitle && <span className="text-muted-foreground text-xs">{subtitle}</span>}
       </div>
       {rightContent}
     </div>
@@ -503,117 +447,6 @@ function ChartHelp({ text }: { text: string }) {
           {text}
         </div>
       )}
-    </div>
-  );
-}
-
-// Data chip component
-function DataChip({ n, confidence, label }: { n: number; confidence?: ConfidenceLevel; label?: string }) {
-  const confColors: Record<ConfidenceLevel, string> = {
-    HIGH: 'text-good',
-    MED: 'text-warn',
-    LOW: 'text-bad',
-    INSUFFICIENT: 'text-muted-foreground'
-  };
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="bg-blue-500/10 text-blue-400 px-1.5 py-0.5 text-[0.6rem] font-mono rounded">
-        n={n}{label ? ` ${label}` : ''}
-      </span>
-      {confidence && (
-        <span className={`bg-current/10 px-1.5 py-0.5 text-[0.55rem] font-semibold font-mono rounded uppercase ${confColors[confidence]}`}>
-          {confidence}
-        </span>
-      )}
-    </div>
-  );
-}
-
-// Compact Insight Card
-function CompactInsightCard({
-  insight,
-  onCreateAction,
-  onViewEvidence,
-  isActionCreated
-}: {
-  insight: VelocityInsight;
-  onCreateAction?: (insight: VelocityInsight) => void;
-  onViewEvidence?: (insight: VelocityInsight) => void;
-  isActionCreated?: boolean;
-}) {
-  const iconConfig = {
-    warning: { icon: 'bi-exclamation-triangle-fill', colorClass: 'text-warn', borderClass: 'border-l-warn' },
-    success: { icon: 'bi-check-circle-fill', colorClass: 'text-good', borderClass: 'border-l-good' },
-    info: { icon: 'bi-info-circle-fill', colorClass: 'text-blue-400', borderClass: 'border-l-blue-400' }
-  };
-  const { icon, colorClass, borderClass } = iconConfig[insight.type] || iconConfig.info;
-
-  const confColors: Record<string, string> = {
-    HIGH: 'text-good', MED: 'text-warn', LOW: 'text-bad', INSUFFICIENT: 'text-muted-foreground'
-  };
-
-  return (
-    <div className={`p-3 bg-muted/50 rounded border-l-[3px] ${borderClass}`}>
-      {/* Row 1: Icon + Title | Metric chips */}
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <i className={`bi ${icon} ${colorClass} text-sm shrink-0`}></i>
-          <span className="font-semibold truncate text-foreground text-xs">
-            {insight.title}
-          </span>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          {insight.sampleSize !== undefined && (
-            <span className="bg-blue-500/10 text-blue-400 px-1.5 py-0.5 text-[0.55rem] font-mono rounded">
-              n={insight.sampleSize}
-            </span>
-          )}
-          {insight.confidence && (
-            <span className={`bg-current/10 px-1.5 py-0.5 text-[0.5rem] font-semibold font-mono rounded uppercase ${confColors[insight.confidence]}`}>
-              {insight.confidence}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Row 2: Claim */}
-      <div className="mb-2 text-muted-foreground text-xs leading-relaxed line-clamp-2">
-        {insight.description}
-      </div>
-
-      {/* Row 3: Action buttons */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {onViewEvidence && (
-          <button
-            className="px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[0.6rem] hover:bg-blue-500/20 transition-colors"
-            onClick={() => onViewEvidence(insight)}
-            data-testid="view-evidence-btn"
-          >
-            <i className="bi bi-eye mr-1"></i>Evidence
-          </button>
-        )}
-        {onCreateAction && insight.action && (
-          <button
-            className={`px-1.5 py-0.5 rounded text-[0.6rem] transition-colors ${
-              isActionCreated
-                ? 'bg-muted border border-muted-foreground/20 text-muted-foreground opacity-70'
-                : 'bg-accent/10 border border-accent/20 text-accent hover:bg-accent/20'
-            }`}
-            onClick={() => onCreateAction(insight)}
-            disabled={isActionCreated}
-            data-testid="create-action-btn"
-          >
-            <i className={`bi ${isActionCreated ? 'bi-check' : 'bi-plus-circle'} mr-1`}></i>
-            {isActionCreated ? 'Added' : 'Action'}
-          </button>
-        )}
-        {insight.metric && (
-          <span className="bg-muted text-muted-foreground px-1.5 py-0.5 text-[0.55rem] font-mono rounded">
-            {insight.metric}
-          </span>
-        )}
-      </div>
     </div>
   );
 }
@@ -966,7 +799,7 @@ export function VelocityInsightsTabV2({
         createdActionIds={createdActionIds}
       />
 
-      {/* Key Metrics */}
+      {/* Key Metrics - Clean KPI cards without noisy metadata */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
         <div className="glass-panel p-3 h-full text-center">
           <div className="stat-label mb-1">Median TTF</div>
@@ -975,7 +808,6 @@ export function VelocityInsightsTabV2({
               ? `${reqDecay.medianDaysToFill}d`
               : '—'}
           </div>
-          <DataChip n={reqDecay.totalFilled} confidence={reqConfidence.level} label="closed" />
         </div>
         <div className="glass-panel p-3 h-full text-center">
           <div className="stat-label mb-1">Accept Rate</div>
@@ -984,11 +816,6 @@ export function VelocityInsightsTabV2({
               ? `${Math.round(candidateDecay.overallAcceptanceRate * 100)}%`
               : '—'}
           </div>
-          <DataChip
-            n={candidateDecay.totalOffers > 0 ? candidateDecay.totalAccepted : 0}
-            confidence={offerConfidence.level}
-            label={candidateDecay.totalOffers > 0 ? `/${candidateDecay.totalOffers}` : ''}
-          />
         </div>
         <div className="glass-panel p-3 h-full text-center">
           <div className="stat-label mb-1">Fill Rate</div>
@@ -997,11 +824,6 @@ export function VelocityInsightsTabV2({
               ? `${Math.round(reqDecay.overallFillRate * 100)}%`
               : '—'}
           </div>
-          <DataChip
-            n={reqDecay.totalReqs > 0 ? reqDecay.totalFilled : 0}
-            confidence={reqConfidence.level}
-            label={reqDecay.totalReqs > 0 ? `/${reqDecay.totalReqs}` : ''}
-          />
         </div>
         <div className="glass-panel p-3 h-full text-center">
           <div className="stat-label mb-1">Decay Start</div>
@@ -1010,7 +832,6 @@ export function VelocityInsightsTabV2({
               ? `Day ${candidateDecay.decayStartDay}`
               : '—'}
           </div>
-          <DataChip n={candidateDecay.totalOffers} confidence={offerConfidence.level} label="offers" />
         </div>
       </div>
 
@@ -1037,18 +858,13 @@ export function VelocityInsightsTabV2({
         <button
           type="button"
           onClick={() => setDeepDiveExpanded(!deepDiveExpanded)}
-          className="w-full flex items-center justify-between gap-2 px-3 py-3 rounded-lg bg-muted/30 border border-border text-foreground hover:bg-muted/50 transition-colors"
+          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-muted/30 border border-border text-foreground hover:bg-muted/50 transition-colors"
         >
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-7 h-7 bg-accent/15 rounded flex items-center justify-center text-sm shrink-0">📊</span>
-            <div className="text-left min-w-0">
-              <span className="font-semibold text-sm block">Deep Dive Analysis</span>
-              <span className="text-muted-foreground text-xs block truncate">
-                Pipeline health, decay curves, cohort comparison
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <i className="bi bi-graph-up text-muted-foreground"></i>
+            <span className="font-medium text-sm">Deep Dive</span>
           </div>
-          <i className={`bi bi-chevron-down text-muted-foreground transition-transform shrink-0 ${deepDiveExpanded ? 'rotate-180' : ''}`}></i>
+          <i className={`bi bi-chevron-down text-muted-foreground transition-transform ${deepDiveExpanded ? 'rotate-180' : ''}`}></i>
         </button>
 
         {deepDiveExpanded && (
@@ -1062,26 +878,15 @@ export function VelocityInsightsTabV2({
               />
             )}
 
-            {/* Stage Timing (if available) */}
-            {stageTimingCapability.capability !== 'NONE' && stageTimingCapability.canShowStageDuration && (
-              <div>
-                <SectionHeaderLocal icon="⏱️" title="Stage Timing" subtitle="Time spent in each stage" />
-                {/* Stage timing visualization would go here */}
-              </div>
-            )}
-
             {/* Decay Curves */}
             <div>
-              <SectionHeaderLocal icon="📉" title="Decay Analysis" subtitle="How time affects outcomes" />
+              <SectionHeaderLocal title="Decay Analysis" subtitle="How time affects outcomes" />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Candidate Decay Curve */}
                 <div className="glass-panel p-3 h-full">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h6 className="mb-0 text-xs text-foreground">Candidate Decay</h6>
-                      <small className="text-muted-foreground text-[0.65rem]">Acceptance by time in process</small>
-                    </div>
-                    <DataChip n={candidateDecay.totalOffers} confidence={offerConfidence.level} />
+                  <div className="mb-2">
+                    <h6 className="mb-0 text-sm font-medium text-foreground">Candidate Decay</h6>
+                    <span className="text-muted-foreground text-xs">Acceptance rate by days in process</span>
                   </div>
                   {candidateChartData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={200}>
@@ -1120,12 +925,9 @@ export function VelocityInsightsTabV2({
 
                 {/* Req Decay Curve */}
                 <div className="glass-panel p-3 h-full">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <h6 className="mb-0 text-xs text-foreground">Requisition Decay</h6>
-                      <small className="text-muted-foreground text-[0.65rem]">Fill probability by days open</small>
-                    </div>
-                    <DataChip n={reqDecay.totalReqs} confidence={reqConfidence.level} />
+                  <div className="mb-2">
+                    <h6 className="mb-0 text-sm font-medium text-foreground">Requisition Decay</h6>
+                    <span className="text-muted-foreground text-xs">Fill rate by days open</span>
                   </div>
                   {reqChartData.length > 0 ? (
                     <ResponsiveContainer width="100%" height={200}>
@@ -1168,10 +970,8 @@ export function VelocityInsightsTabV2({
             {metrics.cohortComparison && (metrics.cohortComparison.fastHires.count > 0 || metrics.cohortComparison.slowHires.count > 0) && (
               <div>
                 <SectionHeaderLocal
-                  icon="🏆"
                   title="Fast vs Slow Hires"
-                  subtitle={`Top 25% (${metrics.cohortComparison.fastHires.count}) vs bottom 25% (${metrics.cohortComparison.slowHires.count})`}
-                  rightContent={<DataChip n={metrics.cohortComparison.fastHires.count + metrics.cohortComparison.slowHires.count} confidence={cohortConfidence.level} />}
+                  subtitle={`Comparing top 25% (${metrics.cohortComparison.fastHires.count}) vs bottom 25% (${metrics.cohortComparison.slowHires.count})`}
                 />
                 <div className="glass-panel p-0 overflow-hidden">
                   <div className="overflow-x-auto">
@@ -1211,32 +1011,29 @@ export function VelocityInsightsTabV2({
             {loadVsPerformance && loadVsPerformance.sampleSize >= 10 && (
               <div>
                 <SectionHeaderLocal
-                  icon="⚖️"
                   title="Workload vs. Hiring Speed"
                   subtitle="Does recruiter workload impact time-to-fill?"
-                  rightContent={<DataChip n={loadVsPerformance.sampleSize} confidence={loadVsPerformance.confidence} />}
                 />
                 <div className="glass-panel p-4">
                   {/* Insight Banner */}
-                  <div className={`p-3 rounded mb-4 ${
+                  <div className={`p-3 rounded mb-4 flex items-start gap-2 ${
                     loadVsPerformance.correlation.direction === 'positive' ? 'bg-warn/10 border border-warn/30' :
-                    loadVsPerformance.correlation.direction === 'negative' ? 'bg-primary/10 border border-primary/30' :
+                    loadVsPerformance.correlation.direction === 'negative' ? 'bg-blue-500/10 border border-blue-500/30' :
                     'bg-muted/30 border border-border'
                   }`}>
-                    <div className="flex items-start gap-2">
-                      <span className="text-lg">
-                        {loadVsPerformance.correlation.direction === 'positive' ? '⚠️' :
-                         loadVsPerformance.correlation.direction === 'negative' ? '🔄' : '➖'}
-                      </span>
-                      <div>
-                        <div className="font-semibold text-foreground text-sm mb-1">
-                          {loadVsPerformance.correlation.direction === 'positive' ? 'Higher workload = slower hiring' :
-                           loadVsPerformance.correlation.direction === 'negative' ? 'Unexpected: Higher workload = faster hiring' :
-                           'No significant correlation found'}
-                        </div>
-                        <div className="text-muted-foreground text-xs">
-                          {loadVsPerformance.insight}
-                        </div>
+                    <i className={`bi mt-0.5 ${
+                      loadVsPerformance.correlation.direction === 'positive' ? 'bi-exclamation-triangle text-warn' :
+                      loadVsPerformance.correlation.direction === 'negative' ? 'bi-arrow-repeat text-blue-400' :
+                      'bi-dash text-muted-foreground'
+                    }`}></i>
+                    <div>
+                      <div className="font-medium text-foreground text-sm">
+                        {loadVsPerformance.correlation.direction === 'positive' ? 'Higher workload correlates with slower hiring' :
+                         loadVsPerformance.correlation.direction === 'negative' ? 'Higher workload correlates with faster hiring' :
+                         'No significant correlation found'}
+                      </div>
+                      <div className="text-muted-foreground text-xs mt-1">
+                        {loadVsPerformance.insight}
                       </div>
                     </div>
                   </div>
@@ -1310,17 +1107,16 @@ export function VelocityInsightsTabV2({
             )}
 
             {/* What-if Simulator CTA */}
-            <div className="glass-panel p-4 text-center">
-              <div className="text-3xl mb-2">🔮</div>
-              <div className="text-sm font-semibold text-foreground mb-2">What-if Analysis</div>
-              <p className="text-muted-foreground mb-3 text-xs">
-                Run hiring scenarios to understand potential outcomes.
-              </p>
+            <div className="glass-panel p-4 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-foreground">What-if Analysis</div>
+                <div className="text-xs text-muted-foreground">Run hiring scenarios to model potential outcomes</div>
+              </div>
               <a
                 href="/plan/scenarios"
-                className="inline-flex items-center px-4 py-2 bg-accent text-white rounded hover:bg-accent/90 transition-colors text-sm"
+                className="inline-flex items-center px-3 py-1.5 bg-muted/50 border border-border rounded text-foreground hover:bg-muted transition-colors text-xs font-medium"
               >
-                Open Scenario Library <i className="bi bi-arrow-right ml-1"></i>
+                Open Scenarios <i className="bi bi-arrow-right ml-1"></i>
               </a>
             </div>
           </div>

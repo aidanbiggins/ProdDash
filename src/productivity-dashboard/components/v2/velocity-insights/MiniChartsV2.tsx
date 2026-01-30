@@ -66,7 +66,7 @@ function DecaySparkline({ data, width, height }: { data: SparklineData; width: n
           {data.threshold && (
             <ReferenceLine
               y={data.threshold}
-              stroke="rgb(var(--color-warn))"
+              stroke="hsl(var(--warning))"
               strokeDasharray="3 3"
               strokeOpacity={0.5}
             />
@@ -74,14 +74,14 @@ function DecaySparkline({ data, width, height }: { data: SparklineData; width: n
           <Line
             type="monotone"
             dataKey="value"
-            stroke="rgb(var(--color-accent))"
+            stroke="hsl(var(--accent))"
             strokeWidth={2}
-            dot={{ r: 3, fill: 'rgb(var(--color-accent))' }}
+            dot={{ r: 3, fill: 'hsl(var(--accent))' }}
             activeDot={{ r: 4 }}
           />
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 8, fill: 'rgb(var(--color-muted-foreground))' }}
+            tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
             axisLine={false}
             tickLine={false}
           />
@@ -100,9 +100,9 @@ function RateGauge({ data, size }: { data: GaugeData; size: number }) {
 
   // Determine color based on thresholds
   const getColor = () => {
-    if (value < thresholds.bad) return 'rgb(var(--color-bad))';
-    if (value < thresholds.warn) return 'rgb(var(--color-warn))';
-    return 'rgb(var(--color-good))';
+    if (value < thresholds.bad) return 'hsl(var(--destructive))';
+    if (value < thresholds.warn) return 'hsl(var(--warning))';
+    return 'hsl(var(--success))';
   };
   const color = getColor();
 
@@ -124,7 +124,7 @@ function RateGauge({ data, size }: { data: GaugeData; size: number }) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="rgb(var(--color-border))"
+          stroke="hsl(var(--border))"
           strokeWidth={4}
         />
         {/* Progress arc */}
@@ -158,7 +158,7 @@ function ComparisonBars({ data, width, height }: { data: ComparisonData; width: 
   const chartData = data.bars.map(b => ({
     name: b.label,
     value: b.value,
-    fill: b.color === 'good' ? 'rgb(var(--color-good))' : b.color === 'bad' ? 'rgb(var(--color-bad))' : 'rgb(var(--color-muted-foreground))'
+    fill: b.color === 'good' ? 'hsl(var(--success))' : b.color === 'bad' ? 'hsl(var(--destructive))' : 'hsl(var(--muted-foreground))'
   }));
 
   return (
@@ -169,7 +169,7 @@ function ComparisonBars({ data, width, height }: { data: ComparisonData; width: 
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fontSize: 9, fill: 'rgb(var(--color-muted-foreground))' }}
+            tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
             axisLine={false}
             tickLine={false}
             width={30}
@@ -201,7 +201,7 @@ function BottleneckBars({ data, width, height }: { data: BottleneckData; width: 
     name: s.stage,
     days: s.days,
     // Color intensity based on severity
-    fill: s.days > maxDays * 0.8 ? 'rgb(var(--color-bad))' : s.days > maxDays * 0.5 ? 'rgb(var(--color-warn))' : 'rgb(var(--color-muted-foreground))'
+    fill: s.days > maxDays * 0.8 ? 'hsl(var(--destructive))' : s.days > maxDays * 0.5 ? 'hsl(var(--warning))' : 'hsl(var(--muted-foreground))'
   }));
 
   return (
@@ -212,12 +212,12 @@ function BottleneckBars({ data, width, height }: { data: BottleneckData; width: 
           <YAxis
             type="category"
             dataKey="name"
-            tick={{ fontSize: 8, fill: 'rgb(var(--color-muted-foreground))' }}
+            tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
             axisLine={false}
             tickLine={false}
             width={50}
           />
-          <Bar dataKey="days" radius={[0, 4, 4, 0]} barSize={10} label={{ position: 'right', fontSize: 8, fill: 'rgb(var(--color-muted-foreground))' }}>
+          <Bar dataKey="days" radius={[0, 4, 4, 0]} barSize={10} label={{ position: 'right', fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}>
             {chartData.map((entry, index) => (
               <Cell key={index} fill={entry.fill} />
             ))}
